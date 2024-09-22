@@ -3,6 +3,7 @@ CODAR = {}
 local pairMaxDistance = 4000
 local pairMinDistance = 800
 local basePairRange = 5500
+local searchInterval = 30
 local pairId = 1
 local buoys = {
     [1] = {},
@@ -124,7 +125,7 @@ function CODAR.pairsLoop()
             end
         end
     end
-    timer.scheduleFunction(CODAR.pairsLoop, nil, timer:getTime() + 30)
+    timer.scheduleFunction(CODAR.pairsLoop, nil, timer:getTime() + searchInterval)
 end
 function CODAR.searchFromPoint(point, range)
     env.info("CODAR Searching for subs at point: X:" .. point.x .. " Y: " ..point.z, false)
