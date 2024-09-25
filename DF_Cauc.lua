@@ -55,10 +55,13 @@ DFS.internalCargo = {
 DFS.heloCapacities = {
     ["AV8BNA"] = {
         types = {
+            ["Fuel"] = 1,
+            ["Ammo"] = 2,
+            ["Equipment"] = 3,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
         },
-        volume = 5
+        volume = 5,
     },
     ["Mi-8MT"] = {
         types = {
