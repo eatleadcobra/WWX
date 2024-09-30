@@ -1,4 +1,7 @@
 local pathToWWX = "C:\\WWX\\"
+if DEBUG then
+   pathToWWX = "F:\\Games\\WWX\\"
+end
 env.info("Start loading WWX...", false)
 env.info("Loading Utils", false)
 assert(loadfile(pathToWWX.."Utils\\mist_WWXMinimum.lua"))()
