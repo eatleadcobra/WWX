@@ -10,6 +10,7 @@ world.event.S_EVENT_WWX_SHIP_CAPTURED = 8410
 world.event.S_EVENT_WWX_CARGO_STOLEN = 8411
 world.event.S_EVENT_WWX_SHIP_TORPEDOED = 8412
 world.event.S_EVENT_WWX_CONVOY_KILLED = 8413
+world.event.S_EVENT_WWX_CSAR_MISSION_COMPLETED = 8414
 
 world.event.S_EVENT_WWX_FIREMISSION_COMPLETE = 8415
 WWEvents = {}
@@ -171,6 +172,17 @@ function WWEvents.convoyKilled(coalitionId, message, listOfPlayers)
         coalition = coalitionId,
         text = message,
         listOfPlayers = listOfPlayers
+    }
+    world.onEvent(Event)
+end
+function WWEvents.playerCsarMissionCompleted(playerName, coalitionId, baseName, csarMissionCompleteMessage)
+    local Event = {
+        id = world.event.S_EVENT_WWX_CSAR_MISSION_COMPLETED,
+        time = timer:getTime(),
+        playerName = playerName,
+        coalition = coalitionId,
+        baseName = baseName,
+        text = csarMissionCompleteMessage
     }
     world.onEvent(Event)
 end

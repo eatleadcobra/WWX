@@ -32,6 +32,8 @@ assert(loadfile(pathToWWX.."Components\\FastRope.lua"))()
 assert(loadfile(pathToWWX.."Components\\CasBot.lua"))()
 assert(loadfile(pathToWWX.."Components\\CODAR.lua"))()
 assert(loadfile(pathToWWX.."Components\\MAD.lua"))()
+assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
+assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
 env.info("Loading Plugins", false)
 -- "plugins" here are like wrappers or translation layers between the component and the specific mission requirements of WWX
 assert(loadfile(pathToWWX.."Plugins\\DF_firebases.lua"))()
