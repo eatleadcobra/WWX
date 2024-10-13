@@ -680,6 +680,9 @@ function dfc.fileExists(file)
     return f ~= nil
 end
 function dfc.getData()
+    if dfc.fileExists(blueFbs) == false or dfc.fileExists(redFbs) == false then
+        lfs.mkdir(lfs.writedir() .. [[Logs/Firebases/]])
+    end
     if dfc.fileExists(redState) and dfc.fileExists(blueState) then
         local f = io.open(redState, 'r')
         if f ~= nil then
