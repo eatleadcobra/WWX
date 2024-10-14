@@ -122,6 +122,7 @@ function cb.flareGroup(groupName)
 				local missionTime = timer.getAbsTime()
 				if 27000 > missionTime or missionTime > 68400 then
 				    trigger.action.illuminationBomb({x=groupPoint.x, y=groupPoint.y + 500, z=groupPoint.z}, 5000)
+                    env.info("Creating illumination marker for: " .. groupName, false)
 				end
 		    end
 		end
