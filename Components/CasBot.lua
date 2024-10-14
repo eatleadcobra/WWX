@@ -106,9 +106,25 @@ function cb.assignCas(playerName, coalitionId, playerGroupID)
             if missionGroup then
                 assignments[coalitionId][playerName] = {name = playerName, target = missionGroupName, groupID = playerGroupID, startTime = timer:getTime(), smokeTime = timer:getTime(), smokeNum = smokeNum}
                 trigger.action.outTextForGroup(playerGroupID, "Target assigned and marked with ".. smokeColor .." smoke! You are cleared hot.", 20, false)
-                DFS.smokeGroup(missionGroupName, smokeNum)
+				DFS.smokeGroup(missionGroupName, smokeNum)
+				cb.flareGroup(missionGroupName)
             end
         end
+    end
+end
+function cb.flareGroup(groupName)
+    local missionGroup = Group.getByName(groupName)
+    if missionGroup then
+	    local unitGroup = missionGroup:getUnit(1)
+		if unitGroup then
+		    local groupPoint = unitGroup:getPoint()
+		    if groupPoint then
+				local missionTime = timer.getAbsTime()
+				if 27000 > missionTime or missionTime > 68400 then
+				    trigger.action.illuminationBomb({x=groupPoint.x, y=groupPoint.y + 500, z=groupPoint.z}, 5000)
+				end
+		    end
+		end
     end
 end
 function cb.trackCas()
@@ -138,6 +154,7 @@ function cb.trackCas()
                     trigger.action.outTextForGroup(v.groupID, "Mission not completed! Return to CAS stack for further assignment.", 30, false)
                 elseif  timer:getTime() - v.smokeTime > 300 then
                     DFS.smokeGroup(v.target, v.smokeNum)
+					cb.flareGroup(v.target)
                     v.smokeTime = timer:getTime()
                 end
             else
