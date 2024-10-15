@@ -1,4 +1,5 @@
 local debug = false
+local torp = {}
 local torpEvents = {}
 function torpEvents:onEvent(event)
     --on hit
@@ -9,11 +10,11 @@ function torpEvents:onEvent(event)
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
             env.info("Tracking torpedo: " .. event.weapon:getCategory(), false)
-            TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName})
+            torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
         end
     end
 end
-function TrackTorpedo(param)
+function torp.TrackTorpedo(param)
     local torpedoPoint = {}
     if param.torpedo:isExist() then
         if timer.getTime() - param.startTime > 180 then
@@ -22,20 +23,20 @@ function TrackTorpedo(param)
         end
         torpedoPoint = param.torpedo:getPoint()
         if torpedoPoint ~= nil then
-            local shipPoint = DetonateTorpedo(torpedoPoint)
+            local shipPoint = torp.DetonateTorpedo(torpedoPoint)
             if shipPoint ~= nil then
                 env.info("Detonate", false)
                 trigger.action.explosion(shipPoint, 1000)
                 if WWEvents then
-                    WWEvents.playerTorpedoedShip(param.playerName, param.playerName .. " hit a ship with a torpedo. That's badass!" )
+                    WWEvents.playerTorpedoedShip(param.playerName, param.playerName .. " hit a ship with a torpedo. That's badass!", param.coalitionId)
                 end
                 if param.torpedo:isExist() then param.torpedo:destroy() end
             end
         end
-        timer.scheduleFunction(TrackTorpedo, param, timer.getTime() + 0.2)
+        timer.scheduleFunction(torp.TrackTorpedo, param, timer.getTime() + 0.2)
     end
 end
-function DetonateTorpedo(torpedoPoint)
+function torp.DetonateTorpedo(torpedoPoint)
     local shipPoint = nil
     local volS = {
         id = world.VolumeType.SPHERE,
@@ -55,12 +56,12 @@ function DetonateTorpedo(torpedoPoint)
             local collideDistance = math.max(shipLength/3.0, shipWidth)
             collideDistance = collideDistance * 1.2
 
-            local frontPoint = VectorAdd(shipOrigin, ScalarMult(shipPosition.x, collideDistance))
-            local rearPoint = VectorSub(shipOrigin, ScalarMult(shipPosition.x, collideDistance))
+            local frontPoint = torp.VectorAdd(shipOrigin, torp.ScalarMult(shipPosition.x, collideDistance))
+            local rearPoint = torp.VectorSub(shipOrigin, torp.ScalarMult(shipPosition.x, collideDistance))
 
-            local distance1 = PointDistance(torpedoPoint, shipOrigin)
-            local distance2 = PointDistance(torpedoPoint, frontPoint)
-            local distance3 = PointDistance(torpedoPoint, rearPoint)
+            local distance1 = torp.PointDistance(torpedoPoint, shipOrigin)
+            local distance2 = torp.PointDistance(torpedoPoint, frontPoint)
+            local distance3 = torp.PointDistance(torpedoPoint, rearPoint)
             if distance1 <= collideDistance or distance2 <= collideDistance or distance3 <= collideDistance then
                 shipPoint = foundItem:getPoint()
             end
@@ -69,19 +70,19 @@ function DetonateTorpedo(torpedoPoint)
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
     return shipPoint
 end
-function ScalarMult(vec, mult)
+function torp.ScalarMult(vec, mult)
     return {x = vec.x*mult, y = vec.y*mult, z = vec.z*mult}
 end
-function VectorMagnitude(vec)
+function torp.VectorMagnitude(vec)
     return (vec.x^2 + vec.y^2 + vec.z^2)^0.5
 end
-function VectorAdd(vec1, vec2)
+function torp.VectorAdd(vec1, vec2)
     return {x = vec1.x + vec2.x, y = vec1.y + vec2.y, z = vec1.z + vec2.z}
 end
-function VectorSub(vec1, vec2)
+function torp.VectorSub(vec1, vec2)
     return {x = vec1.x - vec2.x, y = vec1.y - vec2.y, z = vec1.z - vec2.z}
 end
-function MakeVec3(vec, y)
+function torp.MakeVec3(vec, y)
     if not vec.z then
         if vec.alt and not y then
             y = vec.alt
@@ -93,9 +94,9 @@ function MakeVec3(vec, y)
         return {x = vec.x, y = vec.y, z = vec.z}	-- it was already Vec3, actually.
     end
 end
-function PointDistance(point1, point2)
-    point1 = MakeVec3(point1)
-    point2 = MakeVec3(point2)
-    return VectorMagnitude({x = point1.x - point2.x, y = 0, z = point1.z - point2.z})
+function torp.PointDistance(point1, point2)
+    point1 = torp.MakeVec3(point1)
+    point2 = torp.MakeVec3(point2)
+    return torp.VectorMagnitude({x = point1.x - point2.x, y = 0, z = point1.z - point2.z})
 end
 world.addEventHandler(torpEvents)

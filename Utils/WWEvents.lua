@@ -10,7 +10,8 @@ world.event.S_EVENT_WWX_SHIP_CAPTURED = 8410
 world.event.S_EVENT_WWX_CARGO_STOLEN = 8411
 world.event.S_EVENT_WWX_SHIP_TORPEDOED = 8412
 world.event.S_EVENT_WWX_CONVOY_KILLED = 8413
-world.event.S_EVENT_WWX_FIREMISSION_COMPLETE = 8414
+
+world.event.S_EVENT_WWX_FIREMISSION_COMPLETE = 8415
 WWEvents = {}
 WWEvents.latches = {
     [1] = {
@@ -151,11 +152,12 @@ function WWEvents.playerDestroyedSubmarine(playerName, coalitionId, message)
     }
     world.onEvent(Event)
 end
-function WWEvents.playerTorpedoedShip(playerName, message)
+function WWEvents.playerTorpedoedShip(playerName, message, coalitionId)
     env.info("player torpedo hit event fired", false)
     local Event = {
         id = world.event.S_EVENT_WWX_SHIP_TORPEDOED,
         time = timer:getTime(),
+        coalition = coalitionId,
         playerName = playerName,
         text = message
     }
