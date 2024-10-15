@@ -436,6 +436,13 @@ function fbFuncs.spawnGroup(firebase, type)
     for i = 1, maxSpawns do
         if i > currentGroups then
             local newGroup = FirebaseGroups.spawn(type, firebase.positions.spawnPoints.groups[i], firebase.coalition, firebase.positions.heading)
+            local newGroupObj = Group.getByName(newGroup)
+            if newGroupObj then
+                local newGroupObjController = newGroupObj:getController()
+                if newGroupObjController then
+                    newGroupObjController:setOption(AI.Option.Ground.id.ROE, AI.Option.Ground.val.ROE.WEAPON_HOLD)
+                end
+            end
             table.insert(firebase.contents.groups, newGroup)
             Firebases.updateGroupCounter(firebase)
             break
@@ -603,6 +610,18 @@ function fbFuncs.cleanFireMission(param)
                 WWEvents.fireMissionCompleted(param.firebase.coalition, missionPlayer, assignedGunKills[missionPlayer])
             end
             assignedGunKills[missionPlayer] = nil
+        end
+    end
+    for i = 1, #param.firebase.contents.groups do
+        local fbGroup = param.firebase.contents.groups[i]
+        if fbGroup then
+            local fbGroupObj = Group.getByName(fbGroup)
+            if fbGroupObj then
+                local fbGroupObjController = fbGroupObj:getController()
+                if fbGroupObjController then
+                    fbGroupObjController:setOption(AI.Option.Ground.id.ROE, AI.Option.Ground.val.ROE.WEAPON_HOLD)
+                end
+            end
         end
     end
     param.firebase:unassign()
