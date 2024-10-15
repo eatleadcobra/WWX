@@ -171,6 +171,11 @@ function csb.load()
         trigger.action.textToAll(2, DrawingTools.newMarkId(), csarPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CSAR Coverage")
         csb.main()
     end
+    for c = 1, 2 do
+        for z = 1, #csarBases[c] do
+            DrawingTools.drawHealth(trigger.misc.getZone(csarBases[c][z]).point, c, 500)
+        end
+    end
 end
 function csb.main()
     csb.searchCsarStacks()
