@@ -9,6 +9,12 @@ Firebases.fbTypes = {
     ["HOWITZER"] = 2,
     ["SPG"] = 3,
 }
+local gunAssignments = {
+
+}
+local assignedGunKills = {
+
+}
 local fbId = 1
 local markId = 3000
 local resupDistance = 300
@@ -72,26 +78,30 @@ local fbEvents = {}
 function fbEvents:onEvent(event)
     --on mark change
     if (event.id == world.event.S_EVENT_MARK_CHANGE) then
+        local playerName =  nil
         if event.idx then
             env.info("Mark Changed: " .. event.idx, false)
+            if event.initiator ~= nil then
+                playerName = event.initiator:getPlayerName()
+            end
             if event.pos and event.pos.x and event.pos.z then
                 env.info("changed at: \nX: " .. event.pos.x .. '\nZ: ' .. event.pos.z, false)
             end
         end
         if (string.upper(event.text) == 'X') then
-            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "ANY"})
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "ANY", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
         if (string.upper(event.text) == 'H') then
-            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "HOWITZER"})
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "HOWITZER", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
         if (string.upper(event.text) == 'S') then
-            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "SPG"})
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "SPG", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
         if (string.upper(event.text) == 'M') then
-            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "MORTAR"})
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "MORTAR", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
     end
@@ -107,6 +117,18 @@ function fbEvents:onEvent(event)
             if targetMarks[i].id == event.idx then
                 table.remove(targetMarks, i)
                 break
+            end
+        end
+    end
+    -- on kill
+    if (event.id == world.event.S_EVENT_KILL) then
+        if event and event.initiator and event.initiator.hasAttribute and event.initiator:hasAttribute("Artillery") then
+            local facPlayer = gunAssignments[event.initiator:getName()]
+            if facPlayer then
+                env.info(facPlayer .. "  directed artillery scored a kill", false)
+                local currentKills = assignedGunKills[facPlayer]
+                if currentKills == nil then currentKills = 0 end
+                assignedGunKills[facPlayer] = currentKills + 1
             end
         end
     end
@@ -414,6 +436,13 @@ function fbFuncs.spawnGroup(firebase, type)
     for i = 1, maxSpawns do
         if i > currentGroups then
             local newGroup = FirebaseGroups.spawn(type, firebase.positions.spawnPoints.groups[i], firebase.coalition, firebase.positions.heading)
+            local newGroupObj = Group.getByName(newGroup)
+            if newGroupObj then
+                local newGroupObjController = newGroupObj:getController()
+                if newGroupObjController then
+                    newGroupObjController:setOption(AI.Option.Ground.id.ROE, AI.Option.Ground.val.ROE.WEAPON_HOLD)
+                end
+            end
             table.insert(firebase.contents.groups, newGroup)
             Firebases.updateGroupCounter(firebase)
             break
@@ -509,9 +538,23 @@ function fbFuncs.firebaseFire(firebase, targetmark)
     mission.expendQtyEnabled = true
     local fire = {id = 'FireAtPoint', params = mission}
     --Group.getByName(firebase:getGroupName()):getController():pushTask(fire)
+    local assignedArtyNames = {}
     for i = 1, #fbGroups do
         local artGroup = Group.getByName(fbGroups[i])
-        if artGroup ~= nil then artGroup:getController():pushTask(fire) end
+        if artGroup ~= nil then
+            artGroup:getController():pushTask(fire)
+            for j = 1, artGroup:getSize() do
+                local artUnit = artGroup:getUnit(j)
+                if artUnit then
+                    table.insert(assignedArtyNames, artUnit:getName())
+                end
+            end
+        end
+    end
+    if targetmark.playerName and assignedArtyNames then
+        for i = 1, #assignedArtyNames do
+            gunAssignments[assignedArtyNames[i]] = targetmark.playerName
+        end
     end
     local missionTime = firemissionDelays[firebase.fbType].aiming + ((mission.expendQty-1)*firemissionDelays[firebase.fbType].perShot)
     firebase:expendAmmo(mission.expendQty)
@@ -521,7 +564,7 @@ function fbFuncs.firebaseFire(firebase, targetmark)
         fbFuncs.firingMarkUpdate(targetmark.id, targetmark.pos, targetmark.coalition, firebase.fbType, mission.expendQty)
     end
     fbFuncs.firingDraw(firebase, {x = mission.x, y = mission.y})
-    timer.scheduleFunction(fbFuncs.cleanFireMission, {firebase = firebase}, timer:getTime() + missionTime)
+    timer.scheduleFunction(fbFuncs.cleanFireMission, {firebase = firebase, assignedArtyNames = assignedArtyNames}, timer:getTime() + missionTime)
 end
 function fbFuncs.firingMarkUpdate(targetmarkId, point, coalitionId, fbType, shots)
     trigger.action.removeMark(targetmarkId)
@@ -556,6 +599,31 @@ function fbFuncs.cleanFireMission(param)
     --trigger.action.removeMark(param.circleId)
     trigger.action.setMarkupColorFill(param.firebase.markups.firing.circle, {0,0,0,0.1})
     trigger.action.setMarkupPositionEnd(param.firebase.markups.firing.line, param.firebase.positions.location)
+    if param.assignedArtyNames then
+        local missionPlayer = gunAssignments[param.assignedArtyNames[1]]
+        for i = 1, #param.assignedArtyNames do
+            gunAssignments[param.assignedArtyNames[i]] = nil
+        end
+        if assignedGunKills[missionPlayer] then
+            trigger.action.outTextForCoalition(param.firebase.coalition, missionPlayer .. "'s fire mission scored " .. assignedGunKills[missionPlayer] .. " kills.", 10, false)
+            if WWEvents then
+                WWEvents.fireMissionCompleted(param.firebase.coalition, missionPlayer, assignedGunKills[missionPlayer])
+            end
+            assignedGunKills[missionPlayer] = nil
+        end
+    end
+    for i = 1, #param.firebase.contents.groups do
+        local fbGroup = param.firebase.contents.groups[i]
+        if fbGroup then
+            local fbGroupObj = Group.getByName(fbGroup)
+            if fbGroupObj then
+                local fbGroupObjController = fbGroupObj:getController()
+                if fbGroupObjController then
+                    fbGroupObjController:setOption(AI.Option.Ground.id.ROE, AI.Option.Ground.val.ROE.WEAPON_HOLD)
+                end
+            end
+        end
+    end
     param.firebase:unassign()
 end
 function fbFuncs.checkFirebases()
