@@ -193,7 +193,7 @@ function WWEvents.fireMissionCompleted(coalitionId, playerName, kills)
         time = timer:getTime(),
         coalition = coalitionId,
         playerName = playerName,
-        text = "'s fire mission acheived " .. kills .. " kill(s)!"
+        text = "'s fire mission achieved " .. kills .. " kill(s)!"
     }
     world.onEvent(Event)
 end
