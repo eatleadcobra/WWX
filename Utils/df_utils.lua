@@ -17,6 +17,21 @@ function DF_UTILS.spawnGroupExact(groupName, spawnPoint, action)
 		vars.anyTerrain = true
         return mist.teleportToPoint(vars).name
 end
+function DF_UTILS.spawnGroupWide(groupName, spawnPoint, action, radius, anywhere, safeZones, fName)
+    local vars = {}
+        vars.gpName = groupName
+		if fName ~= "" then
+			vars.name = fName
+		end
+        vars.action = action
+        vars.point = spawnPoint
+        vars.radius = radius
+        vars.anyTerrain = anywhere
+        if (not anywhere) and safeZones then
+			vars.validTerrain = safeZones
+		end
+        return mist.teleportToPoint(vars).name
+end
 function DF_UTILS.fileExists(file)
     local f = io.open(file, 'rb')
     if f then f:close() end

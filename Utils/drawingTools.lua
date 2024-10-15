@@ -158,8 +158,8 @@ function DrawingTools.drawHealth(origin, coalitionId, boxSize)
     local topLeft = origin
     local bottomRight = {x = origin.x - boxSize, y = origin.y, z = origin.z + boxSize}
     local healthBoxId = DrawingTools.newMarkId()
-    env.info("Drawing health icon box: " .. healthBoxId, false)
-    trigger.action.rectToAll(coalitionId, healthBoxId, topLeft, bottomRight, {0,0,0,1}, {1,1,1,1}, 1, true, nil)
+    -- env.info("Drawing health icon box: " .. healthBoxId, false)
+    -- trigger.action.rectToAll(coalitionId, healthBoxId, topLeft, bottomRight, {0,0,0,1}, {1,1,1,1}, 1, true, nil)
     local crossOffset = boxSize/3
     local c1 = { x = origin.x, y = origin.y, z = origin.z + crossOffset}
     local c2 = { x = c1.x, y = c1.y, z = c1.z + crossOffset}

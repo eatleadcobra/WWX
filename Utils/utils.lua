@@ -108,3 +108,39 @@ function Utils.uuid()
         return string.format('%x', v)
     end)
 end
+function Utils.relativeClockBearing(p1,p2,hdg)
+    local xdiff = p2.x - p1.x
+    local zdiff = p2.z - p1.z
+    local bearing = math.atan2(zdiff,xdiff)
+    bearing = math.floor(bearing / math.pi * 180)
+    bearing = bearing - hdg
+    local clockBearing = math.fmod(bearing, 360)
+    while clockBearing < 0 do
+        clockBearing = clockBearing + 360
+    end
+    while clockBearing > 360 do
+        clockBearing = clockBearing - 360
+    end
+    if clockBearing < 15 then
+        return 12
+    end
+    clockBearing = clockBearing + 15
+    return math.floor(clockBearing/30)
+end
+function Utils.pointInCircleTriggerZone(pp,zp)
+    local pZeroAlt = {x = pp.x, y = 0, z = pp.z}
+    local zZeroAlt = {x = zp.point.x, y = 0, z = zp.point.z}
+    local dist = Utils.PointDistance(zZeroAlt,pZeroAlt)
+    if dist < zp.radius then
+        return true
+    end
+    return false
+end
+function Utils.getHdgFromPosition(pos)
+    if not pos then return 0 end
+    local hdg = math.atan2(pos.x.z, pos.x.x)
+    if hdg < 0 then
+        hdg = hdg + 2 * math.pi
+    end
+    return hdg * (180/math.pi)
+end
