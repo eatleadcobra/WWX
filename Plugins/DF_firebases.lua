@@ -488,7 +488,7 @@ function fbFuncs.inRange(firebase, tgtPoint)
     local inRange = Utils.PointDistance(firebase.positions.location, tgtPoint) <= firebaseRanges[firebase.fbType]
     return inRange
 end
-function Firebases.rocketFire(point, coalitionId)
+function Firebases.rocketFire(point, coalitionId, playerName)
     local inAnyRange = false
     for j = 1, #FirebaseIds[coalitionId] do
         local firebase = Firebases[FirebaseIds[coalitionId][j]]
@@ -499,6 +499,7 @@ function Firebases.rocketFire(point, coalitionId)
                 fakePoint.pos = {x = 0, z = 0}
                 fakePoint.pos.x = point.x
                 fakePoint.pos.z = point.z
+                fakePoint.playerName = playerName
                 fbFuncs.firebaseFire(firebase, fakePoint)
                 return true
             end

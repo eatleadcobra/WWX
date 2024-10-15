@@ -71,7 +71,7 @@ function smokeTracker.fire(param)
         --this point is where we want to blow up stuff, replace smoke with call to artillery fire function
         --trigger.action.smoke(avgPoint, 0)
         env.info("artillery point added for " .. param.playerName, false)
-        table.insert(artyPoints[param.coalition], avgPoint)
+        table.insert(artyPoints[param.coalition], {point = avgPoint, playerName = param.playerName})
 
     end
     targetMarks[param.playerName] = nil
@@ -80,7 +80,7 @@ function smokeTracker.assignmentLoop()
     for c = 1,2 do
         for i=1, #artyPoints[c] do
             env.info("Checking point: " .. c .. "-" .. i, false)
-            local firedOn = Firebases.rocketFire(artyPoints[c][i], c)
+            local firedOn = Firebases.rocketFire(artyPoints[c][i].point, c, artyPoints[c][i].playerName)
             if firedOn then
                 env.info("smoke rocket point fired on or out of range", false)
                 table.remove(artyPoints[c], i)
