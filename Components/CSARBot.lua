@@ -534,7 +534,7 @@ end
 function csb.fakeExtractionTime(args)
     local playerGroupID = args.pGrId
     local playerUnit = args.pUnit
-    if playerUnit and playerUnit.isExist() and playerUnit.getPlayerName then
+    if playerUnit and playerUnit:isExist() and playerUnit.getPlayerName then
         local pVelo = playerUnit:getVelocity()
         local inSafeVeloParams = csb.checkVelocity(pVelo)
         if inSafeVeloParams then
