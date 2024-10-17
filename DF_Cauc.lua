@@ -1649,7 +1649,7 @@ function dfc.checkConvoy(param)
                 local distanceToDestination = Utils.PointDistance(convoyLeadPos, convoyDestinationZone.point)
                 if distanceToDestination < convoyDestinationZone.radius and dfc.depotActive({coalitionId = coalitionId, zone = param.deliverZone}) then
                     dfc.increaseFrontSupply({coalitionId = coalitionId, amount = math.floor(DFS.status.convoyResupplyAmts[param.type] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = param.type})
-                    trigger.action.outTextForCoalition(coalitionId, "Supplies Delivered!", 10, false)
+                    trigger.action.outTextForCoalition(coalitionId, "Convoy Supplies Delivered!", 10, false)
                     convoyGroup:destroy()
                     return
                 end
@@ -1685,7 +1685,7 @@ function dfc.checkShipping(param)
                     dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.AMMO})
                     dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.EQUIPMENT})
                     env.info(param.convoyName .. " deliver zone: " .. destinationZoneString .. " delivered!", false)
-                    trigger.action.outTextForCoalition(convoyCoalition, "Cargo Delivered!", 10, false)
+                    trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
                     convoyGroup:destroy()
                     local escortGroup = Group.getByName(param.escortName)
                     if escortGroup then

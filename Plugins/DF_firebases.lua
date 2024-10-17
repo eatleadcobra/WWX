@@ -44,9 +44,9 @@ local firebaseExpendQtys = {
     ["SPG"] = 9,
 }
 local firebaseMaxAmmos = {
-    ["MORTAR"] = 200,
-    ["HOWITZER"] = 120,
-    ["SPG"] = 200,
+    ["MORTAR"] = 100,
+    ["HOWITZER"] = 60,
+    ["SPG"] = 100,
 }
 local supplyTypes = {
     ["MORTAR"] = "BOMBS",
@@ -472,7 +472,7 @@ function Firebases.getClosestUnassignedFirebaseInRangeByType(point, coalition, f
     for i = 1, #FirebaseIds[coalition] do
         if fbType == "ANY" or (Firebases[FirebaseIds[coalition][i]].fbType and Firebases[FirebaseIds[coalition][i]].fbType == fbType) then
             local distance = Utils.PointDistance(point, Firebases[FirebaseIds[coalition][i]].positions.location)
-            if fbFuncs.inRange(Firebases[FirebaseIds[coalition][i]], point) and distance < distanceToFirebase and not Firebases[FirebaseIds[coalition][i]]:isAssigned() then
+            if fbFuncs.inRange(Firebases[FirebaseIds[coalition][i]], point) and distance < distanceToFirebase and not Firebases[FirebaseIds[coalition][i]]:isAssigned() and Firebases[FirebaseIds[coalition][i]].contents.ammo > 0 then
                 distanceToFirebase = distance
                 returnBaseIndex = FirebaseIds[coalition][i]
             end
