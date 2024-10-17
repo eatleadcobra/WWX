@@ -2918,9 +2918,16 @@ function dfc.addGroupToCargoList(groupName, dropMenu, troopsMenu)
         end
     end
 end
+function dfc.makeAirfieldsNonCapturable()
+    local airbases = world.getAirbases()
+    for i = 1, #airbases do
+        airbases[i]:autoCapture(false)
+    end
+end
 if debug then missionCommands.addCommand('End Mission', nil, dfc.endMission, 1) end
 
 world.addEventHandler(dfcEvents)
+dfc.makeAirfieldsNonCapturable()
 dfc.getMission()
 dfc.getData()
 dfc.initSpawns()
