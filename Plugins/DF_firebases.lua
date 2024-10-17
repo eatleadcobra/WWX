@@ -647,7 +647,7 @@ function fbFuncs.checkFirebases()
                             end
                         end
                     else
-                        if checkingBase.fbType == "MORTAR" then
+                        if checkingBase.fbType == "MORTAR" or checkingBase.fbType == "HOWITZER" then
                             Firebases.destroyFirebase(checkingBase)
                         end
                     end
