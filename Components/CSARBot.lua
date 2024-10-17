@@ -8,7 +8,7 @@ local csarStackHeight = 1000
 local csarZoneRadius = 10000
 local csarTimeLimit = 3599
 local csarReassignTime = 299
-local csarPickupRadius = 70
+local csarPickupRadius = 30
 local csarHoverRadius = 20
 local csarHoverAgl = 30
 local csarHoverTime = 20
@@ -214,14 +214,7 @@ function csb.searchCsarStacks()
         for k,v in pairs(currentLists[c]) do
             if previousLists[c][k] and assignments[c][k] == nil or previousLists[c][k] and (assignments[c][k].startTime > csarReassignTime) then
                 if assignments[c][k] ~= nil then
-                    local g = Group.getByName(assignments[c][k].target)
-                    if g and g:isExist() then
-                        Group.destroy(g)
-                        if assignments[c][k].equipment ~= nil then
-                            local eq = Group.getByName(assignments[c][k].equipment)
-                            if eq and eq:isExist() then Group.destroy(eq) end
-                        end
-                    end
+                    csb.cleanupCsarGroup(assignments[c][k])
                     trigger.action.outTextForGroup(assignments[c][k].groupID, assignments[c][k].fName.."'s locator Beacon no longer transmitting...", 30, false)
                     assignments[c][k] = nil
                 end
@@ -272,6 +265,7 @@ function csb.assignCsar(playerName, coalitionId, playerGroupID, typeName)
             args.freq = freq
             args.amfm = modulation
             args.soundFile = "l10n/DEFAULT/dah2.ogg"
+            args.equipment = csarGearGroupName
             timer.scheduleFunction(csb.startTransmission, args, timer.getTime() + math.random(2,5))
             assignments[coalitionId][playerName] = {
                 name = playerName,
@@ -289,7 +283,7 @@ function csb.assignCsar(playerName, coalitionId, playerGroupID, typeName)
                 equipment = csarGearGroupName,
                 freqType = freqType
             }
-            trigger.action.outTextForGroup(playerGroupID, "- CSAR mission assigned.\n- Rescue ".. fName ..".\n- ".. freqStr .. ".", 20, false)
+            trigger.action.outTextForGroup(playerGroupID, "- CSAR mission assigned.\n- Rescue ".. fName ..".\n- ".. freqStr .. ".", 90, false)
             if csarCounter[coalitionId][freqType] == 8 then csarCounter[coalitionId][freqType] = -1 end
             csarCounter[coalitionId][freqType] = csarCounter[coalitionId][freqType] + 1
         end
@@ -317,13 +311,7 @@ function csb.trackCsar()
                         isDead = true
                     end
                     if (isDead or (timer.getTime() - v.startTime > csarTimeLimit)) then
-                        if targetGroup and targetGroup:isExist() then
-                            Group.destroy(targetGroup)
-                            if v.equipment ~= nil then
-                                local eq = Group.getByName(v.equipment)
-                                if eq and eq:isExist() then Group.destroy(eq) end
-                            end
-                        end
+                        csb.cleanupCsarGroup(v)
                         trigger.action.outTextForGroup(v.groupID, v.fName.."'s locator Beacon no longer transmitting...Return to CSAR stack for further assignment.", 30, false)
                         assignments[c][v.name] = nil
                     else
@@ -333,6 +321,8 @@ function csb.trackCsar()
                         local playerHdg = Utils.getHdgFromPosition(playerUnit:getPosition())
                         local clockBearing = Utils.relativeClockBearing(playerPos, v.coords, playerHdg)
                         local playerTypeName = playerUnit:getTypeName()
+                        local pVelo = playerUnit:getVelocity()
+                        local inSafeVeloParams = csb.checkVelocity(pVelo,1.0)
                         if dist < csarBreakCoverRange then
                             if not v.contact then
                                 -- they do want this smoke
@@ -354,36 +344,37 @@ function csb.trackCsar()
                                     local outText = nil
                                     if playerTypeName ~= "AV8BNA" then
                                         outText = "Winch Op: " .. v.fName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
-                                    end
-                                    -- hover pick-up check
-                                    if dist < csarHoverRadius and playerTypeName ~= "AV8BNA" then
-                                        outText = "Winch Op: " .. v.fName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
-                                        if playerAgl <= csarHoverAgl and playerAgl > 3 then
-                                            local hoverTime = v.hoverTime
-                                            if hoverTime == 0 then
-                                                hoverTime = timer.getTime()
-                                                v.hoverTime = timer.getTime()
-                                            end
-                                            hoverTime = timer.getTime() - hoverTime
-                                            local countdown = math.floor(csarHoverTime - hoverTime)
-                                            outText = "Winch Op: " .. nicedist .. "m to your " .. clockBearing .. " o'clock. Package inbound...(" .. countdown .. "s)"
-                                            if hoverTime > csarHoverTime then
-                                                outText = "Winch Op: Package secured. " .. v.fName .. " ready for RTB."
-                                                if targetGroup and targetGroup:isExist() then
-                                                    Group.destroy(targetGroup)
-                                                    if v.equipment ~= nil then
-                                                        local eq = Group.getByName(v.equipment)
-                                                        if eq and eq:isExist() then Group.destroy(eq) end
+                                        -- hover pick-up check
+                                        if dist < csarHoverRadius then
+                                            if playerAgl <= csarHoverAgl and playerAgl > 3 then
+                                                if inSafeVeloParams then
+                                                    local hoverTime = v.hoverTime
+                                                    if hoverTime == 0 then
+                                                        hoverTime = timer.getTime()
+                                                        v.hoverTime = timer.getTime()
                                                     end
+                                                    hoverTime = timer.getTime() - hoverTime
+                                                    local countdown = math.floor(csarHoverTime - hoverTime)
+                                                    outText = "Winch Op: " .. nicedist .. "m to your " .. clockBearing .. " o'clock. Package inbound...(" .. countdown .. "s)"
+                                                    if hoverTime > csarHoverTime then
+                                                        outText = "Winch Op: Package secured. " .. v.fName .. " ready for RTB."
+                                                        csb.cleanupCsarGroup(v)
+                                                        v.status = 1
+                                                    end
+                                                else
+                                                    outText = "Winch Op: We're drifting...we need to stabilize the hover."
                                                 end
-                                                v.status = 1
+                                            else
+                                                if playerAgl > csarHoverAgl then
+                                                    outText = "Winch Op: " .. v.fName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock - land, or descend to below " .. csarHoverAgl .. "m AGL for winching."
+                                                elseif playerUnit:inAir() == false then -- could be on ground but was too fast when landing event was processed
+                                                    csb.checkCsarLanding(playerUnit)
+                                                end
+                                                v.hoverTime = 0
                                             end
                                         else
-                                            outText = "Winch Op: " .. v.fName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock - land, or descend to below " .. csarHoverAgl .. "m AGL for winching."
                                             v.hoverTime = 0
                                         end
-                                    else
-                                        v.hoverTime = 0
                                     end
                                     if outText then trigger.action.outTextForGroup(v.groupID, outText, 30 , true) end
                                 else
@@ -395,26 +386,12 @@ function csb.trackCsar()
                 elseif v.status == 1 then -- post-pickup state
                     -- no-op
                 else -- unexpected status
-                    targetGroup = Group.getByName(v.target)
-                    if targetGroup and targetGroup:isExist() then
-                        Group.destroy(targetGroup)
-                        if v.equipment ~= nil then
-                            local eq = Group.getByName(v.equipment)
-                            if eq and eq:isExist() then Group.destroy(eq) end
-                        end
-                    end
+                    csb.cleanupCsarGroup(v)
                     trigger.action.outTextForGroup(v.groupID, v.fName.."'s locator Beacon no longer transmitting...Return to CSAR stack for further assignment.", 30, false)
                     assignments[c][v.name] = nil
                 end
             else
-                targetGroup = Group.getByName(v.target)
-                if targetGroup and targetGroup:isExist() then
-                    Group.destroy(targetGroup)
-                    if v.equipment ~= nil then
-                        local eq = Group.getByName(v.equipment)
-                        if eq and eq:isExist() then Group.destroy(eq) end
-                    end
-                end
+                csb.cleanupCsarGroup(v)
                 assignments[c][v.name] = nil
             end
         end
@@ -426,10 +403,17 @@ function csb.startTransmission(args)
     local freqType = args.freqType
     local modulation = args.amfm
     local soundFile = args.soundFile
+    local eq = args.equipment
     if targetGroup == nil or targetGroup:getSize() == 0 then return end
     local u = targetGroup:getUnit(1)
     if u == nil or not u:isExist() then return end
     local aiCtrllr = targetGroup:getController()
+    if eq then
+        targetGroup = Group.getByName(eq)
+        if targetGroup and targetGroup:isExist() then
+            aiCtrllr = targetGroup:getController()
+        end
+    end
     local cmd = {}
     if aiCtrllr then
         if freqType ~= "TACAN" then
@@ -443,7 +427,6 @@ function csb.startTransmission(args)
             cmd.params = {}
             cmd.params.loop = true
             cmd.params.file = soundFile
-            aiCtrllr:setCommand(cmd)
         else
             local chAdj = 64
             local baseFreq = 1151
@@ -454,11 +437,13 @@ function csb.startTransmission(args)
             cmd.id = "ActivateBeacon"
             cmd.params = {}
             cmd.params.type = 4
-            cmd.params.system = 3
+            cmd.params.system = 18
             cmd.params.bearing = true
             cmd.params.callsign = "SOS"
             cmd.params.frequency = (baseFreq + radioFreq - chAdj) * 1000000
+            cmd.params.channel = radioFreq
         end
+        aiCtrllr:setCommand(cmd)
     end
 end
 function csb:onEvent(e)
@@ -484,14 +469,7 @@ function csb.checkCsarCrash(eUnit)
         if assignments[pSide][pName] then
             local a = assignments[pSide][pName]
             if a.status == 0 then
-                local csarGroup = Group.getByName(a.target)
-                if csarGroup and csarGroup:isExist() then
-                    Group.destroy(csarGroup)
-                    if a.equipment ~= nil then
-                        local eq = Group.getByName(a.equipment)
-                        if eq and eq:isExist() then Group.destroy(eq) end
-                    end
-                end
+                csb.cleanupCsarGroup(a)
             end
             assignments[pSide][pName] = nil
         end
@@ -502,6 +480,8 @@ function csb.checkCsarLanding(eUnit)
         local pName = eUnit:getPlayerName()
         local pSide = eUnit:getCoalition()
         local pPosn = eUnit:getPoint()
+        local pVelo = eUnit:getVelocity()
+        local inSafeVeloParams = csb.checkVelocity(pVelo)
         local bInCsarBase = false
         local sBaseName = "Nowhere"
         if assignments[pSide][pName] then
@@ -509,14 +489,19 @@ function csb.checkCsarLanding(eUnit)
             local fName = assignments[pSide][pName].fName
             local coords = assignments[pSide][pName].coords
             local eq = assignments[pSide][pName].equipment
+            local grpId = assignments[pSide][pName].groupID
             local zonePoint = nil
             if assignments[pSide][pName].status == 1 then -- check for drop off
                 for j = 1, #csarBases[pSide] do
                     zonePoint = trigger.misc.getZone(csarBases[pSide][j])
                     if zonePoint then
                         if Utils.pointInCircleTriggerZone(pPosn, zonePoint) then
-                            bInCsarBase = true
-                            sBaseName = csarBases[pSide][j]
+                            if inSafeVeloParams then
+                                bInCsarBase = true
+                                sBaseName = csarBases[pSide][j]
+                            else
+                                trigger.action.outTextForGroup(grpId, "Travelling too fast for safe drop-off.", 30, false)
+                            end
                         end
                     end
                 end
@@ -527,31 +512,57 @@ function csb.checkCsarLanding(eUnit)
                 end
             else -- check for pickup
                 if Utils.PointDistance(pPosn, coords) < csarPickupRadius then
-                    trigger.action.outTextForCoalition(pSide, pName .. " is extracting " .. fName .. "...", 30, false)
-                    local args = {}
-                    args.pName = pName
-                    args.pSide = pSide
-                    args.target = tgt
-                    args.fName = fName
-                    args.equipment = eq
-                    timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + math.random(3,6))
+                    if inSafeVeloParams then
+                        trigger.action.outTextForCoalition(pSide, pName .. " is extracting " .. fName .. "...", 30, false)
+                        local args = {}
+                        args.pName = pName
+                        args.pSide = pSide
+                        args.target = tgt
+                        args.fName = fName
+                        args.equipment = eq
+                        args.pGrId = grpId
+                        args.pUnit = eUnit
+                        timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + math.random(3,6))
+                    else
+                        trigger.action.outTextForGroup(grpId, "Travelling too fast for safe pickup.", 30, false)
+                    end
                 end
             end
         end
     end
 end
 function csb.fakeExtractionTime(args)
-    local csarGroupName = args.target
-    local csarGroup = Group.getByName(csarGroupName)
-    if csarGroup and csarGroup:isExist() then
-        Group.destroy(csarGroup)
-        if args.equipment ~= nil then
-            local eq = Group.getByName(args.equipment)
+    local playerGroupID = args.pGrId
+    local playerUnit = args.pUnit
+    if playerUnit and playerUnit.isExist() and playerUnit.getPlayerName then
+        local pVelo = playerUnit:getVelocity()
+        local inSafeVeloParams = csb.checkVelocity(pVelo)
+        if inSafeVeloParams then
+            csb.cleanupCsarGroup(args)
+            trigger.action.outTextForCoalition(args.pSide, args.pName .. " has taken " .. args.fName .. " on board.", 30, true)
+            assignments[args.pSide][args.pName].status = 1
+        else
+            trigger.action.outTextForGroup(playerGroupID, "Travelling too fast for safe pickup.", 30, false)
+        end
+    end
+end
+function csb.cleanupCsarGroup(csarData)
+    local targetGroup = Group.getByName(csarData.target)
+    if targetGroup and targetGroup:isExist() then
+        Group.destroy(targetGroup)
+        if csarData.equipment ~= nil then
+            local eq = Group.getByName(csarData.equipment)
             if eq and eq:isExist() then Group.destroy(eq) end
         end
     end
-    trigger.action.outTextForCoalition(args.pSide, args.pName .. " has taken " .. args.fName .. " on board.", 30, true)
-    assignments[args.pSide][args.pName].status = 1
+end
+function csb.checkVelocity(pVelo,limit)
+    local vLimit = limit or 0.5
+    if vLimit <= 0 then vLimit = 0.5 end
+    local xInParam = math.abs(pVelo.x) < vLimit
+    local yInParam = math.abs(pVelo.y) < vLimit
+    local zInParam = math.abs(pVelo.z) < vLimit
+    return xInParam and yInParam and zInParam
 end
 world.addEventHandler(csb)
 csb.load()
