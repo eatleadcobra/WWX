@@ -367,7 +367,7 @@ DFS.pickUpZones = {
     }
 }
 DFS.status = {
-    maxHealth = 500,
+    maxHealth = 250,
     --bombers
     bomberInterval = 1800,
     fighterInterval = 599,
