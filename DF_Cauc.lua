@@ -644,6 +644,7 @@ function dfcEvents:onEvent(event)
                     missionCommands.removeItemForGroup(ID, nil)
                     if Sonobuoys then Sonobuoys.removeRadioCommandsForGroup(ID) end
                     if MAD then MAD.removeRadioCommandsForGroup(ID) end
+                    if CSB then CSB.removeCsarRadioCommandsForGroup(ID) end
                 end
             end
         end
@@ -658,6 +659,7 @@ function dfcEvents:onEvent(event)
                     missionCommands.removeItemForGroup(ID, nil)
                     if Sonobuoys then Sonobuoys.removeRadioCommandsForGroup(ID) end
                     if MAD then MAD.removeRadioCommandsForGroup(ID) end
+                    if CSB then CSB.removeCsarRadioCommandsForGroup(ID) end
                 end
             end
         end
