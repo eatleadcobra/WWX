@@ -89,7 +89,7 @@ function DFSubs.subLoop(coalitionId)
                 end
                 local distanceFromRunIn = 0
                 if onAttackRun then
-                    local subPoint = subUnit():getPoint()
+                    local subPoint = subUnit:getPoint()
                     local runInPoint = DFSubs.subs[coalitionId].runInPoint
                     if subPoint and runInPoint then
                         distanceFromRunIn = Utils.PointDistance(subPoint, runInPoint)
