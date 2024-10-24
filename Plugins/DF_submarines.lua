@@ -4,6 +4,7 @@ DFSubs.subs = {
     [2] = {}
 }
 local subRespawnTime = 600
+local maxSubRuninDistance = 4500
 --coalitionId subtype
 function DFSubs.initSub(param)
     if param.subType == nil then param.subType = "santafe" end
@@ -16,11 +17,11 @@ function DFSubs.initSub(param)
     if startPoint and endPoint and interceptSpeed then
         local closestShip = SubTools.findClosestShip(startPoint, param.coalitionId, interceptSpeed)
         if closestShip.distance then
-            local spawnedSubName = SubControl.createSubWithIntercept(param.coalitionId, startPoint, param.subType, nil, closestShip)
-            DFSubs.subs[param.coalitionId] = { groupName = spawnedSubName, subType = param.subType, intercepting = true, damaged = false, spawnTime = timer:getTime(), kills = 0 }
+            local spawnedSubName, runInPoint = SubControl.createSubWithIntercept(param.coalitionId, startPoint, param.subType, nil, closestShip)
+            DFSubs.subs[param.coalitionId] = { groupName = spawnedSubName, subType = param.subType, intercepting = true, damaged = false, spawnTime = timer:getTime(), kills = 0, runInPoint = runInPoint }
         else
             local spawnedSubName = SubControl.createSubWithNoIntercept(param.coalitionId, startPoint,  endPoint, param.subType, nil, nil)
-            DFSubs.subs[param.coalitionId] = { groupName = spawnedSubName, subType = param.subType, intercepting = false, damaged = false, spawnTime = timer:getTime(), kills = 0 }
+            DFSubs.subs[param.coalitionId] = { groupName = spawnedSubName, subType = param.subType, intercepting = false, damaged = false, spawnTime = timer:getTime(), kills = 0, runInPoint = nil}
         end
     else
         env.info("No valid start and end point found for submarine. Coalition: " .. param.coalitionId .. " Zones: Start: " .. startZone .. " End: " .. endZone, false)
@@ -79,16 +80,6 @@ function DFSubs.subLoop(coalitionId)
                 if Utils.getSpeed(subUnit:getVelocity()) < 1 then
                     taskComplete = true
                 end
-                if taskComplete then
-                    local currentPoint = subUnit:getPoint()
-                    local currentDepth = currentPoint.y
-                    local endZone = coalitionId.."-sub-end-"..math.random(1,7)
-                    env.info(coalitionId.."-sub task completed: moving to " .. endZone, false)
-                    subUnit:destroy()
-                    local spawnedSubName = SubControl.createSubWithNoIntercept(coalitionId, currentPoint, trigger.misc.getZone(endZone).point, sub.subType, currentDepth)
-                    DFSubs.subs[coalitionId].groupName = spawnedSubName
-                    DFSubs.subs[coalitionId].intercepting = false
-                end
                 local onAttackRun = false
                 if subUnit:getPoint().y <= SubControl.subValues[sub.subType].periscopeDepth then
                     onAttackRun = true
@@ -96,8 +87,32 @@ function DFSubs.subLoop(coalitionId)
                 if onAttackRun then
                     sub.kills = sub.kills + SubControl.engage(coalitionId, groupName)
                 end
+                local distanceFromRunIn = 0
+                if onAttackRun then
+                    local subPoint = subUnit():getPoint()
+                    local runInPoint = DFSubs.subs[coalitionId].runInPoint
+                    if subPoint and runInPoint then
+                        distanceFromRunIn = Utils.PointDistance(subPoint, runInPoint)
+                    end
+                end
+                if taskComplete or (onAttackRun and (distanceFromRunIn > maxSubRuninDistance)) then
+                    local currentPoint = subUnit:getPoint()
+                    if currentPoint then
+                        local currentDepth = currentPoint.y
+                        local endZone = coalitionId.."-sub-end-"..math.random(1,7)
+                        env.info(coalitionId.."-sub task completed: moving to " .. endZone, false)
+                        subUnit:destroy()
+                        local spawnedSubName = SubControl.createSubWithNoIntercept(coalitionId, currentPoint, trigger.misc.getZone(endZone).point, sub.subType, currentDepth)
+                        DFSubs.subs[coalitionId].groupName = spawnedSubName
+                        DFSubs.subs[coalitionId].intercepting = false
+                    end
+                end
             elseif sub.damaged == false then
                 DFSubs.subSearch(coalitionId)
+            elseif Utils.getSpeed(subUnit:getVelocity()) < 1 then
+                env.info(coalitionId.."-sub stuck in place. Kills: " .. sub.kills, false)
+                subUnit:destroy()
+                timer.scheduleFunction(DFSubs.initSub, {coalitionId = coalitionId, subType = sub.subType}, timer:getTime() + 10)
             end
             timer.scheduleFunction(DFSubs.subLoop, coalitionId, timer:getTime() + 30)
         else

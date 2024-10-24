@@ -29,7 +29,7 @@ function SubControl.createSubWithIntercept(coalitionId, point, subType, depth, c
             groupTable["route"]["points"][4].alt = SubControl.subValues[subType].maxDepth
             groupTable["route"]["points"][4].speed = SubControl.subValues[subType].maxSpeed
             coalition.addGroup(80+(2-coalitionId), 3, groupTable)
-            return groupTable["name"]
+            return groupTable["name"], closestRunIn
         else
             return nil
         end
