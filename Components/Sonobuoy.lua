@@ -149,7 +149,6 @@ function sb.createBuoy(param)
                     local buoyMhzFreq = "None"
                     if buoyCreatedCount[param.coalition].khz < khZAvailableTable[param.coalition] and planeRadioTypes.khz[unit:getTypeName()] ~= nil then
                         buoyKhzFreq = tostring(khzFreqTable[param.coalition])
-                        --khzGpName = sb.createBeacon(param.coalition, buoyKhzFreq * 1000)
                         khzFreqTable[param.coalition] = khzFreqTable[param.coalition] + khzIntervalTable[param.coalition]
                         if khzFreqTable[param.coalition] > 500 and khzFreqTable[param.coalition] < 600 then khzFreqTable[param.coalition] = 600 end
                         if khzFreqTable[param.coalition] > maxKHzTable[param.coalition] then khzFreqTable[param.coalition] = startKHzTable[param.coalition] end
@@ -158,7 +157,6 @@ function sb.createBuoy(param)
                     end
                     if buoyCreatedCount[param.coalition].det < #detrolaFreqs and planeRadioTypes.det[unit:getTypeName()] ~= nil then
                         buoyDetFreq = tostring(detrolaFreqs[detFreq].det)
-                        --mhzGpName = sb.createBeacon(param.coalition, detrolaFreqs[detFreq].mhz * 1000000)
                         detFreq = detFreq + 1
                         if detFreq > 11 then detFreq = 1 end
                         buoyCreatedCount[param.coalition].det = buoyCreatedCount[param.coalition].det + 1
@@ -341,21 +339,6 @@ function sb.transmitBeacon(freq, msg, range, point, txType)
         env.info("Starting transmission of " .. msg .. " Range: " .. range .. " freq: " .. freq, false)
         trigger.action.radioTransmission(beaconSounds[range], point, 0, true, freq, 300, msg)
     end
-end
-function sb.createBeacon(coalition, freq)
-    local beaconGroupName = DF_UTILS.spawnGroup(sbGroupName[coalition].truck, Group.getByName(sbGroupName[coalition].truck):getUnit(1):getPoint(), 'clone')
-    local beaconGroup = Group.getByName(beaconGroupName)
-    local SetFreq = {
-        id = 'SetFrequency',
-        params = {
-            frequency = freq,
-            modulation = 0,
-            power = 300
-        }
-    }
-    --trigger.action.outText("Freq Set",3)
-    beaconGroup:getController():setCommand(SetFreq)
-    return beaconGroupName
 end
 function sb.checkBuoys(groupName)
     local msgGroup = Group.getByName(groupName)
