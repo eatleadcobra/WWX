@@ -59,23 +59,27 @@ function bulls.getTargets(coalitionId, targetGroupName)
         }
     }
     local ifFound = function(foundItem, val)
-        if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 0 and foundItem:getCoalition() ~= coalitionId then
+        if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 0 then
+            local isFriendly = false
+            if foundItem:getCoalition() == coalitionId then
+                isFriendly = true
+            end
             if land.isVisible({x = bullsPoints[coalitionId].x, y = land.getHeight({x = bullsPoints[coalitionId].x, y = bullsPoints[coalitionId].z}) + 10, z = bullsPoints[coalitionId].z}, foundItem:getPoint()) then
                 local foundGroup = foundItem:getGroup()
                 if foundGroup then
                     local foundGroupName = foundGroup:getName()
                     if (targetGroupName and foundGroupName == targetGroupName) or targetGroupName == nil then
                         if #foundGroups < 1 then
-                            foundGroups[#foundGroups+1] = foundGroupName
+                            foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly}
                         else
                             local alreadyFound = false
                             for i = 1, #foundGroups do
-                                if foundGroups[i] == foundGroupName then
+                                if foundGroups[i].groupName == foundGroupName then
                                     alreadyFound = true
                                 end
                             end
                             if alreadyFound == false then
-                                foundGroups[#foundGroups+1] = foundGroupName
+                                foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly}
                             end
                         end
                     end
@@ -89,7 +93,7 @@ end
 function bulls.vectorTargets(coalitionId)
     for i = 1, #groupsList[coalitionId] do
         for j = 1, #radioUnits[coalitionId] do
-            local vectorString = bulls.pointsVector(bullsPoints[coalitionId], groupsList[coalitionId][i], radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]])
+            local vectorString = bulls.pointsVector(bullsPoints[coalitionId], groupsList[coalitionId][i].groupName, radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]], groupsList[coalitionId][i].isFriendly)
             if vectorString then
                 --trigger.action.outText("radio group: " .. radioUnits[coalitionId][j], 5)
                 local radioGroup = Group.getByName(radioUnits[coalitionId][j])
@@ -109,7 +113,7 @@ function bulls.vectorTargets(coalitionId)
         end
     end
 end
-function bulls.pointsVector(bullsPoint, targetGroupName, units)
+function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly)
     local targetGroup = Group.getByName(targetGroupName)
     if targetGroup then
         local leadUnit = targetGroup:getUnit(1)
@@ -168,7 +172,11 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units)
                 elseif string.len(bearingString) == 2 then
                     bearingString = "00"..bearingString
                 end
-                local bullsString = "--BULLS " ..  bearingString .. "° for " .. distanceToTargetString .. " | " .. altString .. " | " .. targetHeadingCardinal .." | " .. targetType
+                local bullsPrefix = ""
+                if isFriendly then
+                    bullsPrefix = "FRIENDLY "
+                end
+                local bullsString = "--BULLS " ..bullsPrefix..  bearingString .. "° for " .. distanceToTargetString .. " | " .. altString .. " | " .. targetHeadingCardinal .." | " .. targetType
                 return bullsString
             end
         end
