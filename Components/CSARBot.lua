@@ -507,6 +507,7 @@ function csb.checkCsarLanding(eUnit)
                 end
                 if bInCsarBase then
                     trigger.action.outTextForCoalition(pSide, pName .. " safely delivered " .. fName .. " to " .. sBaseName .. ".", 30, false)
+                    if DFS then DFS.status[pSide].health = DFS.status[pSide].health + 1 end
                     if WWEvents then WWEvents.playerCsarMissionCompleted(pName, pSide, sBaseName," rescued ".. fName .. " from the battlefield.") end
                     assignments[pSide][pName] = nil
                 end
