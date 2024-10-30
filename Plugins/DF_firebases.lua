@@ -104,6 +104,10 @@ function fbEvents:onEvent(event)
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "MORTAR", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
+        if (string.upper(event.text) == "T") then
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "THAWK", playerName = playerName})
+            timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
+        end
     end
     --on mark remove
     if (event.id == world.event.S_EVENT_MARK_REMOVED) then
@@ -523,6 +527,39 @@ function Firebases.sendFireMission(coalitionId)
                     fbFuncs.firebaseFire(firebase, targetMarks[i])
                     table.remove(targetMarks, i)
                     return
+                end
+            end
+            if targetMarks[i].fbType == "THAWK" then
+                local shipGroups = coalition.getGroups(coalitionId, 3)
+                for j=1, #shipGroups do
+                    if shipGroups[j]:getUnit(1):hasAttribute('Armed ships') and (shipGroups[j]:getUnit(1):getTypeName() == "leander-gun-andromeda" or shipGroups[i]:getUnit(1):getTypeName() == "leander-gun-condell") then
+                        env.info('valid battleship group found', false)
+                        local thawkShipGroup = shipGroups[j]
+                        if thawkShipGroup ~= nil then
+                            local thawkShipUnit = thawkShipGroup:getUnit(1)
+                            if thawkShipUnit then
+                                local thawkShipPoint = thawkShipUnit:getPoint()
+                                if thawkShipPoint then
+                                    local mission = {}
+                                    mission.x = targetMarks[i].pos.x
+                                    mission.y = targetMarks[i].pos.z
+                                    mission.radius = 20
+                                    mission.expendQty = 10
+                                    mission.expendQtyEnabled = true
+                                    local fire = {id = 'FireAtPoint', params = mission}
+                                    thawkShipGroup:getController():pushTask(fire)
+                                    env.info("fire task pushed", false)
+                                    trigger.action.removeMark(targetMarks[i].id)
+                                    table.remove(targetMarks, i)
+                                    local lineId = DrawingTools.newMarkId()
+                                    trigger.action.lineToAll(coalitionId, lineId, thawkShipPoint, {x = mission.x, y = 0, z = mission.y}, {0,0,0,1}, 1, true, nil)
+                                    timer.scheduleFunction(trigger.action.removeMark, lineId, timer:getTime() + 180)
+                                    return 1
+                                end
+                            end
+                        end
+                        return 0
+                    end
                 end
             end
         end

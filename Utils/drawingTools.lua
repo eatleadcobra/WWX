@@ -77,21 +77,27 @@ function DrawingTools.drawPackage(origin, size, pickup, coalition, noArrow)
         local u1 = {x = bottomArrowPoint.x, y = bottomArrowPoint.y, z = bottomArrowPoint.z - package[size].size/6}
         local u2 = {x = bottomArrowPoint.x, y = bottomArrowPoint.y, z = bottomArrowPoint.z + package[size].size/6}
         local tip = {x = bottomArrowPoint.x - package[size].size/8, y = bottomArrowPoint.y, z = bottomArrowPoint.z}
-        trigger.action.markupToAll(7, coalition, arrowId, b2, b4, u2, tip, u1, b3, b1,{0,0,0,1}, {0,0,0,1}, 1, true)
+        trigger.action.markupToAll(7, coalition, arrowId, b4, b2, b1, b3, u1, tip, u2,{0,0,0,1}, {0,0,0,1}, 1, true)
     end
 end
-function DrawingTools.drawAmmo(origin, coalitionId)
-    origin.x = origin.x + ammo.width/2
-    origin.z = origin.z - ammo.width - ammo.width/4
-    local rectTop = {x = origin.x + ammo.width/2 + ammo.width/4, y = origin.y, z = origin.z - ammo.width/2 - ammo.width/4}
-    local rectBottom = { x = origin.x - ammo.width/2 - ammo.height - ammo.width/4, y = origin.y, z = origin.z + 3*(ammo.width) + ammo.width/4}
+function DrawingTools.drawAmmo(origin, coalitionId, small)
+    local drawingWidth = ammo.width
+    local drawingHeight = ammo.height
+    if small then
+        drawingWidth = ammo.width/2
+        drawingHeight = ammo.height/2
+    end
+    origin.x = origin.x + drawingWidth/2
+    origin.z = origin.z - drawingWidth - drawingWidth/4
+    local rectTop = {x = origin.x + drawingWidth/2 + drawingWidth/4, y = origin.y, z = origin.z - drawingWidth/2 - drawingWidth/4}
+    local rectBottom = { x = origin.x - drawingWidth/2 - drawingHeight - drawingWidth/4, y = origin.y, z = origin.z + 3*(drawingWidth) + drawingWidth/4}
     local ammoId = DrawingTools.newMarkId()
     env.info("Drawing ammo background: " .. ammoId, false)
     trigger.action.rectToAll(coalitionId, ammoId, rectTop, rectBottom, {0,0,0,1}, {0,0,0,0.9}, 1, true, nil)
     for i = 1, 3 do
-        local locOrg = {x = origin.x, y = origin.y, z = origin.z + ((i-1)*(ammo.width + ammo.width/4))}
-        local boxTop = {x = locOrg.x, y = locOrg.y, z = locOrg.z - ammo.width/2 }
-        local boxBottom = { x = locOrg.x - ammo.width/2 - ammo.height, y = locOrg.y, z = locOrg.z + ammo.width/2}
+        local locOrg = {x = origin.x, y = origin.y, z = origin.z + ((i-1)*(drawingWidth + drawingWidth/4))}
+        local boxTop = {x = locOrg.x, y = locOrg.y, z = locOrg.z - drawingWidth/2 }
+        local boxBottom = { x = locOrg.x - drawingWidth/2 - drawingHeight, y = locOrg.y, z = locOrg.z + drawingWidth/2}
         local bulletRecId = DrawingTools.newMarkId()
         local bulletCircleId = DrawingTools.newMarkId()
         local bulletLineId = DrawingTools.newMarkId()
@@ -99,39 +105,45 @@ function DrawingTools.drawAmmo(origin, coalitionId)
         env.info("Drawing ammo ".. i .." circle: " .. bulletCircleId, false)
         env.info("Drawing ammo ".. i .." line: " .. bulletLineId, false)
         trigger.action.rectToAll(coalitionId, bulletRecId, boxBottom, boxTop, {1,1,1,1}, {1,1,1,1}, 1, true, nil)
-        trigger.action.circleToAll(coalitionId, bulletCircleId, locOrg, ammo.width/2, {1,1,1,0}, {1,1,1,1}, 1, true, nil)
-        trigger.action.lineToAll(coalitionId, bulletLineId, {x = boxBottom.x + ammo.height/5, y = boxBottom.y, z = boxBottom.z }, {x = boxBottom.x + ammo.height/5, y = boxBottom.y, z = boxBottom.z - ammo.width}, {0,0,0,1}, 1, true, nil)
+        trigger.action.circleToAll(coalitionId, bulletCircleId, locOrg, drawingWidth/2, {1,1,1,0}, {1,1,1,1}, 1, true, nil)
+        trigger.action.lineToAll(coalitionId, bulletLineId, {x = boxBottom.x + drawingHeight/5, y = boxBottom.y, z = boxBottom.z }, {x = boxBottom.x + drawingHeight/5, y = boxBottom.y, z = boxBottom.z - drawingWidth}, {0,0,0,1}, 1, true, nil)
     end
 end
-function DrawingTools.drawFuel(origin, coalitionId)
-    local canOrigin = {x = origin.x + fuel.height/2.5 , y = origin.y, z = origin.z - fuel.width/4}
+function DrawingTools.drawFuel(origin, coalitionId, small)
+    local fuelWidth = fuel.width
+    local fuelHeight = fuel.height
+    if small then
+        fuelWidth = fuel.width/2
+        fuelHeight = fuel.height/2
+    end
+    local canOrigin = {x = origin.x + fuelHeight/2.5 , y = origin.y, z = origin.z - fuelWidth/4}
     local p1 = {x = canOrigin.x, y = canOrigin.y, z = canOrigin.z}
-    local p2 = {x = p1.x, y = p1.y, z = p1.z + (2*fuel.width)/3}
-    local p3 = {x = p2.x - fuel.height, y = p2.y, z = p2.z}
-    local p4 = {x = p3.x, y = p3.y, z = p3.z - fuel.width}
-    local p5 = {x = p4.x + (4*fuel.height)/5, y = p4.y, z = p4.z}
-    local handleTop = {x = p1.x - fuel.height/12, y = p1.y, z = p1.z + fuel.width/6 }
-    local handleBottom = {x = p1.x - (1.5*fuel.height/10), y = p2.y, z = p2.z - fuel.width/10}
-    local borderTop =  {x = p1.x + fuel.height/12, y = p1.y, z = p1.z - fuel.width/3 - fuel.width/6}
-    local borderBottom = {x = p3.x - fuel.height/12, y = p3.y, z = p3.z + fuel.width/6}
+    local p2 = {x = p1.x, y = p1.y, z = p1.z + (2*fuelWidth)/3}
+    local p3 = {x = p2.x - fuelHeight, y = p2.y, z = p2.z}
+    local p4 = {x = p3.x, y = p3.y, z = p3.z - fuelWidth}
+    local p5 = {x = p4.x + (4*fuelHeight)/5, y = p4.y, z = p4.z}
+    local handleTop = {x = p1.x - fuelHeight/12, y = p1.y, z = p1.z + fuelWidth/6 }
+    local handleBottom = {x = p1.x - (1.5*fuelHeight/10), y = p2.y, z = p2.z - fuelWidth/10}
+    local borderTop =  {x = p1.x + fuelHeight/12, y = p1.y, z = p1.z - fuelWidth/3 - fuelWidth/6}
+    local borderBottom = {x = p3.x - fuelHeight/12, y = p3.y, z = p3.z + fuelWidth/6}
     local gasBorderId = DrawingTools.newMarkId()
     local gasOutlineId = DrawingTools.newMarkId()
     env.info("Drawing gas border: " .. gasBorderId, false)
     env.info("Drawing gas outline: " .. gasOutlineId, false)
     trigger.action.rectToAll(coalitionId, gasBorderId, borderTop, borderBottom, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
     trigger.action.markupToAll(7, coalitionId, gasOutlineId, p1, p2, p3, p4, p5, {1,1,1,1}, {1,1,1,1}, 1, true)
-    local innerRecTopLeft = {x = p1.x - fuel.height/2.5, y = p1.y, z = p1.z }
-    local innerRecLineTopLeft = {x = innerRecTopLeft.x + fuel.height/6, y = innerRecTopLeft.y, z = innerRecTopLeft.z - fuel.height/6}
-    local innerRecTopRight = {x = innerRecTopLeft.x, y = innerRecTopLeft.y, z = innerRecTopLeft.z + fuel.width/3}
-    local innerRecLineTopRight = {x = innerRecTopRight.x + fuel.height/6, y = innerRecTopRight.y, z = innerRecTopRight.z + fuel.height/6}
-    local innerRecBottomRight = {x = innerRecTopRight.x - fuel.height/3, y = innerRecTopRight.y, z = innerRecTopRight.z}
-    local innerRecLineBottomRight = {x = innerRecBottomRight.x - fuel.height/6, y = innerRecBottomRight.y, z = innerRecBottomRight.z + fuel.height/6}
+    local innerRecTopLeft = {x = p1.x - fuelHeight/2.5, y = p1.y, z = p1.z }
+    local innerRecLineTopLeft = {x = innerRecTopLeft.x + fuelHeight/6, y = innerRecTopLeft.y, z = innerRecTopLeft.z - fuelHeight/6}
+    local innerRecTopRight = {x = innerRecTopLeft.x, y = innerRecTopLeft.y, z = innerRecTopLeft.z + fuelWidth/3}
+    local innerRecLineTopRight = {x = innerRecTopRight.x + fuelHeight/6, y = innerRecTopRight.y, z = innerRecTopRight.z + fuelHeight/6}
+    local innerRecBottomRight = {x = innerRecTopRight.x - fuelHeight/3, y = innerRecTopRight.y, z = innerRecTopRight.z}
+    local innerRecLineBottomRight = {x = innerRecBottomRight.x - fuelHeight/6, y = innerRecBottomRight.y, z = innerRecBottomRight.z + fuelHeight/6}
     local innerRecBottomLeft = {x = innerRecBottomRight.x, y = innerRecBottomRight.y, z = innerRecTopLeft.z}
-    local innerRecLineBottomLeft = {x = innerRecBottomLeft.x - fuel.height/6, y = innerRecBottomLeft.y, z = innerRecBottomLeft.z - fuel.height/6}
-    local nub1 = {x = p5.x + fuel.height/15, y = p5.y, z = p5.z + fuel.height/11}
-    local nub2 = {x = nub1.x + fuel.height/15, y = nub1.y, z = nub1.z + fuel.height/11}
-    local nub3 = {x = nub2.x + fuel.height/22, y = nub2.y, z = nub2.z - fuel.height/28}
-    local nub4 = {x = nub1.x + fuel.height/22, y = nub2.y, z = nub1.z - fuel.height/28}
+    local innerRecLineBottomLeft = {x = innerRecBottomLeft.x - fuelHeight/6, y = innerRecBottomLeft.y, z = innerRecBottomLeft.z - fuelHeight/6}
+    local nub1 = {x = p5.x + fuelHeight/15, y = p5.y, z = p5.z + fuelHeight/11}
+    local nub2 = {x = nub1.x + fuelHeight/15, y = nub1.y, z = nub1.z + fuelHeight/11}
+    local nub3 = {x = nub2.x + fuelHeight/22, y = nub2.y, z = nub2.z - fuelHeight/28}
+    local nub4 = {x = nub1.x + fuelHeight/22, y = nub2.y, z = nub1.z - fuelHeight/28}
     local nubId = DrawingTools.newMarkId()
     env.info("Drawing gas nub: " .. nubId, false)
     local innerRecQuadId = DrawingTools.newMarkId()
@@ -154,12 +166,14 @@ function DrawingTools.drawFuel(origin, coalitionId)
     env.info("Drawing gas handle: " .. gashandleId, false)
     trigger.action.rectToAll(coalitionId, gashandleId, handleTop, handleBottom, {0,0,0,1}, {0,0,0,1}, 1, true)
 end
-function DrawingTools.drawHealth(origin, coalitionId, boxSize)
+function DrawingTools.drawHealth(origin, coalitionId, boxSize, background)
     local topLeft = origin
     local bottomRight = {x = origin.x - boxSize, y = origin.y, z = origin.z + boxSize}
     local healthBoxId = DrawingTools.newMarkId()
-    -- env.info("Drawing health icon box: " .. healthBoxId, false)
-    -- trigger.action.rectToAll(coalitionId, healthBoxId, topLeft, bottomRight, {0,0,0,1}, {1,1,1,1}, 1, true, nil)
+    if background then
+        env.info("Drawing health icon box: " .. healthBoxId, false)
+        trigger.action.rectToAll(coalitionId, healthBoxId, topLeft, bottomRight, {0,0,0,1}, {1,1,1,1}, 1, true, nil) 
+    end
     local crossOffset = boxSize/3
     local c1 = { x = origin.x, y = origin.y, z = origin.z + crossOffset}
     local c2 = { x = c1.x, y = c1.y, z = c1.z + crossOffset}

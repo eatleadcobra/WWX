@@ -152,7 +152,7 @@ DFS.raidedShips = {
 DFS.supplyDrawing = {
     counterWidth = 1800,
     counterHeight = 7200,
-    counterOffeset = 2000,
+    counterOffeset = 2400,
     colors = {
         fill = {
             [1] = {1,0,0,1},
@@ -1368,30 +1368,90 @@ function dfc.createSupplyDrawings()
         if drawingOriginFrontZone then
             local drawingOriginFront = drawingOriginFrontZone.point
             for i = 1, 3 do
-                local boxOrigin = {x = drawingOriginFront.x - (DFS.supplyDrawing.counterOffeset*i), y = drawingOriginFront.y, z = drawingOriginFront.z}
+                local boxOrigin = {x = drawingOriginFront.x, y = drawingOriginFront.y, z = drawingOriginFront.z - (DFS.supplyDrawing.counterOffeset*i)}
+                local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
-                trigger.action.textToAll(-1, supplyBoxId, boxOrigin, DFS.supplyDrawing.colors.fill[c], {1,1,1,0.9}, 11, true, DFS.supplyNames[i] .. ": " .. DFS.status[c].supply.front[i] .. "/" .. DFS.status.maxSuppliesFront[i])
-                table.insert(DFS.supplyDrawing.fillIds.front[c], supplyBoxId)
+                env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
+                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.9}, 1, true, nil)
+                for j = 1, 3 do
+                    local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
+                    local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
+                    local dashLength = DFS.supplyDrawing.counterWidth/3
+                    if (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight == 0.5 then
+                        dashLength = DFS.supplyDrawing.counterWidth/2
+                    end
+                    local lineEnd = {x = lineStart.x, y = lineStart.y, z = lineStart.z + dashLength}
+                    trigger.action.lineToAll(-1, DrawingTools.newMarkId(), lineStart, lineEnd, {1,1,1,1}, 1, true, nil)
+                end
+                local iconOrigin = {x = boxOrigin.x - DFS.supplyDrawing.counterWidth/3, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth/2}
+                if i == DFS.supplyType.EQUIPMENT then
+                    DrawingTools.drawPackage(iconOrigin, 3, false, -1, true)
+                elseif i == DFS.supplyType.AMMO then
+                    DrawingTools.drawAmmo(iconOrigin, -1)
+                elseif i == DFS.supplyType.FUEL then
+                    DrawingTools.drawFuel(iconOrigin, -1)
+                end
             end
         end
         local drawingOriginRearZone = trigger.misc.getZone(DFS.spawnNames[c].rearSupplyDrawing)
         if drawingOriginRearZone then
             local drawingOriginRear = drawingOriginRearZone.point
             for i = 1, 3 do
-                local boxOrigin = {x = drawingOriginRear.x - (DFS.supplyDrawing.counterOffeset*i), y = drawingOriginRear.y, z = drawingOriginRear.z }
+                local boxOrigin = {x = drawingOriginRear.x, y = drawingOriginRear.y, z = drawingOriginRear.z - (DFS.supplyDrawing.counterOffeset*i)}
+                local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
-                trigger.action.textToAll(-1, supplyBoxId, boxOrigin, DFS.supplyDrawing.colors.fill[c], {1,1,1,0.9}, 11, true, DFS.supplyNames[i] .. ": " .. DFS.status[c].supply.rear[i] .. "/" .. DFS.status.maxSuppliesRear[i])
-                table.insert(DFS.supplyDrawing.fillIds.rear[c], supplyBoxId)
+                env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
+                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.9}, 1, true, nil)
+                for j = 1, 3 do
+                    local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
+                    local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
+                    local dashLength = DFS.supplyDrawing.counterWidth/3
+                    if (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight == 0.5 then
+                        dashLength = DFS.supplyDrawing.counterWidth/2
+                    end
+                    local lineEnd = {x = lineStart.x, y = lineStart.y, z = lineStart.z + dashLength}
+                    trigger.action.lineToAll(-1, DrawingTools.newMarkId(), lineStart, lineEnd, {1,1,1,1}, 1, true, nil)
+                end
+                local iconOrigin = {x = boxOrigin.x - DFS.supplyDrawing.counterWidth/3, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth/2}
+                if i == DFS.supplyType.EQUIPMENT then
+                    DrawingTools.drawPackage(iconOrigin, 3, false, -1, true)
+                elseif i == DFS.supplyType.AMMO then
+                    DrawingTools.drawAmmo(iconOrigin, -1)
+                elseif i == DFS.supplyType.FUEL then
+                    DrawingTools.drawFuel(iconOrigin, -1)
+                end
             end
         end
         local drawingOriginPirateZone = trigger.misc.getZone(DFS.spawnNames[c].pirateSupplyDrawing)
         if drawingOriginPirateZone then
             local drawingOriginPirate = drawingOriginPirateZone.point
+            local pirateWidth = DFS.supplyDrawing.counterWidth/2
+            local pirateOffset = DFS.supplyDrawing.counterOffeset/2
+            local pirateHeight = DFS.supplyDrawing.counterHeight/2
             for i = 1, 3 do
-                local boxOrigin = {x = drawingOriginPirate.x - (DFS.supplyDrawing.counterOffeset*i), y = drawingOriginPirate.y, z = drawingOriginPirate.z }
+                local boxOrigin = {x = drawingOriginPirate.x, y = drawingOriginPirate.y, z = drawingOriginPirate.z - (pirateOffset*i)}
+                local boxTop = {x = boxOrigin.x + pirateHeight, y = boxOrigin.y, z = boxOrigin.z - pirateWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
-                trigger.action.textToAll(-1, supplyBoxId, boxOrigin, DFS.supplyDrawing.colors.fill[c], {1,1,1,0.9}, 11, true, DFS.supplyNames[i] .. ": " .. DFS.status[c].supply.pirate[i] .. "/" .. DFS.status.maxSuppliesPirate[i])
-                table.insert(DFS.supplyDrawing.fillIds.pirate[c], supplyBoxId)
+                env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
+                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.9}, 1, true, nil)
+                for j = 1, 3 do
+                    local xOffset = (j*(pirateHeight/4))/pirateHeight * pirateHeight
+                    local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
+                    local dashLength = pirateWidth/3
+                    if (j*(pirateHeight/4))/pirateHeight == 0.5 then
+                        dashLength = pirateWidth/2
+                    end
+                    local lineEnd = {x = lineStart.x, y = lineStart.y, z = lineStart.z + dashLength}
+                    trigger.action.lineToAll(-1, DrawingTools.newMarkId(), lineStart, lineEnd, {1,1,1,1}, 1, true, nil)
+                end
+                local iconOrigin = {x = boxOrigin.x - pirateWidth/3, y = boxOrigin.y, z = boxOrigin.z - pirateWidth/2}
+                if i == DFS.supplyType.EQUIPMENT then
+                    DrawingTools.drawPackage(iconOrigin, 1, false, -1, true)
+                elseif i == DFS.supplyType.AMMO then
+                    DrawingTools.drawAmmo(iconOrigin, -1, true)
+                elseif i == DFS.supplyType.FUEL then
+                    DrawingTools.drawFuel(iconOrigin, -1, true)
+                end
             end
         end
         dfc.updateSupplyDrawings("FRONT", c)
@@ -1401,31 +1461,69 @@ function dfc.createSupplyDrawings()
 end
 function dfc.updateSupplyDrawings(depot, coalitionId)
     if depot == "REAR" then
-        for i = 1, 3 do
-            local currentMaxRearString = " "
-            local currentMaxRear = ((DFS.status.maxSuppliesRear[i])*(#DFS.status[coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal)))
-            if currentMaxRear ~= DFS.status.maxSuppliesRear[i] then
-                currentMaxRearString = " (".. DFS.status.maxSuppliesRear[i] .. ")"
-            end
-            if DFS.supplyDrawing.fillIds.rear[coalitionId][i] and DFS.supplyDrawing.fillIds.rear[coalitionId][i] > 0 then
-                trigger.action.setMarkupText(DFS.supplyDrawing.fillIds.rear[coalitionId][i], DFS.supplyNames[i] .. ": " .. DFS.status[coalitionId].supply.rear[i] .. "/" .. currentMaxRear .. currentMaxRearString)
+        local drawingOriginRearZone = trigger.misc.getZone(DFS.spawnNames[coalitionId].rearSupplyDrawing)
+        if drawingOriginRearZone then
+            local drawingOriginRear = drawingOriginRearZone.point
+            for i = 1, 3 do
+                local boxOrigin = {x = drawingOriginRear.x, y = drawingOriginRear.y, z = drawingOriginRear.z - (DFS.supplyDrawing.counterOffeset*i)}
+                if DFS.supplyDrawing.fillIds.rear[coalitionId][i] and DFS.supplyDrawing.fillIds.rear[coalitionId][i] > 0 then
+                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z})
+                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
+                else
+                    --local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterWidth/4, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                    local xOffset = (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i]))
+                    local supplyCounterLineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z}
+                    local supplyCounterLineEnd = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                    local fillId = DrawingTools.newMarkId()
+                    --trigger.action.rectToAll(-1, fillId, boxTop, boxOrigin, {0,0,0,1}, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
+                    trigger.action.lineToAll(-1, fillId, supplyCounterLineStart, supplyCounterLineEnd, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
+                    table.insert(DFS.supplyDrawing.fillIds.rear[coalitionId], fillId)
+                end
             end
         end
     elseif depot == "PIRATE" then
-        for i = 1, 3 do
-            if DFS.supplyDrawing.fillIds.pirate[coalitionId][i] and DFS.supplyDrawing.fillIds.pirate[coalitionId][i] > 0 then
-                trigger.action.setMarkupText(DFS.supplyDrawing.fillIds.pirate[coalitionId][i], DFS.supplyNames[i] .. ": " .. DFS.status[coalitionId].supply.pirate[i] .. "/" .. DFS.status.maxSuppliesPirate[i])
+        local drawingOriginPirateZone = trigger.misc.getZone(DFS.spawnNames[coalitionId].pirateSupplyDrawing)
+        if drawingOriginPirateZone then
+            local pirateWidth = DFS.supplyDrawing.counterWidth/2
+            local pirateHeight = DFS.supplyDrawing.counterHeight/2
+            local pirateOffset = DFS.supplyDrawing.counterOffeset/2
+            local drawingOriginPirate = drawingOriginPirateZone.point
+            for i = 1, 3 do
+                local boxOrigin = {x = drawingOriginPirate.x, y = drawingOriginPirate.y, z = drawingOriginPirate.z - (pirateOffset*i)}
+                if DFS.supplyDrawing.fillIds.pirate[coalitionId][i] and DFS.supplyDrawing.fillIds.pirate[coalitionId][i] > 0 then
+                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.pirate[coalitionId][i], {x = boxOrigin.x + (pirateHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesPirate[i])), y = boxOrigin.y, z = boxOrigin.z})
+                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.pirate[coalitionId][i], {x = boxOrigin.x + (pirateHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesPirate[i])), y = boxOrigin.y, z = boxOrigin.z - pirateWidth})
+                else
+                    --local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterWidth/4, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                    local xOffset = (pirateHeight * (DFS.status[coalitionId].supply.pirate[i]/DFS.status.maxSuppliesPirate[i]))
+                    local supplyCounterLineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z}
+                    local supplyCounterLineEnd = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z - pirateWidth}
+                    local fillId = DrawingTools.newMarkId()
+                    --trigger.action.rectToAll(-1, fillId, boxTop, boxOrigin, {0,0,0,1}, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
+                    trigger.action.lineToAll(-1, fillId, supplyCounterLineStart, supplyCounterLineEnd, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
+                    table.insert(DFS.supplyDrawing.fillIds.pirate[coalitionId], fillId)
+                end
             end
         end
     else
-        for i = 1, 3 do
-            local currentMaxFrontString = " "
-            local currentMaxFront = ((DFS.status.maxSuppliesRear[i])*(#DFS.status[coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal)))
-            if currentMaxFront ~= DFS.status.maxSuppliesRear[i] then
-                currentMaxFrontString = " (".. DFS.status.maxSuppliesRear[i] .. ")"
-            end
-            if DFS.supplyDrawing.fillIds.front[coalitionId][i] and DFS.supplyDrawing.fillIds.front[coalitionId][i] > 0 then
-                trigger.action.setMarkupText(DFS.supplyDrawing.fillIds.front[coalitionId][i], DFS.supplyNames[i] .. ": " .. DFS.status[coalitionId].supply.front[i] .. "/" .. currentMaxFront .. currentMaxFrontString )
+        local drawingOriginFrontZone = trigger.misc.getZone(DFS.spawnNames[coalitionId].frontSupplyDrawing)
+        if drawingOriginFrontZone then
+            local drawingOriginFront = drawingOriginFrontZone.point
+            for i = 1, 3 do
+                local boxOrigin = {x = drawingOriginFront.x, y = drawingOriginFront.y, z = drawingOriginFront.z - (DFS.supplyDrawing.counterOffeset*i)}
+                if DFS.supplyDrawing.fillIds.front[coalitionId][i] and DFS.supplyDrawing.fillIds.front[coalitionId][i] > 0 then
+                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z})
+                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
+                else
+                    --local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterWidth/4, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                    local xOffset = (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.front[i]/DFS.status.maxSuppliesFront[i]))
+                    local supplyCounterLineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z}
+                    local supplyCounterLineEnd = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                    local fillId = DrawingTools.newMarkId()
+                    --trigger.action.rectToAll(-1, fillId, boxTop, boxOrigin, {0,0,0,1}, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
+                    trigger.action.lineToAll(-1, fillId, supplyCounterLineStart, supplyCounterLineEnd, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
+                    table.insert(DFS.supplyDrawing.fillIds.front[coalitionId], fillId)
+                end
             end
         end
     end
@@ -1955,108 +2053,7 @@ function dfc.createCasMissions(coalitionId)
         end
     end
 end
-function DFS.smokeGroup(groupName, smokeColor)
-    local missionGroup = Group.getByName(groupName)
-    if missionGroup then
-        local missionUnit = missionGroup:getUnit(1)
-        if missionUnit then
-            local missionPos = missionUnit:getPoint()
-            if missionPos then
-                trigger.action.smoke(Utils.VectorAdd(missionPos, Utils.ScalarMult(atmosphere.getWind(missionPos), 10 + math.random(5))), smokeColor)
-                env.info("Created CAS smoke marker for:" .. groupName, false)
-            end
-        end
-    end
-end
-function dfc.sendFireMission(group, target)
-    local artGroup = Group.getByName(group)
-    if artGroup ~= nil then
-        local mission = {}
-        mission.x = target.x
-        mission.y = target.z
-        mission.radius = 20
-        mission.expendQty = 2
-        mission.expendQtyEnabled = true
-        mission.weaponType = 2097152
-        local fire = {id = 'FireAtPoint', params = mission}
-        artGroup:getController():pushTask(fire)
-        env.info("fire task pushed", false)
-        table.insert(DFS.status.assignedArtGroups, group)
-        timer.scheduleFunction(dfc.unassignArt, group,timer.getTime() + 120)
-        return 1
-    end
-    return 0
-end
-function dfc.unassignArt(groupName)
-    local index = 0
-    for i = 1, #DFS.status.assignedArtGroups do
-        if DFS.status.assignedArtGroups[i] == groupName then index = i end
-    end
-    if index ~= 0 then table.remove(DFS.status.assignedArtGroups, index) end
-end
-function dfc.createFireMissions(coalitionId)
-    env.info('create fire missions', false)
-    Firebases.sendFireMission(coalitionId)
-    env.info('create bombardment missions', false)
-    if #DFS.status.bombardmentMarks > 0 then
-        local shipGroups = coalition.getGroups(coalitionId, 3)
-        local assignedCount = 0
-        for i=1, #shipGroups do
-            if shipGroups[i]:getUnit(1):hasAttribute('Armed ships') and (shipGroups[i]:getUnit(1):getTypeName() == "USS_Arleigh_Burke_IIa" or shipGroups[i]:getUnit(1):getTypeName() == "TICONDEROG") and not dfc.isAssigned(shipGroups[i]:getName()) then
-                env.info('valid battleship group found', false)
-                local artilleryPos = shipGroups[i]:getUnit(1):getPoint()
-                for j = 1, #DFS.status.bombardmentMarks do
-                    if tostring(DFS.status.bombardmentMarks[j].coalition) == tostring(coalitionId) then
-                        env.info('valid target found', false)
-                        local targetPos = DFS.status.bombardmentMarks[j].pos
-                        if dfc.distanceToTarget(artilleryPos, targetPos) <= DFS.status.validBombardmentRange then
-                            env.info('target in range', false)
-                            local status = dfc.sendFireMission(shipGroups[i]:getName(), targetPos)
-                            if status == 1 then
-                                trigger.action.outTextForCoalition(coalitionId, 'Bombardment mission sent', 5)
-                                dfc.updateFireMissionMarker(DFS.status.bombardmentMarks[j].id, j, coalitionId, targetPos, true)
-                            else
-                                trigger.action.outTextForCoalition(coalitionId, 'Bombardment mission not sent. Mission out of parameters', 5)
-                            end
-                            break
-                        end
-                    end
-                end
-            end
-            if dfc.isAssigned(shipGroups[i]:getName()) then assignedCount = assignedCount + 1 end
-        end
-        if DFS.status[coalitionId].supply.front[DFS.supplyType.AMMO] < 1 then trigger.action.outTextForCoalition(coalitionId, 'All ammunition expended! Fires will be available when the front is re-supplied with ammo.', 10) end
-        if assignedCount >= 1 then trigger.action.outTextForCoalition(coalitionId, 'All battleship groups assigned. (Groups are available again 2 minutes after receiving a mission)', 10) end
-    end
-end
-function dfc.distanceToTarget(artilleryPos, targetPos)
-    env.info('checking distance to target', false)
-    local x1 = artilleryPos.x
-    local x2 = targetPos.x
-    local y1 = artilleryPos.z
-    local y2 = targetPos.z
-    local xDistance = x1 - x2
-    local yDistance = y1 - y2
-    local distanceToTarget = math.sqrt(xDistance*xDistance + yDistance*yDistance)
-    env.info('distanceToTarget: ' .. distanceToTarget, false)
-    return distanceToTarget
-end
-function dfc.updateFireMissionMarker(markId, targetMarkIndex, coalitionId, markerPos, battleship)
-    table.remove(DFS.status.targetMarks, targetMarkIndex)
-    trigger.action.removeMark(markId)
-    local newMarkId = DrawingTools.newMarkId()
-    trigger.action.markToCoalition(newMarkId, 'Fire Mission in Progress', markerPos, coalitionId, true)
-    local resetTime = 300
-    if battleship ~= nil then resetTime = 120 end
-    timer.scheduleFunction(trigger.action.removeMark, newMarkId, timer.getTime() + resetTime)
-end
-function dfc.incrementCas(coalitionId)
-    DFS.status[coalitionId].casCounter = DFS.status[coalitionId].casCounter  + 1
-    timer.scheduleFunction(dfc.decrementCas, coalitionId, timer.getTime() + 300)
-end
-function dfc.decrementCas(coalitionId)
-    DFS.status[coalitionId].casCounter  = DFS.status[coalitionId].casCounter  - 1
-end
+
 
 function dfc.mainLoop()
     --check front health
@@ -2120,12 +2117,21 @@ function dfc.drawHealthBars()
                 local healthbarOrigin = healthbarZone.point
                 if healthbarOrigin then
                     local barTopLeft = healthbarOrigin
-                    local healthFieldId = DrawingTools.newMarkId()
-                    trigger.action.textToAll(-1, healthFieldId, barTopLeft, DFS.supplyDrawing.colors.fill[c], {1,1,1,0.9},15,true, "Health: " .. DFS.status[c].health .."/"..DFS.status.maxHealth)
-                    DFS.supplyDrawing.fillIds.healthbars[c] = healthFieldId
+                    local barBottomRight = {x = healthbarOrigin.x - DFS.supplyDrawing.counterWidth, y = healthbarOrigin.y, z = healthbarOrigin.z + DFS.supplyDrawing.counterHeight}
+                    trigger.action.rectToAll(-1, DrawingTools.newMarkId(), barTopLeft, barBottomRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+                    for j = 1, 3 do
+                        local zOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
+                        local lineStart = {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z + zOffset}
+                        local dashLength = DFS.supplyDrawing.counterWidth/3
+                        if (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight == 0.5 then
+                            dashLength = DFS.supplyDrawing.counterWidth/2
+                        end
+                        local lineEnd = {x = lineStart.x - dashLength, y = lineStart.y, z = lineStart.z}
+                        trigger.action.lineToAll(-1, DrawingTools.newMarkId(), lineStart, lineEnd, {1,1,1,1}, 1, true, nil)
+                    end
                     local boxSize = DFS.supplyDrawing.counterWidth
-                    --local healthIconOrigin = {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z - boxSize}
-                    --DrawingTools.drawHealth(healthIconOrigin, -1, boxSize)
+                    local healthIconOrigin = {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z - boxSize}
+                    DrawingTools.drawHealth(healthIconOrigin, -1, boxSize, true)
                     DFS.updateHealthbar(c)
                 end
             end
@@ -2133,7 +2139,21 @@ function dfc.drawHealthBars()
     end
 end
 function DFS.updateHealthbar(coalitionId)
-    trigger.action.setMarkupText(DFS.supplyDrawing.fillIds.healthbars[coalitionId], "Health: " .. DFS.status[coalitionId].health .."/"..DFS.status.maxHealth)
+    local healthbarZone = trigger.misc.getZone(DFS.spawnNames[coalitionId].healthbar)
+    if healthbarZone then
+        local healthbarOrigin = healthbarZone.point
+        if DFS.supplyDrawing.fillIds.healthbars[coalitionId] == nil or DFS.supplyDrawing.fillIds.healthbars[coalitionId] < 1 then
+            local healthIndicatorZOffset = (DFS.status[coalitionId].health/DFS.status.maxHealth)*DFS.supplyDrawing.counterHeight
+            local healthIndicatorLineStart = {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z + healthIndicatorZOffset}
+            local healthIndicatorLineEnd = {x = healthbarOrigin.x - DFS.supplyDrawing.counterWidth, y = healthbarOrigin.y, z = healthbarOrigin.z + healthIndicatorZOffset}
+            local healthFillId = DrawingTools.newMarkId()
+            trigger.action.lineToAll(-1, healthFillId, healthIndicatorLineStart, healthIndicatorLineEnd, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
+            DFS.supplyDrawing.fillIds.healthbars[coalitionId] = healthFillId
+        else
+            trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.healthbars[coalitionId], {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z + (DFS.status[coalitionId].health/DFS.status.maxHealth)*DFS.supplyDrawing.counterHeight})
+            trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.healthbars[coalitionId], {x = healthbarOrigin.x - DFS.supplyDrawing.counterWidth, y = healthbarOrigin.y, z = healthbarOrigin.z + (DFS.status[coalitionId].health/DFS.status.maxHealth)*DFS.supplyDrawing.counterHeight})
+        end
+    end
 end
 function dfc.drawSupplyMarks()
     if DrawingTools then
