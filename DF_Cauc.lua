@@ -1512,8 +1512,8 @@ function dfc.updateSupplyDrawings(depot, coalitionId)
             for i = 1, 3 do
                 local boxOrigin = {x = drawingOriginFront.x, y = drawingOriginFront.y, z = drawingOriginFront.z - (DFS.supplyDrawing.counterOffeset*i)}
                 if DFS.supplyDrawing.fillIds.front[coalitionId][i] and DFS.supplyDrawing.fillIds.front[coalitionId][i] > 0 then
-                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z})
-                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
+                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.front[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z})
+                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.front[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
                 else
                     --local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterWidth/4, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                     local xOffset = (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.front[i]/DFS.status.maxSuppliesFront[i]))
