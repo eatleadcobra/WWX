@@ -35,7 +35,7 @@ local drawing = {
 }
 local firebaseRanges = {
     ["MORTAR"] = 3000,
-    ["HOWITZER"] = 7500,
+    ["HOWITZER"] = 9000,
     ["SPG"] = 11000,
 }
 local firebaseExpendQtys = {
@@ -63,8 +63,8 @@ local firemissionDelays = {
         perShot = 2,
     },
     ["HOWITZER"] = {
-        aiming = 105,
-        perShot = 17,
+        aiming = 60,
+        perShot = 12,
     },
     ["SPG"] = {
         aiming = 105,
