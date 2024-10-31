@@ -28,6 +28,9 @@ local health = {
     height = 500,
     width = 4000,
 }
+local xMark = {
+    size = 12
+}
 function DrawingTools.drawPackage(origin, size, pickup, coalition, noArrow)
     if coalition == nil then coalition = -1 end
     local leftQuad = DrawingTools.newMarkId()
@@ -190,4 +193,16 @@ function DrawingTools.drawHealth(origin, coalitionId, boxSize, background)
     local crossId = DrawingTools.newMarkId()
     env.info("Drawing health cross: " .. crossId, false)
     trigger.action.markupToAll(7, coalitionId, crossId, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, {0,0,0,1}, {1,0,0,1}, 1, true, nil)
+end
+function DrawingTools.drawX(coalitionId, point)
+    local origin = point
+    local v1 = {x = origin.x + xMark.size, y = 0, z = origin.z }
+    local v2 = {x = origin.x - xMark.size, y = 0, z = origin.z }
+    local h1 = {x = origin.x, y = 0, z = origin.z + xMark.size }
+    local h2 = {x = origin.x, y = 0, z = origin.z - xMark.size }
+    local vId = DrawingTools.newMarkId()
+    local hId = DrawingTools.newMarkId()
+    trigger.action.lineToAll(coalitionId, vId, v1, v2, {0,0,0,1}, 1, true, nil)
+    trigger.action.lineToAll(coalitionId, hId, h1, h2, {0,0,0,1}, 1, true, nil)
+    return vId, hId
 end

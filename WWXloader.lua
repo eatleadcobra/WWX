@@ -34,12 +34,14 @@ assert(loadfile(pathToWWX.."Components\\CODAR.lua"))()
 assert(loadfile(pathToWWX.."Components\\MAD.lua"))()
 assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
 assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
+assert(loadfile(pathToWWX.."Components\\Recon.lua"))()
 env.info("Loading Plugins", false)
 -- "plugins" here are like wrappers or translation layers between the component and the specific mission requirements of WWX
 assert(loadfile(pathToWWX.."Plugins\\DF_firebases.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_submarines.lua"))()
 env.info("Loading main")
 assert(loadfile(pathToWWX.."DF_Cauc.lua"))()
---factory tracker has to load after DF_Cauc (main file) because it access global vars defined in that file
+--Things that need to load after DF_Cauc (main file) because it access global vars defined in that file
 assert(loadfile(pathToWWX.."WWXFactoryTracker.lua"))()
+assert(loadfile(pathToWWX.."Plugins\\DF_recon.lua"))()
 env.info("Finished loading WWX")

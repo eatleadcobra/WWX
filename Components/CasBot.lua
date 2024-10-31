@@ -104,7 +104,7 @@ function cb.assignCas(playerName, coalitionId, playerGroupID)
         if missionGroupName then
             local missionGroup = Group.getByName(missionGroupName)
             if missionGroup then
-                assignments[coalitionId][playerName] = {name = playerName, target = missionGroupName, groupID = playerGroupID, startTime = timer:getTime(), smokeTime = timer:getTime(), smokeNum = smokeNum}
+                assignments[coalitionId][playerName] = {name = playerName, target = missionGroupName, groupID = playerGroupID, startTime = timer:getTime(), smokeTime = timer:getTime(), smokeNum = smokeNum, missionPoint = Utils.getGroupPoint(missionGroupName)}
                 trigger.action.outTextForGroup(playerGroupID, "Target assigned and marked with ".. smokeColor .." smoke! You are cleared hot.", 20, false)
 				DFS.smokeGroup(missionGroupName, smokeNum)
 				cb.flareGroup(missionGroupName)
@@ -146,6 +146,9 @@ function cb.trackCas()
                 end
                 if isDead then
                     trigger.action.outTextForGroup(v.groupID, "Mission accomplished! Return to CAS stack for further assignment.", 30, false)
+                    if Recon and v.missionPoint then
+                        Recon.createBDAMission(c, v.missionPoint)
+                    end
                     if WWEvents then
                         WWEvents.playerCasMissionCompleted(v.name, c, "completed a CAS mission!")
                     end
