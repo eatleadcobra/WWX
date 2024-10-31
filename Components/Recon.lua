@@ -3,7 +3,7 @@
 Recon = {}
 local recon = {}
 local reconParams = {
-    pointRadius = 2000,
+    pointRadius = 1000,
     minAGL = 610,
     maxAGL = 4572,
     maxPitch = 0.18,
@@ -100,7 +100,7 @@ end
 function Recon.createBDAMission(coalitionId, bdaPoint)
     env.info("Creating BDA Mission", false)
     local missionMarkId = DrawingTools.newMarkId()
-    trigger.action.circleToAll(coalitionId, missionMarkId, bdaPoint, reconParams.pointRadius, {1,0.6,0,1}, {0,0,0,0}, 4, true, nil)
+    trigger.action.circleToAll(coalitionId, missionMarkId, bdaPoint, reconParams.pointRadius, {0.3,1,0,1}, {0,0,0,0.2}, 4, true, nil)
     local newMission = recon.newBaseMission(coalitionId, bdaPoint)
     newMission.type = 1
     newMission.markId = missionMarkId
@@ -111,7 +111,7 @@ end
 function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGroupName)
     env.info("Creating Enemy Location Mission", false)
     local missionMarkId = DrawingTools.newMarkId()
-    trigger.action.circleToAll(coalitionId, missionMarkId, missionPoint, reconParams.pointRadius, {1,0.6,0,1}, {0,0,0,0}, 3, true, nil)
+    trigger.action.circleToAll(coalitionId, missionMarkId, missionPoint, reconParams.pointRadius, {0.3,1,0,1}, {0,0,0,0.2}, 3, true, nil)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.groupName = missionGroupName
     newMission.type = 2
@@ -221,10 +221,10 @@ function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
     end
 end
 function recon.cleanMission(coalitionId, missionId)
-    trigger.action.outText("cleaning mission", 5, false)
+    env.info("cleaning mission", false)
     local missionMarkId = currentMissions[coalitionId][missionId].markId
     if missionMarkId then
-        trigger.action.outText("removing mark", 5, false)
+        env.info("removing mark", false)
         trigger.action.removeMark(missionMarkId)
     end
     currentMissions[coalitionId][missionId] = nil
@@ -281,4 +281,4 @@ function recon.quickTest()
     local newMissionId = Recon.createEnemyLocationMission(2, testGroupPoint, testGroupName)
     local newMissionId2 = Recon.createBDAMission(2, trigger.misc.getZone("bda").point)
 end
-recon.quickTest()
+--recon.quickTest()

@@ -144,3 +144,15 @@ function Utils.getHdgFromPosition(pos)
     end
     return hdg * (180/math.pi)
 end
+function Utils.getGroupPoint(groupName)
+    local returnPoint = nil
+    local group = Group.getByName(groupName)
+    if group then
+        local unit = group:getUnit(1)
+        if unit then
+            local point = unit:getPoint()
+            if point then returnPoint = point end
+        end
+    end
+    return returnPoint
+end
