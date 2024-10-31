@@ -120,6 +120,15 @@ function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGrou
     env.info("Enemy Location Mission Created", false)
     return newMission.id
 end
+function Recon.createEnemyLocationMissionNoMarker(coalitionId, missionPoint, missionGroupName)
+    env.info("Creating Enemy Location Mission", false)
+    local newMission = recon.newBaseMission(coalitionId, missionPoint)
+    newMission.groupName = missionGroupName
+    newMission.type = 2
+    currentMissions[coalitionId][newMission.id] = newMission
+    env.info("Enemy Location Mission Created", false)
+    return newMission.id
+end
 function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
     
 end
