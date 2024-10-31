@@ -5,9 +5,9 @@ local recon = {}
 local reconParams = {
     pointRadius = 1000,
     minAGL = 610,
-    maxAGL = 4572,
+    maxAGL = 3049,
     maxPitch = 0.18,
-    maxRoll = 0.26
+    maxRoll = 0.27
 }
 local maxCaptures = 4
 local missionTypes = {
@@ -47,7 +47,7 @@ function reconEvents:onEvent(event)
                 if string.find(groupName, reconGroupIdentifier) then
                     currentReconJets[groupName] = group:getID()
                     trigger.action.outTextForGroup(group:getID(), "Valid recon flight being tracked.", 10, false)
-                    trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll" .. math.deg(reconParams.maxRoll).."\nMax Pitch: " .. math.deg(reconParams.maxPitch) .. "\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
+                    trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
                     recon.trackReconJet(groupName)
                 end
             end
