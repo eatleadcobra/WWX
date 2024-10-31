@@ -3,7 +3,7 @@
 Recon = {}
 local recon = {}
 local reconParams = {
-    pointRadius = 2000,
+    pointRadius = 20000,
     minAGL = 610,
     maxAGL = 4572,
     maxPitch = 0.18,
@@ -14,7 +14,7 @@ local missionTypes = {
     [2] = "Suspected Enemy Location",
     [3] = "Convoy",
 }
-local missionIdCounter = 0
+local missionIdCounter = 1
 local missionTemplate = {
     id = 0,
     type = 1,
@@ -36,9 +36,58 @@ local currentReconPlayers = {
     [2] = {}
 
 }
-local reconJets = {
-    --lookup type names for F-14A, F-4E, F1EE, MB-339A
+local currentReconJets = {
+
 }
+local reconGroupIdentifier = "RECON"
+local reconEvents = {}
+function reconEvents:onEvent(event)
+    if event.id == world.event.S_EVENT_TAKEOFF then
+        if  event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            if group ~= nil then
+                local groupName = group:getName()
+                if string.find(groupName, reconGroupIdentifier) then
+                    --currentReconJets[groupName] = {}
+                    currentReconJets[groupName] = 1
+                    recon.trackReconJet(groupName)
+                end
+            end
+        end
+    end
+    if event.id == world.event.S_EVENT_LAND then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            if group ~= nil then
+                currentReconJets[group:getName()] = nil
+                local unit = group:getUnit(1)
+                if unit then
+                    local player = unit:getPlayerName()
+                    if player then
+                        recon.processPlayerFilm(group:getCoalition(), player)
+                    end
+                end
+            end
+        end
+    end
+    --on death or slot out 
+    if event.id == world.event.S_EVENT_PILOT_DEAD or event.id == world.event.S_EVENT_EJECTION  or event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            if group ~= nil then
+                currentReconJets[group:getName()] = nil
+                local unit = group:getUnit(1)
+                if unit then
+                    local player = unit:getPlayerName()
+                    if player then
+                        recon.purgePlayerCaptures(group:getCoalition(), player)
+                    end
+                end
+            end
+        end
+    end
+end
+world.addEventHandler(reconEvents)
 function recon.newBaseMission(coalitionId, missionPoint)
     trigger.action.outText("Creating Base Mission", 5, false)
     local newMissonId = recon.getNewMissionId()
@@ -54,9 +103,12 @@ function Recon.createBDAMission(coalitionId, bdaPoint)
 end
 function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGroupName)
     trigger.action.outText("Creating Enemy Location Mission", 5, false)
+    local missionMarkId = DrawingTools.newMarkId()
+    trigger.action.circleToAll(coalitionId, missionMarkId, missionPoint, reconParams.pointRadius, {1,0.6,0,1}, {0,0,0,0}, 7, true, nil)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.groupName = missionGroupName
     newMission.type = 2
+    newMission.markId = missionMarkId
     currentMissions[coalitionId][newMission.id] = newMission
     trigger.action.outText("Enemy Location Mission Created", 5, false)
     return newMission.id
@@ -65,28 +117,33 @@ function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
     
 end
 function recon.trackReconJet(reconGroupName)
-    local reconGroup = Group.getByName(reconGroupName)
-    if reconGroup then
-        local reconUnit = reconGroup:getUnit(1)
-        if reconUnit then
-            local reconCoalition = reconUnit:getCoalition()
-            local reconPoint = reconUnit:getPoint()
-            local reconPos = reconUnit:getPosition()
-            if reconPoint and reconPos and recon.inParams(reconPos, reconPoint) then
-                local closestMission = recon.getMissionInCaptureRange(reconCoalition, reconPoint)
-                if closestMission ~= -1 then
-                    recon.captureMission(closestMission, reconUnit:getPlayerName(), reconCoalition)
+    if currentReconJets[reconGroupName] then
+        trigger.action.outText("tracking recon jet: " .. reconGroupName, 5, false)
+        local reconGroup = Group.getByName(reconGroupName)
+        if reconGroup then
+            local reconUnit = reconGroup:getUnit(1)
+            if reconUnit then
+                local reconCoalition = reconUnit:getCoalition()
+                local reconPoint = reconUnit:getPoint()
+                local reconPos = reconUnit:getPosition()
+                if reconPoint and reconPos and recon.inParams(reconPos, reconPoint) then
+                    local closestMission = recon.getMissionInCaptureRange(reconCoalition, reconPoint)
+                    if closestMission ~= -1 then
+                        recon.captureMission(closestMission, reconUnit:getPlayerName(), reconCoalition)
+                    end
                 end
+                timer.scheduleFunction(recon.trackReconJet, reconGroupName, timer:getTime() + 1)
             end
-            timer.scheduleFunction(recon.trackReconJet, reconGroupName, timer:getTime() + 1)
         end
     end
 end
 function recon.inParams(position, point)
     local pitch = math.abs(math.asin(position.x.y))
-    local roll = math.abs(math.asin(position.x.z))
+    local roll = math.abs(math.atan2(-position.z.y, position.y.y))
     local AGL = Utils.getAGL(point)
-    if pitch < reconParams.maxPitch and roll < reconParams.maxRoll and (reconParams.minAGL < AGL < reconParams.maxAGL ) then
+    trigger.action.outText("Pitch: " .. pitch .. " Roll: " .. roll .. " AGL: " .. AGL, 1, false)
+    if pitch < reconParams.maxPitch and roll < reconParams.maxRoll and (reconParams.minAGL < AGL and AGL < reconParams.maxAGL ) then
+        trigger.action.outText("In params", 1, false)
         return true
     else
         return false
@@ -113,7 +170,6 @@ function recon.captureMission(missionId, playerName, coalitionId)
         captures[playerName] = {}
     end
     captures[playerName][#captures[playerName]+1] = {coalitionId = coalitionId, missionId = missionId}
-    --table.insert(captures[playerName], {coalitionId = coalitionId, missionId = missionId})
     currentMissions[coalitionId][missionId].capturedBy = playerName
     trigger.action.outText("Mission Captured", 5, false)
 end
@@ -135,10 +191,12 @@ function recon.processPlayerFilm(coalitionId, playerName)
 end
 function recon.processCompletedMission(coalitionId, missionId)
     trigger.action.outText("Processing Completed Mission " .. missionId, 5, false)
+    trigger.action.outText(Utils.dump(currentMissions[coalitionId]), 5, false)
     local mission = currentMissions[coalitionId][missionId]
     if mission then
         local completedBy = mission.capturedBy
         local missionType = mission.type
+        trigger.action.outText("completedBy: " .. completedBy .. " missionType: " .. missionTypes[missionType], 5, false)
         if missionType == 1 then
             
         elseif missionType == 2 then
@@ -146,8 +204,17 @@ function recon.processCompletedMission(coalitionId, missionId)
         elseif missionTypes == 3 then
 
         end
-        currentMissions[coalitionId][missionId] = nil
+        recon.cleanMission(coalitionId, missionId)
     end
+end
+function recon.cleanMission(coalitionId, missionId)
+    trigger.action.outText("cleaning mission", 5, false)
+    local missionMarkId = currentMissions[coalitionId][missionId].markId
+    if missionMarkId then
+        trigger.action.outText("removing mark", 5, false)
+        trigger.action.removeMark(missionMarkId)
+    end
+    currentMissions[coalitionId][missionId] = nil
 end
 function recon.processLocation(mission)
     trigger.action.outText("Processing Location Mission", 5, false)
@@ -180,8 +247,6 @@ end
 function recon.quickTest()
     local testGroupName = "test"
     local testGroupPoint = Group.getByName("test"):getUnit(1):getPoint()
-    local newMissionId = Recon.createEnemyLocationMission(1, testGroupPoint, testGroupName)
-    recon.captureMission(newMissionId, "EatLeadCobra", 1)
-    recon.processPlayerFilm(1, "EatLeadCobra")
+    local newMissionId = Recon.createEnemyLocationMission(2, testGroupPoint, testGroupName)
 end
---recon.quickTest()
+recon.quickTest()
