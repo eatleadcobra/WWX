@@ -188,13 +188,15 @@ function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
     end
 end
 function recon.purgePlayerCaptures(coalitionId, playerName)
-    for i = 1, #captures[playerName] do
-        local mission = currentMissions[coalitionId][captures[playerName][i].missionId]
-        if mission then
-           mission.capturedBy = nil
+    if captures[playerName] then
+        for i = 1, #captures[playerName] do
+            local mission = currentMissions[coalitionId][captures[playerName][i].missionId]
+            if mission then
+            mission.capturedBy = nil
+            end
         end
+        captures[playerName] = nil
     end
-    captures[playerName] = nil
 end
 function recon.processPlayerFilm(coalitionId, playerName, playerGroupId)
     --trigger.action.outText("Processing Film For " .. playerName, 5, false)
