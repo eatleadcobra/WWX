@@ -2011,14 +2011,18 @@ function dfc.illuminate(point)
         trigger.action.illuminationBomb({x=point.x, y = land.getHeight({x = point.x, y = point.z})+700, z = point.z}, 8000)
     end
 end
-function dfc.isAssigned(groupName)
-    local found = false
-    for i = 1, #DFS.status.assignedArtGroups do
-        if DFS.status.assignedArtGroups[i] == groupName then
-            found = true
+function DFS.smokeGroup(groupName, smokeColor)
+    local missionGroup = Group.getByName(groupName)
+    if missionGroup then
+        local missionUnit = missionGroup:getUnit(1)
+        if missionUnit then
+            local missionPos = missionUnit:getPoint()
+            if missionPos then
+                trigger.action.smoke(Utils.VectorAdd(missionPos, Utils.ScalarMult(atmosphere.getWind(missionPos), 10 + math.random(5))), smokeColor)
+                env.info("Created CAS smoke marker for:" .. groupName, false)
+            end
         end
     end
-    return found
 end
 function dfc.casLoop()
     dfc.createCasMissions(1)
