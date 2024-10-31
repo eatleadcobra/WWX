@@ -188,7 +188,7 @@ function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
     end
 end
 function recon.purgePlayerCaptures(coalitionId, playerName)
-    if captures[playerName] then
+    if captures[playerName] and #captures[playerName] ~= nil then
         for i = 1, #captures[playerName] do
             local mission = currentMissions[coalitionId][captures[playerName][i].missionId]
             if mission then
