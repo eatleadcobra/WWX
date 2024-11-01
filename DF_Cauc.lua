@@ -1372,7 +1372,7 @@ function dfc.createSupplyDrawings()
                 local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
                 env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
-                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.9}, 1, true, nil)
+                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
                 for j = 1, 3 do
                     local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
                     local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
@@ -1401,7 +1401,7 @@ function dfc.createSupplyDrawings()
                 local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
                 env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
-                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.9}, 1, true, nil)
+                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
                 for j = 1, 3 do
                     local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
                     local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
@@ -1433,7 +1433,7 @@ function dfc.createSupplyDrawings()
                 local boxTop = {x = boxOrigin.x + pirateHeight, y = boxOrigin.y, z = boxOrigin.z - pirateWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
                 env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
-                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.9}, 1, true, nil)
+                trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
                 for j = 1, 3 do
                     local xOffset = (j*(pirateHeight/4))/pirateHeight * pirateHeight
                     local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
@@ -2954,6 +2954,7 @@ world.addEventHandler(dfcEvents)
 dfc.makeAirfieldsNonCapturable()
 dfc.getMission()
 dfc.getData()
+dfc.createSupplyDrawings()
 dfc.initSpawns()
 dfc.initConvoys()
 dfc.startShipping()
@@ -2965,7 +2966,6 @@ dfc.upgradeLoop()
 dfc.saveLoop()
 dfc.drawSupplyMarks()
 dfc.drawHealthBars()
-dfc.createSupplyDrawings()
 --dfc.supplyDrawingRefreshLoop()
 dfc.isItSunset()
 --dfc.casLoop()
