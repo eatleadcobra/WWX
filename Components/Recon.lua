@@ -186,7 +186,7 @@ function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
         captures[playerName] = {}
     end
     if #captures[playerName] < maxCaptures then
-        captures[playerName][#captures[playerName]+1] = {coalitionId = coalitionId, missionId = missionId}
+        captures[playerName][#captures[playerName]+1] = {coalitionId = coalitionId, missionId = missionId, captureTime = timer:getTime()}
         currentMissions[coalitionId][missionId].capturedBy = playerName
         trigger.action.outTextForGroup(playerGroupId, "Mission Captured Successfully!", 10, false)
         if #captures[playerName] >= maxCaptures then
@@ -247,8 +247,8 @@ function recon.destroyMission(param)
     local missionToDestroy = currentMissions[param.coalitionId][param.missionId]
     if missionToDestroy then
         local missionCaptured = missionToDestroy.capturedBy ~= nil
-        if missionCaptured then
-            timer.scheduleFunction(recon.destroyMission, param, timer:getTime() + missionExpireTime)
+        if missionCaptured and captures[missionToDestroy.capturedBy] and (timer:getTime() - captures[missionToDestroy.capturedBy].captureTime) < missionExpireTime then
+            timer.scheduleFunction(recon.destroyMission, param, timer:getTime() + missionExpireTime/4)
             return
         else
             recon.cleanMission(param.coalitionId, param.missionId)
