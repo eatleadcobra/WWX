@@ -287,7 +287,12 @@ function recon.getNewMissionId()
     missionIdCounter = missionIdCounter + 1
     return returnId
 end
-
+function recon.statusLoop()
+    env.info("Recon Missions Status: " .. Utils.dump(currentMissions), false)
+    env.info("Recon Captures Status: " .. Utils.dump(captures), false)
+    timer.scheduleFunction(recon.statusLoop, nil, timer:getTime() + 600)
+end
+recon.statusLoop()
 function recon.quickTest()
     local testGroupName = "test"
     local testGroupPoint = Group.getByName("test"):getUnit(1):getPoint()
