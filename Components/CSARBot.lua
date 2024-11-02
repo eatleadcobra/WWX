@@ -257,7 +257,7 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
         anyTerrain = true
     end
     CSB.generateCsar(pos,coalitionId,nil,nil,100,anyTerrain,nil,playerName)
-    timer.scheduleFunction(CSB.cleanUpPilot,args,timer.getTime()+cleanUpTimer) -- not sure if you can destroy a player connected object in MP
+    --timer.scheduleFunction(CSB.cleanUpPilot,args,timer.getTime()+cleanUpTimer) -- not sure if you can destroy a player connected object in MP
 end
 function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, anyTerrain, timeLimit, playerName)
     local fName = ""
