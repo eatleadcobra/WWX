@@ -247,7 +247,7 @@ function recon.destroyMission(param)
     local missionToDestroy = currentMissions[param.coalitionId][param.missionId]
     if missionToDestroy then
         local missionCaptured = missionToDestroy.capturedBy ~= nil
-        if missionCaptured and captures[missionToDestroy.capturedBy] and (timer:getTime() - captures[missionToDestroy.capturedBy].captureTime) < missionExpireTime then
+        if missionCaptured and captures[missionToDestroy.capturedBy] and captures[missionToDestroy.capturedBy].captureTime and (timer:getTime() - captures[missionToDestroy.capturedBy].captureTime) < missionExpireTime then
             timer.scheduleFunction(recon.destroyMission, param, timer:getTime() + missionExpireTime/4)
             return
         else
