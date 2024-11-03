@@ -2669,7 +2669,7 @@ function dfc.trackCargo(param)
                 env.info("cargo alt AGL: " .. altitude, false)
                 env.info("cargo " .. param.cargo .. " velocity x: " .. velocity.x .. " y: " .. velocity.y .. " z: " .. velocity.z, false)
                 env.info("chinook cargo: " .. tostring(chinookCargo), false)
-                if (chinookCargo == false and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) or ( chinookCargo == true and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 0.2)) then
+                if (chinookCargo == false and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 1)) or ( chinookCargo == true and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 0.2)) then
                     env.info("cargo not moving", false)
                     env.info(param.cargo .. ": closest depot distance: " .. closestDepotToCargo.distance, false)
                     env.info(param.cargo .. ": closest depot is rear: " .. tostring(closestDepotToCargo.isRear), false)
