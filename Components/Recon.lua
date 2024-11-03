@@ -236,6 +236,10 @@ end
 function recon.cleanMission(coalitionId, missionId)
     env.info("cleaning mission", false)
     local missionMarkId = currentMissions[coalitionId][missionId].markId
+    local capturedBy = currentMissions[coalitionId][missionId].capturedBy
+    if capturedBy then
+        captures[capturedBy] = nil
+    end
     if missionMarkId then
         env.info("removing mark", false)
         trigger.action.removeMark(missionMarkId)
@@ -247,7 +251,7 @@ function recon.destroyMission(param)
     local missionToDestroy = currentMissions[param.coalitionId][param.missionId]
     if missionToDestroy then
         local missionCaptured = missionToDestroy.capturedBy ~= nil
-        if missionCaptured and captures[missionToDestroy.capturedBy] and captures[missionToDestroy.capturedBy].captureTime and (timer:getTime() - captures[missionToDestroy.capturedBy].captureTime) < missionExpireTime then
+        if missionCaptured and captures[missionToDestroy.capturedBy] then
             timer.scheduleFunction(recon.destroyMission, param, timer:getTime() + missionExpireTime/4)
             return
         else
