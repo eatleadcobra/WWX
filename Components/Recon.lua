@@ -211,7 +211,11 @@ function recon.processPlayerFilm(coalitionId, playerName, playerGroupId)
     --trigger.action.outText("Processing Film For " .. playerName, 5, false)
     if captures[playerName] then
         for i = 1, #captures[playerName] do
-            recon.processCompletedMission(coalitionId, captures[playerName][i].missionId, playerGroupId)
+            if captures[playerName][i].missionId then
+                recon.processCompletedMission(coalitionId, captures[playerName][i].missionId, playerGroupId)
+            else
+                env.info("processing mission failed, no id", false)
+            end
         end
         recon.purgePlayerCaptures(coalitionId, playerName)
     end
