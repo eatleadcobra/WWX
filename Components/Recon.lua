@@ -186,7 +186,7 @@ function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
         captures[playerName] = {}
     end
     if #captures[playerName] < maxCaptures then
-        captures[playerName][#captures[playerName]+1] = {coalitionId = coalitionId, missionId = missionId, captureTime = timer:getTime()}
+        captures[playerName][missionId] = {coalitionId = coalitionId, missionId = missionId, captureTime = timer:getTime()}
         currentMissions[coalitionId][missionId].capturedBy = playerName
         trigger.action.outTextForGroup(playerGroupId, "Mission Captured Successfully!", 10, false)
         if #captures[playerName] >= maxCaptures then
@@ -198,8 +198,8 @@ function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
 end
 function recon.purgePlayerCaptures(coalitionId, playerName)
     if captures[playerName] and #captures[playerName] ~= nil then
-        for i = 1, #captures[playerName] do
-            local mission = currentMissions[coalitionId][captures[playerName][i].missionId]
+        for k,v in pairs (captures[playerName]) do
+            local mission = currentMissions[coalitionId][v.missionId]
             if mission then
             mission.capturedBy = nil
             end
@@ -210,14 +210,14 @@ end
 function recon.processPlayerFilm(coalitionId, playerName, playerGroupId)
     --trigger.action.outText("Processing Film For " .. playerName, 5, false)
     if captures[playerName] then
-        for i = 1, #captures[playerName] do
-            if captures[playerName][i].missionId then
-                recon.processCompletedMission(coalitionId, captures[playerName][i].missionId, playerGroupId)
+        for k,v in pairs (captures[playerName]) do
+            if v.missionId then
+                recon.processCompletedMission(coalitionId, v.missionId, playerGroupId)
             else
                 env.info("processing mission failed, no id", false)
             end
         end
-        recon.purgePlayerCaptures(coalitionId, playerName)
+        --recon.purgePlayerCaptures(coalitionId, playerName)
     end
 end
 function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
@@ -242,7 +242,7 @@ function recon.cleanMission(coalitionId, missionId)
     local missionMarkId = currentMissions[coalitionId][missionId].markId
     local capturedBy = currentMissions[coalitionId][missionId].capturedBy
     if capturedBy then
-        captures[capturedBy] = nil
+        captures[capturedBy][missionId] = nil
     end
     if missionMarkId then
         env.info("removing mark", false)
@@ -267,7 +267,9 @@ function recon.processBDA(mission, playerGroupId)
     env.info("Processing BDA Mission", false)
     local enemyCoalition = 1
     if mission.coalitionId == 1 then enemyCoalition = 2 end
-    DFS.status[enemyCoalition].health = DFS.status[enemyCoalition].health - 1
+    if DFS then
+        DFS.status[enemyCoalition].health = DFS.status[enemyCoalition].health - 1
+    end
     trigger.action.outTextForGroup(playerGroupId, "BDA Mission Completed!", 5, false)
 end
 function recon.processLocation(mission, playerGroupId)
