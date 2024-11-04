@@ -121,12 +121,12 @@ function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGrou
     return newMission.id
 end
 function Recon.createEnemyLocationMissionNoMarker(coalitionId, missionPoint, missionGroupName)
-    env.info("Creating Enemy Location Mission", false)
+    env.info("Creating Enemy Location Mission No Marker", false)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.groupName = missionGroupName
     newMission.type = 2
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("Enemy Location Mission Created", false)
+    env.info("Enemy Location Mission Created No Marker", false)
     return newMission.id
 end
 function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
@@ -134,7 +134,6 @@ function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
 end
 function recon.trackReconJet(reconGroupName)
     if currentReconJets[reconGroupName] then
-        env.info("tracking recon jet: " .. reconGroupName, false)
         local reconGroup = Group.getByName(reconGroupName)
         if reconGroup then
             local reconUnit = reconGroup:getUnit(1)
@@ -148,7 +147,7 @@ function recon.trackReconJet(reconGroupName)
                         recon.captureMission(closestMission, reconUnit:getPlayerName(), reconCoalition, reconGroup:getID())
                     end
                 end
-                timer.scheduleFunction(recon.trackReconJet, reconGroupName, timer:getTime() + 1)
+                timer.scheduleFunction(recon.trackReconJet, reconGroupName, timer:getTime() + 0.5)
             end
         end
     end
