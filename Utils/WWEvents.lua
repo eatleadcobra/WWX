@@ -11,8 +11,9 @@ world.event.S_EVENT_WWX_CARGO_STOLEN = 8411
 world.event.S_EVENT_WWX_SHIP_TORPEDOED = 8412
 world.event.S_EVENT_WWX_CONVOY_KILLED = 8413
 world.event.S_EVENT_WWX_CSAR_MISSION_COMPLETED = 8414
+world.event.S_EVENT_WWX_FIREMISSION_COMPLETED = 8415
+world.event.S_EVENT_WWX_FIREMISSION_KILL = 8416
 
-world.event.S_EVENT_WWX_FIREMISSION_COMPLETE = 8415
 WWEvents = {}
 WWEvents.latches = {
     [1] = {
@@ -189,10 +190,11 @@ end
 function WWEvents.fireMissionCompleted(coalitionId, playerName, kills)
     env.info("fire mission completed event fired", false)
     local Event = {
-        id = world.event.S_EVENT_WWX_FIREMISSION_COMPLETE,
+        id = world.event.S_EVENT_WWX_FIREMISSION_COMPLETED,
         time = timer:getTime(),
         coalition = coalitionId,
         playerName = playerName,
+        kills = kills,
         text = "'s fire mission achieved " .. kills .. " kill(s)!"
     }
     world.onEvent(Event)
