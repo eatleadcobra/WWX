@@ -61,7 +61,7 @@ function reconEvents:onEvent(event)
                 local unit = group:getUnit(1)
                 if unit then
                     local player = unit:getPlayerName()
-                    if player and event.place and event.place and event.place:getCoalition() == group:getCoalition() and event.place:getDesc().category == Airbase.Category.AIRDROME then
+                    if player and event.place and event.place and event.place:getCoalition() == group:getCoalition() and event.place:getDesc().category == 0 then
                         recon.processPlayerFilm(group:getCoalition(), player, group:getID())
                     end
                 end
