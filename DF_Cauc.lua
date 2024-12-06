@@ -2219,7 +2219,7 @@ function dfc.spawnSupply(param)
                         dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                     end
                     --env.info("Tracking cargo: " .. cargo:getName(), false)
-                    dfc.trackCargo({coalition = transporterCoalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), isSlung = true, modifier = param.modifier, groupName = param.groupName})
+                    dfc.trackCargo({coalition = transporterCoalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
                 else
                     trigger.action.outTextForGroup(transporterGroup:getID(), "This depot does not have enough " .. DFS.supplyNames[param.type].. " to create a crate!", 5, false)
                     if frontPickup  then
@@ -2347,7 +2347,7 @@ function dfc.unloadInternalCargo(param)
                     dfc.troopUnload(param.groupName, param.type, param.ammo)
                 else
                     local cargo = dfc.spawnStatic(param.type, unloadPoint, param.country, "small")
-                    dfc.trackCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName})
+                    dfc.trackCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
                 end
                 local secondLevel = "Internal Cargo"
                 if dfc.isTroops(param.type) then
@@ -2670,46 +2670,53 @@ function dfc.trackCargo(param)
                 env.info("cargo alt AGL: " .. altitude, false)
                 env.info("cargo " .. param.cargo .. " velocity x: " .. velocity.x .. " y: " .. velocity.y .. " z: " .. velocity.z, false)
                 env.info("chinook cargo: " .. tostring(chinookCargo), false)
-                if (chinookCargo == false and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 1)) or ( chinookCargo == true and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 0.2)) then
+                if (chinookCargo == false and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 1)) or ( chinookCargo == true and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 0.2 and altitude > -0.1)) then
                     env.info("cargo not moving", false)
                     env.info(param.cargo .. ": closest depot distance: " .. closestDepotToCargo.distance, false)
                     env.info(param.cargo .. ": closest depot is rear: " .. tostring(closestDepotToCargo.isRear), false)
                     env.info(param.cargo .. ": sea pickup: " .. tostring(param.seaPickup), false)
                     env.info(param.cargo .. ": front Pickup: " .. tostring(param.frontPickup), false)
-                    if distanceToClosestFb then
-                        env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
-                    end
-                    if (param.frontPickup == nil or param.frontPickup == false) and (closestDepotToCargo.distance <= DFS.status.playerDeliverRadius or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= 2000)) then
-                        env.info("Group: " .. param.groupId .. "-" .. param.groupName .. " delivered " .. param.cargo .. " to " .. closestDepotToCargo.depotName, false)
-                        local deliverType = "FRONT"
-                        if closestDepotToCargo.isRear then deliverType = "REAR" end
-                        dfc.supplyEvent(param.groupName, param.supplyType, deliverType)
-                        trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
-                        dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
-                        --if cargo and cargo:isExist() then cargo:destroy() end
-                        return
-                    elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["AMMO"] then
-                        Firebases.resupplyFirebase(Firebases[closestFirebaseToCargo], DFS.status.playerResupplyAmts[param.supplyType][param.modifier])
-                        dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
-                        env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                        trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
-                        --if cargo and cargo:isExist() then cargo:destroy() end
-                        return
-                    elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["GUN"] then
-                        Firebases.addGroupToFirebase(Firebases[closestFirebaseToCargo], Firebases[closestFirebaseToCargo].fbType)
-                        dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
-                        env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                        trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
-                        --if cargo and cargo:isExist() then cargo:destroy() end
-                        return
-                    elseif timer:getTime() - param.spawnTime > 29 and closestFirebaseToCargo == -1 and dfc.findPickupZone(cargo:getPoint(), param.coalition) == nil and param.supplyType == DFS.supplyType["GUN"] then
-                        env.info("Group: " .. param.groupId .. " deployed howitzer firebase", false)
-                        Firebases.deployStatic(cargo:getName(), "HOWITZER")
-                        --if cargo and cargo:isExist() then cargo:destroy() end
+                    param.successfulDeployChecks = param.successfulDeployChecks + 1
+                    env.info(param.cargo .. ": successful checks: " .. param.successfulDeployChecks, false)
+                    if param.successfulDeployChecks > 3 then
+                        if distanceToClosestFb then
+                            env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
+                        end
+                        if (param.frontPickup == nil or param.frontPickup == false) and (closestDepotToCargo.distance <= DFS.status.playerDeliverRadius or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= 2000)) then
+                            env.info("Group: " .. param.groupId .. "-" .. param.groupName .. " delivered " .. param.cargo .. " to " .. closestDepotToCargo.depotName, false)
+                            local deliverType = "FRONT"
+                            if closestDepotToCargo.isRear then deliverType = "REAR" end
+                            dfc.supplyEvent(param.groupName, param.supplyType, deliverType)
+                            trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
+                            dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
+                            --if cargo and cargo:isExist() then cargo:destroy() end
+                            return
+                        elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["AMMO"] then
+                            Firebases.resupplyFirebase(Firebases[closestFirebaseToCargo], DFS.status.playerResupplyAmts[param.supplyType][param.modifier])
+                            dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
+                            env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
+                            trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
+                            --if cargo and cargo:isExist() then cargo:destroy() end
+                            return
+                        elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["GUN"] then
+                            Firebases.addGroupToFirebase(Firebases[closestFirebaseToCargo], Firebases[closestFirebaseToCargo].fbType)
+                            dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
+                            env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
+                            trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
+                            --if cargo and cargo:isExist() then cargo:destroy() end
+                            return
+                        elseif timer:getTime() - param.spawnTime > 29 and closestFirebaseToCargo == -1 and dfc.findPickupZone(cargo:getPoint(), param.coalition) == nil and param.supplyType == DFS.supplyType["GUN"] then
+                            env.info("Group: " .. param.groupId .. " deployed howitzer firebase", false)
+                            Firebases.deployStatic(cargo:getName(), "HOWITZER")
+                            --if cargo and cargo:isExist() then cargo:destroy() end
+                        else
+                            timer.scheduleFunction(dfc.trackCargo, param, timer:getTime() + 10)
+                        end
                     else
                         timer.scheduleFunction(dfc.trackCargo, param, timer:getTime() + 10)
                     end
                 else
+                    param.successfulDeployChecks = 0
                     timer.scheduleFunction(dfc.trackCargo, param, timer:getTime() + 10)
                 end
             end
