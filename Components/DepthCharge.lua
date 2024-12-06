@@ -1,8 +1,8 @@
 local depthCharge = {}
 local dcEvents = {}
 local chargeDepths = {}
-local dcDamageRange = 75
-local dcKillRange = 15
+local dcDamageRange = 150
+local dcKillRange = 50
 local subTypes = {["santafe"] = 1, ["Type_093"] = 2}
 function dcEvents:onEvent(event)
 	--on weapon release
