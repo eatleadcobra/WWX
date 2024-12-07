@@ -2709,6 +2709,7 @@ function dfc.trackCargo(param)
                             return
                         elseif timer:getTime() - param.spawnTime > 29 and closestFirebaseToCargo == -1 and dfc.findPickupZone(cargo:getPoint(), param.coalition) == nil and param.supplyType == DFS.supplyType["GUN"] then
                             env.info("Group: " .. param.groupId .. " deployed howitzer firebase", false)
+                            trigger.action.outTextForGroup(param.groupId, "You have deployed a firebase", 10, false)
                             Firebases.deployStatic(cargo:getName(), "HOWITZER")
                             --if cargo and cargo:isExist() then cargo:destroy() end
                         else
