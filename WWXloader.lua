@@ -44,4 +44,5 @@ assert(loadfile(pathToWWX.."DF_Cauc.lua"))()
 --Things that need to load after DF_Cauc (main file) because it access global vars defined in that file
 assert(loadfile(pathToWWX.."WWXFactoryTracker.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_recon.lua"))()
+assert(loadfile(pathToWWX.."Plugins\\DF_cargo.lua"))()
 env.info("Finished loading WWX")
