@@ -2668,6 +2668,8 @@ function dfc.trackCargo(param)
                     end
                 end
                 env.info("cargo alt AGL: " .. altitude, false)
+                local cargoPoint = cargo:getPoint()
+                if cargoPoint then env.info("cargo location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z, false) end
                 env.info("cargo " .. param.cargo .. " velocity x: " .. velocity.x .. " y: " .. velocity.y .. " z: " .. velocity.z, false)
                 env.info("chinook cargo: " .. tostring(chinookCargo), false)
                 if (chinookCargo == false and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 1)) or ( chinookCargo == true and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 0.2 and altitude > -0.1)) then
