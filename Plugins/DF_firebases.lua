@@ -63,11 +63,11 @@ local firemissionDelays = {
         perShot = 2,
     },
     ["HOWITZER"] = {
-        aiming = 105,
+        aiming = 115,
         perShot = 17,
     },
     ["SPG"] = {
-        aiming = 105,
+        aiming = 120,
         perShot = 17,
     }
 }
