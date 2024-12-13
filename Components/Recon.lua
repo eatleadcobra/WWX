@@ -33,6 +33,10 @@ local currentMissions = {
     [2] = {
     },
 }
+local reconJetTypes = {
+    ["Yak-52"] = 1,
+    ["TF-51D"] = 1,
+}
 local currentReconJets = {
 
 }
@@ -44,7 +48,7 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 local groupName = group:getName()
-                if string.find(groupName, reconGroupIdentifier) then
+                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] then
                     currentReconJets[groupName] = group:getID()
                     trigger.action.outTextForGroup(group:getID(), "Valid recon flight being tracked.", 10, false)
                     trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
@@ -111,6 +115,8 @@ end
 function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGroupName)
     env.info("Creating Enemy Location Mission", false)
     local missionMarkId = DrawingTools.newMarkId()
+    missionPoint.x = missionPoint.x + math.random(-300, 300)
+    missionPoint.z = missionPoint.z + math.random(-300, 300)
     trigger.action.circleToAll(coalitionId, missionMarkId, missionPoint, reconParams.pointRadius, {0.3,1,0,1}, {0,0,0,0.2}, 3, true, nil)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.groupName = missionGroupName
