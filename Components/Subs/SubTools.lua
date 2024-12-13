@@ -65,7 +65,7 @@ function SubTools.findClosestShip(subPoint, subCoalition, subSpeed)
     }
     local ifFound = function(foundItem, val)
         if foundItem:getDesc().category == 3 then
-            if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 3 and foundItem:getCoalition() ~= subCoalition and foundItem:hasAttribute("Unarmed ships") then
+            if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 3 and foundItem:getCoalition() ~= subCoalition then
                 local shipPoint = foundItem:getPoint()
                 if shipPoint ~= nil then
                     local distance = Utils.PointDistance(subPoint, shipPoint)
