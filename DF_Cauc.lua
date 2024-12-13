@@ -1772,7 +1772,7 @@ function dfc.checkShipping(param)
                 if healthPct < 30 then
                     trigger.action.explosion(convoyLeadPos, 600)
                     return
-                elseif healthPct < 70 then
+                elseif healthPct < 80 then
                     convoyGroup:getController():setOnOff(false)
                 end
                 local convoyCoalition = convoyGroup:getCoalition()
@@ -1848,57 +1848,9 @@ function dfc.checkPirate(param)
 end
 function dfc.startShipping()
     local redConvoyName = mist.cloneGroup('Red-ShipConvoy-Init').name
-    local redConvoyGroup = Group.getByName(redConvoyName)
-    if redConvoyGroup then
-       local redConvoyUnit = redConvoyGroup:getUnit(1)
-       if redConvoyUnit then
-        local convoyPoint = redConvoyUnit:getPoint()
-        local convoyPos = redConvoyUnit:getPosition()
-        if convoyPoint and convoyPos then
-            local heading = math.atan2(convoyPos.x.z, convoyPos.x.x)
-            if heading < 0 then heading = heading + (2 * math.pi) end
-            local spawnPoints = {}
-            spawnPoints[1] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(convoyPos.x, 40))
-            spawnPoints[2] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(convoyPos.x, 58))
-            spawnPoints[3] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(Utils.RotateVector(convoyPos.x, 0.26), -30))
-            spawnPoints[4] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(Utils.RotateVector(convoyPos.x, -0.26), -30))
-            local groups = {
-                [1] = {type = "shipaa", point = spawnPoints[1]},
-                [2] = {type = "TRUCK", point = spawnPoints[2]},
-                [3] = {type = "m249", point = spawnPoints[3]},
-                [4] = {type = "m249", point = spawnPoints[4]},
-            }
-           -- FirebaseGroups.spawnCustomGroup(convoyPoint, groups, 1, heading)
-        end
-       end
-    end
     local redEscortName = mist.cloneGroup('Red-ShipEscort-Init').name
     dfc.checkShipping({convoyName = redConvoyName, escortName = redEscortName})
     local blueConvoyName = mist.cloneGroup('Blue-ShipConvoy-Init').name
-    local blueConvoyGroup = Group.getByName(blueConvoyName)
-    if blueConvoyGroup then
-       local blueConvoyUnit = blueConvoyGroup:getUnit(1)
-       if blueConvoyUnit then
-        local convoyPoint = blueConvoyUnit:getPoint()
-        local convoyPos = blueConvoyUnit:getPosition()
-        if convoyPoint and convoyPos then
-            local heading = math.atan2(convoyPos.x.z, convoyPos.x.x)
-            if heading < 0 then heading = heading + (2 * math.pi) end
-            local spawnPoints = {}
-            spawnPoints[1] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(convoyPos.x, 40))
-            spawnPoints[2] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(convoyPos.x, 58))
-            spawnPoints[3] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(Utils.RotateVector(convoyPos.x, 0.26), -30))
-            spawnPoints[4] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(Utils.RotateVector(convoyPos.x, -0.26), -30))
-            local groups = {
-                [1] = {type = "shipaa", point = spawnPoints[1]},
-                [2] = {type = "TRUCK", point = spawnPoints[2]},
-                [3] = {type = "m249", point = spawnPoints[3]},
-                [4] = {type = "m249", point = spawnPoints[4]},
-            }
-            --FirebaseGroups.spawnCustomGroup(convoyPoint, groups, 2, heading)
-        end
-       end
-    end
     local blueEscortName = mist.cloneGroup('Blue-ShipEscort-Init').name
     dfc.checkShipping({convoyName = blueConvoyName, escortName = blueEscortName})
     dfc.shippingLoop()
@@ -1910,30 +1862,6 @@ function dfc.shippingLoop()
             if c == 2 then ctlnString = "Blue" end
             local spawnNum = math.random(3)
             local convoyName = mist.cloneGroup(ctlnString..'-ShipConvoy-'..spawnNum).name
-            local convoyGroup = Group.getByName(convoyName)
-            if convoyGroup then
-                local convoyUnit = convoyGroup:getUnit(1)
-                if convoyUnit then
-                    local convoyPoint = convoyUnit:getPoint()
-                    local convoyPos = convoyUnit:getPosition()
-                    if convoyPoint and convoyPos then
-                        local heading = math.atan2(convoyPos.x.z, convoyPos.x.x)
-                        if heading < 0 then heading = heading + (2 * math.pi) end
-                        local spawnPoints = {}
-                        spawnPoints[1] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(convoyPos.x, 40))
-                        spawnPoints[2] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(convoyPos.x, 58))
-                        spawnPoints[3] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(Utils.RotateVector(convoyPos.x, 0.26), -30))
-                        spawnPoints[4] = Utils.VectorAdd(convoyPoint, Utils.ScalarMult(Utils.RotateVector(convoyPos.x, -0.26), -30))
-                        local groups = {
-                            [1] = {type = "shipaa", point = spawnPoints[1]},
-                            [2] = {type = "TRUCK", point = spawnPoints[2]},
-                            [3] = {type = "m249", point = spawnPoints[3]},
-                            [4] = {type = "m249", point = spawnPoints[4]},
-                        }
-                        --FirebaseGroups.spawnCustomGroup(convoyPoint, groups, c, heading)
-                    end
-                end
-            end
             local escortName = mist.cloneGroup(ctlnString..'-ShipEscort-'..spawnNum).name
             dfc.checkShipping({convoyName = convoyName, escortName = escortName})
             DFS.status[c].lastShipTime = timer:getTime()
