@@ -139,6 +139,7 @@ function CSB.load()
         trigger.action.textToAll(2, DrawingTools.newMarkId(), stackPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CSAR Stack")
     end
     if redCsarZone and blueCsarZone then
+        csarZoneRadius = redCsarZone.radius
         csarPoints[1] = {x=redCsarZone.point.x, y = land.getHeight({x = redCsarZone.point.x, y = redCsarZone.point.z})+3, z = redCsarZone.point.z}
         trigger.action.circleToAll(1,DrawingTools.newMarkId(),csarPoints[1],csarZoneRadius,{1,0,0,0.6},{0,0,0,0}, 4, true, nil)
         trigger.action.textToAll(1, DrawingTools.newMarkId(), csarPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "CSAR Coverage")

@@ -301,6 +301,12 @@ function FirebaseGroups.spawnPirateBoat(point, boatCoalition)
     groupTable["route"] = fbg.copyTemplate(routes["pirate"][boatCoalition]["route"])
     groupTable["route"]["points"][1].x = point.x
     groupTable["route"]["points"][1].y = point.z
+    local piratewp1 = trigger.misc.getZone(boatCoalition.."-pwp-1")
+    local piratewp2 = trigger.misc.getZone(boatCoalition.."-pwp-2")
+    groupTable["route"]["points"][2].x = piratewp1.point.x
+    groupTable["route"]["points"][2].y = piratewp1.point.z
+    groupTable["route"]["points"][3].x = piratewp2.point.x
+    groupTable["route"]["points"][3].y = piratewp2.point.z
     local unitsTable = {}
     local addUnitTable = fbg.copyTemplate(unitTemplates["pirate"])
     addUnitTable["x"] = point.x
