@@ -1,5 +1,9 @@
 SubTools = {}
 local subSearchRadius = 35000
+local subTargetTypes = {
+    ["Ship_Tilde_Supply"] = 1,
+    ["BDK-775"] = 1,
+}
 
 function SubTools.calculateIntercept(shipPoint, subPoint, shipPosition, shipVelocity, subSpeed)
     local shipSpeed = (shipVelocity.x^2 + shipVelocity.y^2 + shipVelocity.z^2)^0.5
@@ -65,7 +69,7 @@ function SubTools.findClosestShip(subPoint, subCoalition, subSpeed)
     }
     local ifFound = function(foundItem, val)
         if foundItem:getDesc().category == 3 then
-            if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 3 and foundItem:getCoalition() ~= subCoalition then
+            if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 3 and foundItem:getCoalition() ~= subCoalition and subTargetTypes[foundItem:getTypeName()] then
                 local shipPoint = foundItem:getPoint()
                 if shipPoint ~= nil then
                     local distance = Utils.PointDistance(subPoint, shipPoint)
