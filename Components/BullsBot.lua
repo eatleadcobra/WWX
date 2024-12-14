@@ -59,7 +59,7 @@ function bulls.getTargets(coalitionId, targetGroupName)
         }
     }
     local ifFound = function(foundItem, val)
-        if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 0 then
+        if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 0 and foundItem:getPoint().y > 0 then
             local isFriendly = false
             if foundItem:getCoalition() == coalitionId then
                 isFriendly = true
