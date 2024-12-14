@@ -133,6 +133,17 @@ DFS.heloCapacities = {
         volume = 30,
         seats = 30
     },
+    ["OH-6A"] = {
+        types = {
+            ["Fuel"] = 1,
+            ["Ammo"] = 2,
+            ["Equipment"] = 3,
+            ["Special Forces"] = 6,
+            ["Combat Engineers (Landmines)"] = 7,
+        },
+        volume = 5,
+        seats = 2
+    }
 }
 DFS.helos = {
     ["example"] = {
