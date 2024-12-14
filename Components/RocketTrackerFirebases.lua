@@ -12,7 +12,7 @@ local smokeEvents = {}
 function smokeEvents:onEvent(event)
     if usingSmoke and event and event.id == world.event.S_EVENT_SHOT and event.initiator and event.initiator.getPlayerName then
         local playerName = event.initiator:getPlayerName()
-        if playerName and event.weapon:getCategory() == 2 then
+        if playerName and (event.weapon:getCategory() == 2 or event.weapon:getCategory() == 3 )then
             if smokeTracker.isSmokeRocket(event.weapon:getDesc()["displayName"]) then
                 if targetMarks[playerName] == nil or (targetMarks[playerName] and targetMarks[playerName].startTime and timer:getTime() - targetMarks[playerName].startTime >= delayTime) then
                     env.info("adding marks table for player: " .. playerName, false)
@@ -29,8 +29,8 @@ function smokeEvents:onEvent(event)
     end
 end
 function smokeTracker.isSmokeRocket(weaponDesc)
-    if string.find(weaponDesc, 'SM') or string.find(weaponDesc, 'TsM') or string.find(weaponDesc, 'SMK') or string.find(weaponDesc, 'Green') or string.find(weaponDesc, 'Red') or string.find(weaponDesc, 'Yellow') or string.find(weaponDesc, 'Wht Phos') then
-        env.info("smoke rocket fired: " .. weaponDesc, false)
+    if string.find(weaponDesc, 'SM') or string.find(weaponDesc, 'TsM') or string.find(weaponDesc, 'SMK') or string.find(weaponDesc, 'Green') or string.find(weaponDesc, 'Red') or string.find(weaponDesc, 'Yellow') or string.find(weaponDesc, 'Wht Phos') or string.find(weaponDesc, 'SMOKE Grenade') then
+        env.info("smoke rocket fired or smoke grenade dropped: " .. weaponDesc, false)
         return true
     end
     return false
