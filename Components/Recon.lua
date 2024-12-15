@@ -264,6 +264,7 @@ function recon.destroyMission(param)
             timer.scheduleFunction(recon.destroyMission, param, timer:getTime() + missionExpireTime/4)
             return
         else
+            env.info("Destroying recon mission: " .. param.missionId, false)
             recon.cleanMission(param.coalitionId, param.missionId)
         end
     end
