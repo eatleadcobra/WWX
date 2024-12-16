@@ -3,7 +3,7 @@
 env.info("loading sling babysitter", false)
 SBS = {}
 local sbs = {}
-local loopTime = 0.5
+local loopTime = 2
 sbs.trackedCargos = {
 
 }
