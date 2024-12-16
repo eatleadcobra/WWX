@@ -2159,6 +2159,9 @@ function dfc.spawnSupply(param)
                     end
                     --env.info("Tracking cargo: " .. cargo:getName(), false)
                     dfc.trackCargo({coalition = transporterCoalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
+                    if SBS then
+                        SBS.watchCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
+                    end
                 else
                     trigger.action.outTextForGroup(transporterGroup:getID(), "This depot does not have enough " .. DFS.supplyNames[param.type].. " to create a crate!", 5, false)
                     if frontPickup  then
@@ -2562,7 +2565,14 @@ function dfc.getAGL(point)
     alt = alt - land
     return alt
 end
---coalition, cargo, spawnTime
+--coalition, country, spawnPoint, cargo, supplyType, spawnTime, seaPickup, frontPickup, isSlung, groupId, modifier, groupName
+function DFS.spawnCargo(param)
+    local newCargo = dfc.spawnStatic(param.supplyType, param.spawnPoint, param.country, param.modifier)
+    env.info("babysitter spawned new cargo: " .. newCargo, false)
+    trigger.action.outTextForGroup(param.groupId, "Our records indicate that your slung load has been involved in a teleportation accident.\nA new replacement cargo is being spawned directly beneath your current position. Thank you for your passion and support", 30, false)
+    dfc.trackCargo({coalition = param.coalition, cargo = newCargo, supplyType = param.supplyType, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
+end
+--coalition, cargo, supplyType, spawnTime, seaPickup, frontPickup, isSlung, groupId, modifier, groupName, successfulDeployChecks
 function dfc.trackCargo(param)
     env.info("Tracking cargo: " .. param.cargo, false)
     local cargo = StaticObject.getByName(param.cargo)
