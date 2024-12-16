@@ -57,7 +57,7 @@ function sbs.recoverCargo(cargoName)
     -- stop tracking old cargo
     local oldCargo = sbs.trackedCargos[cargoName]
     if oldCargo then
-        --SBS.endWatch(cargoName)
+        SBS.endWatch(cargoName)
         local droppingGroup = Group.getByName(oldCargo.groupName)
         if droppingGroup then
             local droppingUnit = droppingGroup:getUnit(1)
