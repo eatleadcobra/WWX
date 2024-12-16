@@ -33,9 +33,12 @@ function sbs.watchLoop(cargoName)
             local cargoPoint = cargo:getPoint()
             sbs.trackedCargos[cargoName].lastPoint = cargoPoint
             sbs.trackedCargos[cargoName].lastAGL = Utils.getAGL(cargoPoint)
+            if sbs.trackedCargos[cargoName].lastAGL < 0 then
+                sbs.trackedCargos[cargoName].belowAGL = true
+            end
             env.info("SBS - "..cargoName..": X: " .. sbs.trackedCargos[cargoName].lastPoint.x .. ": Z: " .. sbs.trackedCargos[cargoName].lastPoint.z .. "Alt: "..  sbs.trackedCargos[cargoName].lastPoint.y .. " AGL: "..sbs.trackedCargos[cargoName].lastAGL, false)
         else --cargo lost, verify last position
-            if sbs.trackedCargos[cargoName].lastAGL < 0 then
+            if sbs.trackedCargos[cargoName].belowAGL then
                 env.info("SBS alert: cargo : ".. cargoName .." lost and last pos is below ground level. Recovering", false)
                 sbs.recoverCargo(cargoName)
             else
