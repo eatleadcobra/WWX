@@ -1008,7 +1008,7 @@ function dfc.respawnBattleshipGroup(param)
 end
 function dfc.respawnFrontDepot(param)
     local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].depot..param.spawnZone).point
-    table.insert(DFS.status[param.coalitionId].spawns.fd, {groupName = DF_UTILS.spawnGroup(DFS.groupNames[param.coalitionId].depot,spawnPoint,'clone'), spawnZone = param.spawnZone})
+    table.insert(DFS.status[param.coalitionId].spawns.fd, {groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].depot,spawnPoint,'clone'), spawnZone = param.spawnZone})
 end
 function dfc.respawnRearDepot(param)
     local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].reardepot..param.spawnZone .. '-' .. param.subDepot).point
