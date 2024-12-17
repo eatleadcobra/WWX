@@ -2143,7 +2143,12 @@ function dfc.spawnSupply(param)
                 local canSpawnCargo = dfc.canSpawnCargo(param.type, transporterCoalition, frontPickup, param.modifier, piratePickup)
                 local seaPickup = string.find(pickUpZone, 'Sea')
                 if seaPickup or canSpawnCargo then
-                    local cargo = dfc.spawnStatic(param.type, trigger.misc.getZone(pickUpZone).point, transporterUnit:getCountry(), param.modifier)
+                    local pickupPoint = trigger.misc.getZone(pickUpZone).point
+                    if frontPickup then
+                        pickupPoint.x = pickupPoint.x + 20
+                        pickupPoint.z = pickupPoint.z + 20
+                    end
+                    local cargo = dfc.spawnStatic(param.type, pickupPoint, transporterUnit:getCountry(), param.modifier)
                     if piratePickup then
                         local decreaseType = param.type
                         if param.type == DFS.supplyType.GUN then decreaseType = DFS.supplyType.EQUIPMENT end
