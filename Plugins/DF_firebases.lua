@@ -104,8 +104,8 @@ function fbEvents:onEvent(event)
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "MORTAR", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
-        if (string.upper(event.text) == "T") then
-            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "THAWK", playerName = playerName})
+        if (string.upper(event.text) == "B") then
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "BATTLE", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
     end
@@ -529,7 +529,7 @@ function Firebases.sendFireMission(coalitionId)
                     return
                 end
             end
-            if targetMarks[i].fbType == "THAWK" then
+            if targetMarks[i].fbType == "BATTLE" then
                 local shipGroups = coalition.getGroups(coalitionId, 3)
                 for j=1, #shipGroups do
                     if shipGroups[j]:getUnit(1):hasAttribute('Armed ships') and (shipGroups[j]:getUnit(1):getTypeName() == "leander-gun-andromeda" or shipGroups[i]:getUnit(1):getTypeName() == "leander-gun-condell") then
