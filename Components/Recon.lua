@@ -61,12 +61,15 @@ function reconEvents:onEvent(event)
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group ~= nil then
-                currentReconJets[group:getName()] = nil
-                local unit = group:getUnit(1)
-                if unit then
-                    local player = unit:getPlayerName()
-                    if player and event.place and event.place and event.place:getCoalition() == group:getCoalition() and event.place:getDesc().category == 0 then
-                        recon.processPlayerFilm(group:getCoalition(), player, group:getID())
+                local groupName = group:getName()
+                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] then
+                    currentReconJets[group:getName()] = nil
+                    local unit = group:getUnit(1)
+                    if unit then
+                        local player = unit:getPlayerName()
+                        if player and event.place and event.place and event.place.getCoalition() and event.place:getCoalition() == group:getCoalition() and event.place:getDesc().category == 0 then
+                            recon.processPlayerFilm(group:getCoalition(), player, group:getID())
+                        end
                     end
                 end
             end
