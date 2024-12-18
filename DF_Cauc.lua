@@ -2572,7 +2572,7 @@ function dfc.getAGL(point)
 end
 --coalition, country, spawnPoint, cargo, supplyType, spawnTime, seaPickup, frontPickup, isSlung, groupId, modifier, groupName
 function DFS.spawnCargo(param)
-    local newCargo = dfc.spawnStatic(param.supplyType, param.spawnPoint, param.country, param.modifier)
+    local newCargo = dfc.spawnStatic(param.supplyType, param.spawnPoint, param.country, "big")
     env.info("babysitter spawned new cargo: " .. newCargo, false)
     trigger.action.outTextForGroup(param.groupId, "Our records indicate that your slung load has been involved in a teleportation accident.\nA new replacement cargo is being spawned directly beneath your current position. Thank you for your passion and support", 30, false)
     dfc.trackCargo({coalition = param.coalition, cargo = newCargo, supplyType = param.supplyType, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
