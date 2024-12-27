@@ -29,6 +29,7 @@ function raceTemplate:addRacer(racer)
     self.racers[self.racers+1] = racer
 end
 local racerTemplate = {
+    groupID = 0,
     unitName = "",
     playerName = "",
     startTime = 0,
@@ -72,14 +73,25 @@ function wwxrl.trackRace(raceID)
     local raceTable = currentRace
     if raceTable then
         local raceStatus = raceTable.status
-        if raceStatus == racingStatus["Completed"] then
-            --handle completed race and then break loop
-        elseif raceStatus == racingStatus["Pre-Race"] then
-            --check for new entrants, check if eligible to start count down
-        elseif raceStatus == racingStatus["In Progress"] then
+        if raceStatus == racingStatus["In Progress"] then
+            env.info("Race " .. raceID .. " in progress", false)
             --for each contestant, check distance to next gate and advance gates if in range and in limits
+        elseif raceStatus == racingStatus["Pre-Race"] then
+           for i = 1, #racerQueue do
+                local racer = racerQueue[i]
+                if racer then
+                    currentRace:addRacer(racer)
+                    env.info("Added racer " .. racer.playerName .. " to race " .. raceID, false)
+                end
+           end
+           racerQueue = {}
+        elseif raceStatus == racingStatus["Completed"] then
+            env.info("Race " .. raceID .. " completed. Winner is " .. raceTable.winner, false)
+            --handle completed race and then break loop
+            return
         end
     end
+    timer.scheduleFunction(wwxrl.trackRace, raceID, timer:getTime() + raceUpdateRate)
 end
 function wwxrl.createNewRacer(groupName)
     local racerGroup = Group.getByName(groupName)
@@ -88,6 +100,7 @@ function wwxrl.createNewRacer(groupName)
         if racerUnit and racerUnit:getPlayerName() then
             env.info("creating new racer", false)
             local newRacerTable = Utils.deepcopy(racerTemplate)
+            newRacerTable.groupID = racerGroup:getID()
             newRacerTable.unitName = racerUnit:getName()
             newRacerTable.playerName = racerUnit:getPlayerName()
             racerQueue[#racerQueue+1] = newRacerTable
@@ -97,7 +110,14 @@ end
 function wwxrl.queueLoop()
     if #racerQueue > 0 then
         --check current race is in Pre-Race state. If yes, add players in queue to race
-        --if race is nil, create a new one
-        --if race is in progress, notify players in queue that a race is in progress and they need to wait til it's over
+        if currentRace.status == racingStatus["In Progress"] then
+            for i = 1, #racerQueue do
+                local racer = racerQueue[i]
+                if racer then
+                    trigger.action.outTextForGroup(racer.groupID, "Race is currently in progress, please stand by.", 5, false)
+                end
+            end
+        end
     end
+    timer.scheduleFunction(wwxrl.queueLoop, nil, timer:getTime() + 5)
 end
