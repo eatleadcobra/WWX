@@ -1,8 +1,8 @@
 --requires Utils.lua
 local wwxrl = {}
-local gateLimit = 30
+local gateLimit = 10
 local AGLlimit = 35
-local countdownDuration = 120
+local countdownDuration = 20
 local finalCountdown = 5
 local raceCooldownTime = 30
 local minimumRacers = 1 -- for testing, should be 2 
@@ -24,11 +24,12 @@ local raceTemplate = {
     gates = {},
     finalGate = 0,
     winner = "",
+    winningTime = 0,
     countdownStarted = false,
     cooldownStarted = false
 }
 function raceTemplate:addRacer(racer)
-    self.racers[self.racers+1] = racer
+    self.racers[#self.racers+1] = racer
 end
 local racerTemplate = {
     groupID = 0,
@@ -50,6 +51,7 @@ function raceEvents:onEvent(event)
                 local groupName = group:getName()
                 if string.find(groupName, racingGroupIdentifier) then
                     env.info("Racer group spawned, creating racer", false)
+                    trigger.action.outText("Racer group spawned, creating racer", 5, false)
                     wwxrl.createNewRacer(groupName)
                 end
             end
@@ -73,6 +75,7 @@ function wwxrl.getGates()
         local gateZone = trigger.misc.getZone("Gate-"..i)
         if gateZone then
             raceTemplate.gates[#raceTemplate.gates+1] = gateZone.point
+            trigger.action.outText("Added gate " .. i, 2, false)
         else
             break
         end
@@ -81,11 +84,15 @@ function wwxrl.getGates()
 end
 function wwxrl.createNewRace()
     env.info("creating new race table", false)
+    trigger.action.outText("creating new race table", 5, false)
     currentRace = {}
     local newRaceTable = Utils.deepcopy(raceTemplate)
     newRaceTable.raceID = wwxrl.newRaceID()
     currentRace = newRaceTable
+    currentRace.status = racingStatus["Pre-Race"]
     env.info("created race " .. newRaceTable.raceID, false)
+    trigger.action.outText("created race " .. newRaceTable.raceID, 5, false)
+    trigger.action.outText("New Race: " .. Utils.dump(currentRace), 30, false)
     wwxrl.trackRace(newRaceTable.raceID)
 end
 function wwxrl.trackRace(raceID)
@@ -102,20 +109,30 @@ function wwxrl.trackRace(raceID)
                     if raceUnit then
                         local racerPoint = raceUnit:getPoint()
                         if racerPoint then
-                            local distanceToGate = Utils.PointDistance(racerPoint, currentRace.gates[racer.currentGate])
-                            if distanceToGate < gateLimit and Utils.getAGL(racerPoint) <= AGLlimit then
-                                trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 1, false)
-                                racer.currentGate = racer.currentGate + 1
-                                if racer.currentGate > currentRace.lastGate and currentRace.status ~= racingStatus["Completed"] and not racer.completed then
-                                    racer.endTime = timer.getTime()
-                                    raceCompleted = true
-                                    racer.completed = true
-                                end
-                            elseif Utils.getAGL(racerPoint) > AGLlimit then
-                                trigger.action.outTextForGroup(racer.groupID, "You are too high! Penalized!", 1, false)
-                                racer.penaltyTime = racer.penaltyTime + raceUpdateRate
-                                if racer.penaltyTime > raceCooldownTime then
-                                    --kill player
+                            local gatePoint = currentRace.gates[racer.currentGate]
+                            if gatePoint then
+                                local elapsedTime = timer.getTime() - racer.startTime
+                                local elapsedSeconds = tostring(math.fmod(elapsedTime, 60))
+                                local elapsedMinutes = tostring(math.floor(elapsedTime/60))
+                                if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
+                                if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
+                                trigger.action.outTextForGroup(racer.groupID, "00:"..elapsedMinutes..":"..elapsedSeconds.." + " .. racer.penaltyTime, 0.2, false)
+                                local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
+                                if distanceToGate < gateLimit and Utils.getAGL(racerPoint) <= AGLlimit then
+                                    trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 1, false)
+                                    racer.currentGate = racer.currentGate + 1
+                                    if (racer.currentGate > currentRace.finalGate) and not racer.completed then
+                                        racer.endTime = timer.getTime()
+                                        raceCompleted = true
+                                        racer.completed = true
+                                    end
+                                elseif Utils.getAGL(racerPoint) > AGLlimit then
+                                    trigger.action.outTextForGroup(racer.groupID, "You are too high! Penalized!", 1, false)
+                                    racer.penaltyTime = racer.penaltyTime + raceUpdateRate
+                                    if racer.penaltyTime > raceCooldownTime then
+                                        trigger.action.outTextForGroup(racer.groupID, "Maximum penalty time exceeded, time to die.", 1, false)
+                                        trigger.action.explosion(racerPoint, 300)
+                                    end
                                 end
                             end
                         else
@@ -127,6 +144,7 @@ function wwxrl.trackRace(raceID)
             end
             if raceCompleted and not currentRace.cooldownStarted then
                 currentRace.cooldownStarted = true
+                wwxrl.messageToRacers("Race ending in " .. raceCooldownTime .. " seconds")
                 timer.scheduleFunction(wwxrl.endRace, nil, timer.getTime() + raceCooldownTime)
             end
             --for each contestant, check distance to next gate and advance gates if in range and in limits
@@ -139,13 +157,13 @@ function wwxrl.trackRace(raceID)
                 end
             end
             racerQueue = {}
-            if #raceTable.racers > minimumRacers and not raceTable.countdownStarted then
-                wwxrl.startCountdown(raceID)
+            if #raceTable.racers >= minimumRacers and not raceTable.countdownStarted then
+                wwxrl.countdown(raceID)
                 raceTable.countdownStarted = true
             end
         elseif raceStatus == racingStatus["Completed"] then
             env.info("Race " .. raceID .. " completed. Winner is " .. raceTable.winner, false)
-            wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner)
+            wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. raceTable.winningTime)
             --handle completed race and then break loop
             return
         end
@@ -158,20 +176,23 @@ function wwxrl.createNewRacer(groupName)
         local racerUnit = racerGroup:getUnit(1)
         if racerUnit and racerUnit:getPlayerName() then
             env.info("creating new racer", false)
+            trigger.action.outText("creating new racer", 5, false)
             local newRacerTable = Utils.deepcopy(racerTemplate)
             newRacerTable.groupID = racerGroup:getID()
             newRacerTable.unitName = racerUnit:getName()
             newRacerTable.playerName = racerUnit:getPlayerName()
             racerQueue[#racerQueue+1] = newRacerTable
+            trigger.action.outText("Racer added to queue", 5, false)
         end
     end
 end
 function wwxrl.countdown(raceID)
     env.info("Begin countdown for race " .. raceID, false)
+    wwxrl.messageToRacers("The race will begin in " .. countdownDuration .. " seconds")
     local finalCountdownDelay = countdownDuration - finalCountdown
     local finalCountdownStartTime = timer.getTime() + finalCountdownDelay
-    for i = 1, finalCountdownDelay do
-       timer.scheduleFunction(wwxrl.messageToRacers, "Race starting in " .. finalCountdownDelay - (i-1), finalCountdownStartTime + (i-1))
+    for i = 1, finalCountdown do
+       timer.scheduleFunction(wwxrl.messageToRacers, "Race starting in " .. finalCountdown - (i-1), finalCountdownStartTime + (i-1))
     end
     timer.scheduleFunction(wwxrl.startRace, nil, finalCountdownStartTime+finalCountdown)
 end
@@ -188,6 +209,12 @@ function wwxrl.startRace()
     local race = currentRace
     if race and race.status == racingStatus["Pre-Race"] then
         local raceStartTime = timer.getTime()
+        for i = 1, #currentRace.racers do
+            local racer = currentRace.racers[i]
+            if racer then
+                racer.startTime = raceStartTime
+            end
+        end
         wwxrl.messageToRacers("GO!")
         race.status = racingStatus["In Progress"]
     end
@@ -206,20 +233,23 @@ function wwxrl.endRace()
         end
     end
     currentRace.winner = winner
+    currentRace.winningTime = winningTime
     currentRace.status = racingStatus["Completed"]
 end
 function wwxrl.queueLoop()
     if #racerQueue > 0 then
+        trigger.action.outText("queue loop with racers", 5, false)
         --check current race is in Pre-Race state. If yes, add players in queue to race
-        if currentRace.status == racingStatus["In Progress"] then
+        if currentRace.status == nil or currentRace.status == racingStatus["Completed"] then
+            trigger.action.outText("need new race", 5, false)
+            wwxrl.createNewRace()
+        elseif currentRace.status == racingStatus["In Progress"] then
             for i = 1, #racerQueue do
                 local racer = racerQueue[i]
                 if racer then
                     trigger.action.outTextForGroup(racer.groupID, "Race is currently in progress, please stand by.", 5, false)
                 end
             end
-        elseif currentRace.status == racingStatus["Completed"] then
-            wwxrl.createNewRace()
         end
     end
     timer.scheduleFunction(wwxrl.queueLoop, nil, timer.getTime() + 5)
