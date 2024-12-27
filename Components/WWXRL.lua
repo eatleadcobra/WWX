@@ -40,6 +40,7 @@ local racerTemplate = {
     currentGate = 0,
     penaltyTime = 0,
     completed = false,
+    disqualified = false,
 }
 local raceEvents = {}
 function raceEvents:onEvent(event)
@@ -104,13 +105,19 @@ function wwxrl.trackRace(raceID)
             for i = 1, #raceTable.racers do
                 local racer = raceTable.racers[i]
                 if racer then
-                    if racer.currentGate == 0 then racer.currentGate = 1 end
                     local raceUnit = Unit.getByName(racer.unitName)
                     if raceUnit then
                         local racerPoint = raceUnit:getPoint()
                         if racerPoint then
+                            if racer.currentGate == 0 then
+                                racer.currentGate = 1
+                                if Utils.PointDistance(racerPoint, trigger.misc.getZone("Race Start Zone").point) > trigger.misc.getZone("Race Start Zone").radius then
+                                    trigger.action.outTextForGroup(racer.groupID, "You are disqualified because you were not within the starting zone and altitude limits at race start.", 20, false)
+                                    racer.disqualified = true
+                                end
+                            end
                             local gatePoint = currentRace.gates[racer.currentGate]
-                            if gatePoint then
+                            if gatePoint and not racer.disqualified then
                                 local elapsedTime = timer.getTime() - racer.startTime
                                 local elapsedSeconds = tostring(math.fmod(elapsedTime, 60))
                                 local elapsedMinutes = tostring(math.floor(elapsedTime/60))
@@ -141,6 +148,7 @@ function wwxrl.trackRace(raceID)
                         end
                     end
                 end
+                ::continue::
             end
             if raceCompleted and not currentRace.cooldownStarted then
                 currentRace.cooldownStarted = true
