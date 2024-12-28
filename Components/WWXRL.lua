@@ -75,7 +75,7 @@ function wwxrl.getGates()
     for i = 1, gateLimit do
         local gateZone = trigger.misc.getZone("Gate-"..i)
         if gateZone then
-            raceTemplate.gates[#raceTemplate.gates+1] = gateZone.point
+            raceTemplate.gates[#raceTemplate.gates+1] = gateZone
             trigger.action.outText("Added gate " .. i, 2, false)
         else
             break
@@ -116,7 +116,8 @@ function wwxrl.trackRace(raceID)
                                     racer.disqualified = true
                                 end
                             end
-                            local gatePoint = currentRace.gates[racer.currentGate]
+                            local gatePoint = currentRace.gates[racer.currentGate].point
+                            local gateRadius = currentRace.gates[racer.currentGate].radius
                             if gatePoint and not racer.disqualified then
                                 local elapsedTime = timer.getTime() - racer.startTime
                                 local elapsedSeconds = tostring(math.fmod(elapsedTime, 60))
@@ -125,7 +126,7 @@ function wwxrl.trackRace(raceID)
                                 if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
                                 trigger.action.outTextForGroup(racer.groupID, "00:"..elapsedMinutes..":"..elapsedSeconds.." + " .. racer.penaltyTime, 0.2, false)
                                 local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
-                                if distanceToGate < gateLimit and Utils.getAGL(racerPoint) <= AGLlimit then
+                                if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= AGLlimit then
                                     trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 1, false)
                                     racer.currentGate = racer.currentGate + 1
                                     if (racer.currentGate > currentRace.finalGate) and not racer.completed then
