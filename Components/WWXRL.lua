@@ -3,6 +3,7 @@ local wwxrl = {}
 local gateLimit = 10
 local AGLlimit = 35
 local countdownDuration = 60
+local numberofreminders = 4
 local finalCountdown = 5
 local raceCooldownTime = 30
 local minimumRacers = 1 -- for testing, should be 2 
@@ -52,7 +53,7 @@ function raceEvents:onEvent(event)
                 local groupName = group:getName()
                 if string.find(groupName, racingGroupIdentifier) then
                     env.info("Racer group spawned, creating racer", false)
-                    trigger.action.outText("Racer group spawned, creating racer", 5, false)
+                    --trigger.action.outText("Racer group spawned, creating racer", 5, false)
                     wwxrl.createNewRacer(groupName)
                 end
             end
@@ -85,15 +86,15 @@ function wwxrl.getGates()
 end
 function wwxrl.createNewRace()
     env.info("creating new race table", false)
-    trigger.action.outText("creating new race table", 5, false)
+    --trigger.action.outText("creating new race table", 5, false)
     currentRace = {}
     local newRaceTable = Utils.deepcopy(raceTemplate)
     newRaceTable.raceID = wwxrl.newRaceID()
     currentRace = newRaceTable
     currentRace.status = racingStatus["Pre-Race"]
     env.info("created race " .. newRaceTable.raceID, false)
-    trigger.action.outText("created race " .. newRaceTable.raceID, 5, false)
-    trigger.action.outText("New Race: " .. Utils.dump(currentRace), 30, false)
+    --trigger.action.outText("created race " .. newRaceTable.raceID, 5, false)
+    --trigger.action.outText("New Race: " .. Utils.dump(currentRace), 30, false)
     wwxrl.trackRace(newRaceTable.raceID)
 end
 function wwxrl.trackRace(raceID)
@@ -173,6 +174,7 @@ function wwxrl.trackRace(raceID)
                 if racer then
                     currentRace:addRacer(racer)
                     env.info("Added racer " .. racer.playerName .. " to race " .. raceID, false)
+                    trigger.action.outTextForGroup(racer.groupID, "You have been added to the queue for the upcoming race!", 5, false)
                 end
             end
             racerQueue = {}
@@ -195,20 +197,23 @@ function wwxrl.createNewRacer(groupName)
         local racerUnit = racerGroup:getUnit(1)
         if racerUnit and racerUnit:getPlayerName() then
             env.info("creating new racer", false)
-            trigger.action.outText("creating new racer", 5, false)
+            --trigger.action.outText("creating new racer", 5, false)
             local newRacerTable = Utils.deepcopy(racerTemplate)
             newRacerTable.groupID = racerGroup:getID()
             newRacerTable.unitName = racerUnit:getName()
             newRacerTable.playerName = racerUnit:getPlayerName()
             racerQueue[#racerQueue+1] = newRacerTable
-            trigger.action.outText("Racer added to queue", 5, false)
+            --trigger.action.outText("Racer added to queue", 5, false)
         end
     end
 end
 function wwxrl.countdown(raceID)
     env.info("Begin countdown for race " .. raceID, false)
-    wwxrl.messageToRacers("The race will begin in " .. countdownDuration .. " seconds")
     local finalCountdownDelay = countdownDuration - finalCountdown
+    local reminderInterval = math.floor(countdownDuration/numberofreminders)
+    for i = 1, numberofreminders do
+        timer.scheduleFunction(wwxrl.messageToRacers,"The race will begin in " .. countdownDuration - (reminderInterval*(i-1)) .. " seconds", timer.getTime() + reminderInterval*(i-1))
+    end
     local finalCountdownStartTime = timer.getTime() + finalCountdownDelay
     for i = 1, finalCountdown do
        timer.scheduleFunction(wwxrl.messageToRacers, "Race starting in " .. finalCountdown - (i-1), finalCountdownStartTime + (i-1))
@@ -257,10 +262,10 @@ function wwxrl.endRace()
 end
 function wwxrl.queueLoop()
     if #racerQueue > 0 then
-        trigger.action.outText("queue loop with racers", 5, false)
+        --trigger.action.outText("queue loop with racers", 5, false)
         --check current race is in Pre-Race state. If yes, add players in queue to race
         if currentRace.status == nil or currentRace.status == racingStatus["Completed"] then
-            trigger.action.outText("need new race", 5, false)
+            --trigger.action.outText("need new race", 5, false)
             wwxrl.createNewRace()
         elseif currentRace.status == racingStatus["In Progress"] then
             for i = 1, #racerQueue do
