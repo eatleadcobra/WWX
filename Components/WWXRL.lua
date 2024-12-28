@@ -2,7 +2,7 @@
 local wwxrl = {}
 local gateLimit = 10
 local AGLlimit = 35
-local countdownDuration = 20
+local countdownDuration = 60
 local finalCountdown = 5
 local raceCooldownTime = 30
 local minimumRacers = 1 -- for testing, should be 2 
@@ -102,6 +102,7 @@ function wwxrl.trackRace(raceID)
         local raceStatus = raceTable.status
         if raceStatus == racingStatus["In Progress"] then
             local raceCompleted = false
+            local deadordqcount = 0
             for i = 1, #raceTable.racers do
                 local racer = raceTable.racers[i]
                 if racer then
@@ -142,18 +143,28 @@ function wwxrl.trackRace(raceID)
                                         trigger.action.explosion(racerPoint, 300)
                                     end
                                 end
+                            else
+                                deadordqcount = deadordqcount+1
                             end
                         else
                             --this might be a bad idea
                             racer = {}
                         end
+                    else
+                        deadordqcount = deadordqcount+1
                     end
+                else
+                    deadordqcount = deadordqcount+1
                 end
             end
             if raceCompleted and not currentRace.cooldownStarted then
                 currentRace.cooldownStarted = true
                 wwxrl.messageToRacers("Race ending in " .. raceCooldownTime .. " seconds")
                 timer.scheduleFunction(wwxrl.endRace, nil, timer.getTime() + raceCooldownTime)
+            end
+            if deadordqcount >= #currentRace.racers then
+                wwxrl.messageToRacers("Race ended because everyone is either dead or disqualified. To start another race, please re-slot.")
+                wwxrl.endRace()
             end
             --for each contestant, check distance to next gate and advance gates if in range and in limits
         elseif raceStatus == racingStatus["Pre-Race"] then
