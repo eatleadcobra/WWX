@@ -149,7 +149,6 @@ function wwxrl.trackRace(raceID)
                         end
                     end
                 end
-                ::continue::
             end
             if raceCompleted and not currentRace.cooldownStarted then
                 currentRace.cooldownStarted = true
