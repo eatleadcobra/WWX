@@ -7,7 +7,7 @@ local numberofreminders = 4
 local finalCountdown = 5
 local raceCooldownTime = 30
 local minimumRacers = 1 -- for testing, should be 2 
-local messageDuration = 5
+local messageDuration = 8
 local newRaceID = 1
 local raceUpdateRate = 0.2
 local currentRace = {}
@@ -219,7 +219,11 @@ function wwxrl.trackRace(raceID)
             end
         elseif raceStatus == racingStatus["Completed"] then
             env.info("Race " .. raceID .. " completed. Winner is " .. raceTable.winner, false)
-            wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. raceTable.winningTime)
+            local elapsedSeconds = tostring(math.floor(math.fmod(raceTable.winningTime, 60)*10)/10)
+            local elapsedMinutes = tostring(math.floor(raceTable.winningTime/60))
+            if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
+            if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
+            wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. "00:"..elapsedMinutes..":"..elapsedSeconds)
             wwxrl.messageToRacers("To join another race, please re-slot into a racing aircraft.")
             --handle completed race and then break loop
             return
@@ -307,7 +311,7 @@ function wwxrl.endRace()
     for i = 1, #currentRace.racers do
         local racer = currentRace.racers[i]
         if racer and racer.completed then
-            local completionTime = racer.endTime - racer.startTime + racer.penaltyTime
+            local completionTime = (racer.endTime + racer.penaltyTime) - racer.startTime
             if winningTime == 0 or completionTime < winningTime then
                 winningTime = completionTime
                 winner = racer.playerName
