@@ -110,7 +110,7 @@ function wwxrl.trackRace(raceID)
                     local raceUnit = Unit.getByName(racer.unitName)
                     if raceUnit then
                         local racerPoint = raceUnit:getPoint()
-                        if racerPoint then
+                        if racerPoint and racer.currentGate then
                             if racer.currentGate == 0 then
                                 racer.currentGate = 1
                                 if Utils.PointDistance(racerPoint, trigger.misc.getZone("Race Start Zone").point) > trigger.misc.getZone("Race Start Zone").radius then
@@ -118,34 +118,37 @@ function wwxrl.trackRace(raceID)
                                     racer.disqualified = true
                                 end
                             end
-                            local gatePoint = currentRace.gates[racer.currentGate].point
-                            local gateRadius = currentRace.gates[racer.currentGate].radius
-                            if gatePoint and not racer.disqualified then
-                                local elapsedTime = timer.getTime() - racer.startTime
-                                local elapsedSeconds = tostring(math.fmod(elapsedTime, 60))
-                                local elapsedMinutes = tostring(math.floor(elapsedTime/60))
-                                if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
-                                if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
-                                trigger.action.outTextForGroup(racer.groupID, "00:"..elapsedMinutes..":"..elapsedSeconds.." + " .. racer.penaltyTime, 0.2, false)
-                                local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
-                                if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= AGLlimit then
-                                    trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 1, false)
-                                    racer.currentGate = racer.currentGate + 1
-                                    if (racer.currentGate > currentRace.finalGate) and not racer.completed then
-                                        racer.endTime = timer.getTime()
-                                        raceCompleted = true
-                                        racer.completed = true
+                            local gate = currentRace.gates[racer.currentGate]
+                            if gate then
+                                local gatePoint = gate.point
+                                local gateRadius = gate.radius
+                                if gatePoint and not racer.disqualified then
+                                    local elapsedTime = timer.getTime() - racer.startTime
+                                    local elapsedSeconds = tostring(math.fmod(elapsedTime, 60))
+                                    local elapsedMinutes = tostring(math.floor(elapsedTime/60))
+                                    if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
+                                    if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
+                                    trigger.action.outTextForGroup(racer.groupID, "00:"..elapsedMinutes..":"..elapsedSeconds.." + " .. racer.penaltyTime, 0.2, false)
+                                    local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
+                                    if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= AGLlimit then
+                                        trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 1, false)
+                                        racer.currentGate = racer.currentGate + 1
+                                        if (racer.currentGate > currentRace.finalGate) and not racer.completed then
+                                            racer.endTime = timer.getTime()
+                                            raceCompleted = true
+                                            racer.completed = true
+                                        end
+                                    elseif Utils.getAGL(racerPoint) > AGLlimit then
+                                        trigger.action.outTextForGroup(racer.groupID, "You are too high! Penalized!", 1, false)
+                                        racer.penaltyTime = racer.penaltyTime + raceUpdateRate
+                                        if racer.penaltyTime > raceCooldownTime then
+                                            trigger.action.outTextForGroup(racer.groupID, "Maximum penalty time exceeded, time to die.", 1, false)
+                                            trigger.action.explosion(racerPoint, 300)
+                                        end
                                     end
-                                elseif Utils.getAGL(racerPoint) > AGLlimit then
-                                    trigger.action.outTextForGroup(racer.groupID, "You are too high! Penalized!", 1, false)
-                                    racer.penaltyTime = racer.penaltyTime + raceUpdateRate
-                                    if racer.penaltyTime > raceCooldownTime then
-                                        trigger.action.outTextForGroup(racer.groupID, "Maximum penalty time exceeded, time to die.", 1, false)
-                                        trigger.action.explosion(racerPoint, 300)
-                                    end
+                                else
+                                    deadordqcount = deadordqcount+1
                                 end
-                            else
-                                deadordqcount = deadordqcount+1
                             end
                         else
                             --this might be a bad idea
