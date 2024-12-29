@@ -1,7 +1,7 @@
 --requires Utils.lua
 local wwxrl = {}
-local gateLimit = 10
-local AGLlimit = 35
+local gateLimit = 50
+local AGLlimit = 45
 local countdownDuration = 60
 local numberofreminders = 4
 local finalCountdown = 5
@@ -157,8 +157,13 @@ function wwxrl.trackRace(raceID)
                                     trigger.action.outTextForGroup(racer.groupID, "00:"..elapsedMinutes..":"..elapsedSeconds.." + " .. racer.penaltyTime, 0.2, false)
                                     local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
                                     if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= AGLlimit then
-                                        trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 1, false)
+                                        trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 5, false)
                                         racer.currentGate = racer.currentGate + 1
+                                        if racer.currentGate <= currentRace.finalGate then
+                                            local playerHdg = Utils.getHdgFromPosition(raceUnit:getPosition())
+                                            local clockBearing = Utils.relativeClockBearing(racerPoint, currentRace.gates[racer.currentGate].point, playerHdg)
+                                            trigger.action.outTextForGroup(racer.groupID, "Next gate at " .. clockBearing .. " o'clock", 10, false)
+                                        end
                                         if (racer.currentGate > currentRace.finalGate) and not racer.completed then
                                             racer.endTime = timer.getTime()
                                             raceCompleted = true
@@ -173,17 +178,16 @@ function wwxrl.trackRace(raceID)
                                         end
                                     end
                                 else
+                                    env.info("DQ'd or no gate point", false)
                                     deadordqcount = deadordqcount+1
                                 end
                             end
                         else
                             --this might be a bad idea
                             deadordqcount = deadordqcount+1
-                            raceTable.racers[i] = nil
                         end
                     else
                         deadordqcount = deadordqcount+1
-                        raceTable.racers[i] = nil
                     end
                 else
                     deadordqcount = deadordqcount+1
