@@ -715,6 +715,11 @@ function CSB:onEvent(e)
     local playerName = nil
     --//EJECTION EVENTS
     if evtId == 6 then -- eject
+        local group = e.initiator:getGroup()
+        if group then
+            local groupName = group:getName()
+            if groupName and string.find(groupName, "RACER") then return end
+        end
         local c = evtInitr:getCoalition()
         if evtInitr.getPlayerName and evtInitr:getPlayerName() then playerName = evtInitr:getPlayerName() end
         local isOverWater = false

@@ -13,6 +13,7 @@ local raceUpdateRate = 0.2
 local currentRace = {}
 local racerQueue = {}
 local racingGroupIdentifier = "RACER"
+local previousRacerCount = 0
 local racingStatus = {
     ["Pre-Race"] = 1,
     ["In Progress"] = 2,
@@ -54,7 +55,34 @@ function raceEvents:onEvent(event)
                 if string.find(groupName, racingGroupIdentifier) then
                     env.info("Racer group spawned, creating racer", false)
                     --trigger.action.outText("Racer group spawned, creating racer", 5, false)
+                    wwxrl.cleanupRacer(groupName)
                     wwxrl.createNewRacer(groupName)
+                end
+            end
+        end
+    end
+    --on slot out
+    if (event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT) then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            if group then
+                local groupName = group:getName()
+                if string.find(groupName, racingGroupIdentifier) then
+                    env.info("Racer group slot out, cleaning racer", false)
+                    wwxrl.cleanupRacer(groupName)
+                end
+            end
+        end
+    end
+    --on death
+    if event.id == world.event.S_EVENT_PILOT_DEAD or event.id == world.event.S_EVENT_EJECTION then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            if group then
+                local groupName = group:getName()
+                if string.find(groupName, racingGroupIdentifier) then
+                    env.info("Racer group dead, cleaning racer", false)
+                    wwxrl.cleanupRacer(groupName)
                 end
             end
         end
@@ -93,8 +121,6 @@ function wwxrl.createNewRace()
     currentRace = newRaceTable
     currentRace.status = racingStatus["Pre-Race"]
     env.info("created race " .. newRaceTable.raceID, false)
-    --trigger.action.outText("created race " .. newRaceTable.raceID, 5, false)
-    --trigger.action.outText("New Race: " .. Utils.dump(currentRace), 30, false)
     wwxrl.trackRace(newRaceTable.raceID)
 end
 function wwxrl.trackRace(raceID)
@@ -106,7 +132,7 @@ function wwxrl.trackRace(raceID)
             local deadordqcount = 0
             for i = 1, #raceTable.racers do
                 local racer = raceTable.racers[i]
-                if racer then
+                if racer and racer.unitName then
                     local raceUnit = Unit.getByName(racer.unitName)
                     if raceUnit then
                         local racerPoint = raceUnit:getPoint()
@@ -124,7 +150,7 @@ function wwxrl.trackRace(raceID)
                                 local gateRadius = gate.radius
                                 if gatePoint and not racer.disqualified then
                                     local elapsedTime = timer.getTime() - racer.startTime
-                                    local elapsedSeconds = tostring(math.fmod(elapsedTime, 60))
+                                    local elapsedSeconds = tostring(math.floor(math.fmod(elapsedTime, 60)*10)/10)
                                     local elapsedMinutes = tostring(math.floor(elapsedTime/60))
                                     if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
                                     if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
@@ -152,10 +178,12 @@ function wwxrl.trackRace(raceID)
                             end
                         else
                             --this might be a bad idea
-                            racer = {}
+                            deadordqcount = deadordqcount+1
+                            raceTable.racers[i] = nil
                         end
                     else
                         deadordqcount = deadordqcount+1
+                        raceTable.racers[i] = nil
                     end
                 else
                     deadordqcount = deadordqcount+1
@@ -166,7 +194,7 @@ function wwxrl.trackRace(raceID)
                 wwxrl.messageToRacers("Race ending in " .. raceCooldownTime .. " seconds")
                 timer.scheduleFunction(wwxrl.endRace, nil, timer.getTime() + raceCooldownTime)
             end
-            if deadordqcount >= #currentRace.racers then
+            if deadordqcount >= #currentRace.racers and previousRacerCount == #currentRace.racers then
                 wwxrl.messageToRacers("Race ended because everyone is either dead or disqualified. To start another race, please re-slot.")
                 wwxrl.endRace()
             end
@@ -188,11 +216,31 @@ function wwxrl.trackRace(raceID)
         elseif raceStatus == racingStatus["Completed"] then
             env.info("Race " .. raceID .. " completed. Winner is " .. raceTable.winner, false)
             wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. raceTable.winningTime)
+            wwxrl.messageToRacers("To join another race, please re-slot into a racing aircraft.")
             --handle completed race and then break loop
             return
         end
     end
+    previousRacerCount = #currentRace.racers
     timer.scheduleFunction(wwxrl.trackRace, raceID, timer.getTime() + raceUpdateRate)
+end
+function wwxrl.cleanupRacer(groupName)
+    if currentRace and currentRace.racers and #currentRace.racers > 0 then
+        for i = 1, #currentRace.racers do
+            local racer = currentRace.racers[i]
+            if racer and racer.groupName == groupName then
+                currentRace.racers[i] = nil
+                env.info("Nil'd racer", false)
+            end
+        end
+        for i = 1, #racerQueue do
+            local racer = racerQueue[i]
+            if racer and racer.groupName == groupName then
+                racerQueue[i] = nil
+                env.info("Nil'd racer from queue", false)
+            end
+        end
+    end
 end
 function wwxrl.createNewRacer(groupName)
     local racerGroup = Group.getByName(groupName)
@@ -228,7 +276,10 @@ function wwxrl.messageToRacers(message)
     local race = currentRace
     if race and #race.racers > 0 then
         for i = 1, #race.racers do
-            trigger.action.outTextForGroup(race.racers[i].groupID, message, messageDuration, false)
+            local racer = race.racers[i]
+            if racer and racer.groupID then
+                trigger.action.outTextForGroup(racer.groupID, message, messageDuration, false)
+            end
         end
     end
 end
@@ -273,7 +324,7 @@ function wwxrl.queueLoop()
         elseif currentRace.status == racingStatus["In Progress"] then
             for i = 1, #racerQueue do
                 local racer = racerQueue[i]
-                if racer then
+                if racer and racer.groupID then
                     trigger.action.outTextForGroup(racer.groupID, "Race is currently in progress, please stand by.", 5, false)
                 end
             end
