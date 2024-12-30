@@ -14,12 +14,25 @@ local newRaceID = 1
 local raceUpdateRate = 0.2
 local currentRace = {}
 local racerQueue = {}
+local createdRacers = {}
 local racingGroupIdentifier = "RACER"
 local previousRacerCount = 0
 local racingStatus = {
     ["Pre-Race"] = 1,
     ["In Progress"] = 2,
     ["Completed"] = 3
+}
+local racingClasses = {
+    [1] = "Helicopter"
+}
+local racingTypes = {
+    ["AV8BNA"] = 1,
+    ["Mi-8MT"] = 1,
+    ["Mi-24P"] = 1,
+    ["UH-1H"] = 1,
+    ["SA342L"] = 1,
+    ["CH-47Fbl1"] = 1,
+    ["OH-6A"] = 1
 }
 local raceTemplate = {
     raceID = 0,
@@ -58,21 +71,21 @@ local racerTemplate = {
 }
 local raceEvents = {}
 function raceEvents:onEvent(event)
-    --on birth
-    if (event.id == world.event.S_EVENT_BIRTH) then
-        if event.initiator and event.initiator.getGroup then
-            local group = event.initiator:getGroup()
-            if group then
-                local groupName = group:getName()
-                if string.find(groupName, racingGroupIdentifier) then
-                    env.info("Racer group spawned, creating racer", false)
-                    --trigger.action.outText("Racer group spawned, creating racer", 5, false)
-                    wwxrl.cleanupRacer(group:getID())
-                    wwxrl.createNewRacer(groupName)
-                end
-            end
-        end
-    end
+    -- --on birth
+    -- if (event.id == world.event.S_EVENT_BIRTH) then
+    --     if event.initiator and event.initiator.getGroup then
+    --         local group = event.initiator:getGroup()
+    --         if group then
+    --             local groupName = group:getName()
+    --             if string.find(groupName, racingGroupIdentifier) then
+    --                 env.info("Racer group spawned, creating racer", false)
+    --                 --trigger.action.outText("Racer group spawned, creating racer", 5, false)
+    --                 wwxrl.cleanupRacer(group:getID())
+    --                 wwxrl.createNewRacer(groupName)
+    --             end
+    --         end
+    --     end
+    -- end
     --on slot out
     if (event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT) then
         if event.initiator and event.initiator.getGroup then
@@ -231,7 +244,7 @@ function wwxrl.trackRace(raceID)
                 timer.scheduleFunction(wwxrl.endRace, nil, timer.getTime() + raceCooldownTime)
             end
             if deadordqcount >= #currentRace.racers and previousRacerCount == #currentRace.racers then
-                wwxrl.messageToRacers("Race ended because everyone is either dead or disqualified. To start another race, please re-slot.")
+                wwxrl.messageToRacers("Race ended because everyone is either dead or disqualified. To start another race, please return to the starting area.")
                 wwxrl.endRace()
             end
             --for each contestant, check distance to next gate and advance gates if in range and in limits
@@ -241,7 +254,7 @@ function wwxrl.trackRace(raceID)
                 if racer then
                     currentRace:addRacer(racer)
                     env.info("Added racer " .. racer.playerName .. " to race " .. raceID, false)
-                    trigger.action.outTextForGroup(racer.groupID, "You have been added to the queue for the upcoming race!", 5, false)
+                    trigger.action.outTextForGroup(racer.groupID, "You have been added to entrant list for the upcoming race.", 5, false)
                 end
             end
             racerQueue = {}
@@ -284,6 +297,7 @@ function wwxrl.cleanupRacer(groupID)
                 env.info("Nil'd racer from queue", false)
             end
         end
+        createdRacers[groupID] = nil
     end
 end
 function wwxrl.createNewRacer(groupName)
@@ -298,6 +312,7 @@ function wwxrl.createNewRacer(groupName)
             newRacerTable.unitName = racerUnit:getName()
             newRacerTable.playerName = racerUnit:getPlayerName()
             wwxrl.addRacerToQueue(newRacerTable)
+            createdRacers[newRacerTable.groupID] = newRacerTable
             --trigger.action.outText("Racer added to queue", 5, false)
         end
     end
@@ -346,6 +361,7 @@ function wwxrl.endRace()
     local winner = ""
     for i = 1, #currentRace.racers do
         local racer = currentRace.racers[i]
+        if racer then createdRacers[racer.groupID] = nil end
         if racer and racer.completed then
             local completionTime = (racer.endTime + racer.penaltyTime) - racer.startTime
             if winningTime == 0 or completionTime < winningTime then
@@ -360,10 +376,7 @@ function wwxrl.endRace()
 end
 function wwxrl.queueLoop()
     if #racerQueue > 0 then
-        --trigger.action.outText("queue loop with racers", 5, false)
-        --check current race is in Pre-Race state. If yes, add players in queue to race
         if currentRace.status == nil or currentRace.status == racingStatus["Completed"] then
-            --trigger.action.outText("need new race", 5, false)
             wwxrl.createNewRace()
         elseif currentRace.status == racingStatus["In Progress"] then
             for i = 1, #racerQueue do
@@ -376,5 +389,32 @@ function wwxrl.queueLoop()
     end
     timer.scheduleFunction(wwxrl.queueLoop, nil, timer.getTime() + 5)
 end
+function wwxrl.racerCreationLoop()
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = trigger.misc.getZone("Race Start Zone").point,
+            radius = trigger.misc.getZone("Race Start Zone").radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        env.info("Racer Start Zone Search", false)
+        if (foundItem:getDesc().category == 0 or foundItem:getDesc().category == 1) and foundItem:isExist() and foundItem:isActive() and racingTypes[foundItem:getTypeName()] then
+            local foundPlayerName = foundItem:getPlayerName()
+            local playerGroup = foundItem:getGroup()
+            if playerGroup then
+                local playerGroupID = playerGroup:getID()
+                if foundPlayerName and playerGroupID and createdRacers[playerGroupID] == nil then
+                    wwxrl.cleanupRacer(playerGroupID)
+                    wwxrl.createNewRacer(playerGroup:getName())
+                    trigger.action.outTextForGroup(playerGroupID, "You have been added to the racer queue", 5, false)
+                end
+            end
+        end
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    timer.scheduleFunction(wwxrl.racerCreationLoop, nil, timer.getTime() + 10)
+end
 wwxrl.getGates()
 wwxrl.queueLoop()
+wwxrl.racerCreationLoop()
