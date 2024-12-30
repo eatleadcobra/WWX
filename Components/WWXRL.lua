@@ -31,7 +31,17 @@ local raceTemplate = {
     cooldownStarted = false
 }
 function raceTemplate:addRacer(racer)
-    self.racers[#self.racers+1] = racer
+    --self.racers[#self.racers+1] = racer
+    local matchFound = false
+    for i = 1, #self.racers do
+        if self.racers.groupID == racer.groupID then
+            matchFound = true
+            self.racers[i] = racer
+        end
+    end
+    if not matchFound then
+        self.racers[#self.racers+1] = racer
+    end
 end
 local racerTemplate = {
     groupID = 0,
@@ -55,7 +65,7 @@ function raceEvents:onEvent(event)
                 if string.find(groupName, racingGroupIdentifier) then
                     env.info("Racer group spawned, creating racer", false)
                     --trigger.action.outText("Racer group spawned, creating racer", 5, false)
-                    wwxrl.cleanupRacer(groupName)
+                    wwxrl.cleanupRacer(group:getID())
                     wwxrl.createNewRacer(groupName)
                 end
             end
@@ -69,7 +79,7 @@ function raceEvents:onEvent(event)
                 local groupName = group:getName()
                 if string.find(groupName, racingGroupIdentifier) then
                     env.info("Racer group slot out, cleaning racer", false)
-                    wwxrl.cleanupRacer(groupName)
+                    wwxrl.cleanupRacer(group:getID())
                 end
             end
         end
@@ -82,7 +92,7 @@ function raceEvents:onEvent(event)
                 local groupName = group:getName()
                 if string.find(groupName, racingGroupIdentifier) then
                     env.info("Racer group dead, cleaning racer", false)
-                    wwxrl.cleanupRacer(groupName)
+                    wwxrl.cleanupRacer(group:getID())
                 end
             end
         end
@@ -111,6 +121,18 @@ function wwxrl.getGates()
         end
     end
     raceTemplate.finalGate = #raceTemplate.gates
+end
+function wwxrl.addRacerToQueue(racer)
+    local matchFound = false
+    for i = 1, #racerQueue do
+        if racerQueue[i].groupID == racer.groupID then
+            matchFound = true
+            racerQueue[i] = racer
+        end
+    end
+    if not matchFound then
+        racerQueue[#racerQueue+1] = racer
+    end
 end
 function wwxrl.createNewRace()
     env.info("creating new race table", false)
@@ -234,18 +256,18 @@ function wwxrl.trackRace(raceID)
     previousRacerCount = #currentRace.racers
     timer.scheduleFunction(wwxrl.trackRace, raceID, timer.getTime() + raceUpdateRate)
 end
-function wwxrl.cleanupRacer(groupName)
+function wwxrl.cleanupRacer(groupID)
     if currentRace and currentRace.racers and #currentRace.racers > 0 then
         for i = 1, #currentRace.racers do
             local racer = currentRace.racers[i]
-            if racer and racer.groupName == groupName then
+            if racer and racer.groupID == groupID then
                 currentRace.racers[i] = nil
                 env.info("Nil'd racer", false)
             end
         end
         for i = 1, #racerQueue do
             local racer = racerQueue[i]
-            if racer and racer.groupName == groupName then
+            if racer and racer.groupID == groupID then
                 racerQueue[i] = nil
                 env.info("Nil'd racer from queue", false)
             end
@@ -263,7 +285,7 @@ function wwxrl.createNewRacer(groupName)
             newRacerTable.groupID = racerGroup:getID()
             newRacerTable.unitName = racerUnit:getName()
             newRacerTable.playerName = racerUnit:getPlayerName()
-            racerQueue[#racerQueue+1] = newRacerTable
+            wwxrl.addRacerToQueue(newRacerTable)
             --trigger.action.outText("Racer added to queue", 5, false)
         end
     end
