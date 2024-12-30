@@ -170,7 +170,7 @@ function wwxrl.trackRace(raceID)
                             if racer.currentGate == 0 then
                                 racer.currentGate = 1
                                 if Utils.PointDistance(racerPoint, trigger.misc.getZone("Race Start Zone").point) > trigger.misc.getZone("Race Start Zone").radius then
-                                    trigger.action.outTextForGroup(racer.groupID, "You are disqualified because you were not within the starting zone and altitude limits at race start.", 20, false)
+                                    trigger.action.outTextForGroup(racer.groupID, "You are disqualified because you were not within the starting zone at race start.", 20, false)
                                     racer.disqualified = true
                                 end
                             end
@@ -257,7 +257,7 @@ function wwxrl.trackRace(raceID)
             if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
             local winningTimeString = "00:"..elapsedMinutes..":"..elapsedSeconds
             wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. winningTimeString)
-            if WWEvents then
+            if WWEvents and raceTable.winner and raceTable.winner ~= "" and raceTable.winningTime > 0 then
                 WWEvents.raceCompleted(raceTable.winner, raceTable.winningTime, raceTable.winner .. " has won a race with a time of " .. winningTimeString)
             end
             wwxrl.messageToRacers("To join another race, please re-slot into a racing aircraft.")
