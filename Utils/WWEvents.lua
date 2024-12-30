@@ -13,6 +13,8 @@ world.event.S_EVENT_WWX_CONVOY_KILLED = 8413
 world.event.S_EVENT_WWX_CSAR_MISSION_COMPLETED = 8414
 world.event.S_EVENT_WWX_FIREMISSION_COMPLETED = 8415
 world.event.S_EVENT_WWX_FIREMISSION_KILL = 8416
+world.event.S_EVENT_WWX_RACE_PING = 8417
+world.event.S_EVENT_WWX_RACE_COMPLETED = 8418
 
 WWEvents = {}
 WWEvents.latches = {
@@ -196,6 +198,25 @@ function WWEvents.fireMissionCompleted(coalitionId, playerName, kills)
         playerName = playerName,
         kills = kills,
         text = "'s fire mission achieved " .. kills .. " kill(s)!"
+    }
+    world.onEvent(Event)
+end
+function WWEvents.raceNotfication()
+    env.info("Race notification ping", false)
+    local Event = {
+        id = world.event.S_EVENT_WWX_RACE_PING,
+        time = timer.getTime(),
+        text = "Helicopter races are happening NOW. Hop on and race!"
+    }
+end
+function WWEvents.raceCompleted(winner, winningTime, message)
+    env.info("Race completed notification event.", false)
+    local Event = {
+        id = world.event.S_EVENT_WWX_RACE_COMPLETED,
+        time = timer.getTime(),
+        winner = winner,
+        winningTime = winningTime,
+        text = message,
     }
     world.onEvent(Event)
 end

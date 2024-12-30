@@ -2,6 +2,8 @@
 local wwxrl = {}
 local gateLimit = 50
 local AGLlimit = 45
+local lastPingTime = 0
+local timeBetweenPings = 1799
 local countdownDuration = 60
 local numberofreminders = 4
 local finalCountdown = 5
@@ -138,6 +140,12 @@ function wwxrl.createNewRace()
     env.info("creating new race table", false)
     --trigger.action.outText("creating new race table", 5, false)
     currentRace = {}
+    if WWEvents then
+        if lastPingTime == 0 or ((timer.getTime() - lastPingTime) > timeBetweenPings) then
+            WWEvents.raceNotfication()
+            lastPingTime = timer.getTime()
+        end
+    end
     local newRaceTable = Utils.deepcopy(raceTemplate)
     newRaceTable.raceID = wwxrl.newRaceID()
     currentRace = newRaceTable
@@ -247,7 +255,11 @@ function wwxrl.trackRace(raceID)
             local elapsedMinutes = tostring(math.floor(raceTable.winningTime/60))
             if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
             if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
-            wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. "00:"..elapsedMinutes..":"..elapsedSeconds)
+            local winningTimeString = "00:"..elapsedMinutes..":"..elapsedSeconds
+            wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. winningTimeString)
+            if WWEvents then
+                WWEvents.raceCompleted(raceTable.winner, raceTable.winningTime, raceTable.winner .. " has won a race with a time of " .. winningTimeString)
+            end
             wwxrl.messageToRacers("To join another race, please re-slot into a racing aircraft.")
             --handle completed race and then break loop
             return
