@@ -201,12 +201,12 @@ function WWEvents.fireMissionCompleted(coalitionId, playerName, kills)
     }
     world.onEvent(Event)
 end
-function WWEvents.raceNotfication()
+function WWEvents.raceNotfication(divisionName)
     env.info("Race notification ping", false)
     local Event = {
         id = world.event.S_EVENT_WWX_RACE_PING,
         time = timer.getTime(),
-        text = "Helicopter races are happening NOW. Hop on and race!"
+        text = divisionName .. " races are happening NOW. Hop on and race!"
     }
     world.onEvent(Event)
 end
