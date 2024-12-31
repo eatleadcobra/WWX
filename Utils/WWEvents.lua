@@ -208,6 +208,7 @@ function WWEvents.raceNotfication()
         time = timer.getTime(),
         text = "Helicopter races are happening NOW. Hop on and race!"
     }
+    world.onEvent(Event)
 end
 function WWEvents.raceCompleted(winner, winningTime, message)
     env.info("Race completed notification event.", false)
