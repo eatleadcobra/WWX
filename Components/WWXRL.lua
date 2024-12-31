@@ -296,7 +296,7 @@ function wwxRacing.newLeague(division)
                 local winningTimeString = "00:"..elapsedMinutes..":"..elapsedSeconds
                 wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. winningTimeString)
                 if WWEvents and raceTable.winner and raceTable.winner ~= "" and raceTable.winningTime > 0 then
-                    WWEvents.raceCompleted(raceTable.winner, raceTable.winningTime, " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString)
+                    WWEvents.raceCompleted(raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString)
                 end
                 wwxrl.messageToRacers("To join another race, please re-slot into a racing aircraft.")
                 --handle completed race and then break loop
