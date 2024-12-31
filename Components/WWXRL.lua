@@ -71,28 +71,12 @@ local racerTemplate = {
 }
 local raceEvents = {}
 function raceEvents:onEvent(event)
-    -- --on birth
-    -- if (event.id == world.event.S_EVENT_BIRTH) then
-    --     if event.initiator and event.initiator.getGroup then
-    --         local group = event.initiator:getGroup()
-    --         if group then
-    --             local groupName = group:getName()
-    --             if string.find(groupName, racingGroupIdentifier) then
-    --                 env.info("Racer group spawned, creating racer", false)
-    --                 --trigger.action.outText("Racer group spawned, creating racer", 5, false)
-    --                 wwxrl.cleanupRacer(group:getID())
-    --                 wwxrl.createNewRacer(groupName)
-    --             end
-    --         end
-    --     end
-    -- end
     --on slot out
     if (event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT) then
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
-                local groupName = group:getName()
-                if string.find(groupName, racingGroupIdentifier) then
+                if createdRacers[group:getID()] then
                     env.info("Racer group slot out, cleaning racer", false)
                     wwxrl.cleanupRacer(group:getID())
                 end
@@ -104,8 +88,7 @@ function raceEvents:onEvent(event)
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
-                local groupName = group:getName()
-                if string.find(groupName, racingGroupIdentifier) then
+                if createdRacers[group:getID()] then
                     env.info("Racer group dead, cleaning racer", false)
                     wwxrl.cleanupRacer(group:getID())
                 end
