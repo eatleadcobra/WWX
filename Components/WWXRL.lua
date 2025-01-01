@@ -248,13 +248,11 @@ function wwxRacing.newLeague(division)
                                     else
                                         env.info("DQ'd or no gate point", false)
                                         deadordqcount = deadordqcount+1
-                                        raceTable.racers[i] = nil
                                     end
                                 end
                             else
                                 --this might be a bad idea
                                 deadordqcount = deadordqcount+1
-                                raceTable.racers[i] = nil
                             end
                         else
                             deadordqcount = deadordqcount+1
