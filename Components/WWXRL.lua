@@ -311,6 +311,7 @@ function wwxRacing.newLeague(division)
                 if racer and racer.groupID == groupID then
                     currentRace.racers[i] = nil
                     env.info("Nil'd racer", false)
+                    break
                 end
             end
             for i = 1, #racerQueue do
@@ -318,6 +319,7 @@ function wwxRacing.newLeague(division)
                 if racer and racer.groupID == groupID then
                     racerQueue[i] = nil
                     env.info("Nil'd racer from queue", false)
+                    break
                 end
             end
             createdRacers[groupID] = nil
@@ -428,7 +430,6 @@ function wwxRacing.newLeague(division)
                 if playerGroup then
                     local playerGroupID = playerGroup:getID()
                     if foundPlayerName and playerGroupID and createdRacers[playerGroupID] == nil then
-                        wwxrl.cleanupRacer(playerGroupID)
                         wwxrl.createNewRacer(playerGroup:getName())
                         trigger.action.outTextForGroup(playerGroupID, "You have been added to the " ..racingClassNames[division] .. " racer queue", 5, false)
                     end
