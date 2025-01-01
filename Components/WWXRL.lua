@@ -24,6 +24,7 @@ function wwxRacing.newLeague(division)
     --requires Utils.lua
     local wwxrl = {}
     local gateLimit = 50
+    local gateTimeLimit = 65
     local AGLlimit = 45
     local lastPingTime = 0
     local timeBetweenPings = 1799
@@ -38,7 +39,6 @@ function wwxRacing.newLeague(division)
     local currentRace = {}
     local racerQueue = {}
     local createdRacers = {}
-    local previousRacerCount = 0
     local racingStatus = {
         ["Pre-Race"] = 1,
         ["In Progress"] = 2,
@@ -85,6 +85,7 @@ function wwxRacing.newLeague(division)
         finalGate = 0,
         winner = "",
         winningTime = 0,
+        lastGateTime = 0,
         countdownStarted = false,
         cooldownStarted = false
     }
@@ -112,35 +113,6 @@ function wwxRacing.newLeague(division)
         completed = false,
         disqualified = false,
     }
-    local raceEvents = {}
-    function raceEvents:onEvent(event)
-        --on slot out
-        if (event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT) then
-            if event.initiator and event.initiator.getGroup then
-                local group = event.initiator:getGroup()
-                if group then
-                    if createdRacers[group:getID()] then
-                        env.info("Racer group slot out, cleaning racer", false)
-                        wwxrl.cleanupRacer(group:getID())
-                    end
-                end
-            end
-        end
-        --on death
-        if event.id == world.event.S_EVENT_PILOT_DEAD or event.id == world.event.S_EVENT_EJECTION then
-            if event.initiator and event.initiator.getGroup then
-                local group = event.initiator:getGroup()
-                if group then
-                    if createdRacers[group:getID()] then
-                        env.info("Racer group dead, cleaning racer", false)
-                        wwxrl.cleanupRacer(group:getID())
-                    end
-                end
-            end
-        end
-    end
-    world.addEventHandler(raceEvents)
-
     function wwxrl.newRaceID()
         local newID = newRaceID
         newRaceID = newRaceID+1
@@ -176,7 +148,6 @@ function wwxRacing.newLeague(division)
     end
     function wwxrl.createNewRace()
         env.info("creating new race table", false)
-        --trigger.action.outText("creating new race table", 5, false)
         currentRace = {}
         if WWEvents then
             if lastPingTime == 0 or ((timer.getTime() - lastPingTime) > timeBetweenPings) then
@@ -226,6 +197,7 @@ function wwxRacing.newLeague(division)
                                         local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
                                         if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= AGLlimit then
                                             trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 5, false)
+                                            currentRace.lastGateTime = timer.getTime()
                                             racer.currentGate = racer.currentGate + 1
                                             if racer.currentGate <= currentRace.finalGate then
                                                 local playerHdg = Utils.getHdgFromPosition(raceUnit:getPosition())
@@ -247,18 +219,18 @@ function wwxRacing.newLeague(division)
                                         end
                                     else
                                         env.info("DQ'd or no gate point", false)
-                                        deadordqcount = deadordqcount+1
+                                        --deadordqcount = deadordqcount+1
                                     end
                                 end
                             else
                                 --this might be a bad idea
-                                deadordqcount = deadordqcount+1
+                                --deadordqcount = deadordqcount+1
                             end
                         else
-                            deadordqcount = deadordqcount+1
+                            --deadordqcount = deadordqcount+1
                         end
                     else
-                        deadordqcount = deadordqcount+1
+                        --deadordqcount = deadordqcount+1
                     end
                 end
                 if raceCompleted and not currentRace.cooldownStarted then
@@ -266,7 +238,8 @@ function wwxRacing.newLeague(division)
                     wwxrl.messageToRacers("Race ending in " .. raceCooldownTime .. " seconds")
                     timer.scheduleFunction(wwxrl.endRace, nil, timer.getTime() + raceCooldownTime)
                 end
-                if deadordqcount >= #currentRace.racers and previousRacerCount == #currentRace.racers then
+                if ((timer.getTime() - currentRace.lastGateTime) > gateTimeLimit) then
+                    env.info("Gate time limit reached, race ended", false)
                     wwxrl.messageToRacers("Race ended because everyone is either dead or disqualified. To start another race, please return to the starting area.")
                     wwxrl.endRace()
                 end
@@ -301,7 +274,6 @@ function wwxRacing.newLeague(division)
                 return
             end
         end
-        previousRacerCount = #currentRace.racers
         timer.scheduleFunction(wwxrl.trackRace, raceID, timer.getTime() + raceUpdateRate)
     end
     function wwxrl.cleanupRacer(groupID)
@@ -371,6 +343,7 @@ function wwxRacing.newLeague(division)
         local race = currentRace
         if race and race.status == racingStatus["Pre-Race"] then
             local raceStartTime = timer.getTime()
+            currentRace.lastGateTime = raceStartTime
             for i = 1, #currentRace.racers do
                 local racer = currentRace.racers[i]
                 if racer then
