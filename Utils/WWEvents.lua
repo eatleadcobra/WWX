@@ -15,6 +15,7 @@ world.event.S_EVENT_WWX_FIREMISSION_COMPLETED = 8415
 world.event.S_EVENT_WWX_FIREMISSION_KILL = 8416
 world.event.S_EVENT_WWX_RACE_PING = 8417
 world.event.S_EVENT_WWX_RACE_COMPLETED = 8418
+world.event.S_EVENT_WWX_RACE_ENTRANT_RESULT = 8419
 
 WWEvents = {}
 WWEvents.latches = {
@@ -201,23 +202,38 @@ function WWEvents.fireMissionCompleted(coalitionId, playerName, kills)
     }
     world.onEvent(Event)
 end
-function WWEvents.raceNotfication(divisionName)
-    env.info("Race notification ping", false)
+function WWEvents.raceNotification(categoryId)
     local Event = {
         id = world.event.S_EVENT_WWX_RACE_PING,
         time = timer.getTime(),
-        text = divisionName .. " races are happening NOW. Hop on and race!"
+        category = categoryId,
+        text = "races are happening NOW. Hop on!"
     }
     world.onEvent(Event)
 end
-function WWEvents.raceCompleted(winner, winningTime, message)
-    env.info("Race completed notification event.", false)
+
+function WWEvents.raceCompleted(raceId, winner, winningTime, message)
     local Event = {
         id = world.event.S_EVENT_WWX_RACE_COMPLETED,
         time = timer.getTime(),
-        winner = winner,
-        winningTime = winningTime,
-        text = message,
+    raceId = raceId,
+        winner = winner, -- string
+        winningTime = winningTime, -- number of seconds
+        text = message, -- string
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.raceEntrantResult(raceId, categoryId, playerName, finishTime, totalTime, aircraft)
+    local Event = {
+    id = world.event.S_EVENT_WWX_RACE_ENTRANT_RESULT,
+    time = timer.getTime(),
+    raceId = raceId,
+    category = categoryId,
+    playerName = playerName,
+    finishTime = finishTime,
+    totalTime = totalTime,
+    aircraft = aircraft
     }
     world.onEvent(Event)
 end

@@ -1,4 +1,35 @@
 local wwxRacing = {}
+local newRaceID = 1
+local racingSaveFile = lfs.writedir() .. [[Logs/]] ..'wwxRacing.txt'
+function wwxRacing.newRaceID()
+    local newID = newRaceID
+    newRaceID = newRaceID+1
+    return newID
+end
+function wwxRacing.fileExists(file)
+    local f = io.open(file, 'rb')
+    if f then f:close() end
+    return f ~= nil
+end
+function wwxRacing.loadData()
+    if wwxRacing.fileExists(racingSaveFile) then
+        local f = io.open(racingSaveFile, 'r')
+        if f ~= nil then
+            local lines = {}
+            for line in io.lines(f) do
+                lines[#lines+1] = line
+            end
+            newRaceID = tonumber(lines[1])
+        end
+    end
+end
+function wwxRacing.saveData()
+    local f = io.open(racingSaveFile, 'w')
+    if f ~= nil then
+        f:write(newRaceID)
+        f:close()
+    end
+end
 local racingClasses = {
     ["Helicopter"] = 1,
     ["Props"] = 2,
@@ -25,6 +56,7 @@ function wwxRacing.newLeague(division)
     local wwxrl = {}
     local gateLimit = 50
     local gateTimeLimit = 65
+    local raceHardTimeLimit = 900
     local AGLlimit = 45
     local lastPingTime = 0
     local timeBetweenPings = 1799
@@ -34,8 +66,9 @@ function wwxRacing.newLeague(division)
     local raceCooldownTime = 30
     local minimumRacers = 1 -- for testing, should be 2 
     local messageDuration = 8
-    local newRaceID = 1
     local raceUpdateRate = 0.2
+    local inProgressLoopCounter = 0
+    local timeBetweenMessages = 10
     local currentRace = {}
     local racerQueue = {}
     local createdRacers = {}
@@ -84,6 +117,7 @@ function wwxRacing.newLeague(division)
         gates = {},
         finalGate = 0,
         winner = "",
+        startTime = 0,
         winningTime = 0,
         lastGateTime = 0,
         countdownStarted = false,
@@ -112,12 +146,8 @@ function wwxRacing.newLeague(division)
         penaltyTime = 0,
         completed = false,
         disqualified = false,
+        aircraft = "",
     }
-    function wwxrl.newRaceID()
-        local newID = newRaceID
-        newRaceID = newRaceID+1
-        return newID
-    end
     function wwxrl.newRacerID()
         local newID = newRaceID
         newRaceID = newRaceID+1
@@ -151,12 +181,12 @@ function wwxRacing.newLeague(division)
         currentRace = {}
         if WWEvents then
             if lastPingTime == 0 or ((timer.getTime() - lastPingTime) > timeBetweenPings) then
-                WWEvents.raceNotfication(racingClassNames[division])
+                WWEvents.raceNotification(division)
                 lastPingTime = timer.getTime()
             end
         end
         local newRaceTable = Utils.deepcopy(raceTemplate)
-        newRaceTable.raceID = wwxrl.newRaceID()
+        newRaceTable.raceID = wwxRacing.newRaceID()
         currentRace = newRaceTable
         currentRace.status = racingStatus["Pre-Race"]
         env.info("created race " .. newRaceTable.raceID, false)
@@ -169,6 +199,11 @@ function wwxRacing.newLeague(division)
             if raceStatus == racingStatus["In Progress"] then
                 local raceCompleted = false
                 local deadordqcount = 0
+                inProgressLoopCounter = inProgressLoopCounter+1
+                if inProgressLoopCounter > timeBetweenMessages/raceUpdateRate then
+                    wwxrl.messageToRacers("Race in progress")
+                    inProgressLoopCounter = 0
+                end
                 for i = 1, #raceTable.racers do
                     local racer = raceTable.racers[i]
                     if racer and racer.unitName then
@@ -188,15 +223,15 @@ function wwxRacing.newLeague(division)
                                     local gatePoint = gate.point
                                     local gateRadius = gate.radius
                                     if gatePoint and not racer.disqualified then
-                                        local elapsedTime = timer.getTime() - racer.startTime
-                                        local elapsedSeconds = tostring(math.floor(math.fmod(elapsedTime, 60)*10)/10)
-                                        local elapsedMinutes = tostring(math.floor(elapsedTime/60))
-                                        if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
-                                        if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
-                                        trigger.action.outTextForGroup(racer.groupID, "00:"..elapsedMinutes..":"..elapsedSeconds.." + " .. racer.penaltyTime, 0.2, false)
                                         local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
                                         if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= AGLlimit then
                                             trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 5, false)
+                                            local elapsedTime = timer.getTime() - racer.startTime
+                                            local elapsedSeconds = tostring(math.floor(math.fmod(elapsedTime, 60)*10)/10)
+                                            local elapsedMinutes = tostring(math.floor(elapsedTime/60))
+                                            if tonumber(elapsedSeconds) < 10 then elapsedSeconds = "0"..elapsedSeconds end
+                                            if tonumber(elapsedMinutes) < 10 then elapsedMinutes = "0"..elapsedMinutes end
+                                            trigger.action.outTextForGroup(racer.groupID, "00:"..elapsedMinutes..":"..elapsedSeconds.." + " .. racer.penaltyTime, 5, false)
                                             currentRace.lastGateTime = timer.getTime()
                                             racer.currentGate = racer.currentGate + 1
                                             if racer.currentGate <= currentRace.finalGate then
@@ -218,19 +253,15 @@ function wwxRacing.newLeague(division)
                                             end
                                         end
                                     else
+                                        deadordqcount = deadordqcount+1
                                         env.info("DQ'd or no gate point", false)
-                                        --deadordqcount = deadordqcount+1
                                     end
                                 end
                             else
-                                --this might be a bad idea
-                                --deadordqcount = deadordqcount+1
                             end
                         else
-                            --deadordqcount = deadordqcount+1
                         end
                     else
-                        --deadordqcount = deadordqcount+1
                     end
                 end
                 if raceCompleted and not currentRace.cooldownStarted then
@@ -238,7 +269,7 @@ function wwxRacing.newLeague(division)
                     wwxrl.messageToRacers("Race ending in " .. raceCooldownTime .. " seconds")
                     timer.scheduleFunction(wwxrl.endRace, nil, timer.getTime() + raceCooldownTime)
                 end
-                if ((timer.getTime() - currentRace.lastGateTime) > gateTimeLimit) then
+                if ((timer.getTime() - currentRace.lastGateTime) > gateTimeLimit) or ((timer.getTime() - currentRace.startTime) > raceHardTimeLimit) or deadordqcount >= #currentRace.racers then
                     env.info("Gate time limit reached, race ended", false)
                     wwxrl.messageToRacers("Race ended because everyone is either dead or disqualified. To start another race, please return to the starting area.")
                     wwxrl.endRace()
@@ -270,7 +301,6 @@ function wwxRacing.newLeague(division)
                     WWEvents.raceCompleted(raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString)
                 end
                 wwxrl.messageToRacers("To join another race, please re-slot into a racing aircraft.")
-                --handle completed race and then break loop
                 return
             end
         end
@@ -303,14 +333,13 @@ function wwxRacing.newLeague(division)
             local racerUnit = racerGroup:getUnit(1)
             if racerUnit and racerUnit:getPlayerName() then
                 env.info("creating new racer", false)
-                --trigger.action.outText("creating new racer", 5, false)
                 local newRacerTable = Utils.deepcopy(racerTemplate)
                 newRacerTable.groupID = racerGroup:getID()
                 newRacerTable.unitName = racerUnit:getName()
                 newRacerTable.playerName = racerUnit:getPlayerName()
+                newRacerTable.aircraft = racerUnit:getTypeName()
                 wwxrl.addRacerToQueue(newRacerTable)
                 createdRacers[newRacerTable.groupID] = newRacerTable
-                --trigger.action.outText("Racer added to queue", 5, false)
             end
         end
     end
@@ -343,6 +372,7 @@ function wwxRacing.newLeague(division)
         local race = currentRace
         if race and race.status == racingStatus["Pre-Race"] then
             local raceStartTime = timer.getTime()
+            currentRace.startTime = raceStartTime
             currentRace.lastGateTime = raceStartTime
             for i = 1, #currentRace.racers do
                 local racer = currentRace.racers[i]
@@ -360,16 +390,24 @@ function wwxRacing.newLeague(division)
         for i = 1, #currentRace.racers do
             local racer = currentRace.racers[i]
             if racer then createdRacers[racer.groupID] = nil end
-            if racer and racer.completed then
-                local completionTime = (racer.endTime + racer.penaltyTime) - racer.startTime
-                if winningTime == 0 or completionTime < winningTime then
-                    winningTime = completionTime
-                    winner = racer.playerName
+            if racer then
+                if WWEvents then
+                    WWEvents.raceEntrantResult(currentRace.raceID, division, racer.playerName, (racer.endTime - racer.startTime), ((racer.endTime + racer.penaltyTime) - racer.startTime), racer.aircraft)
+                end
+                if racer.completed then
+                    local completionTime = (racer.endTime + racer.penaltyTime) - racer.startTime
+                    if winningTime == 0 or completionTime < winningTime then
+                        winningTime = completionTime
+                        winner = racer.playerName
+                    end
                 end
             end
         end
         currentRace.winner = winner
         currentRace.winningTime = winningTime
+        if winningTime ~= nil then
+            wwxRacing.saveData()
+        end
         currentRace.status = racingStatus["Completed"]
     end
     function wwxrl.queueLoop()
@@ -416,6 +454,12 @@ function wwxRacing.newLeague(division)
     wwxrl.queueLoop()
     wwxrl.racerCreationLoop()
 end
+function wwxRacing.saveLoop()
+    wwxRacing.saveData()
+    timer.scheduleFunction(wwxRacing.saveLoop, nil, timer.getTime() + 60)
+end
+wwxRacing.loadData()
+wwxRacing.saveLoop()
 wwxRacing.newLeague(racingClasses["Helicopter"])
 wwxRacing.newLeague(racingClasses["Props"])
 wwxRacing.newLeague(racingClasses["VTOL"])
