@@ -392,7 +392,11 @@ function wwxRacing.newLeague(division)
             if racer then createdRacers[racer.groupID] = nil end
             if racer then
                 if WWEvents then
-                    WWEvents.raceEntrantResult(currentRace.raceID, division, racer.playerName, (racer.endTime - racer.startTime), ((racer.endTime + racer.penaltyTime) - racer.startTime), racer.aircraft)
+                    local racerElapsedTime = racer.endTime - racer.startTime
+                    local racerTotalElapsedTime = (racer.endTime + racer.penaltyTime) - racer.startTime
+                    if racerElapsedTime < 0 then racerElapsedTime = 0 end
+                    if racerTotalElapsedTime < 0 then racerTotalElapsedTime = 0 end
+                    WWEvents.raceEntrantResult(currentRace.raceID, division, racer.playerName, racerElapsedTime, racerTotalElapsedTime, racer.aircraft)
                 end
                 if racer.completed then
                     local completionTime = (racer.endTime + racer.penaltyTime) - racer.startTime
