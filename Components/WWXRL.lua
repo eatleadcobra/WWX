@@ -51,13 +51,20 @@ local classAGLPenaltyEnabled = {
     [4] = false,
     [5] = false,
 }
+local aglLimits = {
+    [1] = 35,
+    [2] = 45,
+    [3] = 45,
+    [4] = 100,
+    [5] = 80,
+}
 function wwxRacing.newLeague(division)
     --requires Utils.lua
     local wwxrl = {}
     local gateLimit = 50
-    local gateTimeLimit = 65
-    local raceHardTimeLimit = 900
-    local AGLlimit = 45
+    local gateTimeLimit = 120
+    local raceHardTimeLimit = 960
+    --local AGLlimit = 45
     local lastPingTime = 0
     local timeBetweenPings = 1799
     local countdownDuration = 60
@@ -108,6 +115,17 @@ function wwxRacing.newLeague(division)
             ["F-5E-3"] = 4,
             ["Mirage-F1CE"] = 4,
             ["MiG-21Bis"] = 4,
+            ["AJS37"] = 4,
+        },
+        [5] = {
+            ["A-10C"] = 5,
+            ["C-101EB"] = 5,
+            ["L-39C"] = 5,
+            ["MB-339APAN"] = 5,
+            ["MiG-15Bis"] = 5,
+            ["F-86"] = 5,
+            ["Su-25"] = 5,
+            ["A-4E-C"] = 5,
         }
     }
     local raceTemplate = {
@@ -200,7 +218,7 @@ function wwxRacing.newLeague(division)
                 local raceCompleted = false
                 local deadordqcount = 0
                 inProgressLoopCounter = inProgressLoopCounter+1
-                if inProgressLoopCounter > timeBetweenMessages/raceUpdateRate then
+                if inProgressLoopCounter > timeBetweenMessages/raceUpdateRate and not currentRace.cooldownStarted then
                     wwxrl.messageToRacers("Race in progress")
                     inProgressLoopCounter = 0
                 end
@@ -213,7 +231,8 @@ function wwxRacing.newLeague(division)
                             if racerPoint and racer.currentGate then
                                 if racer.currentGate == 0 then
                                     racer.currentGate = 1
-                                    if Utils.PointDistance(racerPoint, trigger.misc.getZone(division.."-Race Start Zone").point) > trigger.misc.getZone(division.."-Race Start Zone").radius then
+                                    if (Utils.PointDistance(racerPoint, trigger.misc.getZone(division.."-Race Start Zone").point) > trigger.misc.getZone(division.."-Race Start Zone").radius) or (Utils.getAGL(racerPoint) > 3) then
+                                        --trigger.action.outText(Utils.getAGL(racerPoint), 10,false)
                                         trigger.action.outTextForGroup(racer.groupID, "You are disqualified because you were not within the starting zone at race start.", 20, false)
                                         racer.disqualified = true
                                     end
@@ -224,7 +243,7 @@ function wwxRacing.newLeague(division)
                                     local gateRadius = gate.radius
                                     if gatePoint and not racer.disqualified then
                                         local distanceToGate = Utils.PointDistance(racerPoint, gatePoint)
-                                        if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= AGLlimit then
+                                        if distanceToGate < gateRadius and Utils.getAGL(racerPoint) <= aglLimits[division] then
                                             trigger.action.outTextForGroup(racer.groupID, "Gate " .. racer.currentGate .. " completed!", 5, false)
                                             local elapsedTime = timer.getTime() - racer.startTime
                                             local elapsedSeconds = tostring(math.floor(math.fmod(elapsedTime, 60)*10)/10)
@@ -244,7 +263,7 @@ function wwxRacing.newLeague(division)
                                                 raceCompleted = true
                                                 racer.completed = true
                                             end
-                                        elseif classAGLPenaltyEnabled[division] and (Utils.getAGL(racerPoint) > AGLlimit) then
+                                        elseif classAGLPenaltyEnabled[division] and (Utils.getAGL(racerPoint) > aglLimits[division]) then
                                             trigger.action.outTextForGroup(racer.groupID, "You are too high! Penalized!", 1, false)
                                             racer.penaltyTime = racer.penaltyTime + raceUpdateRate
                                             if racer.penaltyTime > raceCooldownTime then
@@ -281,7 +300,7 @@ function wwxRacing.newLeague(division)
                     if racer then
                         currentRace:addRacer(racer)
                         env.info("Added racer " .. racer.playerName .. " to race " .. raceID, false)
-                        trigger.action.outTextForGroup(racer.groupID, "You have been added to entrant list for the upcoming " .. racingClassNames[division] .. " race.", 5, false)
+                        trigger.action.outTextForGroup(racer.groupID, "You have been added to entrant list for the upcoming " .. racingClassNames[division] .. " race.\nYou must be on the ground within the starting zone at race start.\nGate Height limit AGL: " .. aglLimits[division] .. "m/".. math.floor(3.28084*aglLimits[division]) .. "ft", 20, false)
                     end
                 end
                 racerQueue = {}
@@ -300,7 +319,7 @@ function wwxRacing.newLeague(division)
                 if WWEvents and raceTable.winner and raceTable.winner ~= "" and raceTable.winningTime > 0 then
                     WWEvents.raceCompleted(raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString)
                 end
-                wwxrl.messageToRacers("To join another race, please re-slot into a racing aircraft.")
+                wwxrl.messageToRacers("To join another race, please return to the race start area.")
                 return
             end
         end
@@ -441,6 +460,12 @@ function wwxRacing.newLeague(division)
             env.info("Racer Start Zone Search", false)
             if (foundItem:getDesc().category == 0 or foundItem:getDesc().category == 1) and foundItem:isExist() and foundItem:isActive() and racingTypes[division][foundItem:getTypeName()] then
                 local foundPlayerName = foundItem:getPlayerName()
+                local playerPoint = foundItem:getPoint()
+                if playerPoint then
+                    if Utils.getAGL(playerPoint) > 5 then
+                        return
+                    end
+                end
                 local playerGroup = foundItem:getGroup()
                 if playerGroup then
                     local playerGroupID = playerGroup:getID()
@@ -467,3 +492,5 @@ wwxRacing.saveLoop()
 wwxRacing.newLeague(racingClasses["Helicopter"])
 wwxRacing.newLeague(racingClasses["Props"])
 wwxRacing.newLeague(racingClasses["VTOL"])
+wwxRacing.newLeague(racingClasses["Fast Jets"])
+wwxRacing.newLeague(racingClasses["Trainers/Korea"])
