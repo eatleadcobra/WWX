@@ -216,7 +216,7 @@ function WWEvents.raceCompleted(raceId, winner, winningTime, message)
     local Event = {
         id = world.event.S_EVENT_WWX_RACE_COMPLETED,
         time = timer.getTime(),
-    raceId = raceId,
+        raceId = raceId,
         winner = winner, -- string
         winningTime = winningTime, -- number of seconds
         text = message, -- string
