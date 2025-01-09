@@ -145,9 +145,10 @@ function wwxRacing.newLeague(division)
         --self.racers[#self.racers+1] = racer
         local matchFound = false
         for i = 1, #self.racers do
-            if self.racers.groupID == racer.groupID then
+            if self.racers.playerName == racer.playerName then
                 matchFound = true
                 self.racers[i] = racer
+                break
             end
         end
         if not matchFound then
