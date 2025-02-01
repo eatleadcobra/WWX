@@ -52,7 +52,7 @@ local classAGLPenaltyEnabled = {
     [5] = false,
 }
 local aglLimits = {
-    [1] = 35,
+    [1] = 45,
     [2] = 45,
     [3] = 45,
     [4] = 100,
