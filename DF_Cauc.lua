@@ -2638,7 +2638,7 @@ function dfc.trackCargo(param)
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
                         end
-                        if (param.frontPickup == nil or param.frontPickup == false) and (closestDepotToCargo.distance <= DFS.status.playerDeliverRadius or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= 2000)) then
+                        if (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= 2000)) then
                             SBS.endWatch(cargo)
                             env.info("Group: " .. param.groupId .. "-" .. param.groupName .. " delivered " .. param.cargo .. " to " .. closestDepotToCargo.depotName, false)
                             local deliverType = "FRONT"
