@@ -2626,7 +2626,7 @@ function dfc.trackCargo(param)
                 if cargoPoint then env.info("cargo location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z, false) end
                 env.info("cargo " .. param.cargo .. " velocity x: " .. velocity.x .. " y: " .. velocity.y .. " z: " .. velocity.z, false)
                 env.info("chinook cargo: " .. tostring(chinookCargo), false)
-                if (chinookCargo == false and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 1)) or ( chinookCargo == true and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) then
+                if (chinookCargo == false and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 1)) or ( chinookCargo == true and velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01 and (altitude < 1)) then
                     env.info("cargo not moving", false)
                     env.info(param.cargo .. ": closest depot distance: " .. closestDepotToCargo.distance, false)
                     env.info(param.cargo .. ": closest depot is rear: " .. tostring(closestDepotToCargo.isRear), false)
@@ -2646,7 +2646,7 @@ function dfc.trackCargo(param)
                             dfc.supplyEvent(param.groupName, param.supplyType, deliverType)
                             trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
                             dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
-                            if cargo and cargo:isExist() then cargo:destroy() end
+                            if cargo and cargo:isExist() and not chinookCargo then cargo:destroy() end
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["AMMO"] then
                             SBS.endWatch(cargo)
@@ -2654,7 +2654,7 @@ function dfc.trackCargo(param)
                             dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
                             trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
-                            if cargo and cargo:isExist() then cargo:destroy() end
+                            if cargo and cargo:isExist() and not chinookCargo then cargo:destroy() end
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["GUN"] then
                             SBS.endWatch(cargo)
@@ -2662,7 +2662,7 @@ function dfc.trackCargo(param)
                             dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
                             trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
-                            if cargo and cargo:isExist() then cargo:destroy() end
+                            if cargo and cargo:isExist() and not chinookCargo then cargo:destroy() end
                             return
                         elseif timer:getTime() - param.spawnTime > 29 and closestFirebaseToCargo == -1 and dfc.findPickupZone(cargo:getPoint(), param.coalition) == nil and param.supplyType == DFS.supplyType["GUN"] then
                             SBS.endWatch(cargo)
