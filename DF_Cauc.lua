@@ -695,8 +695,6 @@ function dfc.getMission()
     if missionName ~= nil then
         blueState = lfs.writedir() .. [[Logs/]] .. 'blueState'..missionName..'.txt'
         redState = lfs.writedir() .. [[Logs/]] ..'redState'..missionName..'.txt'
-        redFront = lfs.writedir() .. [[Logs/]] .. 'redFront'..missionName..'.txt'
-        blueFront = lfs.writedir() .. [[Logs/]] .. 'blueFront'..missionName..'.txt'
         redFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'redFbs'..missionName..'.lua'
         blueFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'blueFbs'..missionName..'.lua'
     end
@@ -748,32 +746,7 @@ function dfc.getData()
             f:close()
         end
     else
-        dfc.initHealth()
         dfc.initSupply()
-    end
-    if dfc.fileExists(redFront) and dfc.fileExists(blueFront) then
-        local f = io.open(redFront, 'w')
-        if f ~= nil then
-            local lines = {}
-            for line in io.lines(f) do
-                lines[#lines+1] = line
-            end
-            f:close()
-            for i = 1, DFS.status.frontSpawnTotal do
-                DFS.status[1].front[i] = tonumber(lines[i])
-            end
-        end
-        f = io.open(blueFront, 'w')
-        if f ~= nil then
-            local lines = {}
-            for line in io.lines(f) do
-                lines[#lines+1] = line
-            end
-            f:close()
-            for i = 1, DFS.status.frontSpawnTotal do
-                DFS.status[2].front[i] = tonumber(lines[i])
-            end
-        end
     end
 end
 function dfc.saveLoop()
@@ -829,20 +802,6 @@ function dfc.saveData()
             DFS.status[2].supply.pirate[DFS.supplyType.EQUIPMENT]..'\n'
     )
     f:close()
-    f = io.open(redFront, 'w')
-    for i = 1, #DFS.status[1].spawns.front do
-        if DFS.status[1].spawns.front[i].unitLevel ~= nil then
-            f:write(DFS.status[1].spawns.front[i].unitLevel..'\n')
-        end
-    end
-    f:close()
-    f = io.open(blueFront, 'w')
-    for i = 1, #DFS.status[2].spawns.front do
-        if DFS.status[2].spawns.front[i].unitLevel ~= nil then
-            f:write(DFS.status[2].spawns.front[i].unitLevel..'\n')
-        end
-    end
-    f:close()
     for c = 1,2 do
         local fbFile = redFbs
         if c == 2 then fbFile = blueFbs end
@@ -862,11 +821,8 @@ function dfc.saveData()
     end
 end
 function dfc.blankData()
-    dfc.initHealth()
     dfc.initSupply()
-    DFS.status[1].spawns.front = {}
-    DFS.status[2].spawns.front = {}
-    dfc.initSpawns()
+    --dfc.initSpawns()
     dfc.saveData()
     dfc.emptyFirebases()
 end
@@ -880,10 +836,6 @@ function dfc.endMission(coalitionId)
     dfc.blankData()
 end
 --INIT FUNCS
-function dfc.initHealth()
-    DFS.status[1].health = DFS.status.maxHealth
-    DFS.status[2].health = DFS.status.maxHealth
-end
 function dfc.emptyFirebases()
     if dfc.fileExists(redFbs) and dfc.fileExists(blueFbs) then
         for c = 1,2 do
@@ -920,74 +872,6 @@ function dfc.initSupply()
     DFS.status[1].supply.pirate[DFS.supplyType.AMMO] = 0
     DFS.status[1].supply.pirate[DFS.supplyType.EQUIPMENT] = 0
 end
-function dfc.initSpawns()
-    if SUBS then
-        DFSubs.initSub({coalitionId = 1, subType = "santafe"})
-        DFSubs.initSub({coalitionId = 2, subType = "santafe"})
-    end
-    local blueRigAA = trigger.misc.getZone("blue-rig-aaa")
-    local redRigAA = trigger.misc.getZone("red-rig-aaa")
-    if blueRigAA and redRigAA then
-        DF_UTILS.spawnGroupExact("blue-rig-aaa", blueRigAA.point, "clone")
-        DF_UTILS.spawnGroupExact("red-rig-aaa", redRigAA.point, "clone")
-    end
-    for i = 1, DFS.status.frontSpawnTotal do
-        local randomSpawnLevel = 2
-        local redSpawnLevel = randomSpawnLevel
-        local blueSpawnLevel = randomSpawnLevel
-        if DFS.status[1].front[i] ~= nil then
-            redSpawnLevel = DFS.status[1].front[i]
-        end
-        if DFS.status[2].front[i] ~= nil then
-            blueSpawnLevel = DFS.status[2].front[i]
-        end
-        dfc.respawnFrontGroup({coalitionId = 1, spawnZone = i, unitLevel = redSpawnLevel})
-        dfc.respawnFrontGroup({coalitionId = 2, spawnZone = i, unitLevel = blueSpawnLevel})
-    end
-    if dfc.fileExists(redFbs) and dfc.fileExists(blueFbs) then
-        for c = 1,2 do
-            local fbFile = redFbs
-            if c == 2 then fbFile = blueFbs end
-            local fbData = dofile(fbFile)
-            if fbData then
-                for i = 1, #fbData do
-                    local firebaseData = fbData[i]
-                    dfc.respawnArtilleryGroup({coalitionId = c, spawnPoint = firebaseData.location, type = firebaseData.fbType, guns = firebaseData.guns, ammo = firebaseData.ammo})
-                end
-            else
-                for i = 1, DFS.status.artSpawnTotal do
-                    dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..i).point, type = "SPG", spawnZone = i})
-                    dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..i).point, type = "SPG", spawnZone = i})
-                end
-            end
-        end
-    else
-        local redArtZoneNum = math.random(1,4)
-        dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..redArtZoneNum).point, type = "SPG", spawnZone = redArtZoneNum})
-        local blueArtZoneNum = math.random(1,4)
-        dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..blueArtZoneNum).point, type = "SPG", spawnZone = blueArtZoneNum})
-    end
-    table.insert(DFS.status[1].spawns.battleships, {groupName = DFS.groupNames[1].battleship})
-    table.insert(DFS.status[2].spawns.battleships, {groupName = DFS.groupNames[2].battleship})
-    for i = 1, DFS.status.fdSpawnTotal do
-        dfc.respawnFrontDepot({coalitionId = 1, spawnZone = i})
-        dfc.respawnFrontDepot({coalitionId = 2, spawnZone = i})
-    end
-    for i = 1, DFS.status.rdSpawnTotal do
-        for j = 1, DFS.status.rdSpawnSubDepots do
-            dfc.respawnRearDepot({coalitionId = 1, spawnZone = i, subDepot = j})
-            dfc.respawnRearDepot({coalitionId = 2, spawnZone = i, subDepot = j})
-        end
-    end
-    for i = 1, DFS.status.aaSpawnTotal do
-        dfc.respawnAA({coalitionId = 1, spawnZone = i})
-        dfc.respawnAA({coalitionId = 2, spawnZone = i})
-    end
-    if CAP then
-        dfc.spawnFighter(1)
-        dfc.spawnFighter(2)
-    end
-end
 function dfc.initConvoys()
     for a = 1, 2 do
         DFS.status[a].anyConvoyTime = timer.getTime() - DFS.status.newConvoySeparationTime
@@ -997,21 +881,6 @@ function dfc.initConvoys()
             DFS.status[a].lastConvoyTimes[i][DFS.supplyType.EQUIPMENT] = timer.getTime() - DFS.status.convoyBaseTime
         end
     end
-end
--- RESPAWN FUNCS
-function dfc.respawnFrontGroup(param)
-    env.info("respawning frount group")
-    --oneInZone(DFS.groupNames[param.coalitionId].frontline[param.unitLevel], DFS.spawnNames[param.coalitionId].frontline.. param.spawnZone).name
-    local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].frontline.. param.spawnZone).point
-    table.insert(DFS.status[param.coalitionId].spawns.front, {groupName = DF_UTILS.spawnGroup(DFS.groupNames[param.coalitionId].frontline[param.unitLevel], spawnPoint, 'clone'), spawnZone = param.spawnZone, unitLevel = param.unitLevel} )
-end
-function dfc.replaceFrontGroup(param)
-    local groupname = DFS.status[param.coalitionId].spawns.front[param.index].groupName
-    local removeGroup = Group.getByName(groupname)
-    if removeGroup ~= nil then removeGroup:destroy() end
-    table.remove(DFS.status[param.coalitionId].spawns.front, param.index)
-    local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].frontline.. param.spawnZone).point
-    table.insert(DFS.status[param.coalitionId].spawns.front, {groupName = DF_UTILS.spawnGroup(DFS.groupNames[param.coalitionId].frontline[param.unitLevel], spawnPoint, 'clone'), spawnZone = param.spawnZone, unitLevel = param.unitLevel} )
 end
 function dfc.respawnArtilleryGroup(param)
     local groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].artillery, param.spawnPoint, 'clone')
@@ -1036,55 +905,8 @@ function dfc.respawnAA(param)
     local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].aa..param.spawnZone).point
     table.insert(DFS.status[param.coalitionId].spawns.aa, {groupName = DF_UTILS.spawnGroup(DFS.groupNames[param.coalitionId].aa, spawnPoint, 'clone'), spawnZone = param.spawnZone})
 end
-function dfc.calcUnitLevel(coalitionId)
-    local frontEquipPct = (DFS.status[coalitionId].supply.front[DFS.supplyType.EQUIPMENT] / DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]) * 100
-    local fuelPct = (DFS.status[coalitionId].supply.front[DFS.supplyType.FUEL] / DFS.status.maxSuppliesFront[DFS.supplyType.FUEL] ) * 100
-    if frontEquipPct > 74 and fuelPct > 49 then
-        return 4
-    elseif frontEquipPct > 49 then
-        return 3
-    elseif frontEquipPct > 29 then
-        return 2
-    else
-        return 1
-    end
-end
 -- HEALTH CHECK FUNCS
-function dfc.checkFrontHealth()
-    env.info("checking front health", false)
-    for a = 1, 2 do
-        env.info(a .. " team spawns: " .. #DFS.status[a].spawns.front, false)
-        for i = 1, #DFS.status[a].spawns.front do
-            local group = DFS.status[a].spawns.front[i]
-            if group == nil then break end
-            local groupName = group.groupName
-            local groupDead = false
-            local checkingGroup = Group.getByName(groupName)
-            if checkingGroup == nil then
-                groupDead = true
-            elseif (checkingGroup:getSize()/checkingGroup:getInitialSize() < 0.05) or (DFS.status[a].spawns.front[i].unitLevel == 4 and DFS.status[a].supply.front[DFS.supplyType.FUEL] < 1) then
-                groupDead = true
-            end
-            if groupDead then
-                env.info("Group dead: coalition:"..a.." spawn: " ..i, false)
-                if checkingGroup then checkingGroup:destroy() end
-                local spawnZone = DFS.status[a].spawns.front[i].spawnZone
-                table.remove(DFS.status[a].spawns.front, i)
-                local unitLevel = dfc.calcUnitLevel(a)
-                timer.scheduleFunction(dfc.respawnFrontGroup, {coalitionId = a, spawnZone = spawnZone, unitLevel = unitLevel}, timer.getTime() + DFS.status.frontSpawnDelay)
-                dfc.decreaseFrontSupply({coalitionId = a, amount = unitLevel, type = DFS.supplyType.EQUIPMENT})
-                DFS.status[a].health = DFS.status[a].health - 1
-                DFS.updateHealthbar(a)
-            elseif checkingGroup and (checkingGroup:getSize() < checkingGroup:getInitialSize()) then
-                env.info("Group under attack: coalition:"..a.." spawn: " ..i .. "size: " .. checkingGroup:getSize(), false)
-                local groupPosition = checkingGroup:getUnit(1):getPoint()
-                --local newMarkId = DrawingTools.newMarkId()
-                --trigger.action.markToCoalition(newMarkId, 'Group under attack!', groupPosition, a)
-                --timer.scheduleFunction(trigger.action.removeMark, newMarkId, timer.getTime() + 30)
-            end
-        end
-    end
-end
+
 function dfc.checkArtHealth()
     for c = 1, 2 do
         local gunBase = nil
@@ -1143,8 +965,6 @@ function dfc.checkBattleshipHealth()
                     Group.getByName(DFS.status[a].spawns.battleships[i].groupName):destroy()
                 end
                 table.remove(DFS.status[a].spawns.battleships, i)
-                DFS.status[a].health = DFS.status[a].health - 7
-                DFS.updateHealthbar(a)
                 timer.scheduleFunction(dfc.respawnBattleshipGroup, {coalitionId = a}, timer.getTime() + DFS.status.battleshipSpawnDelay)
                 dfc.decreaseFrontSupply({coalitionId = a, amount = 6, type = DFS.supplyType.EQUIPMENT})
             end
@@ -1169,9 +989,6 @@ function dfc.checkAAHealth()
                         aaGroup:destroy()
                     end
                     local spawnZone = DFS.status[a].spawns.aa[i].spawnZone
-                    table.remove(DFS.status[a].spawns.aa, i)
-                    DFS.status[a].health = DFS.status[a].health - 3
-                    DFS.updateHealthbar(a)
                     timer.scheduleFunction(dfc.respawnAA, {coalitionId = a, spawnZone = spawnZone}, timer.getTime() + DFS.status.aaSpawnDelay)
                     dfc.decreaseFrontSupply({coalitionId = a, amount = 3, type = DFS.supplyType.EQUIPMENT})
                 end
@@ -1201,8 +1018,6 @@ function dfc.checkFDHealth()
                 local spawnZone = DFS.status[a].spawns.fd[i].spawnZone
                 table.remove(DFS.status[a].spawns.fd, i)
                 timer.scheduleFunction(dfc.respawnFrontDepot, {coalitionId = a, spawnZone = spawnZone}, timer.getTime() + DFS.status.fdSpawnDelay)
-                DFS.status[a].health = DFS.status[a].health - 5
-                DFS.updateHealthbar(a)
                 local decreaseFuelAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.FUEL] / #DFS.status[a].spawns.fd)
                 local decreaseEquipmentAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] / #DFS.status[a].spawns.fd)
                 local decreaseAmmoAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.AMMO] / #DFS.status[a].spawns.fd)
@@ -1233,8 +1048,6 @@ function dfc.checkRDHealth()
                 local subDepot = DFS.status[a].spawns.rd[i].subDepot
                 table.remove(DFS.status[a].spawns.rd, i)
                 timer.scheduleFunction(dfc.respawnRearDepot, {coalitionId = a, spawnZone = spawnZone, subDepot = subDepot}, timer.getTime() + DFS.status.rdSpawnDelay)
-                DFS.status[a].health = DFS.status[a].health - 5
-                DFS.updateHealthbar(a)
                 local decreaseFuelAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.FUEL]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
                 local decreaseEquipmentAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.EQUIPMENT]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
                 local decreaseAmmoAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.AMMO]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
@@ -1243,64 +1056,6 @@ function dfc.checkRDHealth()
                 dfc.decreaseRearSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
             end
         end
-    end
-end
-function dfc.supplyConsumptionLoop()
-    local elapsedTime = timer:getAbsTime() - timer:getTime0()
-    if elapsedTime > 2399 then
-        for a = 1, 2 do
-            for i = 1, #DFS.status[a].spawns.front do
-                if DFS.status[a].spawns.front[i].unitLevel == 4 then
-                    dfc.decreaseFrontSupply({coalitionId = a, amount = 2, type = DFS.supplyType.FUEL})
-                elseif DFS.status[a].spawns.front[i].unitLevel > 1 then
-                    dfc.decreaseFrontSupply({coalitionId = a, amount = 1, type = DFS.supplyType.FUEL})
-                end
-            end
-        end
-    end
-    timer.scheduleFunction(dfc.supplyConsumptionLoop, nil, timer.getTime() + 2400)
-end
-function dfc.upgradeLoop()
-    for a = 1, 2 do
-        local upgradeIndex = 1
-        for i = 2, #DFS.status[a].spawns.front do
-            if DFS.status[a].spawns.front[i].unitLevel < DFS.status[a].spawns.front[i-1].unitLevel then
-                upgradeIndex = i
-            end
-        end
-        if DFS.status[a].spawns.front[upgradeIndex].unitLevel < 4 then
-            local newLevel = dfc.calcUnitLevel(a)
-            if newLevel > DFS.status[a].spawns.front[upgradeIndex].unitLevel then
-                dfc.replaceFrontGroup({coalitionId = a, spawnZone = DFS.status[a].spawns.front[upgradeIndex].spawnZone, unitLevel = newLevel, index = upgradeIndex})
-                dfc.decreaseFrontSupply({coalitionId = a, amount = newLevel, type = DFS.supplyType.EQUIPMENT})
-            end
-        end
-    end
-    timer.scheduleFunction(dfc.upgradeLoop, nil, timer.getTime() + DFS.status.upgradeInterval)
-end
-function dfc.downgradeLoop()
-    for a = 1, 2 do
-        local upgradeIndex = 1
-        for i = 2, #DFS.status[a].spawns.front do
-            if DFS.status[a].spawns.front[i].unitLevel > DFS.status[a].spawns.front[i-1].unitLevel then
-                upgradeIndex = i
-            end
-        end
-        if DFS.status[a].spawns.front[upgradeIndex].unitLevel < 4 and DFS.status[a].spawns.front[upgradeIndex].unitLevel < DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] then
-            local newLevel = dfc.calcUnitLevel(a)
-            if newLevel < DFS.status[a].spawns.front[upgradeIndex].unitLevel then
-                dfc.replaceFrontGroup({coalitionId = a, spawnZone = DFS.status[a].spawns.front[upgradeIndex].spawnZone, unitLevel = newLevel, index = upgradeIndex})
-                dfc.decreaseFrontSupply({coalitionId = a, amount = newLevel, type = DFS.supplyType.EQUIPMENT})
-            end
-        end
-    end
-    timer.scheduleFunction(dfc.upgradeLoop, nil, timer.getTime() + DFS.status.upgradeInterval)
-end
-function dfc.checkTeamHealth()
-    if DFS.status[1].health < 1 then
-        dfc.endMission(2)
-    elseif DFS.status[2].health < 1 then
-        dfc.endMission(1)
     end
 end
 function dfc.isItSunset()
@@ -1986,47 +1741,11 @@ function DFS.smokeGroup(groupName, smokeColor)
         end
     end
 end
-function dfc.casLoop()
-    dfc.createCasMissions(1)
-    dfc.createCasMissions(2)
-    timer.scheduleFunction(dfc.casLoop, nil, timer.getTime() + 330)
-end
-function dfc.createCasMissions(coalitionId)
-    local smoke = 4
-    local enemyCoalition = 2
-    if coalitionId == 2 then
-        enemyCoalition = 1
-        smoke = 1
-    end
-    dfc.checkFrontHealth()
-    local numberOfGroups = #DFS.status[enemyCoalition].spawns.front
-    local midPoint = math.floor(numberOfGroups/2)
-    local missionGroup1 = Group.getByName(DFS.status[enemyCoalition].spawns.front[math.random(1,midPoint)].groupName)
-    local missionGroup2 = Group.getByName(DFS.status[enemyCoalition].spawns.front[math.random(midPoint+1, numberOfGroups)].groupName)
-    if missionGroup1 and missionGroup2 then
-        local missionUnit1 = missionGroup1:getUnit(1)
-        local missionUnit2 = missionGroup2:getUnit(1)
-        if missionUnit1 and missionUnit2 then
-            local missionPos1 = missionUnit1:getPoint()
-            local missionPos2 = missionUnit2:getPoint()
-            if missionPos1 and missionPos2 then
-                if missionPos1 and missionPos2 then
-                    trigger.action.smoke(Utils.VectorAdd(missionPos1, Utils.ScalarMult(atmosphere.getWind(missionPos1), 5 + math.random(5))), smoke)
-                    trigger.action.smoke(Utils.VectorAdd(missionPos2, Utils.ScalarMult(atmosphere.getWind(missionPos2), 5 + math.random(5))), smoke)
-                    env.info("Created CAS smoke markers for:" .. coalitionId, false)
-                end
-            end
-        end
-    end
-end
-
-
 function dfc.mainLoop()
     --check front health
     if missionOver then
         return
     else
-        dfc.checkFrontHealth()
         dfc.checkAAHealth()
         dfc.checkArtHealth()
         dfc.checkBattleshipHealth()
@@ -2035,7 +1754,6 @@ function dfc.mainLoop()
         --dfc.sendConvoyLoop()
         dfc.newConvoyLoop()
         dfc.checkNoFlyZones()
-        dfc.checkTeamHealth()
         timer.scheduleFunction(dfc.mainLoop, nil, timer.getTime() + 10)
     end
 end
@@ -2072,52 +1790,6 @@ function dfc.checkNoFlyZone(coalitionId)
             if unitPoint ~= nil then
                 trigger.action.explosion(unitPoint, 50)
             end
-        end
-    end
-end
-function dfc.drawHealthBars()
-    if DrawingTools then
-        for c = 1,2 do
-            local healthbarZone = trigger.misc.getZone(DFS.spawnNames[c].healthbar)
-            if healthbarZone then
-                local healthbarOrigin = healthbarZone.point
-                if healthbarOrigin then
-                    local barTopLeft = healthbarOrigin
-                    local barBottomRight = {x = healthbarOrigin.x - DFS.supplyDrawing.counterWidth, y = healthbarOrigin.y, z = healthbarOrigin.z + DFS.supplyDrawing.counterHeight}
-                    trigger.action.rectToAll(-1, DrawingTools.newMarkId(), barTopLeft, barBottomRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
-                    for j = 1, 3 do
-                        local zOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
-                        local lineStart = {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z + zOffset}
-                        local dashLength = DFS.supplyDrawing.counterWidth/3
-                        if (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight == 0.5 then
-                            dashLength = DFS.supplyDrawing.counterWidth/2
-                        end
-                        local lineEnd = {x = lineStart.x - dashLength, y = lineStart.y, z = lineStart.z}
-                        trigger.action.lineToAll(-1, DrawingTools.newMarkId(), lineStart, lineEnd, {1,1,1,1}, 1, true, nil)
-                    end
-                    local boxSize = DFS.supplyDrawing.counterWidth
-                    local healthIconOrigin = {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z - boxSize}
-                    DrawingTools.drawHealth(healthIconOrigin, -1, boxSize, true)
-                    DFS.updateHealthbar(c)
-                end
-            end
-        end
-    end
-end
-function DFS.updateHealthbar(coalitionId)
-    local healthbarZone = trigger.misc.getZone(DFS.spawnNames[coalitionId].healthbar)
-    if healthbarZone then
-        local healthbarOrigin = healthbarZone.point
-        if DFS.supplyDrawing.fillIds.healthbars[coalitionId] == nil or DFS.supplyDrawing.fillIds.healthbars[coalitionId] < 1 then
-            local healthIndicatorZOffset = (DFS.status[coalitionId].health/DFS.status.maxHealth)*DFS.supplyDrawing.counterHeight
-            local healthIndicatorLineStart = {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z + healthIndicatorZOffset}
-            local healthIndicatorLineEnd = {x = healthbarOrigin.x - DFS.supplyDrawing.counterWidth, y = healthbarOrigin.y, z = healthbarOrigin.z + healthIndicatorZOffset}
-            local healthFillId = DrawingTools.newMarkId()
-            trigger.action.lineToAll(-1, healthFillId, healthIndicatorLineStart, healthIndicatorLineEnd, DFS.supplyDrawing.colors.fill[coalitionId], 1, true, nil)
-            DFS.supplyDrawing.fillIds.healthbars[coalitionId] = healthFillId
-        else
-            trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.healthbars[coalitionId], {x = healthbarOrigin.x, y = healthbarOrigin.y, z = healthbarOrigin.z + (DFS.status[coalitionId].health/DFS.status.maxHealth)*DFS.supplyDrawing.counterHeight})
-            trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.healthbars[coalitionId], {x = healthbarOrigin.x - DFS.supplyDrawing.counterWidth, y = healthbarOrigin.y, z = healthbarOrigin.z + (DFS.status[coalitionId].health/DFS.status.maxHealth)*DFS.supplyDrawing.counterHeight})
         end
     end
 end
@@ -2951,19 +2623,12 @@ dfc.makeAirfieldsNonCapturable()
 dfc.getMission()
 dfc.getData()
 dfc.createSupplyDrawings()
-dfc.initSpawns()
 dfc.initConvoys()
 dfc.startShipping()
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)
 end
 dfc.mainLoop()
-dfc.supplyConsumptionLoop()
-dfc.upgradeLoop()
---dfc.downgradeLoop()
 dfc.saveLoop()
 dfc.drawSupplyMarks()
-dfc.drawHealthBars()
---dfc.supplyDrawingRefreshLoop()
 dfc.isItSunset()
---dfc.casLoop()
