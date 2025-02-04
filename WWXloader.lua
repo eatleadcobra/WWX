@@ -17,6 +17,9 @@ env.info("Loading Components", false)
 --firebases
 assert(loadfile(pathToWWX.."Components\\Firebases\\FirebaseGroups.lua"))()
 assert(loadfile(pathToWWX.."Components\\Firebases\\Firebase.lua"))()
+--companies
+assert(loadfile(pathToWWX.."Components\\Companies\\Company.lua"))()
+assert(loadfile(pathToWWX.."Components\\Companies\\Platoon.lua"))()
 --subs
 assert(loadfile(pathToWWX.."Components\\Subs\\SubControl.lua"))()
 assert(loadfile(pathToWWX.."Components\\Subs\\SubTools.lua"))()
