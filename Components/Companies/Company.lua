@@ -11,7 +11,7 @@ Company = {
     coalitionId = 0,
     status = nil,
     statusChangedTime = 0,
-    position = {},
+    point = {},
     platoons = {},
     waypoints = {},
     groupName = ""
@@ -20,14 +20,33 @@ function Company:new(coalitionId, platoons)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
+    for i = 1, #platoons do
+        table.insert(self.platoons, Company.deepcopy(Platoons[PlatoonTypes[platoons[i]]]) )
+    end
+    return newCpy
 end
 function Company:spawn(waypoints)
     --create waypoint table from waypoints list
+    local groupWaypoints = SpawnFuncs.createWPListFromPoints(waypoints)
     --create group table using waypoints and platoons
+    local unitsList = Company:convertPlatoonsToUnitList()
+    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, unitsList, groupWaypoints)
+    self.groupName = cpyGroupTable["name"]
     --spawn group
-    --set position and groupname
+    coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
 end
-
+function Company.convertPlatoonsToUnitList(self)
+    local unitList = {}
+    for i = 1, #Company.platoons do
+        for j = 1, #Company.platoons[i] do
+            local unitType = Company.platoons[i][j]
+            if unitType then
+                table.insert(unitList, unitType)
+            end
+        end
+    end
+    return unitList
+end
 function Company.deepcopy(orig)
     local orig_type = type(orig)
     local copy
