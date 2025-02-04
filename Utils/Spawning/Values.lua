@@ -18,10 +18,10 @@ SpawnValues.units = {
     ["Truck"] = {
         type = "Bedford_MWD"
     },
-    ["APC"] = {
+    ["IFV"] = {
         type = "M-113"
     },
-    ["IFV"] = {
+    ["APC"] = {
         type = "M2A1_halftrack"
     },
     ["Inf"] = {
