@@ -53,7 +53,6 @@ function ft.trackObjs()
                 end
                 if deadCount > destructionCounters[cltn] then
                     DFS.status[cltn].health = DFS.status[cltn].health - (2*(deadCount - destructionCounters[cltn]))
-                    DFS.updateHealthbar(cltn)
                     destructionCounters[cltn] = deadCount
                 end
                 local indrCoef = deadCount/objectiveGroupsCount
