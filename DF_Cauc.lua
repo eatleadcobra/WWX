@@ -2634,7 +2634,8 @@ dfc.drawSupplyMarks()
 dfc.isItSunset()
 local startPoint = trigger.misc.getZone("spawn").point
 local destination = trigger.misc.getZone("destination").point
-local testCpy = Company:new(1, {1,2,3})
+local testCpy = Company.new(1, {1,2,3})
 testCpy:setWaypoints({startPoint, destination})
-testCpy:spawn(false)
-timer.scheduleFunction(testCpy.deploy, testCpy, timer:getTime() + 505)
+testCpy:spawn()
+timer.scheduleFunction(testCpy.deploy, testCpy, timer:getTime() + 90)
+timer.scheduleFunction(testCpy.undeploy, testCpy, timer:getTime() + 120)
