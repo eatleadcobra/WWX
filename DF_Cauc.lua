@@ -2632,3 +2632,7 @@ dfc.mainLoop()
 dfc.saveLoop()
 dfc.drawSupplyMarks()
 dfc.isItSunset()
+local startPoint = trigger.misc.getZone("spawn").point
+local destination = trigger.misc.getZone("destination").point
+local testCpy = Company:new(1, {3})
+testCpy:spawn({startPoint, destination})
