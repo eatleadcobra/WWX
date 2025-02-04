@@ -12,69 +12,74 @@ Company = {
     status = nil,
     statusChangedTime = 0,
     point = {},
-    platoons = {},
+    units = {},
     waypoints = {},
     groupName = "",
-    deployedGroupName = "",
+    deployedGroupNames = {},
     arrived = false
 }
-function Company:new(coalitionId, platoons)
+function Company.new(coalitionId, platoons)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
     for i = 1, #platoons do
-        table.insert(self.platoons, Company.deepcopy(Platoons[PlatoonTypes[platoons[i]]]) )
+        local pltUnits = Company.deepcopy(Platoons[PlatoonTypes[platoons[i]]])
+        for j = 1, #pltUnits do
+            table.insert(newCpy.units, pltUnits[j])
+        end
     end
     return newCpy
 end
 function Company.setWaypoints(self, waypoints)
     self.waypoints = waypoints
 end
-function Company.spawn(self, deployed)
+function Company.spawn(self)
     local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
     local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 200))
     --create waypoint table from waypoints list
     local points = {[1] = self.waypoints[1], [2] = formPoint, [3] = self.waypoints[2]}
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points)
     --create group table using waypoints and platoons
-    local unitsList = Company:convertPlatoonsToUnitList(deployed)
-    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, unitsList, groupWaypoints)
+    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints)
     cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
     self.groupName = cpyGroupTable["name"]
     --spawn group
     coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
 end
-function Company.convertPlatoonsToUnitList(self, deployed)
-    local unitList = {}
-    for i = 1, #self.platoons do
-        for j = 1, #self.platoons[i] do
-            local unitType = self.platoons[i][j]
-            if unitType then
-                if unitType == "IFV" or unitType == "APC" then
-                    if deployed then
-                        table.insert(unitList, unitType)
-                        table.insert(unitList, "Inf")
-                        table.insert(unitList, "MG")
-                        table.insert(unitList, "RPG")
-                        table.insert(unitList, "Inf")
-                    else
-                        table.insert(unitList, unitType)
-                    end
-                else
-                    table.insert(unitList, unitType)
+
+function Company.deploy(self)
+    self:undeploy()
+    local cpyGroup = Group.getByName(self.groupName)
+    for i = 1, cpyGroup:getSize() do
+        local unit = cpyGroup:getUnit(i)
+        if unit then
+            if PlatoonUnitTypeNames[unit:getTypeName()] == "APC" or PlatoonUnitTypeNames[unit:getTypeName()] == "IFV" then
+                local pltUnits = {}
+                for p = 1, #Platoons["DeployedInf"] do
+                    table.insert(pltUnits, Platoons["DeployedInf"][p])
                 end
+                local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = unit:getPoint()})
+                local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, pltUnits, groupWaypoints)
+                for j = 1, #deployedGroupTable["units"] do
+                    local deployPoint = Utils.VectorAdd(unit:getPoint(), Utils.ScalarMult(Utils.RotateVector(unit:getPosition().x, 0.52 + (0.14 * (j-1))), 8+(((j-1)/2))))
+                    deployedGroupTable["units"][j].x = deployPoint.x
+                    deployedGroupTable["units"][j].y = deployPoint.z
+                end
+                table.insert(self.deployedGroupNames, deployedGroupTable["name"])
+                --spawn group
+                coalition.addGroup(80+(2-self.coalitionId), 2, deployedGroupTable)
             end
         end
     end
-    return unitList
-end
-function Company.deploy(self)
-    self:despawn()
-    self:spawn(true)
 end
 function Company.undeploy(self)
-    self:despawn()
-    self:spawn(false)
+    for i = 1, #self.deployedGroupNames do
+        local deployedGroup = Group.getByName(self.deployedGroupNames[i])
+        if deployedGroup then
+            deployedGroup:destroy()
+            self.deployedGroupName = nil
+        end
+    end
 end
 function Company.despawn(self)
     local cpyGroup = Group.getByName(self.groupName)
