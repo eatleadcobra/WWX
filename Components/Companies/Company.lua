@@ -60,7 +60,15 @@ function Company.spawn(self)
     --spawn group
     coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
 end
-
+function Company.updateMission(self, missionTable)
+    local cpyGroup = Group.getByName(self.groupName)
+    if cpyGroup then
+        local cpyController = cpyGroup:getController()
+        if cpyController then
+            cpyController:setTask(missionTable)
+        end
+    end
+end
 function Company.deploy(self)
     self:undeploy()
     local cpyGroup = Group.getByName(self.groupName)
