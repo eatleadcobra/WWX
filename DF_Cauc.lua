@@ -469,7 +469,7 @@ DFS.status = {
     },
     frontSpawnTotal = 12,
     artSpawnTotal = 4,
-    fdSpawnTotal = 4,
+    fdSpawnTotal = 2,
     rdSpawnTotal = 1,
     rdSpawnSubDepots = 2,
     aaSpawnTotal = 8,
@@ -808,7 +808,6 @@ function dfc.saveData()
 end
 function dfc.blankData()
     dfc.initSupply()
-    --dfc.initSpawns()
     dfc.saveData()
     dfc.emptyFirebases()
 end
@@ -857,6 +856,47 @@ function dfc.initSupply()
     DFS.status[1].supply.pirate[DFS.supplyType.FUEL] = 0
     DFS.status[1].supply.pirate[DFS.supplyType.AMMO] = 0
     DFS.status[1].supply.pirate[DFS.supplyType.EQUIPMENT] = 0
+end
+function dfc.initSpawns()
+    DFSubs.initSub({coalitionId = 1, subType = "santafe"})
+    DFSubs.initSub({coalitionId = 2, subType = "santafe"})
+    local blueRigAA = trigger.misc.getZone("blue-rig-aaa")
+    local redRigAA = trigger.misc.getZone("red-rig-aaa")
+    if blueRigAA and redRigAA then
+        DF_UTILS.spawnGroupExact("blue-rig-aaa", blueRigAA.point, "clone")
+        DF_UTILS.spawnGroupExact("red-rig-aaa", redRigAA.point, "clone")
+    end
+    if dfc.fileExists(redFbs) and dfc.fileExists(blueFbs) then
+        for c = 1,2 do
+            local fbFile = redFbs
+            if c == 2 then fbFile = blueFbs end
+            local fbData = dofile(fbFile)
+            if fbData then
+                for i = 1, #fbData do
+                    local firebaseData = fbData[i]
+                    dfc.respawnArtilleryGroup({coalitionId = c, spawnPoint = firebaseData.location, type = firebaseData.fbType, guns = firebaseData.guns, ammo = firebaseData.ammo})
+                end
+            end
+        end
+    end
+    table.insert(DFS.status[1].spawns.battleships, {groupName = DFS.groupNames[1].battleship})
+    table.insert(DFS.status[2].spawns.battleships, {groupName = DFS.groupNames[2].battleship})
+    for i = 1, DFS.status.fdSpawnTotal do
+        dfc.respawnFrontDepot({coalitionId = 1, spawnZone = i})
+        dfc.respawnFrontDepot({coalitionId = 2, spawnZone = i})
+    end
+    for i = 1, DFS.status.rdSpawnTotal do
+        for j = 1, DFS.status.rdSpawnSubDepots do
+            dfc.respawnRearDepot({coalitionId = 1, spawnZone = i, subDepot = j})
+            dfc.respawnRearDepot({coalitionId = 2, spawnZone = i, subDepot = j})
+        end
+    end
+    for i = 1, DFS.status.aaSpawnTotal do
+        dfc.respawnAA({coalitionId = 1, spawnZone = i})
+        dfc.respawnAA({coalitionId = 2, spawnZone = i})
+    end
+    dfc.spawnFighter(1)
+    dfc.spawnFighter(2)
 end
 
 function dfc.initConvoys()
@@ -1335,8 +1375,6 @@ function dfc.newConvoyLoop()
             local activeFDs = {
                 [1] = 1,
                 [2] = 2,
-                [3] = 3,
-                [4] = 4,
             }
             for fd = 1, #activeFDs do
                 if not dfc.depotActive(({coalitionId = ctln, zone = activeFDs[fd]})) then
@@ -2602,6 +2640,7 @@ world.addEventHandler(dfcEvents)
 dfc.makeAirfieldsNonCapturable()
 dfc.getMission()
 dfc.getData()
+dfc.initSpawns()
 dfc.createSupplyDrawings()
 dfc.initConvoys()
 dfc.startShipping()
@@ -2610,10 +2649,3 @@ dfc.mainLoop()
 dfc.saveLoop()
 dfc.drawSupplyMarks()
 dfc.isItSunset()
-local startPoint = trigger.misc.getZone("spawn").point
-local destination = trigger.misc.getZone("destination").point
-local testCpy = Company.new(1, {1,2,3})
-testCpy:setWaypoints({startPoint, destination})
-testCpy:spawn()
-timer.scheduleFunction(testCpy.deploy, testCpy, timer:getTime() + 90)
-timer.scheduleFunction(testCpy.undeploy, testCpy, timer:getTime() + 120)
