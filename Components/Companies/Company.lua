@@ -30,6 +30,20 @@ function Company.new(coalitionId, platoons)
     end
     return newCpy
 end
+function Company.newFromTable(cpyData)
+    local newCpy = Company:deepcopy()
+    newCpy.id = cpyData.id
+    newCpy.coalitionId = cpyData.coalitionId
+    newCpy.status = cpyData.status
+    newCpy.statusChangedTime = cpyData.statusChangedTime
+    newCpy.point = cpyData.point
+    newCpy.units = cpyData.units
+    newCpy.waypoints = cpyData.waypoints
+    newCpy.groupName = cpyData.groupName
+    newCpy.deployedGroupNames = cpyData.deployedGroupNames
+    newCpy.arrived = cpyData.arrived
+    return newCpy
+end
 function Company.setWaypoints(self, waypoints)
     self.waypoints = waypoints
 end
@@ -84,6 +98,14 @@ end
 function Company.despawn(self)
     local cpyGroup = Group.getByName(self.groupName)
     if cpyGroup then
+        self:savePosition()
+        cpyGroup:destroy()
+        self.status = 0
+    end
+end
+function Company.savePosition(self)
+    local cpyGroup = Group.getByName(self.groupName)
+    if cpyGroup then
         local cpyLead = cpyGroup:getUnit(1)
         if cpyLead then
             local cpyPoint = cpyLead:getPoint()
@@ -92,8 +114,6 @@ function Company.despawn(self)
                 self.waypoints[1] = cpyPoint
             end
         end
-        cpyGroup:destroy()
-        self.status = 0
     end
 end
 function Company.deepcopy(orig)
