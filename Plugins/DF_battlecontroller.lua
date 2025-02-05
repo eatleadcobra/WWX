@@ -1,0 +1,6 @@
+--check BPs for ownership
+--set markups
+--for each coalition, find the best target (balance of distance and defensive strength)
+--determine strongest available company (already made or can be made)
+--  -- if all available companies are weaker than what can be made now, bolster most strategic BP
+-- assign companies to BPs
