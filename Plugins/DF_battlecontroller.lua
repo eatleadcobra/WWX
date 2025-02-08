@@ -1,5 +1,5 @@
 --check BPs for ownership
-local positionsCount = 6
+local positionsCountLimit = 20
 local bc = {}
 local bcmarkups = {
     lines = {
@@ -17,7 +17,7 @@ local battlePositions = {}
 local bpIds = {}
 
 function bc.getPositions()
-    for i = 1, positionsCount do
+    for i = 1, positionsCountLimit do
         local bpZone = trigger.misc.getZone("BP-"..i)
         if bpZone then
             local newBP = BattlePosition.new(bpZone.point, bpZone.radius)
