@@ -1,8 +1,8 @@
---track existing companies
---deploy mobile troops when they are not moving
---undeploy mobile troops when they are moving
---remove lost units from available
---persist and have provisions to respawn companies on mission load
+--track existing companies: not done
+--deploy mobile troops when they are not moving: not done
+--undeploy mobile troops when they are moving: not done
+--remove lost units from available: not done
+--persist and have provisions to respawn companies on mission load: DONE
 local cpyctl = {}
 function cpyctl.fileExists(file)
     local f = io.open(file, 'rb')
