@@ -20,6 +20,8 @@ assert(loadfile(pathToWWX.."Components\\Firebases\\Firebase.lua"))()
 --companies
 assert(loadfile(pathToWWX.."Components\\Companies\\Company.lua"))()
 assert(loadfile(pathToWWX.."Components\\Companies\\Platoon.lua"))()
+--battlepositions
+assert(loadfile(pathToWWX.."Components\\BattlePositions\\BattlePosition.lua"))()
 --subs
 assert(loadfile(pathToWWX.."Components\\Subs\\SubControl.lua"))()
 assert(loadfile(pathToWWX.."Components\\Subs\\SubTools.lua"))()
