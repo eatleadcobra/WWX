@@ -73,10 +73,7 @@ function cpyctl.updateMission()
     trigger.action.outText("Updating mission", 10, false)
     local cpy = Companies[CompanyIDs[2][1]]
     cpy:savePosition()
-
-    local newWaypoints = SpawnFuncs.createWPListFromPoints({[1]=cpy.point,[2]=trigger.misc.getZone("BP-6").point})
-    local newMission = SpawnFuncs.createMission(newWaypoints)
-    cpy:updateMission(newMission)
+    cpy:updateMission({[1]=cpy.point,[2]=trigger.misc.getZone("BP-6").point})
     trigger.action.outText("Updated mission", 10, false)
 end
 timer.scheduleFunction(cpyctl.updateMission, nil, timer:getTime() + 15)

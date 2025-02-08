@@ -60,12 +60,28 @@ function Company.spawn(self)
     --spawn group
     coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
 end
-function Company.updateMission(self, missionTable)
+function Company.updateMission(self, listOfPoints)
     local cpyGroup = Group.getByName(self.groupName)
     if cpyGroup then
         local cpyController = cpyGroup:getController()
         if cpyController then
-            cpyController:setTask(missionTable)
+            self.waypoints = listOfPoints
+            local pointsLength = #listOfPoints
+            local vector = Utils.VecNormalize({x = listOfPoints[pointsLength-1].x - listOfPoints[pointsLength].x, y = listOfPoints[pointsLength-1].y - listOfPoints[pointsLength].y, z = listOfPoints[pointsLength-1].z - listOfPoints[pointsLength].z})
+            local formPoint = Utils.VectorAdd(listOfPoints[pointsLength], Utils.ScalarMult(vector, 200))
+            local points = {}
+            for i = 1, pointsLength do
+                if i == pointsLength then
+                    points[pointsLength] = formPoint
+                    points[pointsLength+1] = listOfPoints[pointsLength]
+                else
+                    points[i] = listOfPoints[i]
+                end
+            end
+            local newWaypoints = SpawnFuncs.createWPListFromPoints(points)
+            local newMission = SpawnFuncs.createMission(newWaypoints)
+            trigger.action.outText("New Mission: " .. Utils.dump(newMission.params.route.points), 30, false)
+            cpyController:setTask(newMission)
         end
     end
 end
