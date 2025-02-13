@@ -80,7 +80,6 @@ function Company.updateMission(self, listOfPoints)
             end
             local newWaypoints = SpawnFuncs.createWPListFromPoints(points)
             local newMission = SpawnFuncs.createMission(newWaypoints)
-            trigger.action.outText("New Mission: " .. Utils.dump(newMission.params.route.points), 30, false)
             cpyController:setTask(newMission)
         end
     end
