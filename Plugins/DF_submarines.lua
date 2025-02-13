@@ -37,9 +37,7 @@ function DFSubs.subDamaged(coalitionId)
         if subUnit then
             local currentPoint = subUnit:getPoint()
             local currentDepth = currentPoint.y
-            subUnit:destroy()
-            local newSubGroupName = SubControl.createSubWithNoIntercept(coalitionId, currentPoint, trigger.misc.getZone(coalitionId.."-sub-end-"..math.random(1,7)).point, DFSubs.subs[coalitionId].subType, currentDepth, 0)
-            DFSubs.subs[coalitionId].groupName = newSubGroupName
+            SubControl.updateSubMissionWithNoIntercept(groupName, currentPoint, trigger.misc.getZone(coalitionId.."-sub-end-"..math.random(1,7)).point, DFSubs.subs[coalitionId].subType, currentDepth, 0)
             DFSubs.subs[coalitionId].intercepting = false
             DFSubs.subs[coalitionId].damaged = true
         end
@@ -56,10 +54,8 @@ function DFSubs.subSearch(coalitionId)
             local currentDepth = currentPoint.y
             local closestShip = SubTools.findClosestShip(currentPoint, coalitionId, SubControl.subValues[sub.subType].maxSpeed)
             if closestShip.distance then
-                subUnit:destroy()
-                local spawnedSubName = SubControl.createSubWithIntercept(coalitionId, currentPoint, sub.subType, currentDepth, closestShip)
-                env.info(coalitionId.."-sub respawned with target", false)
-                DFSubs.subs[coalitionId].groupName = spawnedSubName
+                SubControl.updateSubMissionWithIntercept(groupName, currentPoint, sub.subType, currentDepth, closestShip)
+                env.info(coalitionId.."-sub reassigned with target", false)
                 DFSubs.subs[coalitionId].intercepting = true
             end
         end
