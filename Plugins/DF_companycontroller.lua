@@ -72,8 +72,9 @@ cpyctl.spawnCompanies()
 function cpyctl.updateMission()
     trigger.action.outText("Updating mission", 10, false)
     local cpy = Companies[CompanyIDs[2][1]]
-    cpy:savePosition()
-    cpy:updateMission({[1]=cpy.point,[2]=trigger.misc.getZone("BP-6").point})
-    trigger.action.outText("Updated mission", 10, false)
+    if cpy then
+        cpy:savePosition()
+        cpy:updateMission({[1]=cpy.point,[2]=trigger.misc.getZone("BP-6").point})
+    end
 end
 timer.scheduleFunction(cpyctl.updateMission, nil, timer:getTime() + 15)
