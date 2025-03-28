@@ -97,9 +97,7 @@ function DFSubs.subLoop(coalitionId)
                         local currentDepth = currentPoint.y
                         local endZone = coalitionId.."-sub-end-"..math.random(1,7)
                         env.info(coalitionId.."-sub task completed: moving to " .. endZone, false)
-                        subUnit:destroy()
-                        local spawnedSubName = SubControl.createSubWithNoIntercept(coalitionId, currentPoint, trigger.misc.getZone(endZone).point, sub.subType, currentDepth)
-                        DFSubs.subs[coalitionId].groupName = spawnedSubName
+                        SubControl.updateSubMissionWithNoIntercept(groupName, coalitionId, currentPoint, trigger.misc.getZone(endZone).point, sub.subType, currentDepth)
                         DFSubs.subs[coalitionId].intercepting = false
                     end
                 end
