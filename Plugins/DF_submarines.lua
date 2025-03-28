@@ -37,9 +37,12 @@ function DFSubs.subDamaged(coalitionId)
         if subUnit then
             local currentPoint = subUnit:getPoint()
             local currentDepth = currentPoint.y
-            SubControl.updateSubMissionWithNoIntercept(groupName, currentPoint, trigger.misc.getZone(coalitionId.."-sub-end-"..math.random(1,7)).point, DFSubs.subs[coalitionId].subType, currentDepth, 0)
-            DFSubs.subs[coalitionId].intercepting = false
-            DFSubs.subs[coalitionId].damaged = true
+            local endPoint = trigger.misc.getZone(coalitionId.."-sub-end-"..math.random(1,7)).point
+            if endPoint then
+                SubControl.updateSubMissionWithNoIntercept(groupName, currentPoint, endPoint, DFSubs.subs[coalitionId].subType, currentDepth, 0)
+                DFSubs.subs[coalitionId].intercepting = false
+                DFSubs.subs[coalitionId].damaged = true
+            end
         end
     end
 end
@@ -97,8 +100,11 @@ function DFSubs.subLoop(coalitionId)
                         local currentDepth = currentPoint.y
                         local endZone = coalitionId.."-sub-end-"..math.random(1,7)
                         env.info(coalitionId.."-sub task completed: moving to " .. endZone, false)
-                        SubControl.updateSubMissionWithNoIntercept(groupName, coalitionId, currentPoint, trigger.misc.getZone(endZone).point, sub.subType, currentDepth)
-                        DFSubs.subs[coalitionId].intercepting = false
+                        local endPoint = trigger.misc.getZone(endZone).point
+                        if endPoint then
+                            SubControl.updateSubMissionWithNoIntercept(groupName, coalitionId, currentPoint, endPoint, sub.subType, currentDepth)
+                            DFSubs.subs[coalitionId].intercepting = false
+                        end
                     end
                 end
             elseif sub.damaged == false then
