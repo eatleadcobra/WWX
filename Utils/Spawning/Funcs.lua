@@ -26,6 +26,13 @@ function SpawnFuncs.createWPListFromPoints(listOfPoints)
     end
     return wps
 end
+function SpawnFuncs.createMission(listOfWaypoints)
+    local missionTable = Utils.deepcopy(SpawnTemplates.missionTemplate)
+    for i = 1, #listOfWaypoints do
+        missionTable["params"]["route"]["points"][i] = listOfWaypoints[i]
+    end
+    return missionTable
+end
 function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, listOfUnitTypes, listOfWaypoints)
     local newGroupId = SpawnFuncs.getNextGroupId()
     local countryId = 80 + (2-coalitionId)

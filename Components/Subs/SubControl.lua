@@ -35,6 +35,34 @@ function SubControl.createSubWithIntercept(coalitionId, point, subType, depth, c
         end
     end
 end
+function SubControl.updateSubMissionWithIntercept(groupName, point, subType, depth, closestShip)
+    if closestShip.distance then
+        local closestRunIn, attackRunEndPoint, bearing, speedToRunIn = SubTools.calculateIntercept(closestShip.point, point, closestShip.position, closestShip.velocity, SubControl.subValues[subType].maxSpeed)
+        if closestRunIn then
+            local wpList = SpawnFuncs.createWPListFromPoints({point, closestRunIn, attackRunEndPoint, point})
+            local missionTable = SpawnFuncs.createMission(wpList)
+            local point1depth = SubControl.subValues[subType].maxDepth/2
+            if depth then point1depth = depth end
+            missionTable["params"]["route"]["points"][1].alt = point1depth
+            missionTable["params"]["route"]["points"][1].speed = speedToRunIn
+            missionTable["params"]["route"]["points"][2].alt = SubControl.subValues[subType].maxDepth/2
+            missionTable["params"]["route"]["points"][2].speed = speedToRunIn
+            missionTable["params"]["route"]["points"][3].alt = SubControl.subValues[subType].periscopeDepth
+            missionTable["params"]["route"]["points"][4].speed = SubControl.subValues[subType].maxSpeed
+            missionTable["params"]["route"]["points"][4].alt = SubControl.subValues[subType].maxDepth
+            missionTable["params"]["route"]["points"][4].speed = SubControl.subValues[subType].maxSpeed
+            local subGroup = Group.getByName(groupName)
+            if subGroup then
+                local SubController = subGroup:getController()
+                if SubController then
+                    SubController:setTask(missionTable)
+                end
+            end
+        else
+            return nil
+        end
+    end
+end
 function SubControl.createSubWithNoIntercept(coalitionId, startPoint, endPoint, subType, startDepth, endDepth)
     local wpList = SpawnFuncs.createWPListFromPoints({startPoint, endPoint})
     local groupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, 3, {subType}, wpList)
@@ -51,6 +79,26 @@ function SubControl.createSubWithNoIntercept(coalitionId, startPoint, endPoint, 
     groupTable["route"]["points"][2].speed = SubControl.subValues[subType].maxSpeed
     coalition.addGroup(80+(2-coalitionId), 3, groupTable)
     return groupTable["name"]
+end
+function SubControl.updateSubMissionWithNoIntercept(groupName, startPoint, endPoint, subType, startDepth, endDepth)
+    local wpList = SpawnFuncs.createWPListFromPoints({startPoint, endPoint})
+    local missionTable = SpawnFuncs.createMission(wpList)
+    local point1depth = (SubControl.subValues[subType].maxDepth)/2
+    local point2depth = (SubControl.subValues[subType].maxDepth)/2
+    if startDepth then point1depth = startDepth end
+    if endDepth then point2depth = endDepth end
+    local vector = Utils.VecNormalize({x = endPoint.x - startPoint.x, y = endPoint.y - startPoint.y, z = endPoint.z - startPoint.z})
+    missionTable["params"]["route"]["points"][1].alt = point1depth
+    missionTable["params"]["route"]["points"][1].speed = SubControl.subValues[subType].maxSpeed
+    missionTable["params"]["route"]["points"][2].alt = point2depth
+    missionTable["params"]["route"]["points"][2].speed = SubControl.subValues[subType].maxSpeed
+    local subGroup = Group.getByName(groupName)
+    if subGroup then
+        local SubController = subGroup:getController()
+        if SubController then
+            SubController:setTask(missionTable)
+        end
+    end
 end
 function SubControl.engage(coalitionId, groupName)
     env.info("Sub engage start", false)
