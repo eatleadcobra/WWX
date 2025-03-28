@@ -102,7 +102,7 @@ function DFSubs.subLoop(coalitionId)
                         env.info(coalitionId.."-sub task completed: moving to " .. endZone, false)
                         local endPoint = trigger.misc.getZone(endZone).point
                         if endPoint then
-                            SubControl.updateSubMissionWithNoIntercept(groupName, coalitionId, currentPoint, endPoint, sub.subType, currentDepth)
+                            SubControl.updateSubMissionWithNoIntercept(groupName, currentPoint, endPoint, sub.subType, currentDepth)
                             DFSubs.subs[coalitionId].intercepting = false
                         end
                     end
