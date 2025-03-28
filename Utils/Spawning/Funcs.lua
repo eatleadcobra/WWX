@@ -16,13 +16,15 @@ function SpawnFuncs.createWPListFromPoints(listOfPoints)
     local wps = {}
     for i = 1, #listOfPoints do
         local point = SpawnFuncs.deepcopy(SpawnTemplates.pointTemplate)
-        point.x = listOfPoints[i].x
-        if listOfPoints[i].z then
-            point.y = listOfPoints[i].z
-        else
-            point.y = listOfPoints[i].y
+        if point then
+            point.x = listOfPoints[i].x
+            if listOfPoints[i].z then
+                point.y = listOfPoints[i].z
+            else
+                point.y = listOfPoints[i].y
+            end
+            wps[#wps+1] = point
         end
-        wps[#wps+1] = point
     end
     return wps
 end
