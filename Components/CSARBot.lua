@@ -253,10 +253,10 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     --local cleanUpTimer = 10
     local anyTerrain = nil
     pos = {x = pos.x, y = pos.y-agl, z = pos.z}
-    if overWater then
-        --cleanUpTimer = 5
-        anyTerrain = true
-    end
+    -- if overWater then
+    --     --cleanUpTimer = 5
+    --     anyTerrain = true
+    -- end
     CSB.generateCsar(pos,coalitionId,nil,nil,100,anyTerrain,nil,playerName)
     --timer.scheduleFunction(CSB.cleanUpPilot,args,timer.getTime()+cleanUpTimer) -- not sure if you can destroy a player connected object in MP
 end
