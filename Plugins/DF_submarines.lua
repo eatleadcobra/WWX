@@ -42,6 +42,9 @@ function DFSubs.subDamaged(coalitionId)
                 SubControl.updateSubMissionWithNoIntercept(groupName, currentPoint, endPoint, DFSubs.subs[coalitionId].subType, currentDepth, 0)
                 DFSubs.subs[coalitionId].intercepting = false
                 DFSubs.subs[coalitionId].damaged = true
+                local enemyCoalition = 2
+                if coalitionId == 2 then enemyCoalition = 1 end
+                trigger.action.outTextForCoalition(enemyCoalition, "Sonar reports an enemy sub has been damaged by a depth charge.", 20, false)
             end
         end
     end
