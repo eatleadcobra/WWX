@@ -5,6 +5,7 @@ local madAltLimit = 200
 local madloopTime = 1
 local madLoopTimeLimit = 180
 local commandName = "Enable MAD"
+local smokeCommandName = "Drop Smoke Float"
 local subTypes = {
     ["santafe"] = 1,
     ["Type_093"] = 1,
@@ -75,12 +76,31 @@ function MADLoop(param)
         end
     end
 end
+function MADSmokeFloat(groupName)
+    local smokeGroup = Group.getByName(groupName)
+    if smokeGroup then
+        local smokeUnit = smokeGroup:getUnit(1)
+        if smokeUnit then
+            local smokePoint = smokeUnit:getPoint()
+            if smokePoint then
+                local isValidSmokePoint = (land.getSurfaceType({x = smokePoint.x, y = smokePoint.z}) == 2 or land.getSurfaceType({x = smokePoint.x, y = smokePoint.z}) == 3)
+                if isValidSmokePoint then
+                    trigger.action.smoke({x = smokePoint.x, y = 0, z = smokePoint.z}, 0)
+                end
+            end
+        end
+
+    end
+    
+end
 function MAD.addCommand(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup then
         missionCommands.addCommandForGroup(addGroup:getID(), commandName, nil, MADLoop, {groupName = groupName, runs = 0})
+        missionCommands.addCommandForGroup(addGroup:getID(), smokeCommandName, nil, MADSmokeFloat, groupName)
     end
 end
 function MAD.removeRadioCommandsForGroup(groupID)
         missionCommands.removeItemForGroup(groupID, {[1] = commandName})
+        missionCommands.removeItemForGroup(groupID, {[1] = smokeCommandName})
 end

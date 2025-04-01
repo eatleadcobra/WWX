@@ -50,7 +50,7 @@ function depthCharge.explodeCharge(param)
         id = world.VolumeType.SPHERE,
         params = {
             point = param.explodePoint,
-            radius = 300
+            radius = 350
         }
     }
     local closestSub = {}
