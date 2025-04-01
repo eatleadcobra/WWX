@@ -68,6 +68,8 @@ local mpra = {
     ["MosquitoFBMkVI"] = 1,
     ["C-101CC"] = 1,
     ["Mi-8MT"] = 1,
+    ["P-47D-30bl1"] = 1,
+    ["P-47D-40"] = 1,
 }
 local coalitions = {1, 2}
 local enabledTypeNames = {["MosquitoFBMkVI"] = 1}
