@@ -52,6 +52,17 @@ DFS.cargoVolumes = {
 DFS.internalCargo = {
 
 }
+DFS.madAircraft = {
+    ["Mi-8MT"] = 1,
+    ["Mi-24P"] = 2,
+    ["MosquitoFBMkVI"] = 3,
+    ["C-101CC"] = 4,
+    ["P-51D"] = 5,
+    ["TF-51D"] = 6,
+    ["P-47D-30bl1"] = 7,
+    ["P-47D-40"] = 8,
+    ["Yak-52"] = 9,
+}
 DFS.heloCapacities = {
     ["AV8BNA"] = {
         types = {
@@ -641,6 +652,9 @@ function dfcEvents:onEvent(event)
                 if DFS.heloCapacities[event.initiator:getTypeName()] then
                     local dropMenu, troopsMenu = dfc.addRadioCommandsForCargoGroup(event.initiator:getGroup():getName())
                     dfc.addGroupToCargoList(event.initiator:getGroup():getName(), dropMenu, troopsMenu)
+                end
+                if DFS.madAircraft[event.initiator:getTypeName()] then
+                    dfc.addRadioCommandsForMADGroup(event.initiator:getGroup():getName())
                 end
             end
         end
@@ -2852,6 +2866,11 @@ function dfc.addRadioCommandsForGroup(groupName)
         if Sonobuoys then
             Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
         end
+    end
+end
+function dfc.addRadioCommandsForMADGroup(groupName)
+    local addGroup = Group.getByName(groupName)
+    if addGroup then
         if MAD then
             MAD.addCommand(groupName)
         end

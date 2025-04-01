@@ -96,8 +96,8 @@ end
 function MAD.addCommand(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup then
-        missionCommands.addCommandForGroup(addGroup:getID(), commandName, nil, MADLoop, {groupName = groupName, runs = 0})
         missionCommands.addCommandForGroup(addGroup:getID(), smokeCommandName, nil, MADSmokeFloat, groupName)
+        missionCommands.addCommandForGroup(addGroup:getID(), commandName, nil, MADLoop, {groupName = groupName, runs = 0})
     end
 end
 function MAD.removeRadioCommandsForGroup(groupID)
