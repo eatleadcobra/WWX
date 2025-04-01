@@ -4297,9 +4297,7 @@ do -- group functions scope
         else
             if string.lower(newGroupData.category) == 'ship' then
                 validTerrain = {'SHALLOW_WATER' , 'WATER'}
-            elseif string.lower(newGroupData.category) == 'vehicle' then
-                validTerrain = {'LAND', 'ROAD'}
-            end
+			end
         end
 
 		if point and radius >= 0 then
