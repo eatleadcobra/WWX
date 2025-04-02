@@ -206,3 +206,10 @@ function DrawingTools.drawX(coalitionId, point)
     trigger.action.lineToAll(coalitionId, hId, h1, h2, {0,0,0,1}, 1, true, nil)
     return vId, hId
 end
+function DrawingTools.drawCircle(coalitionId, point, radius)
+    local drawingRadius = 50
+    if radius then drawingRadius = radius end
+    local circleId = DrawingTools.newMarkId()
+    trigger.action.circleToAll(coalitionId, circleId, point, drawingRadius, {0,0,0,1}, {0,0,0,0}, 1, true, nil)
+    return circleId
+end
