@@ -98,7 +98,8 @@ function MADLoop(param)
                     if markDeflection and smokeInterval then
                         trigger.action.outSoundForGroup(searchingGroup:getID(), madSoundPath)
                         trigger.action.smoke({x = searchPoint.x, y = 0, z = searchPoint.z}, 0)
-                        local plotterMarkId = trigger.action.markToCoalition(DrawingTools.newMarkId(), "MAD", searchPoint, searchingGroup:getCoalition(), true, nil)
+                        local plotterMarkId = DrawingTools.newMarkId()
+                        trigger.action.markToCoalition(plotterMarkId, "MAD", searchPoint, searchingGroup:getCoalition(), true, nil)
                         timer.scheduleFunction(trigger.action.removeMark, plotterMarkId, timer:getTime()+300)
                         param.smokeTime = timer:getTime()
                     end

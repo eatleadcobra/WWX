@@ -59,7 +59,7 @@ function torp.trackActiveTorpedo(param)
     end
 end
 function torp.simulateTorpedo(param)
-    trigger.action.outTextForGroup(param.playerGroupId, "Torpedo active!", 15, false)
+    trigger.action.outTextForGroup(param.playerGroupId, "Torpedo active!", activeTorpInfo.updateRate, false)
     if param.tracking == false then
         local volP = {
             id = world.VolumeType.PYRAMID,
