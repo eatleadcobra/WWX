@@ -19,6 +19,7 @@ local fbId = 1
 local markId = 3000
 local resupDistance = 300
 local firebaseCheckInterval = 20
+local gracePeriod = 10
 local fbFuncs = {}
 local targetMarks = {}
 local drawing = {
@@ -63,8 +64,8 @@ local firemissionDelays = {
         perShot = 2,
     },
     ["HOWITZER"] = {
-        aiming = 115,
-        perShot = 17,
+        aiming = 17,
+        perShot = 4,
     },
     ["SPG"] = {
         aiming = 120,
@@ -602,7 +603,7 @@ function fbFuncs.firebaseFire(firebase, targetmark)
         fbFuncs.firingMarkUpdate(targetmark.id, targetmark.pos, targetmark.coalition, firebase.fbType, mission.expendQty)
     end
     fbFuncs.firingDraw(firebase, {x = mission.x, y = mission.y})
-    timer.scheduleFunction(fbFuncs.cleanFireMission, {firebase = firebase, assignedArtyNames = assignedArtyNames}, timer:getTime() + missionTime)
+    timer.scheduleFunction(fbFuncs.cleanFireMission, {firebase = firebase, assignedArtyNames = assignedArtyNames}, timer:getTime() + missionTime + gracePeriod)
 end
 function fbFuncs.firingMarkUpdate(targetmarkId, point, coalitionId, fbType, shots)
     trigger.action.removeMark(targetmarkId)
