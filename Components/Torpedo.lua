@@ -24,11 +24,13 @@ function torpEvents:onEvent(event)
             torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
         elseif event.weapon:getTypeName() == "Mark_46" then
             local torpedoPlayerName = ""
-            if event.initiator and event.initiator.getPlayerName then
+            local torpedoPlayerGroupID = 0
+            if event.initiator and event.initiator.getPlayerName and event.initiator:getGroup() then
+                torpedoPlayerGroupID = event.initiator:getGroup():getID()
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
             env.info("Tracking active torpedo: " .. event.weapon:getCategory(), false)
-            torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
+            torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerGroupId = torpedoPlayerGroupID, playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
         end
     end
 end
@@ -45,18 +47,19 @@ function torp.trackActiveTorpedo(param)
                     if isWater == 2 or isWater == 3 then
                         weaponPos.p.y = activeTorpInfo.searchDepth
                         weaponPos.x.y = 0
-                        local simParam = {startTime = param.startTime, position = weaponPos, tracking = false, target = nil}
+                        local simParam = {startTime = param.startTime, playerGroupId = param.playerGroupId, position = weaponPos, tracking = false, target = nil}
                         param.torpedo:destroy()
                         torp.simulateTorpedo(simParam)
                     end
                 else
-                    timer.scheduleFunction(torp.trackActiveTorpedo, {torpedo = param.torpedo, startTime = param.startTime, playerName = param.playerName, coalitionId = param.coalitionId}, timer.getTime()+0.1)
+                    timer.scheduleFunction(torp.trackActiveTorpedo, param, timer.getTime()+0.1)
                 end
             end
         end
     end
 end
 function torp.simulateTorpedo(param)
+    trigger.action.outTextForGroup(param.playerGroupId, "Torpedo active!", 15, false)
     if param.tracking == false then
         local volP = {
             id = world.VolumeType.PYRAMID,
@@ -118,12 +121,15 @@ function torp.simulateTorpedo(param)
             local torpDistance = Utils.PointDistance(param.position.p, targetPoint)
             if torpDistance < activeTorpInfo.detonateRange then
                 trigger.action.explosion(targetPoint, 300)
+                trigger.action.outTextForGroup(param.playerGroupId, "Torpedo detonated!", 15, false)
                 return
             end
         end
     end
     if timer:getTime() - param.startTime < activeTorpInfo.lifeTime then
         timer.scheduleFunction(torp.simulateTorpedo, param, timer:getTime() + activeTorpInfo.updateRate)
+    else
+        trigger.action.outTextForGroup(param.playerGroupId, "Torpedo is dead in the water!", 10, false)
     end
 end
 function torp.TrackTorpedo(param)
