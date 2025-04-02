@@ -36,8 +36,8 @@ local drawing = {
 }
 local firebaseRanges = {
     ["MORTAR"] = 3000,
-    ["HOWITZER"] = 15000,
-    ["SPG"] = 11000,
+    ["HOWITZER"] = 7000,
+    ["SPG"] = 12000,
 }
 local firebaseExpendQtys = {
     ["MORTAR"] = 9,
