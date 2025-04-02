@@ -1,17 +1,129 @@
 local debug = false
 local torp = {}
+local activeTorpInfo = {
+    updateRate = 1,
+    speed = 20, --m/s
+    lifeTime = 360,
+    detonateRange = 12, --m
+    searchDepth = -25, --m
+}
 local torpEvents = {}
+local subTypes = {
+    ["santafe"] = 1,
+    ["Type_093"] = 1,
+}
 function torpEvents:onEvent(event)
     --on hit
     if event.id == 1 and event.weapon and event.weapon.getTypeName then
-        if event.weapon:getTypeName() == "LTF_5B" or event.weapon:getTypeName() == "Mark_46" then
+        if event.weapon:getTypeName() == "LTF_5B" then
             local torpedoPlayerName = ""
             if event.initiator and event.initiator.getPlayerName then
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
             env.info("Tracking torpedo: " .. event.weapon:getCategory(), false)
             torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
+        elseif event.weapon:getTypeName() == "Mark_46" then
+            local torpedoPlayerName = ""
+            if event.initiator and event.initiator.getPlayerName then
+                torpedoPlayerName = event.initiator:getPlayerName()
+            end
+            env.info("Tracking active torpedo: " .. event.weapon:getCategory(), false)
+            torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
         end
+    end
+end
+function torp.trackActiveTorpedo(param)
+    if param.torpedo:isExist() then
+        local vec = param.torpedo:getVelocity()
+        if vec ~= nil then
+            local weaponPos = param.torpedo:getPosition()
+            if weaponPos ~= nil then
+                local weaponSpeed = (vec.x^2 + vec.y^2 + vec.z^2)^0.5
+                local impactPoint = land.getIP(weaponPos.p, weaponPos.x, weaponSpeed * 0.3)
+                if impactPoint then
+                    local isWater = land.getSurfaceType({x = impactPoint.x, y = impactPoint.z})
+                    if isWater == 2 or isWater == 3 then
+                        weaponPos.p.y = activeTorpInfo.searchDepth
+                        weaponPos.x.y = 0
+                        local simParam = {startTime = param.startTime, position = weaponPos, tracking = false, target = nil}
+                        param.torpedo:destroy()
+                        torp.simulateTorpedo(simParam)
+                    end
+                else
+                    timer.scheduleFunction(torp.trackActiveTorpedo, {torpedo = param.torpedo, startTime = param.startTime, playerName = param.playerName, coalitionId = param.coalitionId}, timer.getTime()+0.1)
+                end
+            end
+        end
+    end
+end
+function torp.simulateTorpedo(param)
+    if param.tracking == false then
+        local volP = {
+            id = world.VolumeType.PYRAMID,
+            params = {
+                pos = param.position,
+                length = 3200,
+                halfAngleHor = 25,
+                halfAngleVer = 30,
+            }
+        }
+        local foundSubs = {}
+        local ifFound = function(foundItem, val)
+            if foundItem:getDesc().category == 3 and foundItem:getPoint().y <=0 and subTypes[foundItem:getTypeName()] then
+                table.insert(foundSubs, foundItem)
+            end
+        end
+        world.searchObjects(Object.Category.UNIT, volP, ifFound)
+        if #foundSubs > 0 then
+            param.target = foundSubs[1]
+            param.tracking = true
+        end
+    end
+    if param.tracking == false then
+        local threeHundredTime = 300/(activeTorpInfo.speed*activeTorpInfo.updateRate)
+        local fiveHundredTime = 500/(activeTorpInfo.speed*activeTorpInfo.updateRate)
+        local oneFiveKTime = 1500/(activeTorpInfo.speed*activeTorpInfo.updateRate)
+        local twoFiveKTime = 2500/(activeTorpInfo.speed*activeTorpInfo.updateRate)
+        local fourKTime = 4000/(activeTorpInfo.speed*activeTorpInfo.updateRate)
+        local sixKTime = 6000/(activeTorpInfo.speed*activeTorpInfo.updateRate)
+        local elapsedTime = timer:getTime()-param.startTime
+        local turnDeg = 7
+        if elapsedTime < threeHundredTime then
+            turnDeg = 0
+        elseif elapsedTime > fiveHundredTime and elapsedTime <= oneFiveKTime then
+            turnDeg = 6
+        elseif elapsedTime > oneFiveKTime and elapsedTime <= twoFiveKTime then
+            turnDeg = 5
+        elseif elapsedTime > twoFiveKTime and elapsedTime < fourKTime then
+            turnDeg = 4
+        elseif elapsedTime > fourKTime and elapsedTime <= sixKTime then
+            turnDeg = 3
+        elseif elapsedTime > sixKTime then
+            turnDeg = 2
+        end
+        param.position.x = Utils.RotateVector(param.position.x, math.rad(turnDeg))
+        param.position.p = Utils.VectorAdd(param.position.p, Utils.ScalarMult(param.position.x, (activeTorpInfo.speed * activeTorpInfo.updateRate)))
+    else
+        if param.target ~= nil then
+            local targetPoint = param.target:getPoint()
+            local torpPoint = param.position.p
+            local targetVector = {x = targetPoint.x - torpPoint.x, y = targetPoint.y - torpPoint.y, z = targetPoint.z - torpPoint.z}
+            ---@diagnostic disable-next-line: deprecated
+            local tgtBearing = math.atan2(targetVector.z, targetVector.x)
+            ---@diagnostic disable-next-line: deprecated
+            local torpHeading = math.atan2(param.position.x.z, param.position.x.x)
+            local relativeBearing = tgtBearing-torpHeading
+            param.position.x = Utils.RotateVector(param.position.x, relativeBearing)
+            param.position.p = Utils.VectorAdd(param.position.p, Utils.ScalarMult(param.position.x, (activeTorpInfo.speed * activeTorpInfo.updateRate)))
+            local torpDistance = Utils.PointDistance(param.position.p, targetPoint)
+            if torpDistance < activeTorpInfo.detonateRange then
+                trigger.action.explosion(targetPoint, 300)
+                return
+            end
+        end
+    end
+    if timer:getTime() - param.startTime < activeTorpInfo.lifeTime then
+        timer.scheduleFunction(torp.simulateTorpedo, param, timer:getTime() + activeTorpInfo.updateRate)
     end
 end
 function torp.TrackTorpedo(param)
