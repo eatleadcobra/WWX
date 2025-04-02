@@ -382,7 +382,7 @@ function sb.testSound(param)
 end
 function sb.faq(groupId)
     local msg = "Drop sonobuoys using this radio menu.\nWhen dropped a markpoint will appear on the F10 map.\nThis mark displays the radio frequency of the buoy.\nTune to this frequency to listen to the buoy.\nThe training functions will play the sounds corresponding to different detection states.\nEach buoy has a range of 4km and lasts for 1 hour.\nIt is useful to learn how to use the radio navigation functions to find your way back to your beacons."
-    trigger.action.outTextForGroup(groupId, msg, 45)
+    trigger.action.outTextForGroup(groupId, msg, 45, false)
 end
 function Sonobuoys.addDevBuoy(coalition, location)
     buoys[coalition][#buoys[coalition]+1] = {

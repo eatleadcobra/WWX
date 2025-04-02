@@ -1,11 +1,13 @@
 MAD = {}
 local MADRadius = 1000
+local dcRadius = 150
 local madReadoutIncrement = 10
 local madAltLimit = 200
 local madloopTime = 1
 local madLoopTimeLimit = 180
+local smokeTimeInterval = 30
 local commandName = "Enable MAD"
-local smokeCommandName = "Drop Smoke Float"
+local madSoundPath = "l10n/DEFAULT/MAD.ogg"
 local subTypes = {
     ["santafe"] = 1,
     ["Type_093"] = 1,
@@ -46,14 +48,41 @@ function MADLoop(param)
                 if searchPoint.y <= madAltLimit then
                     local subPoints = MAD.searchPointForSubs(searchPoint)
                     local madAmplitude = 0
+                    local markDeflection = false
+                    local smokeInterval = false
                     for i = 1, #subPoints do
                         local distanceToSub = Utils.PointDistance(subPoints[i], searchPoint)
                         if distanceToSub < MADRadius then
+                            if distanceToSub <= (madReadoutIncrement*3) then
+                                markDeflection = true
+                                if timer:getTime() - param.smokeTime > smokeTimeInterval then
+                                    smokeInterval = true
+                                end
+                            end
                             local amp = MADRadius - distanceToSub
                             if amp > madAmplitude then
                                 madAmplitude = MADRadius - distanceToSub
                             end
                         end
+                    end
+                    local fiveHundredMeterIndex = math.floor((MADRadius - 500)/madReadoutIncrement)
+                    local threeHundredMeterIndex = math.floor((MADRadius - 300)/madReadoutIncrement)
+                    local dcDistanceIndex = math.floor((MADRadius - dcRadius)/madReadoutIncrement)
+                    if param.runs == 0 then
+                        local markerString = "|"
+                        for i = 1, ((MADRadius/madReadoutIncrement)+1) do
+                            if i == fiveHundredMeterIndex then
+                                markerString = markerString .. "|"
+                            elseif i == threeHundredMeterIndex then
+                                markerString = markerString .. "|"
+                            elseif i == dcDistanceIndex then
+                                markerString = markerString .. "|"
+                            else
+                                markerString = markerString .. " "
+                            end
+                        end
+                        markerString = markerString .. "|"
+                        trigger.action.outTextForGroup(searchingGroup:getID(), markerString, madLoopTimeLimit, false)
                     end
                     local madString ="|"
                     local spaces = math.floor(madAmplitude/madReadoutIncrement)
@@ -62,10 +91,17 @@ function MADLoop(param)
                     end
                     madString = madString .. "*"
                     for i = spaces, ((MADRadius/madReadoutIncrement)-2) do
-                        madString = madString.." "
+                        madString = madString .. " "
                     end
                     madString = madString .. "|"
                     trigger.action.outTextForGroup(searchingGroup:getID(), madString, madloopTime+15, false)
+                    if markDeflection and smokeInterval then
+                        trigger.action.outSoundForGroup(searchingGroup:getID(), madSoundPath)
+                        trigger.action.smoke({x = searchPoint.x, y = 0, z = searchPoint.z}, 0)
+                        local plotterMarkId = trigger.action.markToCoalition(DrawingTools.newMarkId(), "MAD", searchPoint, searchingGroup:getCoalition(), true, nil)
+                        timer.scheduleFunction(trigger.action.removeMark, plotterMarkId, timer:getTime()+300)
+                        param.smokeTime = timer:getTime()
+                    end
                     param.runs = param.runs + 1
                     timer.scheduleFunction(MADLoop, param, timer:getTime() + madloopTime)
                 else
@@ -76,31 +112,12 @@ function MADLoop(param)
         end
     end
 end
-function MADSmokeFloat(groupName)
-    local smokeGroup = Group.getByName(groupName)
-    if smokeGroup then
-        local smokeUnit = smokeGroup:getUnit(1)
-        if smokeUnit then
-            local smokePoint = smokeUnit:getPoint()
-            if smokePoint then
-                local isValidSmokePoint = (land.getSurfaceType({x = smokePoint.x, y = smokePoint.z}) == 2 or land.getSurfaceType({x = smokePoint.x, y = smokePoint.z}) == 3)
-                if isValidSmokePoint then
-                    trigger.action.smoke({x = smokePoint.x, y = 0, z = smokePoint.z}, 0)
-                end
-            end
-        end
-
-    end
-    
-end
 function MAD.addCommand(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup then
-        missionCommands.addCommandForGroup(addGroup:getID(), smokeCommandName, nil, MADSmokeFloat, groupName)
-        missionCommands.addCommandForGroup(addGroup:getID(), commandName, nil, MADLoop, {groupName = groupName, runs = 0})
+        missionCommands.addCommandForGroup(addGroup:getID(), commandName, nil, MADLoop, {groupName = groupName, runs = 0, smokeTime = 0})
     end
 end
 function MAD.removeRadioCommandsForGroup(groupID)
         missionCommands.removeItemForGroup(groupID, {[1] = commandName})
-        missionCommands.removeItemForGroup(groupID, {[1] = smokeCommandName})
 end

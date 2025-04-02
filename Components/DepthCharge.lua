@@ -58,7 +58,7 @@ function depthCharge.explodeCharge(param)
         if foundItem:getDesc().category == 3 then
             local subPoint = foundItem:getPoint()
             if subPoint ~= nil then
-                local distance = VectorMagnitude({x = param.explodePoint.x - subPoint.x, y = param.explodePoint.y - subPoint.y, z = param.explodePoint.z - subPoint.z})
+                local distance = Utils.PointDistance(param.explodePoint, subPoint)
                 if distance ~= nil and subTypes[foundItem:getTypeName()] ~= nil then
                     if closestSub.distance == nil or distance < closestSub.distance then
                         closestSub.distance = distance
