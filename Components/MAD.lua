@@ -53,7 +53,7 @@ function MADLoop(param)
                     for i = 1, #subPoints do
                         local distanceToSub = Utils.PointDistance(subPoints[i], searchPoint)
                         if distanceToSub < MADRadius then
-                            if distanceToSub <= (madReadoutIncrement*3) then
+                            if distanceToSub <= (madReadoutIncrement*5) then
                                 markDeflection = true
                                 if timer:getTime() - param.smokeTime > smokeTimeInterval then
                                     smokeInterval = true
