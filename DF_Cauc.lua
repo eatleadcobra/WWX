@@ -960,10 +960,10 @@ function dfc.initSpawns()
             end
         end
     else
-        for i = 1, DFS.status.artSpawnTotal do
-            dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..i).point, type = "SPG", spawnZone = i})
-            dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..i).point, type = "SPG", spawnZone = i})
-        end
+        local redArtZoneNum = math.random(1,4)
+        dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..redArtZoneNum).point, type = "SPG", spawnZone = redArtZoneNum})
+        local blueArtZoneNum = math.random(1,4)
+        dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..blueArtZoneNum).point, type = "SPG", spawnZone = blueArtZoneNum})
     end
     table.insert(DFS.status[1].spawns.battleships, {groupName = DFS.groupNames[1].battleship})
     table.insert(DFS.status[2].spawns.battleships, {groupName = DFS.groupNames[2].battleship})
