@@ -1,7 +1,6 @@
 Sonobuoys = {}
 local sb = {}
 local buoyId = 1
-local buoyMarkId = 1000
 
 local khzFreqTable = {
     [1] = 150,
@@ -144,6 +143,7 @@ function sb.createBuoy(param)
                 env.info("Beacon dropped by: " .. unit:getTypeName(), false)
                 local isWater = land.getSurfaceType({x = location.x, y = location.z})
                 if isWater == 2 or isWater == 3 then
+                    local buoyMarkId = DrawingTools.newMarkId()
                     local khzGpName = "None"
                     local buoyKhzFreq = "None"
                     local mhzGpName = "None"
@@ -193,7 +193,6 @@ function sb.createBuoy(param)
                     buoyCount = buoyCount - 1
                     playerCount[param.groupName] = buoyCount
                     buoyId = buoyId + 1
-                    buoyMarkId = buoyMarkId + 1
                 end
             end
         else
@@ -385,6 +384,7 @@ function sb.faq(groupId)
     trigger.action.outTextForGroup(groupId, msg, 45, false)
 end
 function Sonobuoys.addDevBuoy(coalition, location)
+    local buoyMarkId = DrawingTools.newMarkId()
     buoys[coalition][#buoys[coalition]+1] = {
         id = buoyId,
         location = location,
@@ -400,7 +400,6 @@ function Sonobuoys.addDevBuoy(coalition, location)
     }
     trigger.action.markToCoalition(buoyMarkId, "Buoy: " .. buoyId, location, tonumber(coalition), true)
     buoyId = buoyId + 1
-    buoyMarkId = buoyMarkId + 1
 end
 function Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
     local addGroup = Group.getByName(groupName)
