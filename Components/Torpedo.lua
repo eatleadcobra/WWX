@@ -47,7 +47,7 @@ function torp.trackActiveTorpedo(param)
                     if isWater == 2 or isWater == 3 then
                         weaponPos.p.y = activeTorpInfo.searchDepth
                         weaponPos.x.y = 0
-                        local simParam = {startTime = param.startTime, playerGroupId = param.playerGroupId, position = weaponPos, tracking = false, target = nil}
+                        local simParam = {startTime = param.startTime, playerName = param.playerName, playerGroupId = param.playerGroupId, playerCoalition = param.coalitionId, position = weaponPos, tracking = false, target = nil}
                         param.torpedo:destroy()
                         torp.simulateTorpedo(simParam)
                     end
@@ -122,6 +122,7 @@ function torp.simulateTorpedo(param)
             if torpDistance < activeTorpInfo.detonateRange then
                 trigger.action.explosion(targetPoint, 300)
                 trigger.action.outTextForGroup(param.playerGroupId, "Torpedo detonated!", 15, false)
+                WWEvents.playerDestroyedSubmarine(param.playerName, param.playerCoalition, "killed a submarine!")
                 return
             end
         end
