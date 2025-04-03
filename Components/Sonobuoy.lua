@@ -27,12 +27,34 @@ local buoyCreatedCount = {
         det = 0,
         khz = 0,
         mhz = 0,
+        yak = 0
     },
     [2] = {
         det = 0,
         khz = 0,
         mhz = 0,
+        yak = 0
     }
+}
+local yakfreqs = {
+    [1] = 212,
+    [2] = 222,
+    [3] = 312,
+    [4] = 322,
+    [5] = 412,
+    [6] = 422,
+    [7] = 512,
+    [8] = 522
+}
+local yakfreqnames = {
+    [1] = "ARK-15M: Ch 1 O",
+    [2] = "ARK-15M: Ch 1 I",
+    [3] = "ARK-15M: Ch 2 O",
+    [4] = "ARK-15M: Ch 2 I",
+    [5] = "ARK-15M: Ch 3 O",
+    [6] = "ARK-15M: Ch 3 I",
+    [7] = "ARK-15M: Ch 4 O",
+    [8] = "ARK-15M: Ch 4 I"
 }
 local startMhzFreq = 3.0
 local mhzFreq = 3.0
@@ -57,10 +79,13 @@ local planeRadioTypes = {
         ["Mi-24P"] = 3,
         ["C-101CC"] = 4,
         ["SA342L"] = 5,
-        ["SA342Minigun"] = 6,
+        ["SA342Minigun"] = 6
     },
     mhz = {
         ["MosquitoFBMkVI"] = 1,
+    },
+    yak = {
+        ["Yak-52"] = 1
     }
 }
 local mpra = {
@@ -146,6 +171,7 @@ function sb.createBuoy(param)
                     local buoyMarkId = DrawingTools.newMarkId()
                     local khzGpName = "None"
                     local buoyKhzFreq = "None"
+                    local buoyKhzMsg = 0
                     local mhzGpName = "None"
                     local buoyDetFreq = "None"
                     local buoyMhzFreq = "None"
@@ -171,6 +197,12 @@ function sb.createBuoy(param)
                         buoyCreatedCount[param.coalition].mhz = buoyCreatedCount[param.coalition].mhz + 1
                         timer.scheduleFunction(sb.reduceCreatedCount, {coalition = param.coalition, freqType = "mhz"}, timer:getTime() + buoyLifetime)
                     end
+                    if buoyCreatedCount[param.coalition].yak < #yakfreqs and planeRadioTypes.yak[unit:getTypeName()] ~= nil then
+                        buoyCreatedCount[param.coalition].yak = buoyCreatedCount[param.coalition].yak + 1
+                        buoyKhzFreq = tostring(yakfreqs[buoyCreatedCount[param.coalition].yak])
+                        buoyKhzMsg = yakfreqnames[buoyCreatedCount[param.coalition].yak]
+                        timer.scheduleFunction(sb.reduceCreatedCount, {coalition = param.coalition, freqType = "yak"}, timer:getTime() + buoyLifetime)
+                    end
                     buoys[param.coalition][#buoys[param.coalition]+1] = {
                         id = buoyId,
                         location = location,
@@ -185,6 +217,9 @@ function sb.createBuoy(param)
                         message = "Starting",
                         ownerGroupName = param.groupName
                     }
+                    if unit:getTypeName() == "Yak-52" and buoyKhzMsg ~= 0 then
+                        buoyKhzFreq = tostring(buoyKhzMsg)
+                    end
                     local markMsg = "Buoy: " .. buoyId .. "\nFrequency KHz: " .. buoyKhzFreq .."\nDetrola: " .. buoyDetFreq .. "\nMCs: " .. buoyMhzFreq
                     if CODAR then
                         CODAR.newBuoy(param.coalition, location, buoyId)
