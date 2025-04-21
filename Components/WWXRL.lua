@@ -492,8 +492,18 @@ function wwxRacing.saveLoop()
 end
 wwxRacing.loadData()
 wwxRacing.saveLoop()
-wwxRacing.newLeague(racingClasses["Helicopter"])
-wwxRacing.newLeague(racingClasses["Props"])
-wwxRacing.newLeague(racingClasses["VTOL"])
-wwxRacing.newLeague(racingClasses["Fast Jets"])
-wwxRacing.newLeague(racingClasses["Trainers/Korea"])
+if trigger.misc.getZone("1-Race Start Zone") then
+    wwxRacing.newLeague(racingClasses["Helicopter"])
+end
+if trigger.misc.getZone("2-Race Start Zone") then
+    wwxRacing.newLeague(racingClasses["Props"])
+end
+if trigger.misc.getZone("3-Race Start Zone") then
+    wwxRacing.newLeague(racingClasses["VTOL"])
+end
+if trigger.misc.getZone("4-Race Start Zone") then
+    wwxRacing.newLeague(racingClasses["Fast Jets"])
+end
+if trigger.misc.getZone("5-Race Start Zone") then
+    wwxRacing.newLeague(racingClasses["Trainers/Korea"])
+end
