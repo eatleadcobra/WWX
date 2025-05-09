@@ -10,9 +10,9 @@ assert(loadfile(pathToWWX.."Utils\\utils.lua"))()
 assert(loadfile(pathToWWX.."Utils\\drawingTools.lua"))()
 assert(loadfile(pathToWWX.."Utils\\WWEvents.lua"))()
 --spawning
-assert(loadfile(pathToWWX.."Utils\\Spawning\\Funcs.lua"))()
-assert(loadfile(pathToWWX.."Utils\\Spawning\\Values.lua"))()
-assert(loadfile(pathToWWX.."Utils\\Spawning\\Templates.lua"))()
+assert(loadfile(pathToWWX.."Utils\\UnitSpawning\\Funcs.lua"))()
+assert(loadfile(pathToWWX.."Utils\\UnitSpawning\\Values.lua"))()
+assert(loadfile(pathToWWX.."Utils\\UnitSpawning\\Templates.lua"))()
 env.info("Loading Components", false)
 --firebases
 assert(loadfile(pathToWWX.."Components\\Firebases\\FirebaseGroups.lua"))()

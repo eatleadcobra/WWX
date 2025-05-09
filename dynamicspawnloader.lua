@@ -1,0 +1,1 @@
+assert(loadfile("F:\\Games\\WWX\\Utils\\DynamicSpawns\\dynamicSpawnManager.lua"))()
