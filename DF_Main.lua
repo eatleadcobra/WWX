@@ -872,8 +872,10 @@ function dfc.initSupply()
     DFS.status[1].supply.pirate[DFS.supplyType.EQUIPMENT] = 0
 end
 function dfc.initSpawns()
-    DFSubs.initSub({coalitionId = 1, subType = "santafe"})
-    DFSubs.initSub({coalitionId = 2, subType = "santafe"})
+    if SUBS then
+        DFSubs.initSub({coalitionId = 1, subType = "santafe"})
+        DFSubs.initSub({coalitionId = 2, subType = "santafe"})
+    end
     local blueRigAA = trigger.misc.getZone("blue-rig-aaa")
     local redRigAA = trigger.misc.getZone("red-rig-aaa")
     if blueRigAA and redRigAA then
