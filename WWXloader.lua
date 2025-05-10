@@ -55,7 +55,7 @@ assert(loadfile(pathToWWX.."Plugins\\DF_firebases.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_submarines.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_slingbabysitter.lua"))()
 env.info("Loading main")
-assert(loadfile(pathToWWX.."DF_Cauc.lua"))()
+assert(loadfile(pathToWWX.."DF_Main.lua"))()
 --Things that need to load after DF_Cauc (main file) because it access global vars defined in that file
 assert(loadfile(pathToWWX.."WWXFactoryTracker.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_recon.lua"))()
