@@ -6,6 +6,9 @@ Airframes = {
         },
         forward = {
             ["Su-25T"] = true,
+        },
+        farp = {
+            ["Mi-24P"] = true
         }
     },
     [2] = {
@@ -15,6 +18,9 @@ Airframes = {
         },
         forward = {
             ["A-10C"] = true,
+        },
+        farp = {
+            ["UH-1H"] = true,
         }
     }
 }
