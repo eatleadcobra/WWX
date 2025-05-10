@@ -911,8 +911,10 @@ function dfc.initSpawns()
         dfc.respawnAA({coalitionId = 1, spawnZone = i})
         dfc.respawnAA({coalitionId = 2, spawnZone = i})
     end
-    dfc.spawnFighter(1)
-    dfc.spawnFighter(2)
+    if CAP then
+        dfc.spawnFighter(1)
+        dfc.spawnFighter(2)
+    end
 end
 
 function dfc.initConvoys()
