@@ -2667,7 +2667,7 @@ dfc.getMission()
 dfc.getData()
 dfc.initSpawns()
 dfc.createSupplyDrawings()
-dfc.initConvoys()
+--dfc.initConvoys()
 dfc.startShipping()
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)

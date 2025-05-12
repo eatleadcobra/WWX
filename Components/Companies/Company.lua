@@ -16,12 +16,18 @@ Company = {
     waypoints = {},
     groupName = "",
     deployedGroupNames = {},
-    arrived = false
+    arrived = false,
+    onRoad = false
 }
-function Company.new(coalitionId, platoons)
+function Company.new(coalitionId, platoons, onRoad)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
+    if onRoad == nil  or onRoad == false then
+        newCpy.onRoad = false
+    else
+        newCpy.onRoad = true
+    end
     for i = 1, #platoons do
         local pltUnits = Company.deepcopy(Platoons[PlatoonTypes[platoons[i]]])
         for j = 1, #pltUnits do
@@ -42,20 +48,29 @@ function Company.newFromTable(cpyData)
     newCpy.groupName = cpyData.groupName
     newCpy.deployedGroupNames = cpyData.deployedGroupNames
     newCpy.arrived = cpyData.arrived
+    newCpy.onRoad = cpyData.onRoad
     return newCpy
 end
 function Company.setWaypoints(self, waypoints)
     self.waypoints = waypoints
 end
 function Company.spawn(self)
-    local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
-    local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 200))
-    --create waypoint table from waypoints list
-    local points = {[1] = self.waypoints[1], [2] = formPoint, [3] = self.waypoints[2]}
+    local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
+    if self.onRoad == false then
+        local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
+        local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 200))
+        --create waypoint table from waypoints list
+        points = {[1] = self.waypoints[1], [2] = formPoint, [3] = self.waypoints[2]}
+    end
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points)
     --create group table using waypoints and platoons
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints)
-    cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
+    if self.onRoad == false then
+        cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
+    else
+        cpyGroupTable["route"]["points"][1].action = "On Road"
+        cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "On Road"
+    end
     self.groupName = cpyGroupTable["name"]
     --spawn group
     coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
