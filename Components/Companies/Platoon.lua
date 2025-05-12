@@ -1,7 +1,10 @@
 PlatoonTypes = {
     [1] = "Armor",
     [2] = "Mech",
-    [3] = "Inf"
+    [3] = "Inf",
+    [4] = "FuelConvoy",
+    [5] = "AmmoConvoy",
+    [6] = "EquipmentConvoy"
 }
 Platoons = {
     ["Armor"] = {
@@ -27,11 +30,42 @@ Platoons = {
         [5] = "RPG",
         [6] = "Inf",
         [7] = "Inf",
+    },
+    ["FuelConvoy"] = {
+        [1] = "IFV",
+        [2] = "FuelTruck",
+        [3] = "FuelTruck",
+        [4] = "FuelTruck",
+        [5] = "FuelTruck",
+        [6] = "FuelTruck",
+        [7] = "IFV",
+        [8] = "FuelTruck",
+    },
+    ["AmmoConvoy"] = {
+        [1] = "IFV",
+        [2] = "FuelTruck",
+        [3] = "FuelTruck",
+        [4] = "FuelTruck",
+        [5] = "FuelTruck",
+        [6] = "FuelTruck",
+        [7] = "IFV",
+        [8] = "FuelTruck",
+    },
+    ["EquipmentConvoy"] = {
+        [1] = "IFV",
+        [2] = "FuelTruck",
+        [3] = "FuelTruck",
+        [4] = "FuelTruck",
+        [5] = "FuelTruck",
+        [6] = "FuelTruck",
+        [7] = "IFV",
+        [8] = "FuelTruck",
     }
 }
 PlatoonUnitTypeNames = {
     ["M4_Sherman"] = "Tank",
     ["M-113"] = "IFV",
     ["M2A1_halftrack"] = "APC",
-    ["Bedford_MWD"] = "Truck"
+    ["Bedford_MWD"] = "Truck",
+    ["HEMTT TFFT"] = "FuelTruck",
 }

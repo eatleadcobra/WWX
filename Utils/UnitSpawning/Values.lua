@@ -1,4 +1,5 @@
 SpawnValues = {}
+--this should be coalition separated
 SpawnValues.units = {
     ["kilo"] = {
         type = "KILO"
@@ -17,6 +18,9 @@ SpawnValues.units = {
     },
     ["Truck"] = {
         type = "Bedford_MWD"
+    },
+    ["FuelTruck"] = {
+        type = "HEMTT TFFT"
     },
     ["IFV"] = {
         type = "M-113"
