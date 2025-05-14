@@ -12,7 +12,7 @@ function SpawnFuncs.setGroupWaypoints(groupTable, listOfWaypoints)
         groupTable["units"][i].y = listOfWaypoints[1].y
     end
 end
-function SpawnFuncs.createWPListFromPoints(listOfPoints)
+function SpawnFuncs.createWPListFromPoints(listOfPoints, speed)
     local wps = {}
     for i = 1, #listOfPoints do
         local point = SpawnFuncs.deepcopy(SpawnTemplates.pointTemplate)
@@ -22,6 +22,9 @@ function SpawnFuncs.createWPListFromPoints(listOfPoints)
                 point.y = listOfPoints[i].z
             else
                 point.y = listOfPoints[i].y
+            end
+            if speed then
+                point.speed = speed
             end
             wps[#wps+1] = point
         end
