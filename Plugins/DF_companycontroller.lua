@@ -39,7 +39,8 @@ function cpyctl.saveCompanies()
             groupName = v.groupName,
             deployedGroupNames = v.deployedGroupNames,
             arrived = v.arrived,
-            onRoad = v.onRoad
+            onRoad = v.onRoad,
+            speed = v.speed
         }
         companiesData[v.id] = cpyData
     end
@@ -79,22 +80,19 @@ end
 -- testCpy:setWaypoints({startPoint, destination})
 -- testCpy:spawn()
 
-cpyctl.getCompanies()
-cpyctl.spawnCompanies()
-
 function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination)
     local newCpy = Company.new(coalitionId, {convoyPltTypes[convoyType]}, true)
-    newCpy:setWaypoints({startPoint, destination})
+    newCpy:setWaypoints({startPoint, destination}, 999)
     newCpy:spawn()
     return newCpy.groupName
 end
 
-function cpyctl.updateMission()
+function cpyctl.updateMission(coalitionId, companyId, newPoints)
     trigger.action.outText("Updating mission", 10, false)
-    local cpy = Companies[CompanyIDs[2][1]]
+    local cpy = Companies[CompanyIDs[coalitionId][companyId]]
     if cpy then
         cpy:savePosition()
-        cpy:updateMission({[1]=cpy.point,[2]=trigger.misc.getZone("BP-6").point})
+        cpy:updateMission(newPoints)
     end
 end
 function cpyctl.saveLoop()
@@ -105,4 +103,6 @@ function cpyctl.saveLoop()
     timer.scheduleFunction(cpyctl.saveLoop, nil, timer:getTime()+10)
 end
 cpyctl.saveLoop()
---timer.scheduleFunction(cpyctl.updateMission, nil, timer:getTime() + 15)
+
+cpyctl.getCompanies()
+cpyctl.spawnCompanies()
