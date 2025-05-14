@@ -1810,7 +1810,7 @@ function dfc.mainLoop()
         dfc.checkFDHealth()
         dfc.checkRDHealth()
         --dfc.sendConvoyLoop()
-        dfc.newConvoyLoop()
+        --dfc.newConvoyLoop()
         dfc.checkNoFlyZones()
         timer.scheduleFunction(dfc.mainLoop, nil, timer.getTime() + 10)
     end

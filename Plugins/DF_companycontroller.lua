@@ -1,7 +1,7 @@
 --track existing companies: not done
 --deploy mobile troops when they are not moving: not done
 --undeploy mobile troops when they are moving: not done
---remove lost units from available: not done
+--remove lost units from available: DONE
 --persist and have provisions to respawn companies on mission load: DONE
 local cpyctl = {}
 CpyControl = {}
@@ -65,21 +65,6 @@ function cpyctl.spawnCompanies()
     end
 end
 
--- local startPoint = trigger.misc.getZone("spawn").point
--- local destination = trigger.misc.getZone("BP-1").point
--- local testCpy = Company.new(2, {1,2,3})
--- Companies[testCpy.id] = testCpy
--- table.insert(CompanyIDs[testCpy.coalitionId], testCpy.id)
--- testCpy:setWaypoints({startPoint, destination})
--- testCpy:spawn()
--- local startPoint = trigger.misc.getZone("BlueConvoySpawn").point
--- local destination = trigger.misc.getZone("Blue-Front-Deliver-1").point
--- local testCpy = Company.new(2, {4}, true)
--- Companies[testCpy.id] = testCpy
--- table.insert(CompanyIDs[testCpy.coalitionId], testCpy.id)
--- testCpy:setWaypoints({startPoint, destination})
--- testCpy:spawn()
-
 function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination)
     local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true)
     newCpy:setWaypoints({startPoint, destination}, 999)
@@ -101,7 +86,33 @@ function cpyctl.saveLoop()
     cpyctl.saveCompanies()
     timer.scheduleFunction(cpyctl.saveLoop, nil, timer:getTime()+10)
 end
-cpyctl.saveLoop()
+function cpyctl.cpyStatusLoop()
+    for c = 1,2 do
+        for i = 1, #CompanyIDs[c] do
+            local cpy = Companies[CompanyIDs[c][i]]
+            local cpyGroup = Group.getByName(cpy.groupName)
+            if cpyGroup then
+                cpy:updateUnits(cpyGroup:getUnits())
+            else
+                Companies[CompanyIDs[c][i]] = nil
+                table.remove(CompanyIDs[c], i)
+                break
+            end
+        end
+    end
+    timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 10)
+end
 
 cpyctl.getCompanies()
 cpyctl.spawnCompanies()
+
+cpyctl.saveLoop()
+cpyctl.cpyStatusLoop()
+
+-- local startPoint = trigger.misc.getZone("Blue-FrontDepot-1").point
+-- local destination = trigger.misc.getZone("BP-1").point
+-- local testCpy = Company.new(2, true, {1,2,3}, false)
+-- Companies[testCpy.id] = testCpy
+-- table.insert(CompanyIDs[testCpy.coalitionId], testCpy.id)
+-- testCpy:setWaypoints({startPoint, destination})
+-- testCpy:spawn()
