@@ -34,6 +34,8 @@ function Company.new(coalitionId, platoons, onRoad)
             table.insert(newCpy.units, pltUnits[j])
         end
     end
+    Companies[newCpy.id] = newCpy
+    table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
     return newCpy
 end
 function Company.newFromTable(cpyData)

@@ -1118,6 +1118,8 @@ function dfc.increaseFrontSupply(param)
     env.info(param.coalitionId .. "-FrontSupply-"..DFS.supplyNames[param.type].." increased by " .. param.amount .. "to " .. DFS.status[param.coalitionId].supply.front[param.type], false)
     env.info("Current Supply modifier: " .. (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal) .. " Current supply cap = " .. DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal), false)
     if DFS.status[param.coalitionId].supply.front[param.type] > math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)) then
+        local surplusAmt = DFS.status[param.coalitionId].supply.front[param.type] - (math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)))
+        dfc.increaseRearSupply({coalitionId = param.coalitionId, amount = surplusAmt, type = param.type})
         DFS.status[param.coalitionId].supply.front[param.type] = math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal))
     end
     if DFS.status[param.coalitionId].supply.front[param.type] > (DFS.status.maxSuppliesFront[param.type] * 0.15) then
@@ -1415,6 +1417,10 @@ function dfc.newConvoyLoop()
             local needsEquipment = DFS.status[ctln].supply.front[DFS.supplyType.EQUIPMENT] < DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
             local hasEquipmentAmt = DFS.status[ctln].supply.rear[DFS.supplyType.EQUIPMENT] > DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]
             local anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
+            env.info("Anytime: " .. tostring(anytime) .. "\nhasConvoyFuel: " .. tostring(hasConvoyFuel) .. "\nfueltime: " .. tostring(fueltime) .. "\nammotime: " .. tostring(ammotime) .. "\nequiptime: " .. tostring(equiptime), false)
+            env.info("Needs fuel: " .. tostring(needsFuel) .. "\nhasFuelAmt: " .. tostring(hasFuelAmt), false)
+            env.info("Needs ammo: " .. tostring(needsAmmo) .. "\nhasAmmoAmt: " .. tostring(hasAmmoAmt), false)
+            env.info("Needs equipment: " .. tostring(needsFuel) .. "\nhasEquipmentAmt: " .. tostring(hasEquipmentAmt), false)
             --fuel check
             if anytime and fueltime and hasConvoyFuel and needsFuel and hasFuelAmt then
                 local deliverZone = activeFDs[math.random(#activeFDs)]
@@ -1561,7 +1567,11 @@ function dfc.destroyGroup(name)
     end
 end
 function dfc.startConvoy(param)
-    local convoyGroupName = mist.cloneGroup(DFS.groupNames[param.coalitionId].convoy[param.type]..param.startFrom .. '-' .. param.deliverZone, true).name
+    --local convoyGroupName = mist.cloneGroup(DFS.groupNames[param.coalitionId].convoy[param.type]..param.startFrom .. '-' .. param.deliverZone, true).name
+    local startPoint =  trigger.misc.getZone("BlueConvoySpawn").point
+    local endPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].deliver..param.deliverZone).point
+    local convoyGroupName = CpyControl.newConvoy(param.coalitionId, param.type, startPoint, endPoint)
+
     DFS.status[param.coalitionId].lastConvoyTimes[1][param.type] = timer.getTime()
     DFS.status[param.coalitionId].anyConvoyTime = timer.getTime()
     dfc.checkConvoy({convoyName = convoyGroupName, deliverZone = param.deliverZone, type = param.type})
@@ -2667,7 +2677,7 @@ dfc.getMission()
 dfc.getData()
 dfc.initSpawns()
 dfc.createSupplyDrawings()
---dfc.initConvoys()
+dfc.initConvoys()
 dfc.startShipping()
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)

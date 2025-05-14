@@ -4,6 +4,12 @@
 --remove lost units from available: not done
 --persist and have provisions to respawn companies on mission load: DONE
 local cpyctl = {}
+CpyControl = {}
+local convoyPltTypes = {
+    [1] = 4,
+    [2] = 5,
+    [3] = 6,
+}
 function cpyctl.fileExists(file)
     local f = io.open(file, 'rb')
     if f then f:close() end
@@ -75,6 +81,13 @@ end
 
 cpyctl.getCompanies()
 cpyctl.spawnCompanies()
+
+function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination)
+    local newCpy = Company.new(coalitionId, {convoyPltTypes[convoyType]}, true)
+    newCpy:setWaypoints({startPoint, destination})
+    newCpy:spawn()
+    return newCpy.groupName
+end
 
 function cpyctl.updateMission()
     trigger.action.outText("Updating mission", 10, false)
