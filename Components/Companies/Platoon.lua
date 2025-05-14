@@ -62,10 +62,7 @@ Platoons = {
         [8] = "FuelTruck",
     }
 }
-PlatoonUnitTypeNames = {
-    ["M4_Sherman"] = "Tank",
+PlatoonUnitCarrierTypeNames = {
     ["M-113"] = "IFV",
     ["M2A1_halftrack"] = "APC",
-    ["Bedford_MWD"] = "Truck",
-    ["HEMTT TFFT"] = "FuelTruck",
 }

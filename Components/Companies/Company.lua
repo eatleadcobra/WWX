@@ -113,7 +113,7 @@ function Company.deploy(self)
     for i = 1, cpyGroup:getSize() do
         local unit = cpyGroup:getUnit(i)
         if unit then
-            if PlatoonUnitTypeNames[unit:getTypeName()] == "APC" or PlatoonUnitTypeNames[unit:getTypeName()] == "IFV" then
+            if PlatoonUnitCarrierTypeNames[unit:getTypeName()] == "APC" or PlatoonUnitCarrierTypeNames[unit:getTypeName()] == "IFV" then
                 local pltUnits = {}
                 for p = 1, #Platoons["DeployedInf"] do
                     table.insert(pltUnits, Platoons["DeployedInf"][p])
