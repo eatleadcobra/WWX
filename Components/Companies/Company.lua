@@ -30,7 +30,8 @@ function Company.new(coalitionId, persistent, platoons, onRoad)
         newCpy.onRoad = true
     end
     for i = 1, #platoons do
-        local pltUnits = Company.deepcopy(Platoons[coalitionId]["FuelConvoy"])
+        trigger.action.outText(Utils.dump(platoons), 10, false)
+        local pltUnits = Company.deepcopy(Platoons[coalitionId][PlatoonTypes[platoons[i]]])
         for j = 1, #pltUnits do
             table.insert(newCpy.units, pltUnits[j])
         end
@@ -138,6 +139,12 @@ function Company.undeploy(self)
             deployedGroup:destroy()
             self.deployedGroupName = nil
         end
+    end
+end
+function Company.updateUnits(self, listOfUnits)
+    self.units = {}
+    for i = 1, #listOfUnits do
+        table.insert(self.units, listOfUnits[i]:getTypeName())
     end
 end
 function Company.despawn(self)
