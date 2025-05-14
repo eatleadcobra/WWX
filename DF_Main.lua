@@ -345,7 +345,7 @@ DFS.spawnNames = {
         depot = "Red-FrontDepot-",
         reardepot = "Red-RearDepot-",
         aa = "Red-AA-",
-        convoy = "Red-Convoy-",
+        convoyStart = "RedConvoySpawn",
         pirate = "RedPirateShip",
         deliver = 'Red-Front-Deliver-',
         frontSupplyDrawing = "Red-FrontCounter",
@@ -359,7 +359,7 @@ DFS.spawnNames = {
         depot = "Blue-FrontDepot-",
         reardepot = "Blue-RearDepot-",
         aa = "Blue-AA-",
-        convoy = "Blue-Convoy-",
+        convoyStart = "BlueConvoySpawn",
         pirate = "BluePirateShip",
         deliver = 'Blue-Front-Deliver-',
         frontSupplyDrawing = "Blue-FrontCounter",
@@ -976,6 +976,7 @@ function dfc.checkArtHealth()
             local currentGroups = #gunBase.contents.groups
             if currentGroups < maxSpawns and (timer:getTime() - DFS.status[c].lastGunTime > DFS.status.gunInterval) then
                 if DFS.status[c].supply.front[DFS.supplyType.EQUIPMENT] > 3 then
+                    env.info("art health gunbase supply decrease", false)
                     dfc.decreaseFrontSupply({coalitionId = c, amount = 3, type = DFS.supplyType.EQUIPMENT})
                     Firebases.addGroupToFirebase(gunBase, gunBase.fbType)
                     DFS.status[c].lastGunTime = timer:getTime()
@@ -985,6 +986,7 @@ function dfc.checkArtHealth()
         if ammoBase then
             if ammoBase.contents.ammo < ammoBase.contents.maxAmmo and (timer:getTime() - DFS.status[c].lastShellsTime > DFS.status.shellsInterval) then
                 if DFS.status[c].supply.front[DFS.supplyType.AMMO] > Firebases.firebaseSupplyAmts["SHELLS"] then
+                    env.info("art health ammobase supply decrease", false)
                     dfc.decreaseFrontSupply({coalitionId = c, amount = Firebases.firebaseSupplyAmts["SHELLS"], type = DFS.supplyType.AMMO})
                     Firebases.resupplyFirebase(ammoBase, Firebases.firebaseSupplyAmts["SHELLS"])
                     DFS.status[c].lastShellsTime = timer:getTime()
@@ -1011,6 +1013,7 @@ function dfc.checkBattleshipHealth()
                 end
                 table.remove(DFS.status[a].spawns.battleships, i)
                 timer.scheduleFunction(dfc.respawnBattleshipGroup, {coalitionId = a}, timer.getTime() + DFS.status.battleshipSpawnDelay)
+                env.info("Battleship check supply decrease", false)
                 dfc.decreaseFrontSupply({coalitionId = a, amount = 6, type = DFS.supplyType.EQUIPMENT})
             end
         end
@@ -1035,6 +1038,7 @@ function dfc.checkAAHealth()
                     end
                     local spawnZone = DFS.status[a].spawns.aa[i].spawnZone
                     timer.scheduleFunction(dfc.respawnAA, {coalitionId = a, spawnZone = spawnZone}, timer.getTime() + DFS.status.aaSpawnDelay)
+                    env.info("aa group health supply decrease", false)
                     dfc.decreaseFrontSupply({coalitionId = a, amount = 3, type = DFS.supplyType.EQUIPMENT})
                 end
             else
@@ -1066,6 +1070,7 @@ function dfc.checkFDHealth()
                 local decreaseFuelAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.FUEL] / #DFS.status[a].spawns.fd)
                 local decreaseEquipmentAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] / #DFS.status[a].spawns.fd)
                 local decreaseAmmoAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.AMMO] / #DFS.status[a].spawns.fd)
+                env.info("FD health check decrease", false)
                 dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
                 dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
                 dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
@@ -1568,7 +1573,7 @@ function dfc.destroyGroup(name)
 end
 function dfc.startConvoy(param)
     --local convoyGroupName = mist.cloneGroup(DFS.groupNames[param.coalitionId].convoy[param.type]..param.startFrom .. '-' .. param.deliverZone, true).name
-    local startPoint =  trigger.misc.getZone("BlueConvoySpawn").point
+    local startPoint =  trigger.misc.getZone(DFS.spawnNames[param.coalitionId].convoyStart).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].deliver..param.deliverZone).point
     local convoyGroupName = CpyControl.newConvoy(param.coalitionId, param.type, startPoint, endPoint)
 
@@ -1905,6 +1910,7 @@ function dfc.spawnSupply(param)
                     elseif frontPickup then
                         local decreaseType = param.type
                         if param.type == DFS.supplyType.GUN then decreaseType = DFS.supplyType.EQUIPMENT end
+                        env.info("dfc.spawn supply decrease", false)
                         dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                     end
                     --env.info("Tracking cargo: " .. cargo:getName(), false)
@@ -1970,6 +1976,7 @@ function dfc.loadInternalCargo(param)
                         elseif not seaPickup and not frontPickup then
                             dfc.decreaseRearSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                         elseif frontPickup then
+                            env.info("load internal cargo decrease", false)
                             dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                         end
                         trigger.action.outTextForGroup(transporterGroup:getID(), "Loaded " .. DFS.supplyNames[param.type],5, false)

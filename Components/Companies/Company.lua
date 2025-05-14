@@ -20,7 +20,7 @@ Company = {
     onRoad = false,
     speed = nil,
 }
-function Company.new(coalitionId, platoons, onRoad, speed)
+function Company.new(coalitionId, persistent, platoons, onRoad)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
@@ -29,17 +29,16 @@ function Company.new(coalitionId, platoons, onRoad, speed)
     else
         newCpy.onRoad = true
     end
-    if speed then
-        newCpy.speed = speed
-    end
     for i = 1, #platoons do
-        local pltUnits = Company.deepcopy(Platoons[PlatoonTypes[platoons[i]]])
+        local pltUnits = Company.deepcopy(Platoons[coalitionId]["FuelConvoy"])
         for j = 1, #pltUnits do
             table.insert(newCpy.units, pltUnits[j])
         end
     end
-    Companies[newCpy.id] = newCpy
-    table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
+    if persistent then
+        Companies[newCpy.id] = newCpy
+        table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
+    end
     return newCpy
 end
 function Company.newFromTable(cpyData)

@@ -81,12 +81,11 @@ end
 -- testCpy:spawn()
 
 function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination)
-    local newCpy = Company.new(coalitionId, {convoyPltTypes[convoyType]}, true)
+    local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true)
     newCpy:setWaypoints({startPoint, destination}, 999)
     newCpy:spawn()
     return newCpy.groupName
 end
-
 function cpyctl.updateMission(coalitionId, companyId, newPoints)
     trigger.action.outText("Updating mission", 10, false)
     local cpy = Companies[CompanyIDs[coalitionId][companyId]]
