@@ -20,7 +20,7 @@ SpawnValues.units = {
         type = "Bedford_MWD"
     },
     ["FuelTruck"] = {
-        type = "HEMTT TFFT"
+        type = "M978 HEMTT Tanker"
     },
     ["IFV"] = {
         type = "M-113"
