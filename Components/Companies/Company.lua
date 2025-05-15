@@ -66,19 +66,26 @@ function Company.spawn(self)
     local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
     if self.onRoad == false then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
-        local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 200))
+        local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 350))
+        local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
+        local roadPoint = {x = roadPointx, y = 0, z = roadPointy}
         --create waypoint table from waypoints list
-        points = {[1] = self.waypoints[1], [2] = formPoint, [3] = self.waypoints[2]}
+        points = {[1] = self.waypoints[1], [2] = roadPoint, [3] = formPoint, [4] = self.waypoints[2]}
     end
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points, self.speed)
+    -- local closestPointWpt1x,  closestPointWpt1y = land.getClosestPointOnRoads("roads", groupWaypoints[1].x, groupWaypoints[1].y)
+    -- groupWaypoints[1].x  = closestPointWpt1x
+    -- groupWaypoints[1].y  = closestPointWpt1y
     --create group table using waypoints and platoons
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints)
     if self.onRoad == false then
         for j = 1, #cpyGroupTable["units"] do
-            local deployPoint = Utils.VectorAdd(self.waypoints[1], Utils.ScalarMult(Utils.RotateVector(Utils.VecNormalize({x = self.waypoints[2].x - self.waypoints[1].x, y = self.waypoints[2].y - self.waypoints[1].y, z = self.waypoints[2].z - self.waypoints[1].z}), 0.52 + (0.14 * (j-1))), 8+(((j-1)/2))))
+            local deployPoint = Utils.VectorAdd(self.waypoints[1], Utils.ScalarMult(Utils.RotateVector(Utils.VecNormalize({x = self.waypoints[2].x - self.waypoints[1].x, y = self.waypoints[2].y - self.waypoints[1].y, z = self.waypoints[2].z - self.waypoints[1].z}), 0.52 + (0.20 * (j-1))), 10+(((j-1)/2))))
             cpyGroupTable["units"][j].x = deployPoint.x
             cpyGroupTable["units"][j].y = deployPoint.z
         end
+        cpyGroupTable["route"]["points"][1].action = "On Road"
+        cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
     else
         cpyGroupTable["route"]["points"][1].action = "On Road"

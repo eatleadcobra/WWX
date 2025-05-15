@@ -127,12 +127,12 @@ cpyctl.spawnCompanies()
 cpyctl.saveLoop()
 cpyctl.cpyStatusLoop()
 
-local startPoint = trigger.misc.getZone("Blue-FrontDepot-1").point
-startPoint.x = startPoint.x + 50
-startPoint.z = startPoint.z + 50
-local destination = trigger.misc.getZone("BP-1").point
-local testCpy = Company.new(2, true, {1,2,3}, false)
-Companies[testCpy.id] = testCpy
-table.insert(CompanyIDs[testCpy.coalitionId], testCpy.id)
-testCpy:setWaypoints({startPoint, destination})
-testCpy:spawn()
+-- local startPoint = trigger.misc.getZone("Blue-FrontDepot-1").point
+-- startPoint.x = startPoint.x + 50
+-- startPoint.z = startPoint.z + 50
+-- local destination = trigger.misc.getZone("BP-1").point
+-- local testCpy = Company.new(2, true, {1,2,3}, false)
+-- Companies[testCpy.id] = testCpy
+-- table.insert(CompanyIDs[testCpy.coalitionId], testCpy.id)
+-- testCpy:setWaypoints({startPoint, destination})
+-- testCpy:spawn()
