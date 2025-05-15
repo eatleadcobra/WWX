@@ -17,19 +17,20 @@ PlatoonTypes = {
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "M4_Sherman",
-            [2] = "M4_Sherman",
-            [3] = "Bedford_MWD"
+            [1] = "T-72B",
+            [2] = "T-72B",
+            [3] = "T-72B",
+            [4] = "GAZ-66"
         },
         ["Mech"] = {
-            [1] = "M-113",
-            [2] = "M-113",
-            [3] = "Bedford_MWD"
+            [1] = "BMP-1",
+            [2] = "BMP-1",
+            [3] = "GAZ-66"
         },
         ["Inf"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M2A1_halftrack",
-            [3] = "Bedford_MWD"
+            [1] = "BTR-80",
+            [2] = "BTR-80",
+            [3] = "GAZ-66"
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
@@ -41,51 +42,51 @@ Platoons = {
             [7] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M978 HEMTT Tanker",
-            [3] = "M978 HEMTT Tanker",
-            [4] = "M978 HEMTT Tanker",
-            [5] = "M978 HEMTT Tanker",
-            [6] = "M978 HEMTT Tanker",
-            [7] = "M2A1_halftrack",
-            [8] = "M978 HEMTT Tanker",
+            [1] = "BTR-80",
+            [2] = "ATZ-5",
+            [3] = "ATZ-5",
+            [4] = "ATZ-5",
+            [5] = "ATZ-5",
+            [6] = "ATZ-5",
+            [7] = "BTR-80",
+            [8] = "ATZ-5",
         },
         ["AmmoConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M978 HEMTT Tanker",
-            [3] = "M978 HEMTT Tanker",
-            [4] = "M978 HEMTT Tanker",
-            [5] = "M978 HEMTT Tanker",
-            [6] = "M978 HEMTT Tanker",
-            [7] = "M2A1_halftrack",
-            [8] = "M978 HEMTT Tanker",
+            [1] = "BTR-80",
+            [2] = "Ural-375",
+            [3] = "Ural-375",
+            [4] = "Ural-375",
+            [5] = "Ural-375",
+            [6] = "Ural-375",
+            [7] = "BTR-80",
+            [8] = "Ural-375",
         },
         ["EquipmentConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M978 HEMTT Tanker",
-            [3] = "M978 HEMTT Tanker",
-            [4] = "M978 HEMTT Tanker",
-            [5] = "M978 HEMTT Tanker",
-            [6] = "M978 HEMTT Tanker",
-            [7] = "M2A1_halftrack",
-            [8] = "M978 HEMTT Tanker",
+            [1] = "BTR-80",
+            [2] = "MKAMAZ Truck",
+            [3] = "KAMAZ Truck",
+            [4] = "KAMAZ Truck",
+            [5] = "KAMAZ Truck",
+            [6] = "KAMAZ Truck",
+            [7] = "BTR-80",
+            [8] = "KAMAZ Truck",
         }
     },
     [2] = {
         ["Armor"] = {
-            [1] = "M4_Sherman",
-            [2] = "M4_Sherman",
-            [3] = "Bedford_MWD"
+            [1] = "Leopard1A3",
+            [2] = "Leopard1A3",
+            [3] = "Land_Rover_101_FC"
         },
         ["Mech"] = {
-            [1] = "M-113",
-            [2] = "M-113",
-            [3] = "Bedford_MWD"
+            [1] = "Marder",
+            [2] = "Marder",
+            [3] = "Land_Rover_101_FC"
         },
         ["Inf"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M2A1_halftrack",
-            [3] = "Bedford_MWD"
+            [1] = "TPZ",
+            [2] = "TPZ",
+            [3] = "Land_Rover_101_FC"
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
@@ -97,38 +98,40 @@ Platoons = {
             [7] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "M2A1_halftrack",
+            [1] = "TPZ",
             [2] = "M978 HEMTT Tanker",
             [3] = "M978 HEMTT Tanker",
             [4] = "M978 HEMTT Tanker",
             [5] = "M978 HEMTT Tanker",
             [6] = "M978 HEMTT Tanker",
-            [7] = "M2A1_halftrack",
+            [7] = "TPZ",
             [8] = "M978 HEMTT Tanker",
         },
         ["AmmoConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M978 HEMTT Tanker",
-            [3] = "M978 HEMTT Tanker",
-            [4] = "M978 HEMTT Tanker",
-            [5] = "M978 HEMTT Tanker",
-            [6] = "M978 HEMTT Tanker",
-            [7] = "M2A1_halftrack",
-            [8] = "M978 HEMTT Tanker",
+            [1] = "TPZ",
+            [2] = "Bedford_MWD",
+            [3] = "Bedford_MWD",
+            [4] = "Bedford_MWD",
+            [5] = "Bedford_MWD",
+            [6] = "Bedford_MWD",
+            [7] = "TPZ",
+            [8] = "Bedford_MWD",
         },
         ["EquipmentConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M978 HEMTT Tanker",
-            [3] = "M978 HEMTT Tanker",
-            [4] = "M978 HEMTT Tanker",
-            [5] = "M978 HEMTT Tanker",
-            [6] = "M978 HEMTT Tanker",
-            [7] = "M2A1_halftrack",
-            [8] = "M978 HEMTT Tanker",
+            [1] = "TPZ",
+            [2] = "M 818",
+            [3] = "M 818",
+            [4] = "M 818",
+            [5] = "M 818",
+            [6] = "M 818",
+            [7] = "TPZ",
+            [8] = "M 818",
         }
     }
 }
 PlatoonUnitCarrierTypeNames = {
-    ["M-113"] = "IFV",
-    ["M2A1_halftrack"] = "APC",
+    ["Marder"] = "IFV",
+    ["BMP-1"] = "IFV",
+    ["TPZ"] = "APC",
+    ["BTR-80"] = "APC",
 }
