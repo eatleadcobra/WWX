@@ -1,6 +1,7 @@
 SUBS = false
 AMBUSHES = false
 CAP = false
+PIRACY = false
 BOMBERS = true
 FDCount = 2
 AACount = 6
@@ -12,15 +13,15 @@ PlatoonTypes = {
     [3] = "Inf",
     [4] = "FuelConvoy",
     [5] = "AmmoConvoy",
-    [6] = "EquipmentConvoy"
+    [6] = "EquipmentConvoy",
+    [7] = "Embedded AD",
 }
 Platoons = {
     [1] = {
         ["Armor"] = {
             [1] = "T-72B",
             [2] = "T-72B",
-            [3] = "T-72B",
-            [4] = "GAZ-66"
+            [3] = "GAZ-66"
         },
         ["Mech"] = {
             [1] = "BMP-1",
@@ -63,13 +64,18 @@ Platoons = {
         },
         ["EquipmentConvoy"] = {
             [1] = "BTR-80",
-            [2] = "MKAMAZ Truck",
+            [2] = "KAMAZ Truck",
             [3] = "KAMAZ Truck",
             [4] = "KAMAZ Truck",
             [5] = "KAMAZ Truck",
             [6] = "KAMAZ Truck",
             [7] = "BTR-80",
             [8] = "KAMAZ Truck",
+        },
+        ["EmbeddedAD"] = {
+            [1] = "Strela-1 9P31",
+            [2] = "ZSU-23-4 Shilka",
+            [3] = "GAZ-66"
         }
     },
     [2] = {
@@ -126,6 +132,11 @@ Platoons = {
             [6] = "M 818",
             [7] = "TPZ",
             [8] = "M 818",
+        },
+        ["EmbeddedAD"] = {
+            [1] = "M48 Chaparral",
+            [2] = "Vulcan",
+            [3] = "Land_Rover_101_FC"
         }
     }
 }
