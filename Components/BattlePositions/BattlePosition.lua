@@ -5,12 +5,14 @@ BattlePosition = {
     point = {},
     radius = 0,
     strength = 0,
+    zoneName = "",
 }
-function BattlePosition.new(point, radius)
+function BattlePosition.new(point, radius, zoneName)
     local newBP = Utils.deepcopy(BattlePosition)
     newBP.id = Utils.uuid()
     newBP.point = point
     newBP.radius = radius
+    newBP.zoneName = zoneName
     return newBP
 end
 function BattlePosition.setOwner(self, coalitionId)

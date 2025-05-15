@@ -59,6 +59,6 @@ assert(loadfile(pathToWWX.."DF_Main.lua"))()
 --Things that need to load after DF_Main because they access global vars defined in that file
 assert(loadfile(pathToWWX.."WWXFactoryTracker.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_recon.lua"))()
-assert(loadfile(pathToWWX.."Plugins\\DF_battlecontroller.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_companycontroller.lua"))()
+assert(loadfile(pathToWWX.."Plugins\\DF_battlecontroller.lua"))()
 env.info("Finished loading WWX")
