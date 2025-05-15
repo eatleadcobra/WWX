@@ -1,6 +1,6 @@
 --track existing companies: not done
---deploy mobile troops when they are not moving: not done
---undeploy mobile troops when they are moving: not done
+--deploy mobile troops when they are not moving: DONE
+--undeploy mobile troops when they are moving: DONE
 --remove lost units from available: DONE
 --persist and have provisions to respawn companies on mission load: DONE
 local cpyctl = {}
@@ -119,6 +119,29 @@ function cpyctl.cpyStatusLoop()
         end
     end
     timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 10)
+end
+
+function cpyctl.getCompanyStrength(cpy)
+    local tankCount = 0
+    local carrierCount = 0
+    local cpyGroup = Group.getByName(cpy.groupName)
+    if cpyGroup then
+        local cpyUnits = cpyGroup:getUnits()
+        if cpyUnits then
+            for i = 1, #cpyUnits do
+                local evalUnit = cpyUnits[i]
+                if evalUnit then
+                    if evalUnit:hasAttribute("Tanks") then
+                        tankCount = tankCount + 1
+                    elseif evalUnit:hasAttribute("IFV") or evalUnit:hasAttribute("APC") then
+                        carrierCount = carrierCount+1
+                    end
+                end
+            end
+        end
+    end
+    local strengthscore = math.floor(tankCount * 16.6) + math.floor(carrierCount * 8.3)
+    return strengthscore
 end
 
 cpyctl.getCompanies()
