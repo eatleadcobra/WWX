@@ -309,7 +309,6 @@ DFS.groupNames = {
         artillery = "Red-Art",
         battleship = "Red-Battleship",
         depot = "Red-Depot",
-        aa = "Red-AA",
         strike = "Red-Strike",
         ambush = "Red-Ambush",
         convoy = {
@@ -328,7 +327,6 @@ DFS.groupNames = {
         artillery = "Blue-Art",
         battleship = "Blue-Battleship",
         depot = "Blue-Depot",
-        aa = "Blue-AA",
         strike = "Blue-Strike",
         ambush = "Blue-Ambush",
         convoy = {
@@ -344,7 +342,6 @@ DFS.spawnNames = {
         artillery = "RedSpawn-Art-",
         depot = "Red-FrontDepot-",
         reardepot = "Red-RearDepot-",
-        aa = "Red-AA-",
         convoyStart = "RedConvoySpawn",
         pirate = "RedPirateShip",
         deliver = 'Red-Front-Deliver-',
@@ -358,7 +355,6 @@ DFS.spawnNames = {
         artillery = "BlueSpawn-Art-",
         depot = "Blue-FrontDepot-",
         reardepot = "Blue-RearDepot-",
-        aa = "Blue-AA-",
         convoyStart = "BlueConvoySpawn",
         pirate = "BluePirateShip",
         deliver = 'Blue-Front-Deliver-',
@@ -407,7 +403,6 @@ DFS.status = {
     gunInterval = 10799,
     shellsInterval = 2699,
     frontSpawnDelay = 180,
-    aaSpawnDelay = 2700,
     artSpawnDelay = 1200,
     battleshipSpawnDelay = 2399,
     fdSpawnDelay = 5399,
@@ -483,7 +478,6 @@ DFS.status = {
     fdSpawnTotal = FDCount,
     rdSpawnTotal = 1,
     rdSpawnSubDepots = 2,
-    aaSpawnTotal = AACount,
     pickupDistance = 1000,
     cargoId = 1020,
     cargoExpireTime = 7200,
@@ -491,7 +485,6 @@ DFS.status = {
     --costs
     frontBaseCost = 5,
     artCost = 10,
-    aaCost = 10,
     depotCost = 20,
     assignedArtGroups = {},
     targetMarks = {},
@@ -553,7 +546,6 @@ DFS.status = {
             battleships = {},
             fd = {},
             rd = {},
-            aa = {},
         },
         casCounter = 0,
     },
@@ -612,7 +604,6 @@ DFS.status = {
             battleships = {},
             fd = {},
             rd = {},
-            aa = {},
         },
         casCounter = 0,
     }
@@ -876,12 +867,6 @@ function dfc.initSpawns()
         DFSubs.initSub({coalitionId = 1, subType = "santafe"})
         DFSubs.initSub({coalitionId = 2, subType = "santafe"})
     end
-    local blueRigAA = trigger.misc.getZone("blue-rig-aaa")
-    local redRigAA = trigger.misc.getZone("red-rig-aaa")
-    if blueRigAA and redRigAA then
-        DF_UTILS.spawnGroupExact("blue-rig-aaa", blueRigAA.point, "clone")
-        DF_UTILS.spawnGroupExact("red-rig-aaa", redRigAA.point, "clone")
-    end
     if dfc.fileExists(redFbs) and dfc.fileExists(blueFbs) then
         for c = 1,2 do
             local fbFile = redFbs
@@ -906,10 +891,6 @@ function dfc.initSpawns()
             dfc.respawnRearDepot({coalitionId = 1, spawnZone = i, subDepot = j})
             dfc.respawnRearDepot({coalitionId = 2, spawnZone = i, subDepot = j})
         end
-    end
-    for i = 1, DFS.status.aaSpawnTotal do
-        dfc.respawnAA({coalitionId = 1, spawnZone = i})
-        dfc.respawnAA({coalitionId = 2, spawnZone = i})
     end
     if CAP then
         dfc.spawnFighter(1)
@@ -945,10 +926,6 @@ end
 function dfc.respawnRearDepot(param)
     local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].reardepot..param.spawnZone .. '-' .. param.subDepot).point
     table.insert(DFS.status[param.coalitionId].spawns.rd, {groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].depot, spawnPoint, 'clone'), spawnZone = param.spawnZone, subDepot = param.subDepot})
-end
-function dfc.respawnAA(param)
-    local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].aa..param.spawnZone).point
-    table.insert(DFS.status[param.coalitionId].spawns.aa, {groupName = DF_UTILS.spawnGroup(DFS.groupNames[param.coalitionId].aa, spawnPoint, 'clone'), spawnZone = param.spawnZone})
 end
 -- HEALTH CHECK FUNCS
 
@@ -1015,35 +992,6 @@ function dfc.checkBattleshipHealth()
                 timer.scheduleFunction(dfc.respawnBattleshipGroup, {coalitionId = a}, timer.getTime() + DFS.status.battleshipSpawnDelay)
                 env.info("Battleship check supply decrease", false)
                 dfc.decreaseFrontSupply({coalitionId = a, amount = 6, type = DFS.supplyType.EQUIPMENT})
-            end
-        end
-    end
-end
-function dfc.checkAAHealth()
-    for a = 1, 2 do
-        for i=1, #DFS.status[a].spawns.aa do
-            local group = DFS.status[a].spawns.aa[i]
-            if group == nil then break end
-            local aaGroup = Group.getByName(group.groupName)
-            local groupDead = false
-            if aaGroup == nil then
-                groupDead = true
-            elseif aaGroup:getSize() < 2 then
-                groupDead = true
-            end
-            if aaGroup then
-                if groupDead and DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] > 2 then
-                    if aaGroup then
-                        aaGroup:destroy()
-                    end
-                    local spawnZone = DFS.status[a].spawns.aa[i].spawnZone
-                    timer.scheduleFunction(dfc.respawnAA, {coalitionId = a, spawnZone = spawnZone}, timer.getTime() + DFS.status.aaSpawnDelay)
-                    env.info("aa group health supply decrease", false)
-                    dfc.decreaseFrontSupply({coalitionId = a, amount = 3, type = DFS.supplyType.EQUIPMENT})
-                end
-            else
-                table.remove(DFS.status[a].spawns.aa, i)
-                break
             end
         end
     end
@@ -1808,7 +1756,6 @@ function dfc.mainLoop()
     if missionOver then
         return
     else
-        dfc.checkAAHealth()
         dfc.checkArtHealth()
         dfc.checkBattleshipHealth()
         dfc.checkFDHealth()

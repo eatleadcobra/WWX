@@ -41,7 +41,8 @@ function cpyctl.saveCompanies()
             deployedGroupNames = v.deployedGroupNames,
             arrived = v.arrived,
             onRoad = v.onRoad,
-            speed = v.speed
+            speed = v.speed,
+            bp = v.bp
         }
         companiesData[v.id] = cpyData
     end
