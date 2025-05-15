@@ -42,7 +42,7 @@ function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, 
     local newGroupId = SpawnFuncs.getNextGroupId()
     local countryId = 80 + (2-coalitionId)
     local groupTable = SpawnFuncs.deepcopy(SpawnTemplates.groupTemplate)
-    groupTable["name"] = country.name[countryId] .. newGroupId
+    groupTable["name"] = groupType .. newGroupId
     groupTable["groupId"] = newGroupId
     local unitsTable = {}
     for i = 1, #listOfUnitTypeNames do

@@ -1,4 +1,4 @@
---track existing companies: not done
+--track existing companies: DONE
 --deploy mobile troops when they are not moving: DONE
 --undeploy mobile troops when they are moving: DONE
 --remove lost units from available: DONE
@@ -34,6 +34,7 @@ function cpyctl.saveCompanies()
             status = v.status,
             statusChangedTime = v.statusChangedTime,
             point = v.point,
+            heading = v.heading,
             units = v.units,
             waypoints = v.waypoints,
             groupName = v.groupName,
@@ -90,6 +91,11 @@ function cpyctl.cpyStatusLoop()
         for i = 1, #CompanyIDs[c] do
             local cpy = Companies[CompanyIDs[c][i]]
             if cpy then
+                local destinationPoint = cpy.waypoints[#cpy.waypoints]
+                local currentPoint = cpy.point
+                if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
+                    cpy.arrived = true
+                end
                 local cpyGroup = Group.getByName(cpy.groupName)
                 if cpyGroup then
                     cpy:updateUnits(cpyGroup:getUnits())
@@ -99,7 +105,7 @@ function cpyctl.cpyStatusLoop()
                         local lastUnitVelocity = lastUnit:getVelocity()
                         local firstUnitVelocity = firstUnit:getVelocity()
                         if lastUnitVelocity and firstUnitVelocity then
-                            if Utils.getSpeed(firstUnitVelocity) < 1 and Utils.getSpeed(lastUnitVelocity) < 1 then
+                            if Utils.getSpeed(firstUnitVelocity) < 0.1 and Utils.getSpeed(lastUnitVelocity) < 0.1 then
                                 cpy:deploy()
                             elseif cpy.isDeployed then
                                 cpy:undeploy()
@@ -159,3 +165,13 @@ cpyctl.cpyStatusLoop()
 -- table.insert(CompanyIDs[testCpy.coalitionId], testCpy.id)
 -- testCpy:setWaypoints({startPoint, destination}, 999)
 -- testCpy:spawn()
+
+-- local startPoint2 = trigger.misc.getZone("Blue-FrontDepot-1").point
+-- startPoint2.x = startPoint2.x + 50
+-- startPoint2.z = startPoint2.z + 50
+-- local destination2 = trigger.misc.getZone("BP-1").point
+-- local testCpy2 = Company.new(2, true, {1,2,3}, false)
+-- Companies[testCpy2.id] = testCpy2
+-- table.insert(CompanyIDs[testCpy2.coalitionId], testCpy2.id)
+-- testCpy2:setWaypoints({startPoint2, destination2}, 999)
+-- testCpy2:spawn()
