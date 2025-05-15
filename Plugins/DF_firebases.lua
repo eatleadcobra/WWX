@@ -35,8 +35,8 @@ local drawing = {
     groupCountRadius = 50
 }
 local firebaseRanges = {
-    ["MORTAR"] = 3000,
-    ["HOWITZER"] = 7000,
+    ["MORTAR"] = 3500,
+    ["HOWITZER"] = 12000,
     ["SPG"] = 12000,
 }
 local firebaseExpendQtys = {
@@ -46,7 +46,7 @@ local firebaseExpendQtys = {
 }
 local firebaseMaxAmmos = {
     ["MORTAR"] = 100,
-    ["HOWITZER"] = 60,
+    ["HOWITZER"] = 100,
     ["SPG"] = 100,
 }
 local supplyTypes = {
