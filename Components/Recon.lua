@@ -132,11 +132,6 @@ function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGrou
 end
 function Recon.createBPScoutingMission(coalitionId, missionPoint, bp)
     env.info("Creating Battle Position Scouting Mission", false)
-    if coalitionId == 1 then
-        DrawingTools.drawX(-1, missionPoint)
-    else
-        DrawingTools.drawCircle(-1, missionPoint, 50)
-    end
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.type = 4
     newMission.bp = bp
