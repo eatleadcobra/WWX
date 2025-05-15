@@ -1,4 +1,5 @@
 --check BPs for ownership
+BattleControl = {}
 local positionsCountLimit = 20
 local bc = {}
 local bcmarkups = {
@@ -15,6 +16,13 @@ local bcmarkups = {
 }
 local battlePositions = {}
 local bpIds = {}
+local reconnedBPs = {
+    [1] = {},
+    [2] = {},
+}
+function BattleControl.reconBP(coalitionId, bpID)
+    reconnedBPs[coalitionId][bpID] = true
+end
 
 function bc.getPositions()
     for i = 1, positionsCountLimit do
@@ -37,11 +45,29 @@ function bc.setBPMarkups()
         v.markupId = newMarkId
     end
 end
+function bc.bpRecon()
+    for c = 1, 2 do
+        for k,v in pairs(battlePositions) do
+            local enemyCoalition = 2
+            if c == 2 then enemyCoalition = 1 end
+            if v.ownedBy == enemyCoalition then
+                Recon.createBPScoutingMission(c, v.point, v.id)
+            end
+        end
+    end
+    timer.scheduleFunction(bc.bpRecon, nil, timer:getTime() + 3600)
+end
+
+
+
 
 bc.getPositions()
 bc.setBPMarkups()
-battlePositions[bpIds[1]]:setOwner(1)
+for k,v in pairs(battlePositions) do
+    v:setOwner(math.random(1,2))
+end
 bc.setBPMarkups()
+bc.bpRecon()
 --for each coalition, find the best target (balance of distance and defensive strength)
 --determine strongest available company (already made or can be made)
 --  -- if all available companies are weaker than what can be made now, bolster most strategic BP

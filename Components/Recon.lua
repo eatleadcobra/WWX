@@ -14,6 +14,7 @@ local missionTypes = {
     [1] = "BDA",
     [2] = "Suspected Enemy Location",
     [3] = "Convoy",
+    [4] = "BP"
 }
 local missionIdCounter = 1
 local missionExpireTime = 3600
@@ -129,6 +130,21 @@ function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGrou
     env.info("Enemy Location Mission Created", false)
     return newMission.id
 end
+function Recon.createBPScoutingMission(coalitionId, missionPoint, bp)
+    env.info("Creating Battle Position Scouting Mission", false)
+    if coalitionId == 1 then
+        DrawingTools.drawX(-1, missionPoint)
+    else
+        DrawingTools.drawCircle(-1, missionPoint, 50)
+    end
+    local newMission = recon.newBaseMission(coalitionId, missionPoint)
+    newMission.type = 4
+    newMission.bp = bp
+    currentMissions[coalitionId][newMission.id] = newMission
+    env.info("Battle Position Scouting Mission Created", false)
+    return newMission.id
+end
+
 function Recon.createEnemyLocationMissionNoMarker(coalitionId, missionPoint, missionGroupName)
     env.info("Creating Enemy Location Mission No Marker", false)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
@@ -239,8 +255,10 @@ function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
             recon.processBDA(mission, playerGroupId)
         elseif missionType == 2 then
             recon.processLocation(mission, playerGroupId)
-        elseif missionTypes == 3 then
+        elseif missionType == 3 then
 
+        elseif missionType == 4 then
+            recon.processBP(mission, playerGroupId)
         end
         recon.cleanMission(coalitionId, missionId)
     end
@@ -298,6 +316,36 @@ function recon.processLocation(mission, playerGroupId)
                 break
             end
         end
+    end
+    trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
+end
+function recon.processBP(mission, playerGroupId)
+    env.info("Processing BP Mission", false)
+    local reconnedUnitPoints = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = mission.point,
+            radius = 1200
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:isExist() and foundItem:isActive() then
+            table.insert(reconnedUnitPoints, foundItem:getPoint())
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    if #reconnedUnitPoints > 0 then
+        for i = 1, #reconnedUnitPoints do
+            env.info("drawing marks", false)
+            local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnitPoints[i])
+            timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+            timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+        end
+    end
+    if BattleControl then
+        BattleControl.reconBP(mission.coalitionId, mission.bp)
     end
     trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
 end

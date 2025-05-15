@@ -307,7 +307,6 @@ DFS.groupNames = {
             [4] = 'Red-Frontline-4',
         },
         artillery = "Red-Art",
-        battleship = "Red-Battleship",
         depot = "Red-Depot",
         strike = "Red-Strike",
         ambush = "Red-Ambush",
@@ -325,7 +324,6 @@ DFS.groupNames = {
             [4] = 'Blue-Frontline-4',
         },
         artillery = "Blue-Art",
-        battleship = "Blue-Battleship",
         depot = "Blue-Depot",
         strike = "Blue-Strike",
         ambush = "Blue-Ambush",
@@ -404,7 +402,6 @@ DFS.status = {
     shellsInterval = 2699,
     frontSpawnDelay = 180,
     artSpawnDelay = 1200,
-    battleshipSpawnDelay = 2399,
     fdSpawnDelay = 5399,
     rdSpawnDelay = 5399,
     convoyBaseTime = 3299,
@@ -543,7 +540,6 @@ DFS.status = {
             -- groupname + zone number 
             front = {},
             artillery = {},
-            battleships = {},
             fd = {},
             rd = {},
         },
@@ -601,7 +597,6 @@ DFS.status = {
             -- groupname + zone number 
             front = {},
             artillery = {},
-            battleships = {},
             fd = {},
             rd = {},
         },
@@ -879,9 +874,12 @@ function dfc.initSpawns()
                 end
             end
         end
+    else
+        local redArtZoneNum = math.random(1,2)
+        dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..redArtZoneNum).point, type = "HOWITZER", spawnZone = redArtZoneNum})
+        local blueArtZoneNum = math.random(1,2)
+        dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..blueArtZoneNum).point, type = "HOWITZER", spawnZone = blueArtZoneNum})
     end
-    table.insert(DFS.status[1].spawns.battleships, {groupName = DFS.groupNames[1].battleship})
-    table.insert(DFS.status[2].spawns.battleships, {groupName = DFS.groupNames[2].battleship})
     for i = 1, DFS.status.fdSpawnTotal do
         dfc.respawnFrontDepot({coalitionId = 1, spawnZone = i})
         dfc.respawnFrontDepot({coalitionId = 2, spawnZone = i})
@@ -909,15 +907,12 @@ function dfc.initConvoys()
     end
 end
 function dfc.respawnArtilleryGroup(param)
-    local groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].artillery, param.spawnPoint, 'clone')
-    if param.spawnZone then
-        table.insert(DFS.status[param.coalitionId].spawns.artillery, {groupName = groupName, spawnZone = param.spawnZone} )
-    end
+    local groups = {
+        [1] = {type = "m249", point = param.spawnPoint},
+    }
+    local groupName = FirebaseGroups.spawnCustomGroup(param.spawnPoint, groups, param.coalitionId, 0)
     Firebases.deploy(groupName, param.type, param.ammo, param.guns)
     Group.getByName(groupName):destroy()
-end
-function dfc.respawnBattleshipGroup(param)
-    table.insert(DFS.status[param.coalitionId].spawns.battleships, {groupName = mist.cloneGroup(DFS.groupNames[param.coalitionId].battleship, true).name} )
 end
 function dfc.respawnFrontDepot(param)
     local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].depot..param.spawnZone).point
@@ -972,30 +967,7 @@ function dfc.checkArtHealth()
         end
     end
 end
-function dfc.checkBattleshipHealth()
-    for a = 1, 2 do
-        for i = 1, #DFS.status[a].spawns.battleships do
-            local group = DFS.status[a].spawns.battleships[i]
-            if group == nil then break end
-            local checkingGroup = Group.getByName(group.groupName)
-            local groupDead = false
-            if checkingGroup == nil then
-                groupDead = true
-            elseif checkingGroup:getSize() == 0 then
-                groupDead = true
-            end
-            if groupDead and DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] > 2 then
-                if checkingGroup then
-                    Group.getByName(DFS.status[a].spawns.battleships[i].groupName):destroy()
-                end
-                table.remove(DFS.status[a].spawns.battleships, i)
-                timer.scheduleFunction(dfc.respawnBattleshipGroup, {coalitionId = a}, timer.getTime() + DFS.status.battleshipSpawnDelay)
-                env.info("Battleship check supply decrease", false)
-                dfc.decreaseFrontSupply({coalitionId = a, amount = 6, type = DFS.supplyType.EQUIPMENT})
-            end
-        end
-    end
-end
+
 function dfc.checkFDHealth()
     for a = 1, 2 do
         for i = 1, #DFS.status[a].spawns.fd do
@@ -1441,7 +1413,6 @@ function dfc.sendConvoyLoop()
         env.info('RD: ' .. i, debug)
         local depotPct = 0
         for j = 1, DFS.status.rdSpawnSubDepots do
-            --if debug then trigger.action.outText('Sub Depot Health, RD: ' .. i .. ' SD: ' .. j, 1) end
             for k = 1, #DFS.status[a].spawns.rd do
                 local currentGroup = DFS.status[a].spawns.rd[k]
                 if currentGroup == nil then break end
@@ -1757,7 +1728,6 @@ function dfc.mainLoop()
         return
     else
         dfc.checkArtHealth()
-        dfc.checkBattleshipHealth()
         dfc.checkFDHealth()
         dfc.checkRDHealth()
         --dfc.sendConvoyLoop()
