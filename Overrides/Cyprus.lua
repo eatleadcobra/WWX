@@ -3,6 +3,7 @@ SUBS = true
 AMBUSHES = true
 CAP = true
 BOMBERS = true
+PIRACY = true
 -- counts
 FDCount = 4
 AACount = 8

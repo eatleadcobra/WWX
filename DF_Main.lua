@@ -1295,7 +1295,9 @@ function dfc.createSupplyDrawings()
         end
         dfc.updateSupplyDrawings("FRONT", c)
         dfc.updateSupplyDrawings("REAR", c)
-        dfc.updateSupplyDrawings("PIRATE", c)
+        if PIRACY then
+            dfc.updateSupplyDrawings("PIRATE", c)
+        end
     end
 end
 function dfc.updateSupplyDrawings(depot, coalitionId)
@@ -1372,8 +1374,10 @@ function dfc.supplyDrawingRefreshLoop()
     dfc.updateSupplyDrawings("FRONT", 2)
     dfc.updateSupplyDrawings("REAR", 1)
     dfc.updateSupplyDrawings("REAR", 2)
-    dfc.updateSupplyDrawings("PIRATE", 1)
-    dfc.updateSupplyDrawings("PIRATE", 2)
+    if PIRACY then
+        dfc.updateSupplyDrawings("PIRATE", 1)
+        dfc.updateSupplyDrawings("PIRATE", 2)
+    end
     timer.scheduleFunction(dfc.supplyDrawingRefreshLoop, nil, timer:getTime() + 300)
 end
 --CONVOY AND SHIPPING FUNCS
@@ -1810,7 +1814,7 @@ function dfc.mainLoop()
         dfc.checkFDHealth()
         dfc.checkRDHealth()
         --dfc.sendConvoyLoop()
-        --dfc.newConvoyLoop()
+        dfc.newConvoyLoop()
         dfc.checkNoFlyZones()
         timer.scheduleFunction(dfc.mainLoop, nil, timer.getTime() + 10)
     end
@@ -2104,7 +2108,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                         Firebases.deploy(droppingGroupName, "MORTAR", ammo)
                     elseif troopType == DFS.supplyType.SF then
                         local isWater = land.getSurfaceType({x = droppingPoint.x, y = droppingPoint.z})
-                        if isWater == 2 or isWater == 3 then
+                        if (isWater == 2 or isWater == 3) and PIRACY then
                             local spawnPoints = {}
                             spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.9), 11))
                             spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.7), 10))
