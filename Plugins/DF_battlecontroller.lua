@@ -211,7 +211,9 @@ function bc.main()
                 end
             end
         end
-        bc.sendCompany(c, targetbp, fromDepot)
+        if targetbp ~= -1 then
+            bc.sendCompany(c, targetbp, fromDepot)
+        end
     end
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
 end
@@ -231,6 +233,7 @@ function bc.companyToStrength(companyTable)
     for i = 1, #companyTable do
         cpyStrength = pltStrengths[companyTable[i]]
     end
+    return cpyStrength
 end
 function bc.sendCompany(coalitionId, targetBP, spawnDepot)
     trigger.action.outText("Coaltion: " .. coalitionId .. " is sending a company to BP: " .. targetBP .. " from depot " .. spawnDepot, 10, false)

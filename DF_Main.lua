@@ -309,7 +309,6 @@ DFS.groupNames = {
         artillery = "Red-Art",
         depot = "Red-Depot",
         strike = "Red-Strike",
-        ambush = "Red-Ambush",
         convoy = {
             [1] = "Red-Fuel-Convoy-",
             [2] = "Red-Ammo-Convoy-",
@@ -326,7 +325,6 @@ DFS.groupNames = {
         artillery = "Blue-Art",
         depot = "Blue-Depot",
         strike = "Blue-Strike",
-        ambush = "Blue-Ambush",
         convoy = {
             [1] = "Blue-Fuel-Convoy-",
             [2] = "Blue-Ammo-Convoy-",
@@ -1357,7 +1355,6 @@ function dfc.newConvoyLoop()
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
                 env.info("Start Fuel convoy to front depot: " .. deliverZone, debug)
-                dfc.rollAmbush(ctln, deliverZone, 1)
             end
             --ammo check
             if anytime and ammotime and hasConvoyFuel and needsAmmo and hasAmmoAmt then
@@ -1367,7 +1364,6 @@ function dfc.newConvoyLoop()
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
                 env.info("Start Ammo convoy to front depot: " .. deliverZone, debug)
-                dfc.rollAmbush(ctln, deliverZone, 1)
             end
             --equipment check 
             if anytime and equiptime and hasConvoyFuel and needsEquipment and hasEquipmentAmt then
@@ -1377,31 +1373,6 @@ function dfc.newConvoyLoop()
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
                 env.info("Start Equipment convoy to front depot: " .. deliverZone, debug)
-                dfc.rollAmbush(ctln, deliverZone, 1)
-            end
-        end
-    end
-end
-function dfc.rollAmbush(convoyCoalition, destination, rdNum)
-    if AMBUSHES then
-        local setAmbush = false
-        env.info("checking ambush", false)
-        local roll100 = math.random(100)
-        if roll100 < 25 then
-            env.info("ambush true", false)
-            setAmbush = true
-        end
-        if setAmbush then
-            local ambushPoint = math.random(8)
-            env.info("ambushing at: " .. convoyCoalition.."-"..rdNum.."-"..destination.."-ambush-"..ambushPoint, false)
-            local ambushZone = trigger.misc.getZone(convoyCoalition.."-"..rdNum.."-"..destination.."-ambush-"..ambushPoint)
-            if ambushZone and ambushZone.point and WWEvents then
-                local spawnPoint = ambushZone.point
-                local ambushcoal = 2
-                if convoyCoalition == 2 then ambushcoal = 1 end
-                local ambushGroup = DF_UTILS.spawnGroup(DFS.groupNames[ambushcoal].ambush, spawnPoint, "clone")
-                WWEvents.convoyAmbushDetected(convoyCoalition, destination)
-                timer.scheduleFunction(dfc.destroyGroup, ambushGroup, timer:getTime() + 2100)
             end
         end
     end
@@ -1460,28 +1431,6 @@ function dfc.sendConvoyLoop()
                         dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
                         anySent = true
                         env.info("Start Equipment convoy", debug)
-                    end
-                    if anySent then
-                        local setAmbush = false
-                        env.info("checking ambush", false)
-                        local roll100 = math.random(100)
-                        if roll100 < 25 then
-                            env.info("ambush true", false)
-                            setAmbush = true
-                        end
-                        if setAmbush then
-                            local ambushPoint = math.random(8)
-                            env.info("ambushing at: " .. a.."-"..i.."-"..deliverZone.."-ambush-"..ambushPoint, false)
-                            local ambushZone = trigger.misc.getZone(a.."-"..i.."-"..deliverZone.."-ambush-"..ambushPoint)
-                            if ambushZone and ambushZone.point and WWEvents then
-                                local spawnPoint = ambushZone.point
-                                local ambushcoal = 2
-                                if a == 2 then ambushcoal = 1 end
-                                local ambushGroup = DF_UTILS.spawnGroup(DFS.groupNames[ambushcoal].ambush, spawnPoint, "clone")
-                                WWEvents.convoyAmbushDetected(a, deliverZone)
-                                timer.scheduleFunction(dfc.destroyGroup, ambushGroup, timer:getTime() + 2100)
-                            end
-                        end
                     end
                 end
             end
