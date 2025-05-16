@@ -16,6 +16,10 @@ Company = {
     units = {},
     waypoints = {},
     groupName = "",
+    markUps = {
+        marker = 0,
+        destination = 0
+    },
     deployedGroupNames = {},
     arrived = false,
     onRoad = false,
@@ -188,6 +192,23 @@ function Company.savePosition(self)
                 self.point = cpyPoint
                 self.waypoints[1] = cpyPoint
             end
+        end
+    end
+end
+function Company.updateMarks(self)
+    if DrawingTools then
+        if self.markUps.destination ~= 0 then
+            trigger.action.setMarkupPositionStart(self.markUps.destination, self.point)
+            trigger.action.setMarkupPositionEnd(self.markUps.destination, self.waypoints[#self.waypoints])
+        else
+            self.markUps.destination = DrawingTools.newMarkId()
+            trigger.action.lineToAll(self.coalitionId, self.markUps.destination, self.point, self.waypoints[#self.waypoints], {0,0,0,0}, 1, true, nil)
+        end
+        if self.markUps.marker ~= 0 then
+            trigger.action.setMarkupPositionStart(self.markUps.marker, self.point)
+        else
+            self.markUps.marker = DrawingTools.newMarkId()
+            trigger.action.circleToAll(self.coalitionId, self.markUps.marker, self.point, 100, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
         end
     end
 end

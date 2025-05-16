@@ -1562,11 +1562,9 @@ function dfc.checkPirate(param)
 end
 function dfc.startShipping()
     local redConvoyName = mist.cloneGroup('Red-ShipConvoy-Init').name
-    local redEscortName = mist.cloneGroup('Red-ShipEscort-Init').name
-    dfc.checkShipping({convoyName = redConvoyName, escortName = redEscortName})
+    dfc.checkShipping({convoyName = redConvoyName, escortName = nil})
     local blueConvoyName = mist.cloneGroup('Blue-ShipConvoy-Init').name
-    local blueEscortName = mist.cloneGroup('Blue-ShipEscort-Init').name
-    dfc.checkShipping({convoyName = blueConvoyName, escortName = blueEscortName})
+    dfc.checkShipping({convoyName = blueConvoyName, escortName = nil})
     dfc.shippingLoop()
 end
 function dfc.shippingLoop()
@@ -1576,8 +1574,7 @@ function dfc.shippingLoop()
             if c == 2 then ctlnString = "Blue" end
             local spawnNum = math.random(3)
             local convoyName = mist.cloneGroup(ctlnString..'-ShipConvoy-'..spawnNum).name
-            local escortName = mist.cloneGroup(ctlnString..'-ShipEscort-'..spawnNum).name
-            dfc.checkShipping({convoyName = convoyName, escortName = escortName})
+            dfc.checkShipping({convoyName = convoyName, escortName = nil})
             DFS.status[c].lastShipTime = timer:getTime()
             if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
         end
