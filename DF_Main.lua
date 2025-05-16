@@ -471,7 +471,7 @@ DFS.status = {
         [3] = 36,
     },
     frontSpawnTotal = 12,
-    artSpawnTotal = 4,
+    artSpawnTotal = 2,
     fdSpawnTotal = FDCount,
     rdSpawnTotal = 1,
     rdSpawnSubDepots = 2,
@@ -875,10 +875,10 @@ function dfc.initSpawns()
             end
         end
     else
-        local redArtZoneNum = math.random(1,2)
-        dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..redArtZoneNum).point, type = "HOWITZER", spawnZone = redArtZoneNum})
-        local blueArtZoneNum = math.random(1,2)
-        dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..blueArtZoneNum).point, type = "HOWITZER", spawnZone = blueArtZoneNum})
+        for i = 1, DFS.status.artSpawnTotal do
+            dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..i).point, type = "HOWITZER", spawnZone = i})
+            dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..i).point, type = "HOWITZER", spawnZone = i})
+        end
     end
     for i = 1, DFS.status.fdSpawnTotal do
         dfc.respawnFrontDepot({coalitionId = 1, spawnZone = i})

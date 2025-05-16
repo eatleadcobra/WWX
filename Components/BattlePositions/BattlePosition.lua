@@ -7,9 +7,9 @@ BattlePosition = {
     strength = 0,
     zoneName = "",
 }
-function BattlePosition.new(point, radius, zoneName)
+function BattlePosition.new(id, point, radius, zoneName)
     local newBP = Utils.deepcopy(BattlePosition)
-    newBP.id = Utils.uuid()
+    newBP.id = id
     newBP.point = point
     newBP.radius = radius
     newBP.zoneName = zoneName

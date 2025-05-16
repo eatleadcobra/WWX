@@ -69,7 +69,7 @@ end
 
 function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination)
     local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true)
-    newCpy:setWaypoints({startPoint, destination}, 999)
+    newCpy:setWaypoints({startPoint, destination}, -1, 999)
     newCpy:spawn()
     return newCpy.groupName
 end

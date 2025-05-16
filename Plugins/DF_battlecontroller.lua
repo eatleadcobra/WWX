@@ -28,7 +28,7 @@ function bc.getPositions()
     for i = 1, positionsCountLimit do
         local bpZone = trigger.misc.getZone("BP-"..i)
         if bpZone then
-            local newBP = BattlePosition.new(bpZone.point, bpZone.radius, "BP-"..i)
+            local newBP = BattlePosition.new(i, bpZone.point, bpZone.radius, "BP-"..i)
             battlePositions[newBP.id] = newBP
             table.insert(bpIds, newBP.id)
         end
@@ -47,6 +47,7 @@ function bc.setBPMarkups()
     timer.scheduleFunction(bc.setBPMarkups, nil, timer:getTime() + 30)
 end
 function bc.bpRecon()
+    reconnedBPs = {}
     for c = 1, 2 do
         for k,v in pairs(battlePositions) do
             local enemyCoalition = 2
@@ -63,7 +64,6 @@ function bc.main()
     for k,v in pairs(battlePositions) do
         local redUnits = 0
         local blueUnits = 0
-        local reconnedUnitPoints = {}
         local volS = {
             id = world.VolumeType.SPHERE,
             params = {
@@ -99,6 +99,7 @@ function bc.main()
         end
         local distanceToClosestBp = -1
         local closestNeutralBp = -1
+        local closestEnemyBp = -1
         local closestFd = -1
         for i = 1, #potentialtargets do
             if battlePositions[potentialtargets[i]].ownedBy == 0 then
@@ -124,12 +125,35 @@ function bc.main()
                         end
                     end
                 end
+            elseif battlePositions[potentialtargets[i]].ownedBy ~= 0  and battlePositions[potentialtargets[i]].ownedBy ~= c then
+                local bpPoint = battlePositions[potentialtargets[i]].point
+                if closestEnemyBp == -1 then
+                    closestEnemyBp = potentialtargets[i]
+                else
+                    local shortestDistanceToBp = -1
+                    local closerFd = -1
+                    for j = 1, #DFS.status[c].spawns.fd do
+                        local depotPoint = trigger.misc.getZone(DFS.spawnNames[c].depot..DFS.status[c].spawns.fd[j].spawnZone).point
+                        local depotDist = Utils.PointDistance(depotPoint, bpPoint)
+                        if shortestDistanceToBp == -1 or depotDist < shortestDistanceToBp then
+                            shortestDistanceToBp = depotDist
+                            closerFd = j
+                        end
+                    end
+                    if closerFd ~= -1 and shortestDistanceToBp ~= -1 then
+                        if distanceToClosestBp == -1 or shortestDistanceToBp < distanceToClosestBp then
+                            distanceToClosestBp = shortestDistanceToBp
+                            closestEnemyBp = potentialtargets[i]
+                            closestFd = closerFd
+                        end
+                    end
+                end
             end
         end
         if closestNeutralBp ~= -1 and closestFd ~= -1 then
             bc.sendCompany(c, closestNeutralBp, closestFd)
-        else
-
+        elseif closestEnemyBp ~= -1 and closestFd ~= -1 then
+            bc.sendCompany(c, closestEnemyBp, closestFd)
         end
     end
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
@@ -159,6 +183,8 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot)
     end
 end
 function bc.getAvailableStrengthTable(coalitionId)
+    --strongest comp is two tanks + motor infantry + embedded AD
+    --weakest comp is three APC plts
     return {1,2,3}
 end
 
