@@ -26,60 +26,64 @@ local pltStrengths = {
     [3] = 3 + #Platoons[1]["DeployedInf"],
     [7] = 2
 }
+local pltCosts = {
+    [1] = {
+        [DFS.supplyType.FUEL] = 2,
+        [DFS.supplyType.AMMO] = 5,
+        [DFS.supplyType.EQUIPMENT] = 4
+    },
+    [2] = {
+        [DFS.supplyType.FUEL] = 1,
+        [DFS.supplyType.AMMO] = 2,
+        [DFS.supplyType.EQUIPMENT] = 2
+    },
+    [3] = {
+        [DFS.supplyType.FUEL] = 1,
+        [DFS.supplyType.AMMO] = 1,
+        [DFS.supplyType.EQUIPMENT] = 1
+    },
+    [7] = {
+        [DFS.supplyType.FUEL] = 1,
+        [DFS.supplyType.AMMO] = 3,
+        [DFS.supplyType.EQUIPMENT] = 2
+    },
+}
 local companyCompTiers = {
     [1] = {
         --tank, tank, apc, AD
         composition = {1,1,3,7},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [2] = {
         --tank, ifv, apc, AD
         composition = {1,2,3,7},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [3] = {
         --ifv, ifv, apc, AD
         composition = {2,2,3,7},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [4] = {
         --ifv, apc, apc, AD
         composition = {2,3,3,7},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [5] = {
         --tank, tank, apc
         composition = {1,1,3},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [6] = {
         --tank, ifv, apc
         composition = {1,2,3},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [7] = {
         -- ifv, ifv, apc
         composition = {2,2,3},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [8] = {
         -- ifv, apc, apc
         composition = {2,3,3},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
     [9] = {
         -- apc, apc, apc
         composition = {3,3,3},
-        --fuel, ammo, equipment
-        cost = {5, 10, 6}
     },
 }
 function BattleControl.reconBP(coalitionId, bpID)
@@ -184,6 +188,7 @@ function bc.main()
         table.sort(listOfEnemyBPsByDistance, function(a, b) return a.distance < b.distance end)
         local targetbp = -1
         local fromDepot = -1
+        local targetStrength = 0
         for i = 1, #listOfNeutralBPsByDistance do
             local target = listOfNeutralBPsByDistance[i]
             trigger.action.outText(c .. "-team evaluating potential target: " .. target.bpId, 10, false)
@@ -206,13 +211,14 @@ function bc.main()
                     if target.strength < bc.companyToStrength(bc.getAvailableStrengthTable(c)) then
                         targetbp = target.bpId
                         fromDepot = target.fromDepot
+                        targetStrength = target.strength
                         break
                     end
                 end
             end
         end
         if targetbp ~= -1 then
-            bc.sendCompany(c, targetbp, fromDepot)
+            bc.sendCompany(c, targetbp, fromDepot, targetStrength)
         end
     end
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
@@ -231,22 +237,51 @@ end
 function bc.companyToStrength(companyTable)
     local cpyStrength = 0
     for i = 1, #companyTable do
-        cpyStrength = pltStrengths[companyTable[i]]
+        cpyStrength = cpyStrength + pltStrengths[companyTable[i]]
     end
     return cpyStrength
 end
-function bc.sendCompany(coalitionId, targetBP, spawnDepot)
+function bc.companyToCost(companyTable)
+    local cpyCost = {
+        [DFS.supplyType.FUEL] = 0,
+        [DFS.supplyType.AMMO] = 0,
+        [DFS.supplyType.EQUIPMENT] = 0,
+    }
+    for i = 1, #companyTable do
+        cpyCost[DFS.supplyType.FUEL] = cpyCost[DFS.supplyType.FUEL] + pltCosts[companyTable[i]][DFS.supplyType.FUEL]
+        cpyCost[DFS.supplyType.AMMO] = cpyCost[DFS.supplyType.AMMO] + pltCosts[companyTable[i]][DFS.supplyType.AMMO]
+        cpyCost[DFS.supplyType.EQUIPMENT] = cpyCost[DFS.supplyType.EQUIPMENT] + pltCosts[companyTable[i]][DFS.supplyType.EQUIPMENT]
+    end
+    return cpyCost
+end
+function bc.sendCompany(coalitionId, targetBP, spawnDepot, targetStrength)
     trigger.action.outText("Coaltion: " .. coalitionId .. " is sending a company to BP: " .. targetBP .. " from depot " .. spawnDepot, 10, false)
     local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot).point
     startPoint.x = startPoint.x + 50
     startPoint.z = startPoint.z + 50
     local destination = trigger.misc.getZone(battlePositions[targetBP].zoneName).point
-    local strengthTable = bc.getAvailableStrengthTable(coalitionId)
-    local newCpy = Company.new(coalitionId, true, strengthTable, false)
-    Companies[newCpy.id] = newCpy
-    table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
-    newCpy:setWaypoints({startPoint, destination}, targetBP, 999)
-    newCpy:spawn()
+    local strengthTable = bc.getAvailableStrengthTable(coalitionId, targetStrength)
+    if strengthTable then
+        local companyCost = bc.companyToCost(strengthTable)
+        local canAfford = true
+        for i = 1, 3 do
+            if DFS.status[coalitionId].supply.front[i] < companyCost[i] then
+                canAfford = false
+            end
+        end
+        if strengthTable and canAfford then
+            local newCpy = Company.new(coalitionId, true, strengthTable, false)
+            Companies[newCpy.id] = newCpy
+            table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
+            newCpy:setWaypoints({startPoint, destination}, targetBP, 999)
+            newCpy:spawn()
+            DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.EQUIPMENT, amount = companyCost[DFS.supplyType.EQUIPMENT]})
+            DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.FUEL, amount = companyCost[DFS.supplyType.FUEL]})
+            DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.AMMO, amount = companyCost[DFS.supplyType.AMMO]})
+        else
+            env.info(coalitionId .. " - Cannot send company, not enough equipment", false)
+        end
+    end
 end
 function bc.assessBpStrength(coalitionId, bpId)
     local battlePosition = battlePositions[bpId]
@@ -281,10 +316,19 @@ function bc.assessBpStrength(coalitionId, bpId)
     end
     return positionAssessedStrength
 end
-function bc.getAvailableStrengthTable(coalitionId)
-    return companyCompTiers[math.random(1,9)].composition
-    --strongest comp is two tanks + motor infantry + embedded AD
-    --weakest comp is three APC plts
+function bc.getAvailableStrengthTable(coalitionId, targetStrength)
+    local availableEquipmentPct =  math.floor(DFS.status[coalitionId].supply.front[DFS.supplyType.EQUIPMENT] / DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT] * 100)
+    local cpyTier = math.ceil((100-availableEquipmentPct)/10)
+    if cpyTier < 10 then
+        if targetStrength > 0 then
+            return companyCompTiers[cpyTier].composition
+        else
+            --send weakest available unit to neutral BP
+            return companyCompTiers[#companyCompTiers].composition
+        end
+    else
+        return nil
+    end
 end
 
 bc.getPositions()
