@@ -20,6 +20,68 @@ local reconnedBPs = {
     [1] = {},
     [2] = {},
 }
+local pltStrengths = {
+    [1] = 15,
+    [2] = 5 + #Platoons[1]["DeployedInf"],
+    [3] = 3 + #Platoons[1]["DeployedInf"],
+    [7] = 2
+}
+local companyCompTiers = {
+    [1] = {
+        --tank, tank, apc, AD
+        composition = {1,1,3,7},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [2] = {
+        --tank, ifv, apc, AD
+        composition = {1,2,3,7},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [3] = {
+        --ifv, ifv, apc, AD
+        composition = {2,2,3,7},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [4] = {
+        --ifv, apc, apc, AD
+        composition = {2,3,3,7},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [5] = {
+        --tank, tank, apc
+        composition = {1,1,3},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [6] = {
+        --tank, ifv, apc
+        composition = {1,2,3},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [7] = {
+        -- ifv, ifv, apc
+        composition = {2,2,3},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [8] = {
+        -- ifv, apc, apc
+        composition = {2,3,3},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+    [9] = {
+        -- apc, apc, apc
+        composition = {3,3,3},
+        --fuel, ammo, equipment
+        cost = {5, 10, 6}
+    },
+}
 function BattleControl.reconBP(coalitionId, bpID)
     reconnedBPs[coalitionId][bpID] = true
 end
@@ -47,7 +109,7 @@ function bc.setBPMarkups()
     timer.scheduleFunction(bc.setBPMarkups, nil, timer:getTime() + 30)
 end
 function bc.bpRecon()
-    reconnedBPs = {}
+    reconnedBPs = { [1] = {}, [2] = {}}
     for c = 1, 2 do
         for k,v in pairs(battlePositions) do
             local enemyCoalition = 2
@@ -92,100 +154,134 @@ function bc.main()
     end
     for c = 1, 2 do
         local potentialtargets = {}
+        local listOfNeutralBPsByDistance = {}
+        local listOfEnemyBPsByDistance = {}
         for k,v in pairs(battlePositions) do
             if v.ownedBy ~= c then
                 table.insert(potentialtargets, k)
             end
         end
-        local distanceToClosestBp = -1
-        local closestNeutralBp = -1
-        local closestEnemyBp = -1
-        local closestFd = -1
         for i = 1, #potentialtargets do
-            if battlePositions[potentialtargets[i]].ownedBy == 0 then
-                local bpPoint = battlePositions[potentialtargets[i]].point
-                if closestNeutralBp == -1 then
-                    closestNeutralBp = potentialtargets[i]
-                else
-                    local shortestDistanceToBp = -1
-                    local closerFd = -1
-                    for j = 1, #DFS.status[c].spawns.fd do
-                        local depotPoint = trigger.misc.getZone(DFS.spawnNames[c].depot..DFS.status[c].spawns.fd[j].spawnZone).point
-                        local depotDist = Utils.PointDistance(depotPoint, bpPoint)
-                        if shortestDistanceToBp == -1 or depotDist < shortestDistanceToBp then
-                            shortestDistanceToBp = depotDist
-                            closerFd = j
-                        end
-                    end
-                    if closerFd ~= -1 and shortestDistanceToBp ~= -1 then
-                        if distanceToClosestBp == -1 or shortestDistanceToBp < distanceToClosestBp then
-                            distanceToClosestBp = shortestDistanceToBp
-                            closestNeutralBp = potentialtargets[i]
-                            closestFd = closerFd
-                        end
-                    end
+            local bpPoint = battlePositions[potentialtargets[i]].point
+            local closerDepot = -1
+            local closerDistance = -1
+            for j = 1, #DFS.status[c].spawns.fd do
+                local depotPoint = trigger.misc.getZone(DFS.spawnNames[c].depot..DFS.status[c].spawns.fd[j].spawnZone).point
+                local depotDist = Utils.PointDistance(depotPoint, bpPoint)
+                if closerDistance == -1 or depotDist < closerDistance then
+                    closerDepot = j
+                    closerDistance = depotDist
                 end
-            elseif battlePositions[potentialtargets[i]].ownedBy ~= 0  and battlePositions[potentialtargets[i]].ownedBy ~= c then
-                local bpPoint = battlePositions[potentialtargets[i]].point
-                if closestEnemyBp == -1 then
-                    closestEnemyBp = potentialtargets[i]
-                else
-                    local shortestDistanceToBp = -1
-                    local closerFd = -1
-                    for j = 1, #DFS.status[c].spawns.fd do
-                        local depotPoint = trigger.misc.getZone(DFS.spawnNames[c].depot..DFS.status[c].spawns.fd[j].spawnZone).point
-                        local depotDist = Utils.PointDistance(depotPoint, bpPoint)
-                        if shortestDistanceToBp == -1 or depotDist < shortestDistanceToBp then
-                            shortestDistanceToBp = depotDist
-                            closerFd = j
-                        end
-                    end
-                    if closerFd ~= -1 and shortestDistanceToBp ~= -1 then
-                        if distanceToClosestBp == -1 or shortestDistanceToBp < distanceToClosestBp then
-                            distanceToClosestBp = shortestDistanceToBp
-                            closestEnemyBp = potentialtargets[i]
-                            closestFd = closerFd
-                        end
+            end
+            local bpOwner = battlePositions[potentialtargets[i]].ownedBy
+            if bpOwner == 0 then
+                table.insert(listOfNeutralBPsByDistance, {bpId = potentialtargets[i], distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(c, potentialtargets[i]), ownedBy = battlePositions[potentialtargets[i]].ownedBy})
+            else
+                table.insert(listOfEnemyBPsByDistance, {bpId = potentialtargets[i], distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(c, potentialtargets[i]), ownedBy = battlePositions[potentialtargets[i]].ownedBy})
+            end
+        end
+        table.sort(listOfNeutralBPsByDistance, function(a, b) return a.distance < b.distance end)
+        table.sort(listOfEnemyBPsByDistance, function(a, b) return a.distance < b.distance end)
+        local targetbp = -1
+        local fromDepot = -1
+        for i = 1, #listOfNeutralBPsByDistance do
+            local target = listOfNeutralBPsByDistance[i]
+            trigger.action.outText(c .. "-team evaluating potential target: " .. target.bpId, 10, false)
+            if target.ownedBy == 0 then
+                trigger.action.outText("BP: " .. target.bpId .. " is neutral", 10, false)
+                if bc.companyAssignedToBp(c, target.bpId) == false then
+                    trigger.action.outText("BP: " .. target.bpId .. " is not assigned to any company", 10, false)
+                    targetbp = target.bpId
+                    fromDepot = target.fromDepot
+                    break
+                end
+            end
+        end
+        --only evaluate enemy BPs if no neutral BPs remain
+        if targetbp == -1 then
+            for i = 1, #listOfEnemyBPsByDistance do
+                local target = listOfEnemyBPsByDistance[i]
+                trigger.action.outText(c .. "-team evaluating potential target: " .. target.bpId, 10, false)
+                if target.ownedBy ~= 0 and target.ownedBy ~= c then
+                    if target.strength < bc.companyToStrength(bc.getAvailableStrengthTable(c)) then
+                        targetbp = target.bpId
+                        fromDepot = target.fromDepot
+                        break
                     end
                 end
             end
         end
-        if closestNeutralBp ~= -1 and closestFd ~= -1 then
-            bc.sendCompany(c, closestNeutralBp, closestFd)
-        elseif closestEnemyBp ~= -1 and closestFd ~= -1 then
-            bc.sendCompany(c, closestEnemyBp, closestFd)
-        end
+        bc.sendCompany(c, targetbp, fromDepot)
     end
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
 end
-function bc.sendCompany(coalitionId, targetBP, spawnDepot)
+function bc.companyAssignedToBp(coalitionId, targetbp)
     local cpyAlreadyAssignedToBP = false
     if Companies then
         for k,v in pairs(Companies) do
-            if v.coalitionId == coalitionId and v.bp == targetBP then
+            if v.coalitionId == coalitionId and v.bp == targetbp then
                 cpyAlreadyAssignedToBP = true
             end
         end
     end
-    if cpyAlreadyAssignedToBP then
-        return
-    else
-        local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot).point
-        startPoint.x = startPoint.x + 50
-        startPoint.z = startPoint.z + 50
-        local destination = trigger.misc.getZone(battlePositions[targetBP].zoneName).point
-        local strengthTable = bc.getAvailableStrengthTable(coalitionId)
-        local newCpy = Company.new(coalitionId, true, strengthTable, false)
-        Companies[newCpy.id] = newCpy
-        table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
-        newCpy:setWaypoints({startPoint, destination}, targetBP, 999)
-        newCpy:spawn()
+    return cpyAlreadyAssignedToBP
+end
+function bc.companyToStrength(companyTable)
+    local cpyStrength = 0
+    for i = 1, #companyTable do
+        cpyStrength = pltStrengths[companyTable[i]]
     end
 end
+function bc.sendCompany(coalitionId, targetBP, spawnDepot)
+    trigger.action.outText("Coaltion: " .. coalitionId .. " is sending a company to BP: " .. targetBP .. " from depot " .. spawnDepot, 10, false)
+    local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot).point
+    startPoint.x = startPoint.x + 50
+    startPoint.z = startPoint.z + 50
+    local destination = trigger.misc.getZone(battlePositions[targetBP].zoneName).point
+    local strengthTable = bc.getAvailableStrengthTable(coalitionId)
+    local newCpy = Company.new(coalitionId, true, strengthTable, false)
+    Companies[newCpy.id] = newCpy
+    table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
+    newCpy:setWaypoints({startPoint, destination}, targetBP, 999)
+    newCpy:spawn()
+end
+function bc.assessBpStrength(coalitionId, bpId)
+    local battlePosition = battlePositions[bpId]
+    local positionRealStrength = 0
+    local positionAssessedStrength = 0
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = battlePosition.point,
+            radius = battlePosition.radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() == battlePosition.ownedBy then
+            if foundItem:hasAttribute("Tanks") then
+                positionRealStrength = positionRealStrength + 6
+            elseif foundItem:hasAttribute("IFV") then
+                positionRealStrength = positionRealStrength + 4
+            elseif foundItem:hasAttribute("APC") then
+                positionRealStrength = positionRealStrength + 3
+            else
+                positionRealStrength = positionRealStrength + 1
+            end
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    if reconnedBPs[coalitionId][bpId] then
+        positionAssessedStrength = positionRealStrength
+    else
+        positionAssessedStrength = positionRealStrength * (1 + ((math.random(-4, 4)/10)))
+    end
+    return positionAssessedStrength
+end
 function bc.getAvailableStrengthTable(coalitionId)
+    return companyCompTiers[math.random(1,9)].composition
     --strongest comp is two tanks + motor infantry + embedded AD
     --weakest comp is three APC plts
-    return {1,2,3}
 end
 
 bc.getPositions()
