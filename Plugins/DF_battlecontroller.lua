@@ -191,11 +191,8 @@ function bc.main()
         local targetStrength = 0
         for i = 1, #listOfNeutralBPsByDistance do
             local target = listOfNeutralBPsByDistance[i]
-            trigger.action.outText(c .. "-team evaluating potential target: " .. target.bpId, 10, false)
             if target.ownedBy == 0 then
-                trigger.action.outText("BP: " .. target.bpId .. " is neutral", 10, false)
                 if bc.companyAssignedToBp(c, target.bpId) == false then
-                    trigger.action.outText("BP: " .. target.bpId .. " is not assigned to any company", 10, false)
                     targetbp = target.bpId
                     fromDepot = target.fromDepot
                     break
@@ -206,7 +203,6 @@ function bc.main()
         if targetbp == -1 then
             for i = 1, #listOfEnemyBPsByDistance do
                 local target = listOfEnemyBPsByDistance[i]
-                trigger.action.outText(c .. "-team evaluating potential target: " .. target.bpId, 10, false)
                 if target.ownedBy ~= 0 and target.ownedBy ~= c then
                     if target.strength < bc.companyToStrength(bc.getAvailableStrengthTable(c)) then
                         targetbp = target.bpId
@@ -255,7 +251,6 @@ function bc.companyToCost(companyTable)
     return cpyCost
 end
 function bc.sendCompany(coalitionId, targetBP, spawnDepot, targetStrength)
-    trigger.action.outText("Coaltion: " .. coalitionId .. " is sending a company to BP: " .. targetBP .. " from depot " .. spawnDepot, 10, false)
     local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot).point
     startPoint.x = startPoint.x + 50
     startPoint.z = startPoint.z + 50
