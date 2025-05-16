@@ -603,6 +603,9 @@ DFS.status = {
 }
 DfcMissionEnd = false
 local dfc = {}
+function DFS.decreaseFrontSupply(param)
+    dfc.decreaseFrontSupply(param)
+end
 local debug = false
 local missionOver = false
 local blueState = lfs.writedir() .. [[Logs/]] .. 'blueState.txt'
@@ -1407,13 +1410,11 @@ function dfc.sendConvoyLoop()
                 local needsAmmo = DFS.status[a].supply.front[DFS.supplyType.AMMO] < DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]
                 local needsFuel = DFS.status[a].supply.front[DFS.supplyType.FUEL] < DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]
                 local needsEquipment = DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] < DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
-                local anySent = false
                 local anytime = timer.getTime() - DFS.status[a].anyConvoyTime > DFS.status.convoySeparationTime
                 if anytime then
                     if needsFuel and fueltime and DFS.status[a].supply.rear[DFS.supplyType.FUEL] > (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2) then
                         dfc.decreaseRearSupply({coalitionId = a,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
                         dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
-                        anySent = true
                         env.info("Start Fuel convoy", debug)
                     end
 
@@ -1421,7 +1422,6 @@ function dfc.sendConvoyLoop()
                         dfc.decreaseRearSupply({coalitionId = a,  amount = 2, type = DFS.supplyType.FUEL})
                         dfc.decreaseRearSupply({coalitionId = a,  amount = DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO], type = DFS.supplyType.AMMO})
                         dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
-                        anySent = true
                         env.info("Start ammo convoy", debug)
                     end
 
@@ -1429,7 +1429,6 @@ function dfc.sendConvoyLoop()
                         dfc.decreaseRearSupply({coalitionId = a,  amount = 2, type = DFS.supplyType.FUEL})
                         dfc.decreaseRearSupply({coalitionId = a,  amount = DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
                         dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
-                        anySent = true
                         env.info("Start Equipment convoy", debug)
                     end
                 end
@@ -1444,7 +1443,6 @@ function dfc.destroyGroup(name)
     end
 end
 function dfc.startConvoy(param)
-    --local convoyGroupName = mist.cloneGroup(DFS.groupNames[param.coalitionId].convoy[param.type]..param.startFrom .. '-' .. param.deliverZone, true).name
     local startPoint =  trigger.misc.getZone(DFS.spawnNames[param.coalitionId].convoyStart).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].deliver..param.deliverZone).point
     local convoyGroupName = CpyControl.newConvoy(param.coalitionId, param.type, startPoint, endPoint)
