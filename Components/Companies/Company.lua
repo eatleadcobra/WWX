@@ -63,6 +63,7 @@ function Company.newFromTable(cpyData)
     return newCpy
 end
 function Company.setWaypoints(self, waypoints, bp, speed)
+    self.point = waypoints[1]
     self.waypoints = waypoints
     self.bp = bp
     if speed then self.speed = speed end

@@ -14,7 +14,7 @@ PlatoonTypes = {
     [4] = "FuelConvoy",
     [5] = "AmmoConvoy",
     [6] = "EquipmentConvoy",
-    [7] = "Embedded AD",
+    [7] = "EmbeddedAD",
 }
 Platoons = {
     [1] = {
