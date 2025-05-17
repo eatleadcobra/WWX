@@ -2,6 +2,11 @@ BattlePosition = {
     id = 0,
     ownedBy = 0,
     markupId = 0,
+    reconMarkups = {
+        cameraCenterPoint = 0,
+        fillIds = {}
+    },
+    reconMissionId = -1,
     point = {},
     radius = 0,
     strength = 0,
@@ -20,4 +25,11 @@ function BattlePosition.setOwner(self, coalitionId)
 end
 function BattlePosition.setStrength(self, strength)
     self.strength = strength
+end
+function BattlePosition.resetReconMarkers(self)
+    if self.reconMarkups.fillIds then
+        for i = 1, #self.reconMarkups.fillIds do
+            trigger.action.removeMark(self.reconMarkups.fillIds[i])
+        end
+    end
 end
