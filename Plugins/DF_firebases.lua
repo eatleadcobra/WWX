@@ -15,6 +15,9 @@ local gunAssignments = {
 local assignedGunKills = {
 
 }
+local suppressions = {
+
+}
 local fbId = 1
 local markId = 3000
 local resupDistance = 300
@@ -399,10 +402,70 @@ function fbFuncs.createGroupCounter(firebase)
     for i = 1, #firebase.positions.spawnPoints.groups do
         local currentCounterPos = {x = baseCounterPos.x + 2*drawing.groupCountRadius*i, y = baseCounterPos.y, z = baseCounterPos.z}
         local newMarkId = DrawingTools.newMarkId()
-        trigger.action.circleToAll(firebase.coalition,newMarkId,currentCounterPos, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,0.2},1, true)
+        trigger.action.circleToAll(firebase.coalition,newMarkId,currentCounterPos, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,0.2},1, true, nil)
         firebase.markups.groups.backgrounds[i] = newMarkId
     end
     Firebases.updateGroupCounter(firebase)
+end
+--point, radius, duration
+function fbFuncs.suppressArea(param)
+    local groupsToSuppress = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = param.point,
+            radius = param.radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:isExist() and foundItem:isActive() then
+            local foundGroup = foundItem:getGroup()
+            if foundGroup then
+                local foundGroupName = foundGroup:getName()
+                if foundGroupName then
+                    groupsToSuppress[foundGroupName] = true
+                end
+            end
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    for groupName, included in pairs(groupsToSuppress) do
+        trigger.action.outText("suppressing group: " .. groupName, 10, false)
+        local group = Group.getByName(groupName)
+        if group then
+            local groupController = group:getController()
+            if groupController then
+                --ROE return only
+                groupController:setOption(0,3)
+                --Target ground only
+                groupController:setOption(28, 2)
+                trigger.action.outText("suppressed", 10, false)
+            end
+        end
+    end
+    local suppressionId = Utils.uuid()
+    suppressions[suppressionId] = groupsToSuppress
+    timer.scheduleFunction(fbFuncs.unsuppress, suppressionId, timer:getTime() + param.duration)
+end
+function fbFuncs.unsuppress(suppressionId)
+    trigger.action.outText("unsuppressing: " .. suppressionId, 10, false)
+    local suppressedGroups = suppressions[suppressionId]
+    trigger.action.outText("groups: " .. Utils.dump(suppressedGroups), 10, false)
+    for k,v in pairs(suppressedGroups) do
+        local group = Group.getByName(k)
+        if group then
+            trigger.action.outText("unsuppressing group: " .. k, 10, false)
+            local groupController = group:getController()
+            if groupController then
+                --ROE free fire
+                groupController:setOption(0,2)
+                --ROE remove target restritions
+                groupController:setOption(28, 0)
+                trigger.action.outText("unsuppressed", 10, false)
+            end
+        end
+    end
 end
 function Firebases.updateGroupCounter(firebase)
     for i = 1, #firebase.markups.groups.backgrounds do
@@ -596,6 +659,7 @@ function fbFuncs.firebaseFire(firebase, targetmark)
         end
     end
     local missionTime = firemissionDelays[firebase.fbType].aiming + ((mission.expendQty-1)*firemissionDelays[firebase.fbType].perShot)
+    timer.scheduleFunction(fbFuncs.suppressArea, {point = targetmark.pos, radius = 500, duration = ((mission.expendQty)*firemissionDelays[firebase.fbType].perShot)}, timer:getTime() + firemissionDelays[firebase.fbType].aiming + 15)
     firebase:expendAmmo(mission.expendQty)
     Firebases.updateAmmoCounter(firebase)
     if targetmark.id then
