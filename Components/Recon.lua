@@ -2,6 +2,9 @@
 -- Requires Utils/drawingTools.lua
 Recon = {}
 local recon = {}
+local potentialReconJets = {
+
+}
 local reconParams = {
     pointRadius = 1000,
     minAGL = 200,
@@ -49,7 +52,7 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 local groupName = group:getName()
-                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] then
+                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] or potentialReconJets[groupName] then
                     currentReconJets[groupName] = group:getID()
                     trigger.action.outTextForGroup(group:getID(), "Valid recon flight being tracked.", 10, false)
                     trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
@@ -82,6 +85,7 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 currentReconJets[group:getName()] = nil
+                potentialReconJets[group:getName()] = nil
                 local unit = group:getUnit(1)
                 if unit then
                     local player = unit:getPlayerName()
@@ -154,6 +158,37 @@ function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
 end
 function Recon.cleanmission(coalitionId, missionId)
     recon.cleanMission(coalitionId, missionId)
+end
+function Recon.addRadioCommandsForGroup(groupName)
+    local addGroup = Group.getByName(groupName)
+    if addGroup ~= nil then
+        local addID = addGroup:getID()
+        missionCommands.addCommandForGroup(addID, "Load Recon Equipment", nil, recon.registerReconGroup, groupName)
+    end
+end
+function Recon.removeRadioCommandsForGroup(groupID)
+    missionCommands.removeItemForGroup(groupID, {[1] = "Load Recon Equipment"})
+    missionCommands.removeItemForGroup(groupID, {[1] = "Check Recon Parameters"})
+    missionCommands.removeItemForGroup(groupID, {[1] = "Unload Recon Equipment"})
+end
+function recon.registerReconGroup(groupName)
+    local addGroup = Group.getByName(groupName)
+    if addGroup ~= nil then
+        local addID = addGroup:getID()
+        potentialReconJets[groupName] = true
+        missionCommands.removeItemForGroup(addID, {[1] = "Load Recon Equipment"})
+        missionCommands.addCommandForGroup(addID, "Check Recon Parameters", nil, recon.checkReconParams, addID)
+        local param = {groupName = groupName, groupID = addID}
+        missionCommands.addCommandForGroup(addID, "Unload Recon Equipment", nil, recon.deregisterReconGroup, param)
+    end
+end
+function recon.deregisterReconGroup(param)
+    potentialReconJets[param.groupName] = nil
+    missionCommands.removeItemForGroup(param.groupID, {[1] = "Unload Recon Equipment"})
+    missionCommands.removeItemForGroup(param.groupID, {[1] = "Check Recon Parameters"})
+end
+function recon.checkReconParams(groupID)
+    trigger.action.outTextForGroup(groupID, "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
 end
 function recon.trackReconJet(reconGroupName)
     if currentReconJets[reconGroupName] then
