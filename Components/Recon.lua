@@ -4,10 +4,10 @@ Recon = {}
 local recon = {}
 local reconParams = {
     pointRadius = 1000,
-    minAGL = 610,
+    minAGL = 200,
     maxAGL = 3049,
-    maxPitch = 0.18,
-    maxRoll = 0.27
+    maxPitch = 0.36,
+    maxRoll = 0.55
 }
 local maxCaptures = 4
 local missionTypes = {
@@ -151,6 +151,9 @@ function Recon.createEnemyLocationMissionNoMarker(coalitionId, missionPoint, mis
 end
 function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
     
+end
+function Recon.cleanmission(coalitionId, missionId)
+    recon.cleanMission(coalitionId, missionId)
 end
 function recon.trackReconJet(reconGroupName)
     if currentReconJets[reconGroupName] then

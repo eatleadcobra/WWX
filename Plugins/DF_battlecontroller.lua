@@ -88,6 +88,7 @@ local companyCompTiers = {
 }
 function BattleControl.reconBP(coalitionId, bpID)
     reconnedBPs[coalitionId][bpID] = true
+    bc.fillCamera(coalitionId,bpID)
 end
 
 function bc.getPositions()
@@ -97,6 +98,8 @@ function bc.getPositions()
             local newBP = BattlePosition.new(i, bpZone.point, bpZone.radius, "BP-"..i)
             battlePositions[newBP.id] = newBP
             table.insert(bpIds, newBP.id)
+            bc.drawCamera(newBP.id)
+            bc.fillCamera(-1, newBP.id)
         end
     end
 end
@@ -113,9 +116,9 @@ function bc.setBPMarkups()
     timer.scheduleFunction(bc.setBPMarkups, nil, timer:getTime() + 30)
 end
 function bc.bpRecon()
-    reconnedBPs = { [1] = {}, [2] = {}}
     for c = 1, 2 do
         for k,v in pairs(battlePositions) do
+            v:resetReconMarkers()
             local enemyCoalition = 2
             if c == 2 then enemyCoalition = 1 end
             if v.ownedBy == enemyCoalition then
@@ -124,6 +127,27 @@ function bc.bpRecon()
         end
     end
     timer.scheduleFunction(bc.bpRecon, nil, timer:getTime() + 3600)
+end
+function bc.drawCamera(bpId)
+    local battlePosition = battlePositions[bpId]
+    if battlePosition then
+        local cameraPoint = {x = battlePosition.point.x + battlePosition.radius + 150, y = 0, z = battlePosition.point.z}
+        local cameraCenterPoint = DrawingTools.drawCamera(-1, cameraPoint)
+        battlePosition.reconMarkups.cameraCenterPoint = cameraCenterPoint
+    end
+end
+function bc.fillCamera(coalitionId, bpId)
+    local battlePosition = battlePositions[bpId]
+    if battlePosition then
+        local checkStartPoint = {x = battlePosition.reconMarkups.cameraCenterPoint.x - 50, y=0, z = battlePosition.reconMarkups.cameraCenterPoint.z }
+        local leftCheckEnd = {x = battlePosition.reconMarkups.cameraCenterPoint.x, y=0, z = battlePosition.reconMarkups.cameraCenterPoint.z - 50}
+        local rightCheckEnd = {x = battlePosition.reconMarkups.cameraCenterPoint.x + 30, y=0, z = battlePosition.reconMarkups.cameraCenterPoint.z + 70}
+        local leftCheckId = DrawingTools.newMarkId()
+        local rightCheckId = DrawingTools.newMarkId()
+        trigger.action.lineToAll(coalitionId, leftCheckId, checkStartPoint, leftCheckEnd, {0,1,0,1}, 1, true, nil)
+        trigger.action.lineToAll(coalitionId, rightCheckId, checkStartPoint, rightCheckEnd, {0,1,0,1}, 1, true, nil)
+        battlePosition.reconMarkups.fillIds = {[1] = leftCheckId, [2] = rightCheckId}
+    end
 end
 
 function bc.main()
@@ -154,7 +178,15 @@ function bc.main()
         elseif redUnits > blueUnits then
             ownedBy = 1
         end
-        v.ownedBy = ownedBy
+        if v.ownedBy ~= ownedBy then
+            if v.reconMissionId ~= 1 then
+                Recon.cleanmission(v.ownedBy, v.reconMissionId)
+            end
+            if v.ownedBy ~= 0 and ownedBy ~= 0 then
+                v.reconMissionId = Recon.createBPScoutingMission(v.ownedBy, v.point, v.id)
+            end
+            v.ownedBy = ownedBy
+        end
     end
     for c = 1, 2 do
         local potentialtargets = {}
@@ -328,9 +360,4 @@ end
 
 bc.getPositions()
 bc.setBPMarkups()
-bc.bpRecon()
---for each coalition, find the best target (balance of distance and defensive strength)
---determine strongest available company (already made or can be made)
---  -- if all available companies are weaker than what can be made now, bolster most strategic BP
--- assign companies to BPs
 bc.main()
