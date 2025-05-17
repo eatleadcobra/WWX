@@ -99,7 +99,6 @@ function bc.getPositions()
             battlePositions[newBP.id] = newBP
             table.insert(bpIds, newBP.id)
             bc.drawCamera(newBP.id)
-            bc.fillCamera(-1, newBP.id)
         end
     end
 end
@@ -179,11 +178,15 @@ function bc.main()
             ownedBy = 1
         end
         if v.ownedBy ~= ownedBy then
-            if v.reconMissionId ~= 1 then
+            trigger.action.outText("BP changed ownership from " .. v.ownedBy .. " to " .. ownedBy, 10, false)
+            if v.reconMissionId ~= -1 then
+                trigger.action.outText("BP has existing recon mission", 10, false)
                 Recon.cleanmission(v.ownedBy, v.reconMissionId)
             end
-            if v.ownedBy ~= 0 and ownedBy ~= 0 then
-                v.reconMissionId = Recon.createBPScoutingMission(v.ownedBy, v.point, v.id)
+            if ownedBy ~= 0 then
+                local reconCoalitionId = 1
+                if ownedBy == 1 then reconCoalitionId = 2 end
+                v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id)
             end
             v.ownedBy = ownedBy
         end

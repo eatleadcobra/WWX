@@ -263,16 +263,19 @@ function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
 end
 function recon.cleanMission(coalitionId, missionId)
     env.info("cleaning mission", false)
-    local missionMarkId = currentMissions[coalitionId][missionId].markId
-    local capturedBy = currentMissions[coalitionId][missionId].capturedBy
-    if capturedBy then
-        captures[capturedBy][missionId] = nil
+    local mission = currentMissions[coalitionId][missionId]
+    if mission then
+        local missionMarkId = mission.markId
+        local capturedBy = mission.capturedBy
+        if capturedBy then
+            captures[capturedBy][missionId] = nil
+        end
+        if missionMarkId then
+            env.info("removing mark", false)
+            trigger.action.removeMark(missionMarkId)
+        end
+        currentMissions[coalitionId][missionId] = nil
     end
-    if missionMarkId then
-        env.info("removing mark", false)
-        trigger.action.removeMark(missionMarkId)
-    end
-    currentMissions[coalitionId][missionId] = nil
 end
 --coalitionId, missionId
 function recon.destroyMission(param)
