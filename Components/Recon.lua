@@ -37,14 +37,9 @@ local currentMissions = {
     [2] = {
     },
 }
-local reconJetTypes = {
-    ["Yak-52"] = 1,
-    ["TF-51D"] = 1,
-}
 local currentReconJets = {
 
 }
-local reconGroupIdentifier = "RECON"
 local reconEvents = {}
 function reconEvents:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF then
@@ -52,11 +47,14 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 local groupName = group:getName()
-                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] or potentialReconJets[groupName] then
+                if potentialReconJets[groupName] then
                     currentReconJets[groupName] = group:getID()
                     trigger.action.outTextForGroup(group:getID(), "Valid recon flight being tracked.", 10, false)
                     trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
                     recon.trackReconJet(groupName)
+                   missionCommands.removeItemForGroup(group:getID(), {[1] = "Unload Recon Equipment"})
+                else
+                    Recon.removeRadioCommandsForGroup(group:getID())
                 end
             end
         end
@@ -66,8 +64,8 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 local groupName = group:getName()
-                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] then
-                    currentReconJets[group:getName()] = nil
+                if currentReconJets[groupName] then
+                    currentReconJets[groupName] = nil
                     local unit = group:getUnit(1)
                     if unit then
                         local player = unit:getPlayerName()
@@ -186,6 +184,7 @@ function recon.deregisterReconGroup(param)
     potentialReconJets[param.groupName] = nil
     missionCommands.removeItemForGroup(param.groupID, {[1] = "Unload Recon Equipment"})
     missionCommands.removeItemForGroup(param.groupID, {[1] = "Check Recon Parameters"})
+    missionCommands.addCommandForGroup(param.groupID, "Load Recon Equipment", nil, recon.registerReconGroup, param.groupName)
 end
 function recon.checkReconParams(groupID)
     trigger.action.outTextForGroup(groupID, "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
