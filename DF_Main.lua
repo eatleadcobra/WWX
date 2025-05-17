@@ -2469,6 +2469,9 @@ function dfc.addRadioCommandsForGroup(groupName)
         if Sonobuoys then
             Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
         end
+        if Recon then
+            Recon.addRadioCommandsForGroup(groupName)
+        end
     end
 end
 function dfc.addRadioCommandsForMADGroup(groupName)
