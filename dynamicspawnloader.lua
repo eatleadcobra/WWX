@@ -1,1 +1,5 @@
-assert(loadfile("F:\\Games\\WWX\\Utils\\DynamicSpawns\\dynamicSpawnManager.lua"))()
+local pathToWWX = "C:\\WWX\\"
+if DEBUG then
+   pathToWWX = "F:\\Games\\WWX\\"
+end
+assert(loadfile(pathToWWX.."Utils\\DynamicSpawns\\dynamicSpawnManager.lua"))()
