@@ -26,12 +26,14 @@ Platoons = {
         ["Mech"] = {
             [1] = "BMP-1",
             [2] = "BMP-1",
-            [3] = "GAZ-66"
+            [3] = "BTR_D",
+            [4] = "GAZ-66"
         },
         ["Inf"] = {
             [1] = "BTR-80",
             [2] = "BTR-80",
-            [3] = "GAZ-66"
+            [3] = "GAZ-66",
+            [4] = "BTR_D",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
@@ -82,17 +84,19 @@ Platoons = {
         ["Armor"] = {
             [1] = "Leopard1A3",
             [2] = "Leopard1A3",
-            [3] = "Land_Rover_101_FC"
+            [3] = "M 818"
         },
         ["Mech"] = {
             [1] = "Marder",
             [2] = "Marder",
-            [3] = "Land_Rover_101_FC"
+            [3] = "M1045 HMMWV TOW",
+            [4] = "M 818"
         },
         ["Inf"] = {
             [1] = "TPZ",
             [2] = "TPZ",
-            [3] = "Land_Rover_101_FC"
+            [3] = "M1045 HMMWV TOW",
+            [4] = "M 818"
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",

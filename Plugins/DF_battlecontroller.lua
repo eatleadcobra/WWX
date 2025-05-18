@@ -67,7 +67,7 @@ local companyCompTiers = {
     },
     [5] = {
         --tank, tank, apc
-        composition = {1,1,3},
+        composition = {1,3,3,7},
     },
     [6] = {
         --tank, ifv, apc
