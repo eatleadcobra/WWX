@@ -116,11 +116,15 @@ function cpyctl.cpyStatusLoop()
                         end
                     end
                 else
+                    trigger.action.removeMark(cpy.markUps.destination)
+                    trigger.action.removeMark(cpy.markUps.marker)
                     Companies[CompanyIDs[c][i]] = nil
                     table.remove(CompanyIDs[c], i)
                     break
                 end
             else
+                trigger.action.removeMark(cpy.markUps.destination)
+                trigger.action.removeMark(cpy.markUps.marker)
                 Companies[CompanyIDs[c][i]] = nil
                 table.remove(CompanyIDs[c], i)
                 break
@@ -158,23 +162,3 @@ cpyctl.spawnCompanies()
 
 cpyctl.saveLoop()
 cpyctl.cpyStatusLoop()
-
--- local startPoint = trigger.misc.getZone("Red-FrontDepot-1").point
--- startPoint.x = startPoint.x + 50
--- startPoint.z = startPoint.z + 50
--- local destination = trigger.misc.getZone("BP-1").point
--- local testCpy = Company.new(1, true, {1,2,3}, false)
--- Companies[testCpy.id] = testCpy
--- table.insert(CompanyIDs[testCpy.coalitionId], testCpy.id)
--- testCpy:setWaypoints({startPoint, destination}, 999)
--- testCpy:spawn()
-
--- local startPoint2 = trigger.misc.getZone("Blue-FrontDepot-1").point
--- startPoint2.x = startPoint2.x + 50
--- startPoint2.z = startPoint2.z + 50
--- local destination2 = trigger.misc.getZone("BP-1").point
--- local testCpy2 = Company.new(2, true, {1,2,3}, false)
--- Companies[testCpy2.id] = testCpy2
--- table.insert(CompanyIDs[testCpy2.coalitionId], testCpy2.id)
--- testCpy2:setWaypoints({startPoint2, destination2}, 999)
--- testCpy2:spawn()
