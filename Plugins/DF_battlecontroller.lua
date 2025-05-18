@@ -178,9 +178,7 @@ function bc.main()
             ownedBy = 1
         end
         if v.ownedBy ~= ownedBy then
-            trigger.action.outText("BP changed ownership from " .. v.ownedBy .. " to " .. ownedBy, 10, false)
             if v.reconMissionId ~= -1 then
-                trigger.action.outText("BP has existing recon mission", 10, false)
                 Recon.cleanmission(v.ownedBy, v.reconMissionId)
             end
             if ownedBy ~= 0 then

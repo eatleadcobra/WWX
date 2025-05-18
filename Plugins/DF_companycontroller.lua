@@ -39,6 +39,7 @@ function cpyctl.saveCompanies()
             waypoints = v.waypoints,
             groupName = v.groupName,
             deployedGroupNames = v.deployedGroupNames,
+            deployableGroups = v.deployableGroups,
             arrived = v.arrived,
             onRoad = v.onRoad,
             speed = v.speed,
@@ -107,9 +108,9 @@ function cpyctl.cpyStatusLoop()
                         local lastUnitVelocity = lastUnit:getVelocity()
                         local firstUnitVelocity = firstUnit:getVelocity()
                         if lastUnitVelocity and firstUnitVelocity then
-                            if Utils.getSpeed(firstUnitVelocity) < 0.1 and Utils.getSpeed(lastUnitVelocity) < 0.1 and cpy.arrived then
+                            if Utils.getSpeed(firstUnitVelocity) < 0.1 and Utils.getSpeed(lastUnitVelocity) < 0.1 and cpy.isDeployed == false then
                                 cpy:deploy()
-                            elseif (Utils.getSpeed(firstUnitVelocity) > 0.1 and Utils.getSpeed(lastUnitVelocity) > 0.1) and cpy.isDeployed and cpy.arrived == false then
+                            elseif (Utils.getSpeed(firstUnitVelocity) > 0.1 or Utils.getSpeed(lastUnitVelocity) > 0.1) and cpy.isDeployed then
                                 cpy:undeploy()
                             end
                         end
