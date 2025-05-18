@@ -8,8 +8,8 @@ local potentialReconJets = {
 local reconParams = {
     pointRadius = 1000,
     minAGL = 200,
-    maxAGL = 3049,
-    maxPitch = 0.36,
+    maxASL = env.mission.weather.clouds.base,
+    maxPitch = 0.35,
     maxRoll = 0.55
 }
 local maxCaptures = 4
@@ -50,7 +50,7 @@ function reconEvents:onEvent(event)
                 if potentialReconJets[groupName] then
                     currentReconJets[groupName] = group:getID()
                     trigger.action.outTextForGroup(group:getID(), "Valid recon flight being tracked.", 10, false)
-                    trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
+                    trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax ASL: " .. math.floor(3.28*reconParams.maxASL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
                     recon.trackReconJet(groupName)
                    missionCommands.removeItemForGroup(group:getID(), {[1] = "Unload Recon Equipment"})
                 else
@@ -187,7 +187,7 @@ function recon.deregisterReconGroup(param)
     missionCommands.addCommandForGroup(param.groupID, "Load Recon Equipment", nil, recon.registerReconGroup, param.groupName)
 end
 function recon.checkReconParams(groupID)
-    trigger.action.outTextForGroup(groupID, "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
+    trigger.action.outTextForGroup(groupID, "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax ASL: " .. math.floor(3.28*reconParams.maxASL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
 end
 function recon.trackReconJet(reconGroupName)
     if currentReconJets[reconGroupName] then
@@ -214,7 +214,7 @@ function recon.inParams(position, point)
     local roll = math.abs(math.atan2(-position.z.y, position.y.y))
     local AGL = Utils.getAGL(point)
     --trigger.action.outText("Pitch: " .. pitch .. " Roll: " .. roll .. " AGL: " .. AGL, 1, false)
-    if pitch < reconParams.maxPitch and roll < reconParams.maxRoll and (reconParams.minAGL < AGL and AGL < reconParams.maxAGL ) then
+    if pitch < reconParams.maxPitch and roll < reconParams.maxRoll and (reconParams.minAGL < AGL and point.y < reconParams.maxASL ) then
         --trigger.action.outText("In params", 1, false)
         return true
     else
