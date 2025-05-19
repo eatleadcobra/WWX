@@ -242,7 +242,7 @@ function bc.main()
                 local target = listOfEnemyBPsByDistance[i]
                 if target.ownedBy ~= 0 and target.ownedBy ~= c then
                     -- TODO: rework this calculation to account for desperation and relative strength better
-                    if target.strength <= bc.companyToStrength(bc.getAvailableStrengthTable(c)) then
+                    if target.strength <= bc.companyToStrength(bc.getAvailableStrengthTable(c, target.strength)) then
                         targetbp = target.bpId
                         fromDepot = target.fromDepot
                         targetStrength = target.strength
