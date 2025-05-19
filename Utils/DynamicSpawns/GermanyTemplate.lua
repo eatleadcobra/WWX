@@ -27,7 +27,6 @@ Airframes = {
     [2] = {
         main = {
             ["UH-1H"] = true,
-            ["OH-6A"] = true,
             ["SA342L"] = true,
             ["OH58D"] = true,
             ["A-10A"] = true,
@@ -41,14 +40,12 @@ Airframes = {
         },
         forward = {
             ["UH-1H"] = true,
-            ["OH-6A"] = true,
             ["SA342L"] = true,
             ["OH58D"] = true,
             ["Bronco-OV-10A"] = true,
         },
         farp = {
             ["UH-1H"] = true,
-            ["OH-6A"] = true,
             ["SA342L"] = true,
             ["OH58D"] = true,
         }

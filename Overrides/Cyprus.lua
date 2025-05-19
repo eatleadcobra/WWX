@@ -5,19 +5,9 @@ CAP = true
 BOMBERS = true
 PIRACY = true
 -- counts
-FDCount = 4
+FDCount = 2
 AACount = 8
 
-
--- template definitions
-PlatoonTypes = {
-    [1] = "Armor",
-    [2] = "Mech",
-    [3] = "Inf",
-    [4] = "FuelConvoy",
-    [5] = "AmmoConvoy",
-    [6] = "EquipmentConvoy"
-}
 Platoons = {
     [1] = {
         ["Armor"] = {
