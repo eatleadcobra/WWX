@@ -21,7 +21,7 @@ function dsm.loop()
                                 airbaseList[i]:getWarehouse():removeItem(k, v)
                             end
                         end
-                        if airbaseCategory == 1 and Airframes[airbaseCoalition].farp[k] == nil then
+                        if airbaseCategory == 2 and Airframes[airbaseCoalition].farp[k] == nil then
                             airbaseList[i]:getWarehouse():removeItem(k, v)
                         end
                     end
@@ -52,7 +52,7 @@ function dsm.loop()
                 end
             end
         end
-        timer.scheduleFunction(dsm.loop, nil, timer:getTime() + 1800)
+        --timer.scheduleFunction(dsm.loop, nil, timer:getTime() + 1800)
     end
 end
 dsm.loop()
