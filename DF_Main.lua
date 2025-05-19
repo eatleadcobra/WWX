@@ -1419,7 +1419,6 @@ function dfc.startConvoy(param)
     DFS.status[param.coalitionId].anyConvoyTime = timer.getTime()
 end
 function DFS.checkConvoy(param)
-    trigger.action.outText(Utils.dump(param), 10, false)
     dfc.checkConvoy(param)
 end
 function dfc.checkConvoy(param)
