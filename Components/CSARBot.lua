@@ -714,7 +714,7 @@ function CSB:onEvent(e)
     local isCsarUnit = false
     local playerName = nil
     --//EJECTION EVENTS
-    if evtId == 6 then -- eject
+    if evtId == 6 and e.initiator and e.initiator.getGroup then -- eject
         local group = e.initiator:getGroup()
         if group then
             local groupName = group:getName()
