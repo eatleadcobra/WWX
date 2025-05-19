@@ -15,7 +15,6 @@ function smokeEvents:onEvent(event)
         if playerName and (event.weapon:getCategory() == 2 or event.weapon:getCategory() == 3 )then
             if smokeTracker.isSmokeRocket(event.weapon:getDesc()["displayName"]) then
                 if targetMarks[playerName] == nil or (targetMarks[playerName] and targetMarks[playerName].startTime and timer:getTime() - targetMarks[playerName].startTime >= delayTime) then
-                    env.info("adding marks table for player: " .. playerName, false)
                     targetMarks[playerName] = {
                         tracking = true,
                         startTime = timer:getTime(),
@@ -30,7 +29,6 @@ function smokeEvents:onEvent(event)
 end
 function smokeTracker.isSmokeRocket(weaponDesc)
     if string.find(weaponDesc, 'SM') or string.find(weaponDesc, 'TsM') or string.find(weaponDesc, 'SMK') or string.find(weaponDesc, 'Green') or string.find(weaponDesc, 'Red') or string.find(weaponDesc, 'Yellow') or string.find(weaponDesc, 'Wht Phos') or string.find(weaponDesc, 'SMOKE Grenade') then
-        env.info("smoke rocket fired or smoke grenade dropped: " .. weaponDesc, false)
         return true
     end
     return false
@@ -43,7 +41,6 @@ function smokeTracker.trackWeapon(param)
         local weaponSpeed = (vec.x^2 + vec.y^2 + vec.z^2)^0.5
         local smokePoint = land.getIP(param.weapon:getPosition().p, param.weapon:getPosition().x, weaponSpeed * 0.1)
         if smokePoint and targetMarks[param.playerName] then
-            env.info("smoke rocket IP added to table for " .. param.playerName, false)
             table.insert(targetMarks[param.playerName].points, smokePoint)
         else
             timer.scheduleFunction(smokeTracker.trackWeapon, {weapon = param.weapon, playerName = param.playerName}, timer.getTime()+0.1)
@@ -52,9 +49,7 @@ function smokeTracker.trackWeapon(param)
 end
 --playerName, coalition
 function smokeTracker.fire(param)
-    env.info("smoke rocket fire for " .. param.playerName, false)
     if targetMarks[param.playerName] and targetMarks[param.playerName].points and #targetMarks[param.playerName].points > 0 then
-        env.info("player table found and populated", false)
         local avgPoint = targetMarks[param.playerName].points[1]
         local pointCount = #targetMarks[param.playerName].points
         if pointCount > 1 then
@@ -70,7 +65,6 @@ function smokeTracker.fire(param)
         end
         --this point is where we want to blow up stuff, replace smoke with call to artillery fire function
         --trigger.action.smoke(avgPoint, 0)
-        env.info("artillery point added for " .. param.playerName, false)
         table.insert(artyPoints[param.coalition], {point = avgPoint, playerName = param.playerName})
 
     end
@@ -79,10 +73,8 @@ end
 function smokeTracker.assignmentLoop()
     for c = 1,2 do
         for i=1, #artyPoints[c] do
-            env.info("Checking point: " .. c .. "-" .. i, false)
             local firedOn = Firebases.rocketFire(artyPoints[c][i].point, c, artyPoints[c][i].playerName)
             if firedOn then
-                env.info("smoke rocket point fired on or out of range", false)
                 table.remove(artyPoints[c], i)
                 break
             end

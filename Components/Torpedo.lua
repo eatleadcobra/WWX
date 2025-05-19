@@ -20,7 +20,6 @@ function torpEvents:onEvent(event)
             if event.initiator and event.initiator.getPlayerName then
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
-            env.info("Tracking torpedo: " .. event.weapon:getCategory(), false)
             torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
         elseif event.weapon:getTypeName() == "Mark_46" then
             local torpedoPlayerName = ""
@@ -29,7 +28,6 @@ function torpEvents:onEvent(event)
                 torpedoPlayerGroupID = event.initiator:getGroup():getID()
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
-            env.info("Tracking active torpedo: " .. event.weapon:getCategory(), false)
             torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerGroupId = torpedoPlayerGroupID, playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
         end
     end
@@ -144,7 +142,6 @@ function torp.TrackTorpedo(param)
         if torpedoPoint ~= nil then
             local shipPoint = torp.DetonateTorpedo(torpedoPoint)
             if shipPoint ~= nil then
-                env.info("Detonate", false)
                 trigger.action.explosion(shipPoint, 1000)
                 if WWEvents then
                     WWEvents.playerTorpedoedShip(param.playerName, param.playerName .. " hit a ship with a torpedo. That's badass!", param.coalitionId)

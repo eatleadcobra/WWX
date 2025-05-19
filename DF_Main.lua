@@ -1051,8 +1051,6 @@ end
 function dfc.decreaseFrontSupply(param)
     --params coalitionId, amount
     DFS.status[param.coalitionId].supply.front[param.type] = DFS.status[param.coalitionId].supply.front[param.type] - param.amount
-    env.info(param.coalitionId .. "-FrontSupply-"..DFS.supplyNames[param.type].." decreased by " .. param.amount .. "to " .. DFS.status[param.coalitionId].supply.front[param.type], false)
-    env.info("Current Supply modifier: " .. (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal) .. " Current supply cap = " .. DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal), false)
     if DFS.status[param.coalitionId].supply.front[param.type] < 0 then
         DFS.status[param.coalitionId].supply.front[param.type] = 0
     end
@@ -1068,8 +1066,6 @@ end
 function dfc.increaseRearSupply(param)
     --params coalitionId, amount
     DFS.status[param.coalitionId].supply.rear[param.type] = DFS.status[param.coalitionId].supply.rear[param.type] + param.amount
-    env.info(param.coalitionId .. "-RearSupply-"..DFS.supplyNames[param.type].." increased by " .. param.amount ..  "to " .. DFS.status[param.coalitionId].supply.rear[param.type], false)
-    env.info("Current Supply modifier: " .. (#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal)) .. " Current supply cap = " .. ((DFS.status.maxSuppliesRear[param.type])*(#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))) , false)
     if DFS.status[param.coalitionId].supply.rear[param.type] > math.floor((DFS.status.maxSuppliesRear[param.type])*(#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))) then
         DFS.status[param.coalitionId].supply.rear[param.type] = math.floor(((DFS.status.maxSuppliesRear[param.type])*(#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))))
     end
@@ -1081,8 +1077,6 @@ end
 function dfc.decreaseRearSupply(param)
     --params coalitionId, amount
     DFS.status[param.coalitionId].supply.rear[param.type] = DFS.status[param.coalitionId].supply.rear[param.type] - param.amount
-    env.info(param.coalitionId .. "-RearSupply-"..DFS.supplyNames[param.type].." decreased by " .. param.amount..  "to " .. DFS.status[param.coalitionId].supply.rear[param.type], false)
-    env.info("Current Supply modifier: " .. (#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal)) .. " Current supply cap = " .. ((DFS.status.maxSuppliesRear[param.type])*(#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))), false)
     if DFS.status[param.coalitionId].supply.rear[param.type] < 0 then
         DFS.status[param.coalitionId].supply.rear[param.type] = 0
     end
@@ -1098,7 +1092,6 @@ end
 function dfc.increasePirateSupply(param)
     --params coalitionId, amount
     DFS.status[param.coalitionId].supply.pirate[param.type] = DFS.status[param.coalitionId].supply.pirate[param.type] + param.amount
-    env.info(param.coalitionId .. "-PirateSupply-"..DFS.supplyNames[param.type].." increased by " .. param.amount ..  "to " .. DFS.status[param.coalitionId].supply.pirate[param.type], false)
     if DFS.status[param.coalitionId].supply.pirate[param.type] > DFS.status.maxSuppliesPirate[param.type] then
         DFS.status[param.coalitionId].supply.pirate[param.type] = DFS.status.maxSuppliesPirate[param.type]
     end
@@ -1107,7 +1100,6 @@ end
 function dfc.decreasePirateSupply(param)
     --params coalitionId, amount
     DFS.status[param.coalitionId].supply.pirate[param.type] = DFS.status[param.coalitionId].supply.pirate[param.type] - param.amount
-    env.info(param.coalitionId .. "-PirateSupply-"..DFS.supplyNames[param.type].." decreased by " .. param.amount..  "to " .. DFS.status[param.coalitionId].supply.pirate[param.type], false)
     if DFS.status[param.coalitionId].supply.pirate[param.type] < 0 then
         DFS.status[param.coalitionId].supply.pirate[param.type] = 0
     end
@@ -1125,7 +1117,6 @@ function dfc.createSupplyDrawings()
                 local boxOrigin = {x = drawingOriginFront.x, y = drawingOriginFront.y, z = drawingOriginFront.z - (DFS.supplyDrawing.counterOffeset*i)}
                 local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
-                env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
                 trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
                 for j = 1, 3 do
                     local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
@@ -1154,7 +1145,6 @@ function dfc.createSupplyDrawings()
                 local boxOrigin = {x = drawingOriginRear.x, y = drawingOriginRear.y, z = drawingOriginRear.z - (DFS.supplyDrawing.counterOffeset*i)}
                 local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
-                env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
                 trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
                 for j = 1, 3 do
                     local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
@@ -1186,7 +1176,6 @@ function dfc.createSupplyDrawings()
                 local boxOrigin = {x = drawingOriginPirate.x, y = drawingOriginPirate.y, z = drawingOriginPirate.z - (pirateOffset*i)}
                 local boxTop = {x = boxOrigin.x + pirateHeight, y = boxOrigin.y, z = boxOrigin.z - pirateWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
-                env.info("drawing supply meter outline ".. c .. "-" .. i ..": " .. supplyBoxId, false)
                 trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
                 for j = 1, 3 do
                     local xOffset = (j*(pirateHeight/4))/pirateHeight * pirateHeight
@@ -1297,9 +1286,7 @@ function dfc.supplyDrawingRefreshLoop()
 end
 --CONVOY AND SHIPPING FUNCS
 function dfc.newConvoyLoop()
-    env.info("Convoy dispatch loop", false)
     for ctln = 1, 2 do
-        env.info("checking coaltion: " .. ctln, false)
         local depotPct = 0
         local i = 1
         for j = 1, DFS.status.rdSpawnSubDepots do
@@ -1315,7 +1302,6 @@ function dfc.newConvoyLoop()
             end
         end
         if depotPct > 1 then
-            env.info("Depot Pct: " .. depotPct, false)
             local activeFDs = {
                 [1] = 1,
                 [2] = 2,
@@ -1341,17 +1327,12 @@ function dfc.newConvoyLoop()
             local needsEquipment = DFS.status[ctln].supply.front[DFS.supplyType.EQUIPMENT] < DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
             local hasEquipmentAmt = DFS.status[ctln].supply.rear[DFS.supplyType.EQUIPMENT] > DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]
             local anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
-            env.info("Anytime: " .. tostring(anytime) .. "\nhasConvoyFuel: " .. tostring(hasConvoyFuel) .. "\nfueltime: " .. tostring(fueltime) .. "\nammotime: " .. tostring(ammotime) .. "\nequiptime: " .. tostring(equiptime), false)
-            env.info("Needs fuel: " .. tostring(needsFuel) .. "\nhasFuelAmt: " .. tostring(hasFuelAmt), false)
-            env.info("Needs ammo: " .. tostring(needsAmmo) .. "\nhasAmmoAmt: " .. tostring(hasAmmoAmt), false)
-            env.info("Needs equipment: " .. tostring(needsFuel) .. "\nhasEquipmentAmt: " .. tostring(hasEquipmentAmt), false)
-            --fuel check
+           --fuel check
             if anytime and fueltime and hasConvoyFuel and needsFuel and hasFuelAmt then
                 local deliverZone = activeFDs[math.random(#activeFDs)]
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
-                env.info("Start Fuel convoy to front depot: " .. deliverZone, debug)
             end
             --ammo check
             if anytime and ammotime and hasConvoyFuel and needsAmmo and hasAmmoAmt then
@@ -1360,7 +1341,6 @@ function dfc.newConvoyLoop()
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
-                env.info("Start Ammo convoy to front depot: " .. deliverZone, debug)
             end
             --equipment check 
             if anytime and equiptime and hasConvoyFuel and needsEquipment and hasEquipmentAmt then
@@ -1369,7 +1349,6 @@ function dfc.newConvoyLoop()
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
-                env.info("Start Equipment convoy to front depot: " .. deliverZone, debug)
             end
         end
     end
@@ -1439,7 +1418,6 @@ function dfc.startConvoy(param)
     dfc.checkConvoy({convoyName = convoyGroupName, deliverZone = param.deliverZone, type = param.type})
 end
 function dfc.checkConvoy(param)
-    env.info('Checking Convoy: ' .. param.convoyName, debug)
     local convoyGroup = Group.getByName(param.convoyName)
     if convoyGroup ~= nil then
         local convoyLead = convoyGroup:getUnit(1)
@@ -1641,7 +1619,6 @@ function DFS.smokeGroup(groupName, smokeColor)
             local missionPos = missionUnit:getPoint()
             if missionPos then
                 trigger.action.smoke(Utils.VectorAdd(missionPos, Utils.ScalarMult(atmosphere.getWind(missionPos), 10 + math.random(5))), smokeColor)
-                env.info("Created CAS smoke marker for:" .. groupName, false)
             end
         end
     end
@@ -1755,10 +1732,8 @@ function dfc.spawnSupply(param)
                     elseif frontPickup then
                         local decreaseType = param.type
                         if param.type == DFS.supplyType.GUN then decreaseType = DFS.supplyType.EQUIPMENT end
-                        env.info("dfc.spawn supply decrease", false)
                         dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                     end
-                    --env.info("Tracking cargo: " .. cargo:getName(), false)
                     dfc.trackCargo({coalition = transporterCoalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
                     if SBS then
                         SBS.watchCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
@@ -1821,7 +1796,6 @@ function dfc.loadInternalCargo(param)
                         elseif not seaPickup and not frontPickup then
                             dfc.decreaseRearSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                         elseif frontPickup then
-                            env.info("load internal cargo decrease", false)
                             dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                         end
                         trigger.action.outTextForGroup(transporterGroup:getID(), "Loaded " .. DFS.supplyNames[param.type],5, false)
@@ -2049,7 +2023,6 @@ function dfc.hvbss(boardingGroupName, dropPoint, boardingCoalition, droppingGrou
                 if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 3 and foundItem:getCoalition() ~= boardingCoalition and DFS.raidedShips[foundItem:getGroup():getName()] == nil then
                     local shipPoint = foundItem:getPoint()
                     local shipPos = foundItem:getPosition()
-                    env.info("HVBSS Found: " .. foundItem:getName(), false)
                     if shipPoint and shipPos then
                         local xDistance = math.abs(dropPoint.x - shipPoint.x)
                         local yDistance = math.abs(dropPoint.z - shipPoint.z)
@@ -2170,13 +2143,11 @@ end
 --coalition, country, spawnPoint, cargo, supplyType, spawnTime, seaPickup, frontPickup, isSlung, groupId, modifier, groupName
 function DFS.spawnCargo(param)
     local newCargo = dfc.spawnStatic(param.supplyType, param.spawnPoint, param.country, "big")
-    env.info("babysitter spawned new cargo: " .. newCargo, false)
     trigger.action.outTextForGroup(param.groupId, "Our records indicate that your slung load has been involved in a teleportation accident.\nA new replacement cargo is being spawned directly beneath your current position. Thank you for your passion and support", 30, false)
     dfc.trackCargo({coalition = param.coalition, cargo = newCargo, supplyType = param.supplyType, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
 end
 --coalition, cargo, supplyType, spawnTime, seaPickup, frontPickup, isSlung, groupId, modifier, groupName, successfulDeployChecks
 function dfc.trackCargo(param)
-    env.info("Tracking cargo: " .. param.cargo, false)
     local cargo = StaticObject.getByName(param.cargo)
     local pickupZone = DFS.pickUpZones[param.coalition][1]
     if param.seaPickup then pickupZone = DFS.pickUpZones[param.coalition][2] end
@@ -2192,16 +2163,12 @@ function dfc.trackCargo(param)
         end
         if closestDepotToCargo then
             if timer:getTime() - param.spawnTime > DFS.status.cargoExpireTime then
-                env.info("cargo expired: " .. param.cargo, false)
                 if Utils.PointDistance(cargo:getPoint(),trigger.misc.getZone(pickupZone).point) <= DFS.status.playerDeliverRadius then
-                    env.info("expired cargo recliamed: " ..param.cargo, false)
                     dfc.deliverToDepot(closestDepotToCargo, param.coalition, param.supplyType, param.modifier)
                 end
                 if cargo and cargo:isExist() then cargo:destroy() end
             elseif timer:getTime() - param.spawnTime > 1800 and Utils.PointDistance(cargo:getPoint(),trigger.misc.getZone(pickupZone).point) < 30 then
-                env.info("cargo never left pickup area: " .. param.cargo, false)
                 if not param.seaPickup then
-                    env.info("un-picked up cargo reclaimed: " .. param.cargo, false)
                     local reclaimType = param.supplyType
                     if reclaimType == 4 then reclaimType = 3 end
                     dfc.increaseRearSupply({coalitionId = param.coalition, amount = DFS.status.playerResupplyAmts[param.supplyType][param.modifier], type = reclaimType})
@@ -2218,19 +2185,10 @@ function dfc.trackCargo(param)
                         chinookCargo = deliverUnit:getTypeName() == "CH-47Fbl1"
                     end
                 end
-                env.info("cargo alt AGL: " .. altitude, false)
                 local cargoPoint = cargo:getPoint()
                 if cargoPoint then env.info("cargo location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z, false) end
-                env.info("cargo " .. param.cargo .. " velocity x: " .. velocity.x .. " y: " .. velocity.y .. " z: " .. velocity.z, false)
-                env.info("chinook cargo: " .. tostring(chinookCargo), false)
                 if (velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) and (altitude < 1) then
-                    env.info("cargo not moving", false)
-                    env.info(param.cargo .. ": closest depot distance: " .. closestDepotToCargo.distance, false)
-                    env.info(param.cargo .. ": closest depot is rear: " .. tostring(closestDepotToCargo.isRear), false)
-                    env.info(param.cargo .. ": sea pickup: " .. tostring(param.seaPickup), false)
-                    env.info(param.cargo .. ": front Pickup: " .. tostring(param.frontPickup), false)
-                    param.successfulDeployChecks = param.successfulDeployChecks + 1
-                    env.info(param.cargo .. ": successful checks: " .. param.successfulDeployChecks, false)
+                   param.successfulDeployChecks = param.successfulDeployChecks + 1
                     if param.successfulDeployChecks > 3 then
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
