@@ -123,8 +123,14 @@ function cpyctl.cpyStatusLoop()
                     break
                 end
             else
-                trigger.action.removeMark(cpy.markUps.destination)
-                trigger.action.removeMark(cpy.markUps.marker)
+                if cpy.markUps then
+                    if cpy.markUps.destination then
+                        trigger.action.removeMark(cpy.markUps.destination)
+                    end
+                    if cpy.markUps.marker then
+                        trigger.action.removeMark(cpy.markUps.marker)
+                    end
+                end
                 Companies[CompanyIDs[c][i]] = nil
                 table.remove(CompanyIDs[c], i)
                 break

@@ -54,7 +54,7 @@ function dsm.loop()
                 end
             end
         end
-        timer.scheduleFunction(dsm.loop, nil, timer:getTime() + 10)
+        timer.scheduleFunction(dsm.loop, nil, timer:getTime() + 300)
     end
 end
 dsm.loop()
