@@ -33,28 +33,28 @@ function dsm.loop()
                         for name, number in pairs(Airframes[c].main) do
                             if airframeslist[name] == 0 or airframeslist[name] == nil then
                                 env.info(name .. " should be present at " .. airbaseName, false)
-                                airbaseList[i]:getWarehouse():setItem(name, 100000)
+                                airbaseList[i]:getWarehouse():setItem(name, 100)
                             end
                         end
                     elseif airbase == 0 then
                         for name, number in pairs(Airframes[c].forward) do
                             if airframeslist[name] == 0 or airframeslist[name] == nil then
                                 env.info(name .. " should be present at " .. airbaseName, false)
-                                airbaseList[i]:getWarehouse():setItem(name, 100000)
+                                airbaseList[i]:getWarehouse():setItem(name, 100)
                             end
                         end
                     elseif airbaseCategory == 1 then
                         for name, number in pairs(Airframes[c].farp) do
                             if airframeslist[name] == 0 or airframeslist[name] == nil then
                                 env.info(name .. " should be present at " .. airbaseName, false)
-                                airbaseList[i]:getWarehouse():setItem(name, 100000)
+                                airbaseList[i]:getWarehouse():setItem(name, 100)
                             end
                         end
                     end
                 end
             end
         end
-        timer.scheduleFunction(dsm.loop, nil, timer:getTime() + 300)
+        timer.scheduleFunction(dsm.loop, nil, timer:getTime() + 120)
     end
 end
 dsm.loop()

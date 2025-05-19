@@ -178,8 +178,12 @@ function bc.main()
             ownedBy = 1
         end
         if v.ownedBy ~= ownedBy then
-            if v.reconMissionId ~= -1 then
-                Recon.cleanmission(v.ownedBy, v.reconMissionId)
+            if v.reconMissionId ~= -1 and v.ownedBy ~= 0 then
+                local missionCltn = 1
+                if v.ownedBy == 1 then
+                    missionCltn = 2
+                end
+                Recon.cleanmission(missionCltn, v.reconMissionId)
             end
             if ownedBy ~= 0 then
                 local reconCoalitionId = 1
@@ -237,7 +241,8 @@ function bc.main()
             for i = 1, #listOfEnemyBPsByDistance do
                 local target = listOfEnemyBPsByDistance[i]
                 if target.ownedBy ~= 0 and target.ownedBy ~= c then
-                    if target.strength < bc.companyToStrength(bc.getAvailableStrengthTable(c)) then
+                    -- TODO: rework this calculation to account for desperation and relative strength better
+                    if target.strength <= bc.companyToStrength(bc.getAvailableStrengthTable(c)) then
                         targetbp = target.bpId
                         fromDepot = target.fromDepot
                         targetStrength = target.strength
@@ -352,6 +357,7 @@ function bc.getAvailableStrengthTable(coalitionId, targetStrength)
             return companyCompTiers[cpyTier].composition
         else
             --send weakest available unit to neutral BP
+            --TODO: rework this to send stronger units based on expected enemy counter attack capabilities (enemy front depot state)
             return companyCompTiers[#companyCompTiers].composition
         end
     else
