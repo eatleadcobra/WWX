@@ -27,11 +27,17 @@ Company = {
     speed = nil,
     isDeployed = false,
     bp = 0,
+    isConvoy = false,
+    convoyParam = {}
 }
-function Company.new(coalitionId, persistent, platoons, onRoad)
+function Company.new(coalitionId, persistent, platoons, onRoad, convoy, convoyParam)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
+    if convoy then
+        newCpy.isConvoy = true
+        newCpy.convoyParam = convoyParam
+    end
     if onRoad == nil or onRoad == false then
         newCpy.onRoad = false
     else
@@ -63,12 +69,14 @@ function Company.newFromTable(cpyData)
     newCpy.units = cpyData.units
     newCpy.waypoints = cpyData.waypoints
     newCpy.groupName = cpyData.groupName
-    newCpy.deployedGroupNames = cpyData.deployedGroupNames
+    newCpy.deployedGroupNames = {}
     newCpy.deployableGroups = cpyData.deployableGroups
     newCpy.arrived = cpyData.arrived
     newCpy.onRoad = cpyData.onRoad
     newCpy.speed = cpyData.speed
     newCpy.bp = cpyData.bp
+    newCpy.isConvoy = cpyData.isConvoy
+    newCpy.convoyParam = cpyData.convoyParam
     return newCpy
 end
 function Company.setWaypoints(self, waypoints, bp, speed)
@@ -110,6 +118,10 @@ function Company.spawn(self)
     self.groupName = cpyGroupTable["name"]
     --spawn group
     coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
+    if self.isConvoy then
+        self.convoyParam.convoyName = self.groupName
+        DFS.checkConvoy(self.convoyParam)
+    end
 end
 function Company.updateMission(self, listOfPoints, bp)
     local cpyGroup = Group.getByName(self.groupName)

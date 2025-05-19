@@ -3,6 +3,7 @@ AMBUSHES = false
 CAP = false
 PIRACY = false
 BOMBERS = true
+MISSILEBOATS = true
 FDCount = 2
 AACount = 6
 

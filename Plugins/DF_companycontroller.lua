@@ -43,7 +43,9 @@ function cpyctl.saveCompanies()
             arrived = v.arrived,
             onRoad = v.onRoad,
             speed = v.speed,
-            bp = v.bp
+            bp = v.bp,
+            isConvoy = v.isConvoy,
+            convoyParam = v.convoyParam
         }
         companiesData[v.id] = cpyData
     end
@@ -68,8 +70,8 @@ function cpyctl.spawnCompanies()
     end
 end
 
-function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination)
-    local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true)
+function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, convoyParam)
+    local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true, true, convoyParam)
     newCpy:setWaypoints({startPoint, destination}, -1, 999)
     newCpy:spawn()
     return newCpy.groupName

@@ -384,9 +384,11 @@ DFS.status = {
     maxHealth = 250,
     --bombers
     bomberInterval = 1800,
+    missileboatInterval = 7200,
     fighterInterval = 599,
     bomberCoalition = 1,
     bomberTarget = 1,
+    missileboatCoalition = 2,
     --nfs
     noFlyRadius = 4000,
     --artillery
@@ -1411,11 +1413,14 @@ end
 function dfc.startConvoy(param)
     local startPoint =  trigger.misc.getZone(DFS.spawnNames[param.coalitionId].convoyStart).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].deliver..param.deliverZone).point
-    local convoyGroupName = CpyControl.newConvoy(param.coalitionId, param.type, startPoint, endPoint)
+    local checkConvoyParam = {convoyName = "", deliverZone = param.deliverZone, type = param.type}
 
     DFS.status[param.coalitionId].lastConvoyTimes[1][param.type] = timer.getTime()
     DFS.status[param.coalitionId].anyConvoyTime = timer.getTime()
-    dfc.checkConvoy({convoyName = convoyGroupName, deliverZone = param.deliverZone, type = param.type})
+end
+function DFS.checkConvoy(param)
+    trigger.action.outText(Utils.dump(param), 10, false)
+    dfc.checkConvoy(param)
 end
 function dfc.checkConvoy(param)
     local convoyGroup = Group.getByName(param.convoyName)
@@ -1465,9 +1470,11 @@ function dfc.checkShipping(param)
                     dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.EQUIPMENT})
                     trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
                     convoyGroup:destroy()
-                    local escortGroup = Group.getByName(param.escortName)
-                    if escortGroup then
-                        escortGroup:destroy()
+                    if param.escortName then
+                        local escortGroup = Group.getByName(param.escortName)
+                        if escortGroup then
+                            escortGroup:destroy()
+                        end
                     end
                     return
                 end
@@ -1550,6 +1557,16 @@ function dfc.depotActive(param)
     end
     return depotActive
 end
+
+function dfc.missileboatLoop()
+    local coalitionId = DFS.status.missileboatCoalition
+    dfc.spawnMissileboat(coalitionId)
+    DFS.status.missileboatCoalition = DFS.status.missileboatCoalition + 1
+    if DFS.status.missileboatCoalition > 2 then
+        DFS.status.missileboatCoalition = 1
+    end
+    timer.scheduleFunction(dfc.missileboatLoop, nil, timer.getTime() + DFS.status.missileboatInterval)
+end
 --BOMBERS AND CAP FUNCS
 function dfc.bomberLoop()
     local coalitionId = DFS.status.bomberCoalition
@@ -1564,6 +1581,21 @@ function dfc.bomberLoop()
         end
     end
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime() + DFS.status.bomberInterval)
+end
+--coalitionId, targetNum
+function dfc.spawnMissileboat(coalitionId)
+    local groupName = ''
+    local enemyCoalition = 2
+    if coalitionId == 2 then
+        enemyCoalition = 1
+    end
+    if coalitionId == 1 then
+        groupName = mist.cloneGroup('Red-MissileBoats', true).name
+    elseif coalitionId == 2 then
+        groupName = mist.cloneGroup('Blue-MissileBoats', true).name
+    end
+    trigger.action.outTextForCoalition(coalitionId, 'Friendly missile boats are entering the shipping area!', 15)
+    trigger.action.outTextForCoalition(enemyCoalition, 'Enemy missile boats are entering the shipping area! Destroy them and protect our transports!', 15)
 end
 --coalitionId, targetNum
 function dfc.spawnBomber(param)
@@ -2494,6 +2526,10 @@ dfc.initConvoys()
 dfc.startShipping()
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)
+end
+if MISSILEBOATS then
+    --timer.scheduleFunction(dfc.missileboatLoop, nil, timer:getTime() + DFS.status.missileboatInterval)
+    dfc.missileboatLoop()
 end
 dfc.mainLoop()
 dfc.saveLoop()
