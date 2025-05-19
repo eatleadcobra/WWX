@@ -161,7 +161,7 @@ function bc.main()
             }
         }
         local ifFound = function(foundItem, val)
-            if foundItem:isExist() and foundItem:isActive() then
+            if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 2 then
                 if foundItem:getCoalition() == 1 then
                     redUnits = redUnits + 1
                 elseif foundItem:getCoalition() == 2 then
