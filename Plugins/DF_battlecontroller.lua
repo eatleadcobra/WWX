@@ -240,7 +240,7 @@ function bc.main()
         if targetbp == -1 then
             for i = 1, #listOfEnemyBPsByDistance do
                 local target = listOfEnemyBPsByDistance[i]
-                if target.ownedBy ~= 0 and target.ownedBy ~= c then
+                if target.ownedBy ~= 0 and target.ownedBy ~= c and target.strength then
                     -- TODO: rework this calculation to account for desperation and relative strength better
                     if target.strength <= bc.companyToStrength(bc.getAvailableStrengthTable(c, target.strength)) then
                         targetbp = target.bpId
@@ -269,6 +269,7 @@ function bc.companyAssignedToBp(coalitionId, targetbp)
     return cpyAlreadyAssignedToBP
 end
 function bc.companyToStrength(companyTable)
+    if companyTable == nil then return 0 end
     local cpyStrength = 0
     for i = 1, #companyTable do
         cpyStrength = cpyStrength + pltStrengths[companyTable[i]]
