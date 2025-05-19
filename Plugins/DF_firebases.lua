@@ -421,7 +421,6 @@ function fbFuncs.suppressArea(param)
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
     for groupName, included in pairs(groupsToSuppress) do
-        env.info("suppressing group: " .. groupName, false)
         local group = Group.getByName(groupName)
         if group then
             local groupController = group:getController()
@@ -438,7 +437,6 @@ function fbFuncs.suppressArea(param)
     timer.scheduleFunction(fbFuncs.unsuppress, suppressionId, timer:getTime() + param.duration)
 end
 function fbFuncs.unsuppress(suppressionId)
-    env.info("unsuppressing: " .. suppressionId, false)
     local suppressedGroups = suppressions[suppressionId]
     for k,v in pairs(suppressedGroups) do
         local group = Group.getByName(k)
@@ -583,7 +581,6 @@ function Firebases.sendFireMission(coalitionId)
                 local shipGroups = coalition.getGroups(coalitionId, 3)
                 for j=1, #shipGroups do
                     if shipGroups[j]:getUnit(1):hasAttribute('Armed ships') and (shipGroups[j]:getUnit(1):getTypeName() == "leander-gun-andromeda" or shipGroups[i]:getUnit(1):getTypeName() == "leander-gun-condell") then
-                        env.info('valid battleship group found', false)
                         local thawkShipGroup = shipGroups[j]
                         if thawkShipGroup ~= nil then
                             local thawkShipUnit = thawkShipGroup:getUnit(1)
@@ -598,7 +595,6 @@ function Firebases.sendFireMission(coalitionId)
                                     mission.expendQtyEnabled = true
                                     local fire = {id = 'FireAtPoint', params = mission}
                                     thawkShipGroup:getController():pushTask(fire)
-                                    env.info("fire task pushed", false)
                                     trigger.action.removeMark(targetMarks[i].id)
                                     table.remove(targetMarks, i)
                                     local lineId = DrawingTools.newMarkId()
