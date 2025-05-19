@@ -84,12 +84,8 @@ function fbEvents:onEvent(event)
     if (event.id == world.event.S_EVENT_MARK_CHANGE) then
         local playerName =  nil
         if event.idx then
-            env.info("Mark Changed: " .. event.idx, false)
             if event.initiator ~= nil then
                 playerName = event.initiator:getPlayerName()
-            end
-            if event.pos and event.pos.x and event.pos.z then
-                env.info("changed at: \nX: " .. event.pos.x .. '\nZ: ' .. event.pos.z, false)
             end
         end
         if (string.upper(event.text) == 'X') then
@@ -115,12 +111,6 @@ function fbEvents:onEvent(event)
     end
     --on mark remove
     if (event.id == world.event.S_EVENT_MARK_REMOVED) then
-        if event.idx then
-            env.info("Mark Removed: " .. event.idx, false)
-            if event.pos and event.pos.x and event.pos.z then
-                env.info("changed at: \nX: " .. event.pos.x .. '\nZ: ' .. event.pos.z, false)
-            end
-        end
         for i = 1, #targetMarks do
             if targetMarks[i].id == event.idx then
                 table.remove(targetMarks, i)

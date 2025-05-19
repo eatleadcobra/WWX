@@ -29,7 +29,6 @@ function DFSubs.initSub(param)
     timer.scheduleFunction(DFSubs.subLoop, param.coalitionId, timer:getTime() + 60)
 end
 function DFSubs.subDamaged(coalitionId)
-    env.info("sub damaged", false)
     local groupName = DFSubs.subs[coalitionId].groupName
     local subGroup = Group.getByName(groupName)
     if subGroup then
@@ -61,7 +60,6 @@ function DFSubs.subSearch(coalitionId)
             local closestShip = SubTools.findClosestShip(currentPoint, coalitionId, SubControl.subValues[sub.subType].maxSpeed)
             if closestShip.distance then
                 SubControl.updateSubMissionWithIntercept(groupName, currentPoint, sub.subType, currentDepth, closestShip)
-                env.info(coalitionId.."-sub reassigned with target", false)
                 DFSubs.subs[coalitionId].intercepting = true
             end
         end
@@ -70,7 +68,6 @@ end
 function DFSubs.subLoop(coalitionId)
     local sub = DFSubs.subs[coalitionId]
     --groupName subType intercepting damaged spawnTime , kills = 0
-    env.info(coalitionId .."-sub loop. Kills: " .. DFSubs.subs[coalitionId].kills .. " subType: " .. DFSubs.subs[coalitionId].subType.. " intercepting: " .. tostring(DFSubs.subs[coalitionId].intercepting).. " damaged: " .. tostring(DFSubs.subs[coalitionId].damaged), false)
     local groupName = sub.groupName
     local subGroup = Group.getByName(groupName)
     if subGroup then
@@ -102,7 +99,6 @@ function DFSubs.subLoop(coalitionId)
                     if currentPoint then
                         local currentDepth = currentPoint.y
                         local endZone = coalitionId.."-sub-end-"..math.random(1,7)
-                        env.info(coalitionId.."-sub task completed: moving to " .. endZone, false)
                         local endPoint = trigger.misc.getZone(endZone).point
                         if endPoint then
                             SubControl.updateSubMissionWithNoIntercept(groupName, currentPoint, endPoint, sub.subType, currentDepth)
@@ -119,11 +115,9 @@ function DFSubs.subLoop(coalitionId)
             end
             timer.scheduleFunction(DFSubs.subLoop, coalitionId, timer:getTime() + 30)
         else
-            env.info(coalitionId.."-sub dead. Kills: " .. sub.kills, false)
             timer.scheduleFunction(DFSubs.initSub, {coalitionId = coalitionId, subType = sub.subType}, timer:getTime() + subRespawnTime)
         end
     else
-        env.info(coalitionId.."-sub dead. Kills: " .. sub.kills, false)
         timer.scheduleFunction(DFSubs.initSub,  {coalitionId = coalitionId, subType = sub.subType}, timer:getTime() + subRespawnTime)
     end
 end

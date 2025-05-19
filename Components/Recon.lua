@@ -97,29 +97,24 @@ function reconEvents:onEvent(event)
 end
 world.addEventHandler(reconEvents)
 function recon.newBaseMission(coalitionId, missionPoint)
-    env.info("Creating Base Mission",false)
     local newMissionId = recon.getNewMissionId()
     local newMission = Utils.deepcopy(missionTemplate)
     newMission.id = newMissionId
     newMission.coalitionId = coalitionId
     newMission.point = missionPoint
-    env.info("Base Mission Created", false)
     timer.scheduleFunction(recon.destroyMission, {coalitionId = coalitionId, missionId = newMissionId}, timer:getTime() + missionExpireTime)
     return newMission
 end
 function Recon.createBDAMission(coalitionId, bdaPoint)
-    env.info("Creating BDA Mission", false)
     local missionMarkId = DrawingTools.newMarkId()
     trigger.action.circleToAll(coalitionId, missionMarkId, bdaPoint, reconParams.pointRadius, {0.3,1,0,1}, {0,0,0,0.2}, 4, true, nil)
     local newMission = recon.newBaseMission(coalitionId, bdaPoint)
     newMission.type = 1
     newMission.markId = missionMarkId
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("BDA Mission Created", false)
     return newMission.id
 end
 function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGroupName)
-    env.info("Creating Enemy Location Mission", false)
     local missionMarkId = DrawingTools.newMarkId()
     missionPoint.x = missionPoint.x + math.random(-300, 300)
     missionPoint.z = missionPoint.z + math.random(-300, 300)
@@ -129,26 +124,21 @@ function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGrou
     newMission.type = 2
     newMission.markId = missionMarkId
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("Enemy Location Mission Created", false)
     return newMission.id
 end
 function Recon.createBPScoutingMission(coalitionId, missionPoint, bp)
-    env.info("Creating Battle Position Scouting Mission", false)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.type = 4
     newMission.bp = bp
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("Battle Position Scouting Mission Created", false)
     return newMission.id
 end
 
 function Recon.createEnemyLocationMissionNoMarker(coalitionId, missionPoint, missionGroupName)
-    env.info("Creating Enemy Location Mission No Marker", false)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.groupName = missionGroupName
     newMission.type = 2
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("Enemy Location Mission Created No Marker", false)
     return newMission.id
 end
 function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
@@ -237,7 +227,6 @@ function recon.getMissionInCaptureRange(coalitionId, playerPoint)
     return closestMissionId
 end
 function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
-    env.info(playerName.." Capturing Mission: " .. missionId, false)
     if captures[playerName] == nil then
         captures[playerName] = {}
     end
@@ -277,7 +266,6 @@ function recon.processPlayerFilm(coalitionId, playerName, playerGroupId)
     end
 end
 function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
-    env.info("Processing Completed Mission " .. missionId, false)
     local mission = currentMissions[coalitionId][missionId]
     if mission then
         local completedBy = mission.capturedBy
@@ -296,7 +284,6 @@ function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
     end
 end
 function recon.cleanMission(coalitionId, missionId)
-    env.info("cleaning mission", false)
     local mission = currentMissions[coalitionId][missionId]
     if mission then
         local missionMarkId = mission.markId
@@ -305,7 +292,6 @@ function recon.cleanMission(coalitionId, missionId)
             captures[capturedBy][missionId] = nil
         end
         if missionMarkId then
-            env.info("removing mark", false)
             trigger.action.removeMark(missionMarkId)
         end
         currentMissions[coalitionId][missionId] = nil
@@ -320,13 +306,11 @@ function recon.destroyMission(param)
             timer.scheduleFunction(recon.destroyMission, param, timer:getTime() + missionExpireTime/4)
             return
         else
-            env.info("Destroying recon mission: " .. param.missionId, false)
             recon.cleanMission(param.coalitionId, param.missionId)
         end
     end
 end
 function recon.processBDA(mission, playerGroupId)
-    env.info("Processing BDA Mission", false)
     local enemyCoalition = 1
     if mission.coalitionId == 1 then enemyCoalition = 2 end
     if DFS then
@@ -335,15 +319,12 @@ function recon.processBDA(mission, playerGroupId)
     trigger.action.outTextForGroup(playerGroupId, "BDA Mission Completed!", 5, false)
 end
 function recon.processLocation(mission, playerGroupId)
-    env.info("Processing Location Mission", false)
     local discoveredGroupName = mission.groupName
-    env.info("discoveredGroupName: " ..  discoveredGroupName, false)
     local discoveredGroup = Group.getByName(discoveredGroupName)
     if discoveredGroup then
         for i = 1, discoveredGroup:getSize() do
             local markingUnit = discoveredGroup:getUnit(i)
             if markingUnit then
-                env.info("drawing marks", false)
                 local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, markingUnit:getPoint())
                 timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                 timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
@@ -355,7 +336,6 @@ function recon.processLocation(mission, playerGroupId)
     trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
 end
 function recon.processBP(mission, playerGroupId)
-    env.info("Processing BP Mission", false)
     local reconnedUnitPoints = {}
     local volS = {
         id = world.VolumeType.SPHERE,
@@ -373,7 +353,6 @@ function recon.processBP(mission, playerGroupId)
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
     if #reconnedUnitPoints > 0 then
         for i = 1, #reconnedUnitPoints do
-            env.info("drawing marks", false)
             local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnitPoints[i])
             timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
             timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)

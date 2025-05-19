@@ -624,7 +624,6 @@ function dfcEvents:onEvent(event)
             if event.target:getTypeName() == "santafe" and event.initiator.getPlayerName then
                 local playerName = event.initiator:getPlayerName()
                 if playerName and WWEvents then
-                    env.info("sub kill event fired", false)
                     WWEvents.playerDestroyedSubmarine(playerName, event.initiator:getCoalition(), "killed a submarine!")
                 end
             end
@@ -949,7 +948,6 @@ function dfc.checkArtHealth()
             local currentGroups = #gunBase.contents.groups
             if currentGroups < maxSpawns and (timer:getTime() - DFS.status[c].lastGunTime > DFS.status.gunInterval) then
                 if DFS.status[c].supply.front[DFS.supplyType.EQUIPMENT] > 3 then
-                    env.info("art health gunbase supply decrease", false)
                     dfc.decreaseFrontSupply({coalitionId = c, amount = 3, type = DFS.supplyType.EQUIPMENT})
                     Firebases.addGroupToFirebase(gunBase, gunBase.fbType)
                     DFS.status[c].lastGunTime = timer:getTime()
@@ -959,7 +957,6 @@ function dfc.checkArtHealth()
         if ammoBase then
             if ammoBase.contents.ammo < ammoBase.contents.maxAmmo and (timer:getTime() - DFS.status[c].lastShellsTime > DFS.status.shellsInterval) then
                 if DFS.status[c].supply.front[DFS.supplyType.AMMO] > Firebases.firebaseSupplyAmts["SHELLS"] then
-                    env.info("art health ammobase supply decrease", false)
                     dfc.decreaseFrontSupply({coalitionId = c, amount = Firebases.firebaseSupplyAmts["SHELLS"], type = DFS.supplyType.AMMO})
                     Firebases.resupplyFirebase(ammoBase, Firebases.firebaseSupplyAmts["SHELLS"])
                     DFS.status[c].lastShellsTime = timer:getTime()
@@ -991,7 +988,6 @@ function dfc.checkFDHealth()
                 local decreaseFuelAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.FUEL] / #DFS.status[a].spawns.fd)
                 local decreaseEquipmentAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] / #DFS.status[a].spawns.fd)
                 local decreaseAmmoAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.AMMO] / #DFS.status[a].spawns.fd)
-                env.info("FD health check decrease", false)
                 dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
                 dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
                 dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
@@ -1041,8 +1037,6 @@ end
 function dfc.increaseFrontSupply(param)
     --params coalitionId, amount
     DFS.status[param.coalitionId].supply.front[param.type] = DFS.status[param.coalitionId].supply.front[param.type] + param.amount
-    env.info(param.coalitionId .. "-FrontSupply-"..DFS.supplyNames[param.type].." increased by " .. param.amount .. "to " .. DFS.status[param.coalitionId].supply.front[param.type], false)
-    env.info("Current Supply modifier: " .. (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal) .. " Current supply cap = " .. DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal), false)
     if DFS.status[param.coalitionId].supply.front[param.type] > math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)) then
         local surplusAmt = DFS.status[param.coalitionId].supply.front[param.type] - (math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)))
         dfc.increaseRearSupply({coalitionId = param.coalitionId, amount = surplusAmt, type = param.type})
@@ -1381,10 +1375,8 @@ function dfc.newConvoyLoop()
     end
 end
 function dfc.sendConvoyLoop()
-    env.info('Convoy Check Loop', debug)
     for a = 1, 2 do
         local i = 1
-        env.info('RD: ' .. i, debug)
         local depotPct = 0
         for j = 1, DFS.status.rdSpawnSubDepots do
             for k = 1, #DFS.status[a].spawns.rd do
@@ -1400,8 +1392,6 @@ function dfc.sendConvoyLoop()
         end
         for j = 1, DFS.status.fdSpawnTotal do
             local deliverZone = j
-
-            env.info('Delivery check from RD: ' .. i .. ' to FD: ' .. deliverZone, debug)
             if depotPct > 1 and dfc.depotActive({coalitionId = a, zone = deliverZone}) then
                 local fueltime = timer.getTime() - DFS.status[a].lastConvoyTimes[deliverZone][DFS.supplyType.FUEL] > DFS.status.convoyBaseTime
                 local ammotime = timer.getTime() - DFS.status[a].lastConvoyTimes[deliverZone][DFS.supplyType.AMMO] > DFS.status.convoyBaseTime
@@ -1415,21 +1405,18 @@ function dfc.sendConvoyLoop()
                     if needsFuel and fueltime and DFS.status[a].supply.rear[DFS.supplyType.FUEL] > (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2) then
                         dfc.decreaseRearSupply({coalitionId = a,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
                         dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
-                        env.info("Start Fuel convoy", debug)
                     end
 
                     if needsAmmo and ammotime and DFS.status[a].supply.rear[DFS.supplyType.AMMO] > DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO] and hasConvoyFuel then
                         dfc.decreaseRearSupply({coalitionId = a,  amount = 2, type = DFS.supplyType.FUEL})
                         dfc.decreaseRearSupply({coalitionId = a,  amount = DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO], type = DFS.supplyType.AMMO})
                         dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
-                        env.info("Start ammo convoy", debug)
                     end
 
                     if needsEquipment and equiptime and DFS.status[a].supply.rear[DFS.supplyType.EQUIPMENT] > 10 and hasConvoyFuel then
                         dfc.decreaseRearSupply({coalitionId = a,  amount = 2, type = DFS.supplyType.FUEL})
                         dfc.decreaseRearSupply({coalitionId = a,  amount = DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
                         dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
-                        env.info("Start Equipment convoy", debug)
                     end
                 end
             end
@@ -1492,19 +1479,16 @@ function dfc.checkShipping(param)
                 local convoyCoalition = convoyGroup:getCoalition()
                 local destinationZoneString = "Red-Rear-Deliver"
                 if convoyCoalition == 2 then destinationZoneString = "Blue-Rear-Deliver" end
-                env.info("Checking Shipping: " .. param.convoyName .. " deliver zone: " .. destinationZoneString, false)
                 local convoyDestinationZone = trigger.misc.getZone(destinationZoneString)
                 local distanceToDestination = Utils.PointDistance(convoyLeadPos, convoyDestinationZone.point)
                 if distanceToDestination < convoyDestinationZone.radius then
                     dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.FUEL})
                     dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.AMMO})
                     dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.EQUIPMENT})
-                    env.info(param.convoyName .. " deliver zone: " .. destinationZoneString .. " delivered!", false)
                     trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
                     convoyGroup:destroy()
                     local escortGroup = Group.getByName(param.escortName)
                     if escortGroup then
-                        env.info("destroying escort: " .. param.escortName, false)
                         escortGroup:destroy()
                     end
                     return
@@ -1512,7 +1496,6 @@ function dfc.checkShipping(param)
             end
         else
             if param.escortName then
-                env.info("convoy group dead, killing escort: " .. param.escortName, false)
                 local escortGroup = Group.getByName(param.escortName)
                 if escortGroup then escortGroup:destroy() end
             end
@@ -1522,7 +1505,6 @@ function dfc.checkShipping(param)
         timer.scheduleFunction(dfc.checkShipping, param, timer.getTime() + 60)
     else
         if param.escortName then
-            env.info("convoy group dead, killing escort: " .. param.escortName, false)
             local escortGroup = Group.getByName(param.escortName)
             if escortGroup then escortGroup:destroy() end
         end
@@ -1530,7 +1512,6 @@ function dfc.checkShipping(param)
 end
 --shipName
 function dfc.checkPirate(param)
-    env.info("Tracking pirate boat: " .. param.convoyName, false)
     local convoyGroup = Group.getByName(param.convoyName)
     if convoyGroup ~= nil then
         local convoyLead = convoyGroup:getUnit(1)
@@ -1595,7 +1576,6 @@ end
 function dfc.bomberLoop()
     local coalitionId = DFS.status.bomberCoalition
     local targetNum = DFS.status.bomberTarget
-    env.info('Bomber Loop: ' .. coalitionId .. targetNum, debug)
     dfc.spawnBomber({coalitionId = coalitionId, targetNum = targetNum})
     DFS.status.bomberCoalition = DFS.status.bomberCoalition + 1
     if DFS.status.bomberCoalition > 2 then

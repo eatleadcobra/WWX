@@ -128,7 +128,6 @@ function CODAR.pairsLoop()
     timer.scheduleFunction(CODAR.pairsLoop, nil, timer:getTime() + searchInterval)
 end
 function CODAR.searchFromPoint(point, range)
-    env.info("CODAR Searching for subs at point: X:" .. point.x .. " Y: " ..point.z, false)
     local closestSub = {}
     local volS = {
         id = world.VolumeType.SPHERE,
