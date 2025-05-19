@@ -101,7 +101,7 @@ function tbs.battleLoop()
         trigger.action.outText("targets: " .. Utils.dump(targetGroups), tbs.battleLoopInterval, false)
         if #targetGroups > 0 then
             for i = 1, #targetGroups do
-                trigger.action.outText(initiatorGroupName .. " is battling with " .. tbs.battleLoopInterval, 10, false)
+                trigger.action.outText(initiatorGroupName .. " is battling with " .. targetGroups[i].targetGroupName, 10, false)
                 trigger.action.outText("Battle duration: " .. timer:getTime() - targetGroups[i].battleStartTime, tbs.battleLoopInterval, false)
             end
         end
