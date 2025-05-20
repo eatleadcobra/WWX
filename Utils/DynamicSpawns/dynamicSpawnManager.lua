@@ -11,8 +11,6 @@ function dsm.loop()
             local airbaseCategory = airbase:getDesc().category
             --removing planes that should not be present
             if airbaseCoalition == 1 or airbaseCoalition == 2 then
-                trigger.action.outText("Checking airbase: " .. airbaseName, 10, false)
-                trigger.action.outText("Ignore airbase: " .. tostring(IgnoreAirbases[airbaseName]), 10, false)
                 if IgnoreAirbases[airbaseName] == nil then
                     for k,v in pairs(airframeslist) do
                         if v > 0 then
