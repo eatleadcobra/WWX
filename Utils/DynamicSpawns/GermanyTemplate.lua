@@ -65,3 +65,7 @@ ForwardAirbases = {
         ["Lubeck"] = true,
     }
 }
+IgnoreAirbases = {
+    ["Peenemunde"] = true,
+    ["CV59"] = true,
+}
