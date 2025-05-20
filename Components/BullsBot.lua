@@ -1,7 +1,22 @@
 local bulls = {}
 local bullsRadius = 200000
+local ewrRadius = 90000
+local maxBullsUnits = 5
+local maxEWRZones = 5
+local bullsUnitPrefixes = {
+    [1] = "RedBulls-",
+    [2] = "BlueBulls-"
+}
+local ewrZonePrefixes = {
+    [1] = "RedEWR-",
+    [2] = "BlueEWR-",
+}
 Bulls = {}
 local bullsPoints = {
+    [1] = {},
+    [2] = {}
+}
+local ewrPoints = {
     [1] = {},
     [2] = {}
 }
@@ -10,31 +25,35 @@ local groupsList = {
     [2] = {},
 }
 local radioUnits = {
-    [1] = {
-        [1] = "RedBulls-1",
-        [2] = "RedBulls-2",
-        [3] = "RedBulls-3",
-        [4] = "RedBulls-4"
-    },
-    [2] = {
-        [1] = "BlueBulls-1",
-        [2] = "BlueBulls-2",
-        [3] = "BlueBulls-3",
-    },
+    [1] = {},
+    [2] = {},
+    -- [1] = {
+    --     [1] = "RedBulls-1",
+    --     [2] = "RedBulls-2",
+    --     [3] = "RedBulls-3",
+    --     [4] = "RedBulls-4"
+    -- },
+    -- [2] = {
+    --     [1] = "BlueBulls-1",
+    --     [2] = "BlueBulls-2",
+    --     [3] = "BlueBulls-3",
+    -- },
 }
 local radioDistanceUnits = {
-    [1] = {
-        ["RedBulls-1"] = "imperial",
-        ["RedBulls-2"] = "imperial",
-        ["RedBulls-3"] = "metric",
-        ["RedBulls-4"] = "metric",
-    },
-    [2] = {
-        ["BlueBulls-1"] = "imperial",
-        ["BlueBulls-2"] = "imperial",
-        ["BlueBulls-3"] = "metric",
-        ["BlueBulls-4"] = "metric",
-    }
+    [1] = {},
+    [2] = {}
+    -- [1] = {
+    --     ["RedBulls-1"] = "imperial",
+    --     ["RedBulls-2"] = "imperial",
+    --     ["RedBulls-3"] = "metric",
+    --     ["RedBulls-4"] = "metric",
+    -- },
+    -- [2] = {
+    --     ["BlueBulls-1"] = "imperial",
+    --     ["BlueBulls-2"] = "imperial",
+    --     ["BlueBulls-3"] = "metric",
+    --     ["BlueBulls-4"] = "metric",
+    -- }
 }
 function Bulls.loop()
     bulls.getTargets(1)
@@ -49,46 +68,79 @@ function bulls.getBulls()
     bullsPoints[1] = coalition.getMainRefPoint(1)
     bullsPoints[2] = coalition.getMainRefPoint(2)
 end
+function bulls.getUnits()
+    for c = 1, 2 do
+        for i = 1, maxBullsUnits do
+            local units = "metric"
+            local bullsGroupName = bullsUnitPrefixes[c]..i.."M"
+            local bullsGroup = Group.getByName(bullsGroupName)
+            if bullsGroup == nil then
+                bullsGroupName = bullsUnitPrefixes[c]..i.."I"
+                bullsGroup = Group.getByName(bullsGroupName)
+                units = "imperial"
+            end
+            if bullsGroup then
+                table.insert(radioUnits[c], bullsGroupName)
+                radioDistanceUnits[c][bullsGroupName] = units
+            end
+        end
+    end
+end
+function bulls.getEWRs()
+    for c = 1, 2 do
+        for i = 1, maxEWRZones do
+            local ewrZoneName = ewrZonePrefixes[c]..i
+            local ewrZone = trigger.misc.getZone(ewrZoneName)
+            if ewrZone then
+                table.insert(ewrPoints[c], ewrZone.point)
+            end
+        end
+    end
+end
 function bulls.getTargets(coalitionId, targetGroupName)
     local foundGroups = {}
-    local volS = {
-        id = world.VolumeType.SPHERE,
-        params = {
-            point = bullsPoints[coalitionId],
-            radius = bullsRadius
+
+    for e = 1, #ewrPoints[coalitionId] do
+        local ewrPoint = ewrPoints[coalitionId][e]
+        local volS = {
+            id = world.VolumeType.SPHERE,
+            params = {
+                point = ewrPoint,
+                radius = ewrRadius
+            }
         }
-    }
-    local ifFound = function(foundItem, val)
-        if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 0 and foundItem:getPoint().y > 0 then
-            local isFriendly = false
-            if foundItem:getCoalition() == coalitionId then
-                isFriendly = true
-            end
-            if land.isVisible({x = bullsPoints[coalitionId].x, y = land.getHeight({x = bullsPoints[coalitionId].x, y = bullsPoints[coalitionId].z}) + 10, z = bullsPoints[coalitionId].z}, foundItem:getPoint()) then
-                local foundGroup = foundItem:getGroup()
-                if foundGroup then
-                    local foundGroupName = foundGroup:getName()
-                    if (targetGroupName and foundGroupName == targetGroupName) or targetGroupName == nil then
-                        if #foundGroups < 1 then
-                            foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly}
-                        else
-                            local alreadyFound = false
-                            for i = 1, #foundGroups do
-                                if foundGroups[i].groupName == foundGroupName then
-                                    alreadyFound = true
-                                end
-                            end
-                            if alreadyFound == false then
+        local ifFound = function(foundItem, val)
+            if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 0 and foundItem:getPoint().y > 0 then
+                local isFriendly = false
+                if foundItem:getCoalition() == coalitionId then
+                    isFriendly = true
+                end
+                if land.isVisible({x = ewrPoint.x, y = land.getHeight({x = ewrPoint.x, y = ewrPoint.z}) + 10, z = ewrPoint.z}, foundItem:getPoint()) then
+                    local foundGroup = foundItem:getGroup()
+                    if foundGroup then
+                        local foundGroupName = foundGroup:getName()
+                        if (targetGroupName and foundGroupName == targetGroupName) or targetGroupName == nil then
+                            if #foundGroups < 1 then
                                 foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly}
+                            else
+                                local alreadyFound = false
+                                for i = 1, #foundGroups do
+                                    if foundGroups[i].groupName == foundGroupName then
+                                        alreadyFound = true
+                                    end
+                                end
+                                if alreadyFound == false then
+                                    foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly}
+                                end
                             end
                         end
                     end
                 end
             end
         end
+        world.searchObjects(Object.Category.UNIT, volS, ifFound)
+        groupsList[coalitionId] = foundGroups
     end
-    world.searchObjects(Object.Category.UNIT, volS, ifFound)
-    groupsList[coalitionId] = foundGroups
 end
 function bulls.vectorTargets(coalitionId)
     for i = 1, #groupsList[coalitionId] do
@@ -183,4 +235,6 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly)
     end
 end
 bulls.getBulls()
+bulls.getUnits()
+bulls.getEWRs()
 Bulls.loop()
