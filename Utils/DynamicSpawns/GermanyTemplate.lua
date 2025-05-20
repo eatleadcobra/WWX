@@ -35,6 +35,7 @@ Airframes = {
             ["OH58D"] = true,
             ["A-10A"] = true,
             ["Bronco-OV-10A"] = true,
+            ["A-4E-C"] = true,
             ["F-4E-45MC"] = true,
             ["F-86"] = true,
             ["F-86_FC"] = true,
