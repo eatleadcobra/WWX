@@ -1,6 +1,6 @@
 SUBS = false
 AMBUSHES = false
-CAP = false
+CAP = true
 PIRACY = false
 BOMBERS = true
 MISSILEBOATS = true

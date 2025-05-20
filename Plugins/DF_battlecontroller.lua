@@ -165,7 +165,7 @@ function bc.deployments()
     for c = 1, 2 do
         local listOfNeutralBPsByDistance = {}
         local listOfEnemyBPsByDistance = {}
-        local listOfFriendlyBPsByDistance = {}
+        local listOfFriendlyBPsNeedingReinforcementByDistance = {}
         local totalBPs = #battlePositions
 
         local neutralBPs = 0
@@ -175,6 +175,9 @@ function bc.deployments()
         }
         local enemyCoalition = 2
         if c == 2 then enemyCoalition = 1 end
+        local enemyPointsToWin = totalBPs - coalitionBPs[enemyCoalition]
+        local enemyAvailableStr = bc.companyToStrength(bc.getAvailableStrengthTable(enemyCoalition))
+        enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
 
         for k, v in pairs(battlePositions) do
             if v.ownedBy == 0 then
@@ -198,13 +201,14 @@ function bc.deployments()
             elseif v.ownedBy == enemyCoalition then
                 table.insert(listOfEnemyBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(c, k), ownedBy = v.ownedBy})
             elseif v.ownedBy == c then
-                table.insert(listOfFriendlyBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(c, k), ownedBy = v.ownedBy})
+                local bpStrength = bc.assessBpStrength(c, k)
+                if bpStrength < enemyAvailableStr then
+                    table.insert(listOfFriendlyBPsNeedingReinforcementByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(c, k), ownedBy = v.ownedBy})
+                end
             end
         end
 
-        local enemyPointsToWin = totalBPs - coalitionBPs[enemyCoalition]
-        local enemyAvailableStr = bc.companyToStrength(bc.getAvailableStrengthTable(enemyCoalition))
-        enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
+        
 
         local tierToSpawn = 1
         local strengthToHold = 0
@@ -221,18 +225,18 @@ function bc.deployments()
             env.info("Enemy victory is imminent, send any avilable troops.", false)
         end
         local priority = "REINFORCE"
-        if enemyPointsToWin < 3 then
+        if enemyPointsToWin < 3 or enemyAvailableStr < bc.companyToStrength(companyCompTiers[math.floor(#companyCompTiers/2)]) then
             priority = "CAPTURE"
         end
         env.info("Priority: " .. priority, false)
         table.sort(listOfNeutralBPsByDistance, function(a, b) return a.distance < b.distance end)
         table.sort(listOfEnemyBPsByDistance, function(a, b) return a.distance < b.distance end)
-        table.sort(listOfFriendlyBPsByDistance, function(a, b) return a.distance < b.distance end)
+        table.sort(listOfFriendlyBPsNeedingReinforcementByDistance, function(a, b) return a.distance < b.distance end)
 
         local priorityTargetsTables = {}
         if priority == "REINFORCE" then
             priorityTargetsTables = {
-                [1] = listOfFriendlyBPsByDistance,
+                [1] = listOfFriendlyBPsNeedingReinforcementByDistance,
                 [2] = listOfNeutralBPsByDistance,
                 [3] = listOfEnemyBPsByDistance
             }
@@ -240,7 +244,7 @@ function bc.deployments()
             priorityTargetsTables = {
                 [1] = listOfNeutralBPsByDistance,
                 [2] = listOfEnemyBPsByDistance,
-                [3] = listOfFriendlyBPsByDistance,
+                [3] = listOfFriendlyBPsNeedingReinforcementByDistance,
             }
         end
         for i = 1, #priorityTargetsTables do
