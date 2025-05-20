@@ -257,7 +257,7 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
         --cleanUpTimer = 5
         anyTerrain = true
     end
-    CSB.generateCsar(pos,coalitionId,nil,nil,100,anyTerrain,nil,playerName)
+    CSB.generateCsar(pos,coalitionId,nil,nil,1000,anyTerrain,nil,playerName)
     --timer.scheduleFunction(CSB.cleanUpPilot,args,timer.getTime()+cleanUpTimer) -- not sure if you can destroy a player connected object in MP
 end
 function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, anyTerrain, timeLimit, playerName)
@@ -279,7 +279,7 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
     env.info("in generateCsar with args :--- coalitionId: " .. coalitionId .. " csarPoint: x=" .. csarPoint.x .. ", y=" .. csarPoint.y .. ", z=" .. csarPoint.z .. " csarRadius: " .. csarRadius .. " anyTerrain: " .. tostring(anyTerrain), false)
     if not anyTerrain then
         generatedCsar.terrainLimit = {"LAND", "ROAD"}
-        for i=1,50 do
+        for i=1,100 do
             genPoint = Utils.MakeVec3(mist.getRandPointInCircle(csarPoint, csarRadius, nil, nil, nil))
             if mist.isTerrainValid(genPoint,generatedCsar.terrainLimit) then break end
         end
