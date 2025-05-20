@@ -353,7 +353,7 @@ end
 function bc.getAvailableStrengthTable(coalitionId, targetStrength)
     local availableEquipmentPct =  math.floor(DFS.status[coalitionId].supply.front[DFS.supplyType.EQUIPMENT] / DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT] * 100)
     local cpyTier = math.ceil((100-availableEquipmentPct)/10)
-    if cpyTier < 10 then
+    if cpyTier > 0 and cpyTier < 10 then
         if targetStrength > 0 then
             return companyCompTiers[cpyTier].composition
         else
