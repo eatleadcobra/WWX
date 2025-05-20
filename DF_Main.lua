@@ -835,29 +835,27 @@ function dfc.emptyFirebases()
     end
 end
 function dfc.initSupply()
-    DFS.status[2].supply.front[DFS.supplyType.FUEL] = DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]
-    DFS.status[2].supply.front[DFS.supplyType.AMMO] = DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]
-    DFS.status[2].supply.front[DFS.supplyType.EQUIPMENT] = DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]
+    for c = 1,2 do
+        -- DFS.status[c].supply.front[DFS.supplyType.FUEL] = DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]
+        -- DFS.status[c].supply.front[DFS.supplyType.AMMO] = DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]
+        -- DFS.status[c].supply.front[DFS.supplyType.EQUIPMENT] = DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]
 
-    DFS.status[2].supply.rear[DFS.supplyType.FUEL] = DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]
-    DFS.status[2].supply.rear[DFS.supplyType.AMMO] = DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]
-    DFS.status[2].supply.rear[DFS.supplyType.EQUIPMENT] = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]
+        -- DFS.status[c].supply.rear[DFS.supplyType.FUEL] = DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]
+        -- DFS.status[c].supply.rear[DFS.supplyType.AMMO] = DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]
+        -- DFS.status[c].supply.rear[DFS.supplyType.EQUIPMENT] = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]
 
-    DFS.status[2].supply.pirate[DFS.supplyType.FUEL] = 0
-    DFS.status[2].supply.pirate[DFS.supplyType.AMMO] = 0
-    DFS.status[2].supply.pirate[DFS.supplyType.EQUIPMENT] = 0
+        DFS.status[c].supply.front[DFS.supplyType.FUEL] = DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]
+        DFS.status[c].supply.front[DFS.supplyType.AMMO] = DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]
+        DFS.status[c].supply.front[DFS.supplyType.EQUIPMENT] = DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
 
-    DFS.status[1].supply.front[DFS.supplyType.FUEL] = DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]
-    DFS.status[1].supply.front[DFS.supplyType.AMMO] = DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]
-    DFS.status[1].supply.front[DFS.supplyType.EQUIPMENT] = DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]
-    
-    DFS.status[1].supply.rear[DFS.supplyType.FUEL] = DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]
-    DFS.status[1].supply.rear[DFS.supplyType.AMMO] = DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]
-    DFS.status[1].supply.rear[DFS.supplyType.EQUIPMENT] = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]
+        DFS.status[c].supply.rear[DFS.supplyType.FUEL] = DFS.status.maxSuppliesRear[DFS.supplyType.FUEL]
+        DFS.status[c].supply.rear[DFS.supplyType.AMMO] = DFS.status.maxSuppliesRear[DFS.supplyType.AMMO]
+        DFS.status[c].supply.rear[DFS.supplyType.EQUIPMENT] = DFS.status.maxSuppliesRear[DFS.supplyType.EQUIPMENT]
 
-    DFS.status[1].supply.pirate[DFS.supplyType.FUEL] = 0
-    DFS.status[1].supply.pirate[DFS.supplyType.AMMO] = 0
-    DFS.status[1].supply.pirate[DFS.supplyType.EQUIPMENT] = 0
+        DFS.status[c].supply.pirate[DFS.supplyType.FUEL] = 0
+        DFS.status[c].supply.pirate[DFS.supplyType.AMMO] = 0
+        DFS.status[c].supply.pirate[DFS.supplyType.EQUIPMENT] = 0
+    end
 end
 function dfc.initSpawns()
     if SUBS then
