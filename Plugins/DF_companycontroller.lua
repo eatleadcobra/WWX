@@ -70,6 +70,14 @@ function cpyctl.spawnCompanies()
     end
 end
 
+function CpyControl.wipeCompanies()
+    local cpyFile = companyState
+    local f = io.open(cpyFile, 'w')
+    if f then
+        f:write("return {}")
+        f:close()
+    end
+end
 function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, convoyParam)
     local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true, true, convoyParam)
     newCpy:setWaypoints({startPoint, destination}, -1, 999)

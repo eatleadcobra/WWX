@@ -812,6 +812,7 @@ function dfc.blankData()
     dfc.initSupply()
     dfc.saveData()
     dfc.emptyFirebases()
+    CpyControl.wipeCompanies()
 end
 function DFS.endMission(coalitionId)
     dfc.endMission(coalitionId)
@@ -832,7 +833,7 @@ function dfc.emptyFirebases()
             local fbFile = redFbs
             if c == 2 then fbFile = blueFbs end
             f = io.open(fbFile, 'w')
-            f:write("return nil")
+            f:write("return {}")
             f:close()
         end
     end
