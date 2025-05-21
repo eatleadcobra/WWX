@@ -66,7 +66,8 @@ Platoons = {
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
-            [1] = "Strela-1 9P31",
+            --[1] = "Strela-1 9P31",
+            [1] = "ZSU_57_2",
             [2] = "ZSU-23-4 Shilka",
             [3] = "GAZ-66"
         }
@@ -129,9 +130,9 @@ Platoons = {
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
-            [1] = "M48 Chaparral",
+            [1] = "Gepard",
             [2] = "Vulcan",
-            [3] = "Land_Rover_101_FC"
+            [3] = "M 818"
         }
     }
 }
