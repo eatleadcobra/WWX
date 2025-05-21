@@ -88,7 +88,7 @@ end
 function Company.spawn(self)
     local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
     if self.onRoad == false then
-        local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
+        local vector = Utils.VecNormalize({x = self.waypoints[2].x - self.waypoints[1].x, y = self.waypoints[2].y - self.waypoints[1].y, z = self.waypoints[2].z - self.waypoints[1].z})
         ---@diagnostic disable-next-line: deprecated
         local bearing = math.atan2(vector.z, vector.x)
         if bearing < 0 then bearing = bearing + (2 * math.pi) end
