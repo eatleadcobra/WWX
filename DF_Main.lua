@@ -813,6 +813,9 @@ function dfc.blankData()
     dfc.saveData()
     dfc.emptyFirebases()
 end
+function DFS.endMission(coalitionId)
+    dfc.endMission(coalitionId)
+end
 function dfc.endMission(coalitionId)
     missionOver = true
     DfcMissionEnd = true

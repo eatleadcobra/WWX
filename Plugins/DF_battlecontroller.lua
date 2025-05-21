@@ -321,6 +321,11 @@ function bc.main()
     end
     DFS.status[1].health = redPositions
     DFS.status[2].health = bluePositions
+    if redPositions == #battlePositions then
+        DFS.endMission(1)
+    elseif bluePositions == #battlePositions then
+        DFS.endMission(2)
+    end
     bc.deployments()
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
 end
