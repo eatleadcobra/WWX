@@ -369,12 +369,12 @@ function recon.processBP(mission, playerGroupId)
                     timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
                     timer.scheduleFunction(trigger.action.removeMark, markId3, timer:getTime() + 3600)
                 elseif reconnedUnit:hasAttribute("Tanks") then
-                    local markId1 = DrawingTools.drawChevron(mission.coalitionId, reconnedUnit:getPoint())
-                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
-                elseif reconnedUnit:hasAttribute("Armed Air Defence") then
-                    local markId1, markId2 = DrawingTools.drawTriangle(mission.coalitionId, reconnedUnit:getPoint())
+                    local markId1, markId2 = DrawingTools.drawChevron(mission.coalitionId, reconnedUnit:getPoint())
                     timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                     timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("Armed Air Defence") then
+                    local markId1 = DrawingTools.drawTriangle(mission.coalitionId, reconnedUnit:getPoint())
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                 end
             end
         end
