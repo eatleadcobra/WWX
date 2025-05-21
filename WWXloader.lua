@@ -1,4 +1,8 @@
 local pathToWWX = "C:\\WWX\\"
+local theatre = false
+if env.mission.theatre then
+   theatre = env.mission.theatre
+end
 if DEBUG then
    pathToWWX = "F:\\Games\\WWX\\"
 end
@@ -34,7 +38,11 @@ assert(loadfile(pathToWWX.."Components\\CODAR.lua"))()
 assert(loadfile(pathToWWX.."Components\\MAD.lua"))()
 assert(loadfile(pathToWWX.."Components\\WWXRL.lua"))()
 assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
-assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
+if theatre then
+   assert(loadfile(pathToWWX.."Components\\RandomNames_"..theatre..".lua"))()
+else
+   assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
+end
 assert(loadfile(pathToWWX.."Components\\Recon.lua"))()
 env.info("Loading Plugins", false)
 -- "plugins" here are like wrappers or translation layers between the component and the specific mission requirements of WWX
