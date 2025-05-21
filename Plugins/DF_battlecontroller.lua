@@ -271,6 +271,8 @@ function bc.deployments()
     end
 end
 function bc.main()
+    local redPositions = 0
+    local bluePositions = 0
     for k,v in pairs(battlePositions) do
         local redUnits = 0
         local blueUnits = 0
@@ -298,6 +300,8 @@ function bc.main()
         elseif redUnits > blueUnits then
             ownedBy = 1
         end
+        if ownedBy == 1 then redPositions = redPositions + 1 end
+        if ownedBy == 2 then bluePositions = bluePositions + 1 end
         if v.ownedBy ~= ownedBy then
             if v.reconMissionId ~= -1 and v.ownedBy ~= 0 then
                 local missionCltn = 1
@@ -314,6 +318,8 @@ function bc.main()
             v.ownedBy = ownedBy
         end
     end
+    DFS.status[1].health = redPositions
+    DFS.status[2].health = bluePositions
     bc.deployments()
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
 end
