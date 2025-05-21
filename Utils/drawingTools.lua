@@ -31,6 +31,9 @@ local health = {
 local xMark = {
     size = 12
 }
+local triangleMark = {
+    size = 12
+}
 function DrawingTools.drawPackage(origin, size, pickup, coalition, noArrow)
     if coalition == nil then coalition = -1 end
     local leftQuad = DrawingTools.newMarkId()
@@ -214,4 +217,28 @@ function DrawingTools.drawCamera(coalitionId, point)
     local viewFinderBottomRight = {x = shutterButtonStartPoint.x, y=0, z = rectMidPoint.z + 60}
     trigger.action.quadToAll(coalitionId, DrawingTools.newMarkId(), viewFinderBottomLeft, viewFinderTopLeft, viewFinderTopRight, viewFinderBottomRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
     return rectMidPoint
+end
+function DrawingTools.drawTriangle(coalitionId, centerPoint, length)
+    local sideLength = triangleMark.size
+    if length then sideLength = length end
+    local perimeter = 3 * sideLength
+    local height = (2 * perimeter)/(2*(math.sqrt(3)))
+    local topPoint = {x = centerPoint.x + (height/3), y = 0, z = centerPoint.z}
+    local bottomLeftPoint = {x = topPoint.x - (sideLength * math.cos(math.rad(30))), y = 0, z = topPoint.z - (sideLength * math.sin(math.rad(30)))}
+    local bottomRightPoint = {x = topPoint.x - (sideLength * math.cos(math.rad(30))), y = 0, z = topPoint.z + (sideLength * math.sin(math.rad(30)))}
+    local triangleId = DrawingTools.newMarkId()
+    trigger.action.markupToAll(7, coalitionId, triangleId, bottomLeftPoint, topPoint, bottomRightPoint, {0,0,0,1}, {0,0,0,0}, 1, true, nil)
+    return triangleId
+end
+function DrawingTools.drawChevron(coalitionId, centerPoint, length)
+    local sideLength = 10
+    if length then sideLength = length end
+    local topPoint = centerPoint
+    local bottomLeftPoint = {x = topPoint.x - (sideLength * math.cos(math.rad(60))), y = 0, z = topPoint.z - (sideLength * math.sin(math.rad(60)))}
+    local bottomRightPoint = {x = topPoint.x - (sideLength * math.cos(math.rad(60))), y = 0, z = topPoint.z + (sideLength * math.sin(math.rad(60)))}
+    local line1Id = DrawingTools.newMarkId()
+    local line2Id = DrawingTools.newMarkId()
+    trigger.action.lineToAll(coalitionId, line1Id, topPoint, bottomLeftPoint, {0,0,0,1}, 1, true, nil)
+    trigger.action.lineToAll(coalitionId, line2Id, topPoint, bottomRightPoint, {0,0,0,1}, 1, true, nil)
+    return line1Id, line2Id
 end

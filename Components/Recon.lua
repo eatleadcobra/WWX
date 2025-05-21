@@ -336,7 +336,7 @@ function recon.processLocation(mission, playerGroupId)
     trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
 end
 function recon.processBP(mission, playerGroupId)
-    local reconnedUnitPoints = {}
+    local reconnedUnits = {}
     local volS = {
         id = world.VolumeType.SPHERE,
         params = {
@@ -346,16 +346,37 @@ function recon.processBP(mission, playerGroupId)
     }
     local ifFound = function(foundItem, val)
         if foundItem:isExist() and foundItem:isActive() then
-            table.insert(reconnedUnitPoints, foundItem:getPoint())
+            table.insert(reconnedUnits, foundItem)
         end
         return true
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
-    if #reconnedUnitPoints > 0 then
-        for i = 1, #reconnedUnitPoints do
-            local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnitPoints[i])
-            timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
-            timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+    if #reconnedUnits > 0 then
+        for i = 1, #reconnedUnits do
+            local reconnedUnit = reconnedUnits[i]
+            if reconnedUnit then
+                if reconnedUnit:hasAttribute("Infantry") then
+                    local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnit:getPoint())
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("Trucks") then
+                    local markId1 = DrawingTools.drawCircle(mission.coalitionId, reconnedUnit:getPoint(), 12)
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("APC") or reconnedUnit:hasAttribute("IFV") then
+                    local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnit:getPoint())
+                    local markId3 = DrawingTools.drawCircle(mission.coalitionId, reconnedUnit:getPoint(), 12)
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId3, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("Tanks") then
+                    local markId1 = DrawingTools.drawChevron(mission.coalitionId, reconnedUnit:getPoint())
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("Armed Air Defence") then
+                    local markId1, markId2 = DrawingTools.drawTriangle(mission.coalitionId, reconnedUnit:getPoint())
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+                end
+            end
         end
     end
     if BattleControl then
@@ -375,9 +396,8 @@ function recon.statusLoop()
 end
 recon.statusLoop()
 function recon.quickTest()
-    local testGroupName = "test"
     local testGroupPoint = Group.getByName("test"):getUnit(1):getPoint()
-    local newMissionId = Recon.createEnemyLocationMission(2, testGroupPoint, testGroupName)
-    local newMissionId2 = Recon.createBDAMission(2, trigger.misc.getZone("bda").point)
+    local newMissionId = Recon.createBPScoutingMission(2, testGroupPoint, 1)
+    recon.processBP(currentMissions[2][newMissionId], Group.getByName("test"):getID())
 end
 --recon.quickTest()
