@@ -182,7 +182,6 @@ function bc.deployments()
         }
         local enemyCoalition = 2
         if coalitionId == 2 then enemyCoalition = 1 end
-        local enemyPointsToWin = totalBPs - coalitionBPs[enemyCoalition]
         local enemyAvailableStr = bc.companyToStrength(bc.getAvailableStrengthTable(enemyCoalition))
         enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
 
@@ -216,6 +215,8 @@ function bc.deployments()
                 end
             end
         end
+        local enemyPointsToWin = totalBPs - coalitionBPs[enemyCoalition]
+        local ourPointsToWin = totalBPs - coalitionBPs[coalitionId]
         local tierToSpawn = 1
         local strengthToHold = 0
         for i = 1, #companyCompTiers do
@@ -231,7 +232,7 @@ function bc.deployments()
             env.info("Enemy victory is imminent, send any avilable troops.", false)
         end
         local priority = "REINFORCE"
-        if enemyPointsToWin < 3 or enemyAvailableStr < bc.companyToStrength(companyCompTiers[math.floor(#companyCompTiers/2)]) then
+        if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(companyCompTiers[math.floor(#companyCompTiers/2)]) or ourPointsToWin < 3 then
             priority = "CAPTURE"
         end
         env.info("Priority: " .. priority, false)
