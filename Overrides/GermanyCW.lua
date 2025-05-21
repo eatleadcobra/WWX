@@ -22,7 +22,7 @@ Platoons = {
         },
         ["Inf"] = {
             [1] = "BTR_D",
-            [2] = "BTR-80",
+            [2] = "BTR_D",
             [3] = "BTR-80",
             [4] = "GAZ-66",
         },
@@ -67,9 +67,8 @@ Platoons = {
         },
         ["EmbeddedAD"] = {
             --[1] = "Strela-1 9P31",
-            [1] = "ZSU_57_2",
-            [2] = "ZSU-23-4 Shilka",
-            [3] = "GAZ-66"
+            [1] = "ZSU-23-4 Shilka",
+            [2] = "GAZ-66"
         }
     },
     [2] = {
@@ -86,7 +85,7 @@ Platoons = {
         },
         ["Inf"] = {
             [1] = "M1045 HMMWV TOW",
-            [2] = "TPZ",
+            [2] = "TM1045 HMMWV TOW",
             [3] = "TPZ",
             [4] = "M 818"
         },
@@ -130,9 +129,8 @@ Platoons = {
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
-            [1] = "Gepard",
-            [2] = "Vulcan",
-            [3] = "M 818"
+            [1] = "Vulcan",
+            [2] = "M 818"
         }
     }
 }

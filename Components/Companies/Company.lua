@@ -83,16 +83,17 @@ function Company.setWaypoints(self, waypoints, bp, speed)
     self.point = waypoints[1]
     self.waypoints = waypoints
     self.bp = bp
+    local vector = Utils.VecNormalize({x = self.waypoints[2].x - self.waypoints[1].x, y = self.waypoints[2].y - self.waypoints[1].y, z = self.waypoints[2].z - self.waypoints[1].z})
+    ---@diagnostic disable-next-line: deprecated
+    local bearing = math.atan2(vector.z, vector.x)
+    if bearing < 0 then bearing = bearing + (2 * math.pi) end
+    self.heading = bearing
     if speed then self.speed = speed end
 end
 function Company.spawn(self)
     local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
-    if self.onRoad == false then
-        local vector = Utils.VecNormalize({x = self.waypoints[2].x - self.waypoints[1].x, y = self.waypoints[2].y - self.waypoints[1].y, z = self.waypoints[2].z - self.waypoints[1].z})
-        ---@diagnostic disable-next-line: deprecated
-        local bearing = math.atan2(vector.z, vector.x)
-        if bearing < 0 then bearing = bearing + (2 * math.pi) end
-        self.heading = bearing
+    if self.onRoad == false and self.arrived == false then
+        local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
         local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 500))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
         local roadPoint = {x = roadPointx, y = 0, z = roadPointy}
