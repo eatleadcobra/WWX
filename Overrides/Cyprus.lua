@@ -7,6 +7,9 @@ PIRACY = true
 -- counts
 FDCount = 2
 AACount = 8
+-- settings
+CSARAUTOENROLL = true
+CASAUTOENROLL = false
 
 Platoons = {
     [1] = {

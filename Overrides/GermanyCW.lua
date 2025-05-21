@@ -1,11 +1,16 @@
+-- enabled features
 SUBS = false
 AMBUSHES = false
 CAP = true
 PIRACY = false
 BOMBERS = true
 MISSILEBOATS = true
+-- counts
 FDCount = 2
 AACount = 6
+-- settings
+CSARAUTOENROLL = true
+CASAUTOENROLL = false
 
 Platoons = {
     [1] = {

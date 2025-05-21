@@ -125,6 +125,26 @@ local csarBases = {
         [1] = "Blue Forward Field Hospital"
     }
 }
+local autoCsarEnroll = {}
+function autoCsarEnroll:onEvent(event)
+    if event.id == world.event.S_EVENT_TAKEOFF then
+        if event and event.initiator and event.initiator:getDesc().category == 1 then
+            local foundPlayerName = event.initiator:getPlayerName()
+            local playerCoalition = event.initiator:getCoalition()
+            local playerGroup = event.initiator:getGroup()
+            local playerTypeName = event.initiator:getTypeName()
+            local playerUnitName = event.initiator:getName()
+            if playerGroup then
+                local playerGroupID = playerGroup:getID()
+                local playerGroupName = playerGroup:getName()
+                if foundPlayerName and playerCoalition and playerGroupID then
+                    env.info("Found player: "..foundPlayerName, false)
+                    CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
+                end
+            end
+        end
+    end
+end
 function CSB.load()
     local redZone = trigger.misc.getZone(stackZones[1])
     local blueZone = trigger.misc.getZone(stackZones[2])
@@ -156,11 +176,16 @@ function CSB.load()
     end
 end
 function CSB.main()
-    CSB.searchCsarStacks()
+    if CSARAUTOENROLL then
+        world.addEventHandler(autoCsarEnroll)
+    else
+        CSB.searchCsarStacks()
+    end
     CSB.trackCsar()
     --timer.scheduleFunction(CSB.debugCsarGeneration,nil,timer.getTime()+10)
     CSB.refreshCsarTransmissions()
 end
+
 function CSB.searchCsarStacks()
     timer.scheduleFunction(CSB.searchCsarStacks, nil, timer:getTime() + searchStackInterval)
     for c = 1,2 do
