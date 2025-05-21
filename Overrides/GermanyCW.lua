@@ -15,16 +15,16 @@ Platoons = {
             [3] = "GAZ-66"
         },
         ["Mech"] = {
-            [1] = "BMP-1",
+            [1] = "BTR_D",
             [2] = "BMP-1",
-            [3] = "BTR_D",
+            [3] = "BMP-1",
             [4] = "GAZ-66"
         },
         ["Inf"] = {
-            [1] = "BTR-80",
+            [1] = "BTR_D",
             [2] = "BTR-80",
-            [3] = "GAZ-66",
-            [4] = "BTR_D",
+            [3] = "BTR-80",
+            [4] = "GAZ-66",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
@@ -79,15 +79,15 @@ Platoons = {
             [3] = "M 818"
         },
         ["Mech"] = {
-            [1] = "Marder",
+            [1] = "M1045 HMMWV TOW",
             [2] = "Marder",
-            [3] = "M1045 HMMWV TOW",
+            [3] = "Marder",
             [4] = "M 818"
         },
         ["Inf"] = {
-            [1] = "TPZ",
+            [1] = "M1045 HMMWV TOW",
             [2] = "TPZ",
-            [3] = "M1045 HMMWV TOW",
+            [3] = "TPZ",
             [4] = "M 818"
         },
         ["DeployedInf"] = {

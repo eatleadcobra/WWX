@@ -51,11 +51,11 @@ local pltCosts = {
 local companyCompTiers = {
     [1] = {
         --tank, tank, apc, AD
-        composition = {1,1,3,7},
+        composition = {3,1,1,7},
     },
     [2] = {
         --tank, ifv, apc, AD
-        composition = {1,2,3,7},
+        composition = {2,1,3,7},
     },
     [3] = {
         --ifv, ifv, apc, AD
@@ -67,11 +67,11 @@ local companyCompTiers = {
     },
     [5] = {
         --tank, tank, apc
-        composition = {1,3,3,7},
+        composition = {3,1,3,7},
     },
     [6] = {
         --tank, ifv, apc
-        composition = {1,2,3},
+        composition = {3,1,2},
     },
     [7] = {
         -- ifv, ifv, apc
