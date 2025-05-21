@@ -139,7 +139,7 @@ function autoCsarEnroll:onEvent(event)
                 local playerGroupName = playerGroup:getName()
                 if foundPlayerName and playerCoalition and playerGroupID then
                     env.info("Found player: "..foundPlayerName, false)
-                    CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
+                    CSB.csarAutoCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
                 end
             end
         end
@@ -247,6 +247,14 @@ function CSB.csarCheckIn(playerName, coalitionId, playerGroupID, playerGroupName
         CSB.generateCsar(nil, coalitionId, nil, nil, nil, nil, nil, nil)
     end
     if not prev then
+        CSB.addCsarRadioMenuToGroup(playerGroupID, playerGroupName, coalitionId)
+    end
+    trigger.action.outTextForGroup(playerGroupID,"Checked-in. Check CSAR menu for active rescues.",30,false)
+end
+function CSB.csarAutoCheckIn(playerName, coalitionId, playerGroupID, playerGroupName, typeName, unitName, prev)
+    if not prev then prev = false end
+    if not csarCheckIns[coalitionId][playerName] then
+        csarCheckIns[coalitionId][playerName] = {groupID = playerGroupID, groupName = playerGroupName, typeName = typeName, unitName = unitName, onBoard = {}}
         CSB.addCsarRadioMenuToGroup(playerGroupID, playerGroupName, coalitionId)
     end
     trigger.action.outTextForGroup(playerGroupID,"Checked-in. Check CSAR menu for active rescues.",30,false)
