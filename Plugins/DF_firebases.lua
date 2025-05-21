@@ -88,7 +88,6 @@ function fbEvents:onEvent(event)
                 playerName = event.initiator:getPlayerName()
             end
         end
-        trigger.action.outText("Mark: " .. string.upper(event.text), 10, false)
         if (string.upper(event.text) == 'I') then
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "STARSHELL", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
