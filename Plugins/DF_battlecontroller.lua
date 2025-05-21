@@ -207,7 +207,9 @@ function bc.deployments()
                     table.insert(listOfNeutralBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
                 end
             elseif v.ownedBy == enemyCoalition then
-                table.insert(listOfEnemyBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
+                if bc.companyAssignedToBp(coalitionId, k) == false then
+                    table.insert(listOfEnemyBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
+                end
             elseif v.ownedBy == coalitionId then
                 local bpStrength = bc.assessBpStrength(coalitionId, k)
                 if bpStrength < enemyAvailableStr then
