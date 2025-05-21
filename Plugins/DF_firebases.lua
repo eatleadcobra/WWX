@@ -22,7 +22,7 @@ local fbId = 1
 local markId = 3000
 local resupDistance = 300
 local firebaseCheckInterval = 20
-local gracePeriod = 10
+local gracePeriod = 20
 local fbFuncs = {}
 local targetMarks = {}
 local drawing = {
@@ -67,8 +67,8 @@ local firemissionDelays = {
         perShot = 2,
     },
     ["HOWITZER"] = {
-        aiming = 17,
-        perShot = 4,
+        aiming = 18,
+        perShot = 6,
     },
     ["SPG"] = {
         aiming = 120,
