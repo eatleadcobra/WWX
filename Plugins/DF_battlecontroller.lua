@@ -443,6 +443,7 @@ function bc.availableEquipmentPct(coalitionId)
     return math.floor(DFS.status[coalitionId].supply.front[DFS.supplyType.EQUIPMENT] / DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT] * 100)
 end
 function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
+    bpId = tostring(bpId)
     local message = ""
     if gained then
         message = "We have captured battle position " .. bpId "!"
