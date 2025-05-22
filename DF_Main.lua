@@ -641,7 +641,7 @@ function dfcEvents:onEvent(event)
                     local dropMenu, troopsMenu = dfc.addRadioCommandsForCargoGroup(event.initiator:getGroup():getName())
                     dfc.addGroupToCargoList(event.initiator:getGroup():getName(), dropMenu, troopsMenu)
                 end
-                if DFS.madAircraft[event.initiator:getTypeName()] then
+                if SUBS and DFS.madAircraft[event.initiator:getTypeName()] then
                     dfc.addRadioCommandsForMADGroup(event.initiator:getGroup():getName())
                 end
             end
@@ -2432,7 +2432,7 @@ end
 function dfc.addRadioCommandsForGroup(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup then
-        if Sonobuoys then
+        if SUBS and Sonobuoys then
             Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
         end
         if Recon then

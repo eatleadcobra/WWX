@@ -1,6 +1,5 @@
 -- enabled features
 SUBS = false
-AMBUSHES = false
 CAP = true
 PIRACY = false
 BOMBERS = true
