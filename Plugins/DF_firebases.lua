@@ -44,7 +44,7 @@ local firebaseRanges = {
 }
 local firebaseExpendQtys = {
     ["MORTAR"] = 9,
-    ["HOWITZER"] = 6,
+    ["HOWITZER"] = 8,
     ["SPG"] = 9,
 }
 local firebaseMaxAmmos = {

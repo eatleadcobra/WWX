@@ -609,7 +609,7 @@ function DFS.decreaseFrontSupply(param)
     dfc.decreaseFrontSupply(param)
 end
 local debug = false
-local missionOver = false
+MissionOver = false
 local blueState = lfs.writedir() .. [[Logs/]] .. 'blueState.txt'
 local redState = lfs.writedir() .. [[Logs/]] ..'redState.txt'
 local redFront = lfs.writedir() .. [[Logs/]] .. 'redFront.txt'
@@ -738,8 +738,10 @@ function dfc.getData()
     end
 end
 function dfc.saveLoop()
-    dfc.saveData()
-    timer.scheduleFunction(dfc.saveLoop, nil, timer.getTime() + 20)
+    if MissionOver and MissionOver == false then
+        dfc.saveData()
+        timer.scheduleFunction(dfc.saveLoop, nil, timer.getTime() + 20)
+    end
 end
 function dfc.saveData()
     trigger.action.setUserFlag("RED_HEALTH", DFS.status[1].health)
@@ -818,7 +820,7 @@ function DFS.endMission(coalitionId)
     dfc.endMission(coalitionId)
 end
 function dfc.endMission(coalitionId)
-    missionOver = true
+    MissionOver = true
     DfcMissionEnd = true
     local winningTeam = 'Red Team'
     if coalitionId == 2 then winningTeam = 'Blue Team' end
@@ -1651,7 +1653,7 @@ function DFS.smokeGroup(groupName, smokeColor)
 end
 function dfc.mainLoop()
     --check front health
-    if missionOver then
+    if MissionOver then
         return
     else
         dfc.checkArtHealth()
@@ -2522,8 +2524,7 @@ if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)
 end
 if MISSILEBOATS then
-    --timer.scheduleFunction(dfc.missileboatLoop, nil, timer:getTime() + DFS.status.missileboatInterval)
-    dfc.missileboatLoop()
+    timer.scheduleFunction(dfc.missileboatLoop, nil, timer:getTime() + DFS.status.missileboatInterval)
 end
 dfc.mainLoop()
 dfc.saveLoop()

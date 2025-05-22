@@ -92,12 +92,15 @@ function cpyctl.updateMission(coalitionId, companyId, newPoints)
     end
 end
 function cpyctl.saveLoop()
-    for k,v in pairs(Companies) do
-        Companies[k]:savePosition()
+    if MissionOver and MissionOver == false then
+        for k,v in pairs(Companies) do
+            Companies[k]:savePosition()
+        end
+        cpyctl.saveCompanies()
+        timer.scheduleFunction(cpyctl.saveLoop, nil, timer:getTime()+10)
     end
-    cpyctl.saveCompanies()
-    timer.scheduleFunction(cpyctl.saveLoop, nil, timer:getTime()+10)
 end
+-- this really isn't mission specific and should be moved to a file in components
 function cpyctl.cpyStatusLoop()
     for c = 1,2 do
         for i = 1, #CompanyIDs[c] do
