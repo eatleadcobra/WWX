@@ -446,7 +446,7 @@ function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
     local bpIdString = tostring(bpId)
     local message = ""
     if gained then
-        message = "We have captured battle position " .. bpIdString "!"
+        message = "We have captured battle position " .. bpIdString .. "!"
     else
         if newOwnerCoalition == 1 or newOwnerCoalition == 2 then
             message = "The enemy has taken battle position " .. bpIdString .."!"
