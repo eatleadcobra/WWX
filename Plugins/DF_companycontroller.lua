@@ -92,7 +92,7 @@ function cpyctl.updateMission(coalitionId, companyId, newPoints)
     end
 end
 function cpyctl.saveLoop()
-    if MissionOver and MissionOver == false then
+    if MissionOver == false then
         for k,v in pairs(Companies) do
             Companies[k]:savePosition()
         end

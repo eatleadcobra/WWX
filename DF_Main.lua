@@ -738,7 +738,7 @@ function dfc.getData()
     end
 end
 function dfc.saveLoop()
-    if MissionOver and MissionOver == false then
+    if MissionOver == false then
         dfc.saveData()
         timer.scheduleFunction(dfc.saveLoop, nil, timer.getTime() + 20)
     end
