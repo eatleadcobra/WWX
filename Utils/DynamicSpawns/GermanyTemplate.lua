@@ -60,6 +60,8 @@ Airframes = {
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
             ["Bronco-OV-10A"] = true,
+            ["F-86F Sabre"] = true,
+            ["F-86F_FC"] = true,
         },
         farp = {
             ["UH-1H"] = true,
