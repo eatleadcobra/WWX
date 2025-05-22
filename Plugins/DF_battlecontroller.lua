@@ -317,6 +317,10 @@ function bc.main()
                 local reconCoalitionId = 1
                 if ownedBy == 1 then reconCoalitionId = 2 end
                 v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id)
+                bc.notifyTeamofBPChange(ownedBy, ownedBy, v.id, true)
+                bc.notifyTeamofBPChange(v.ownedBy, ownedBy, v.id, false)
+            else
+                bc.notifyTeamofBPChange(v.ownedBy, ownedBy, v.id, false)
             end
             v.ownedBy = ownedBy
         end
@@ -437,6 +441,19 @@ function bc.getAvailableStrengthTable(coalitionId)
 end
 function bc.availableEquipmentPct(coalitionId)
     return math.floor(DFS.status[coalitionId].supply.front[DFS.supplyType.EQUIPMENT] / DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT] * 100)
+end
+function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
+    local message = ""
+    if gained then
+        message = "We have captured battle position " .. bpId "!"
+    else
+        if newOwnerCoalition == 1 or newOwnerCoalition == 2 then
+            message = "The enemy has taken battle position " .. bpId .."!"
+        else
+            message = "Our units in battle position " .. bpId .. " have been destroyed!"
+        end
+    end
+    trigger.action.outTextForCoalition(coalitionId, message, 30, false)
 end
 
 bc.getPositions()
