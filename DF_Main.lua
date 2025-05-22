@@ -45,7 +45,7 @@ DFS.cargoVolumes = {
     [1] = 5,
     [2] = 5,
     [3] = 5,
-    [5] = 5,
+    [5] = 10,
     [6] = 5,
     [7] = 2,
 }
@@ -83,7 +83,7 @@ DFS.heloCapacities = {
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
         },
-        volume = 20,
+        volume = 25,
         seats = 24
     },
     ["Mi-24P"] = {
@@ -95,7 +95,7 @@ DFS.heloCapacities = {
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
         },
-        volume = 10,
+        volume = 15,
         seats = 8
     },
     ["UH-1H"] = {
@@ -119,8 +119,8 @@ DFS.heloCapacities = {
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
         },
-        volume = 5,
-        seats = 2
+        volume = 10,
+        seats = 3
     },
     ["SA342Minigun"] = {
         types = {
@@ -130,7 +130,7 @@ DFS.heloCapacities = {
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
         },
-        volume = 5,
+        volume = 10,
         seats = 2
     },
     ["CH-47Fbl1"] = {
