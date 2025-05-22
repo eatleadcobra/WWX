@@ -115,6 +115,7 @@ DFS.heloCapacities = {
             ["Fuel"] = 1,
             ["Ammo"] = 2,
             ["Equipment"] = 3,
+            ["Mortar Squad"] = 6,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
         },
