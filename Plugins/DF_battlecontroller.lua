@@ -21,8 +21,8 @@ local reconnedBPs = {
     [2] = {},
 }
 local priorityBPs = {
-    [1] = 0,
-    [2] = 0
+    [1] = {bpId = 0, priority = ""},
+    [2] = {bpId = 0, priority = ""},
 }
 local priorityMarkupIds = {
     [1] = {},
@@ -99,6 +99,39 @@ local companyCompTiers = {
         composition = {3,3,3},
     },
 }
+function bc.fileExists(file)
+    local f = io.open(file, 'rb')
+    if f then f:close() end
+    return f ~= nil
+end
+local missionName = env.mission["date"]["Year"]
+local priorityBPFile = lfs.writedir() .. [[Logs/]] .. 'priorityBPs'..missionName..'.txt'
+
+function bc.savePriorities()
+    local bpFile = priorityBPFile
+    local f = io.open(bpFile, 'w')
+    if f then
+        f:write("return " .. Utils.saveToString(priorityBPs))
+        f:close()
+    end
+end
+function bc.loadPriorities()
+    if bc.fileExists(priorityBPFile) then
+        local f = io.open(priorityBPFile, 'r')
+        local priorityData = dofile(priorityBPFile)
+        priorityBPs = priorityData
+        f:close()
+        for c = 1,2 do
+            local battlePosition = battlePositions[priorityBPs[c].bpId]
+            if battlePosition then
+                local priorityPoint = {x = battlePosition.point.x, y = 0, z = battlePosition.point.z - battlePosition.radius - 200}
+                priorityMarkupIds[c] = DrawingTools.drawPriorityMarker(c, priorityPoint, priorityBPs[c].priority)
+                trigger.action.outText("Done", 10, false)
+            end
+        end
+    end
+end
+
 function BattleControl.reconBP(coalitionId, bpID)
     reconnedBPs[coalitionId][bpID] = true
     bc.fillCamera(coalitionId,bpID)
@@ -247,7 +280,6 @@ function bc.deployments()
                 env.info("Enemy victory is imminent, send any avilable troops.", false)
             end
             local priority = "REINFORCE"
-    
             if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(companyCompTiers[math.floor(#companyCompTiers/2)]) or ourPointsToWin < 3 or ourPointsToWin > math.floor((3*totalBPs)/4) then
                 priority = "CAPTURE"
             end
@@ -282,10 +314,10 @@ function bc.deployments()
                         env.info("Sufficient company possible, sending", false)
                         bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpy)
                         env.info("SentCount: " .. sentCount, false)
-                        env.info("Priority BP: " .. priorityBPs[coalitionId], false)
+                        env.info("Priority BP: " .. priorityBPs[coalitionId].bpId, false)
                         sentCount = sentCount + 1
                         if sentCount == 1 then
-                            if priorityBPs[coalitionId] == 0 or bc.priortyAchieved(coalitionId) then
+                            if priorityBPs[coalitionId].bpId == 0 or bc.priortyAchieved(coalitionId) then
                                 bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
                             end
                         end
@@ -298,7 +330,7 @@ function bc.deployments()
 end
 function bc.priortyAchieved(coalitionId)
     local priorityAchieved = false
-    local priorityBP = priorityBPs[coalitionId]
+    local priorityBP = priorityBPs[coalitionId].bpId
     local priortyCpyId = bc.companyAssignedToBp(coalitionId, priorityBP)
     local clearPriority = false
     if priortyCpyId == -1 then
@@ -383,17 +415,19 @@ function bc.main()
         DFS.endMission(2)
     end
     bc.deployments()
+    bc.savePriorities()
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
 end
 function bc.assignPriorityBp(coalitionId, bpId, priority)
     env.info("new priority BP for " .. coalitionId .. " ID: " .. bpId .. " priority: " .. priority, false)
-    if priorityBPs[coalitionId] ~= 0 then
+    if priorityBPs[coalitionId].bpId ~= 0 then
         for i = 1, #priorityMarkupIds[coalitionId] do
             local markId = priorityMarkupIds[coalitionId][i]
             if markId then trigger.action.removeMark(markId) end
         end
     end
-    priorityBPs[coalitionId] = bpId
+    priorityBPs[coalitionId].bpId = bpId
+    priorityBPs[coalitionId].priority = priority
     local priorityString = ""
     if priority == "CAPTURE" then
         priorityString = "Our priority objective is to capture Battle Position " .. bpId .. "! Friendly ground forces are en route, give them air support."
@@ -544,4 +578,5 @@ end
 
 bc.getPositions()
 bc.setBPMarkups()
+bc.loadPriorities()
 bc.main()
