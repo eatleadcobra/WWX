@@ -20,6 +20,19 @@ local reconnedBPs = {
     [1] = {},
     [2] = {},
 }
+local priorityBPs = {
+    [1] = 0,
+    [2] = 0
+}
+local priorityMarkupIds = {
+    [1] = {},
+    [2] = {}
+}
+
+local radioObjectiveMessages = {
+    ["complete"] = "l10n/DEFAULT/ObjectiveComplete.ogg",
+    ["failed"] = "l10n/DEFAULT/ObjectiveFailed.ogg",
+}
 local pltStrengths = {
     [1] = 15,
     [2] = 4 + #Platoons[1]["DeployedInf"],
@@ -165,113 +178,144 @@ function bc.deployments()
     local evalCoalition = math.random(2)
     for c = 1, 2 do
         local coalitionId = evalCoalition
-        if coalitionId == 1 then
-            evalCoalition = 2
-        else
-            evalCoalition = 1
-        end
-        local listOfNeutralBPsByDistance = {}
-        local listOfEnemyBPsByDistance = {}
-        local listOfFriendlyBPsNeedingReinforcementByDistance = {}
-        local totalBPs = #battlePositions
-
-        local neutralBPs = 0
-        local coalitionBPs = {
-            [1] = 0,
-            [2] = 0
-        }
-        local enemyCoalition = 2
-        if coalitionId == 2 then enemyCoalition = 1 end
-        local enemyAvailableStr = bc.companyToStrength(bc.getAvailableStrengthTable(enemyCoalition))
-        enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
-
-        for k, v in pairs(battlePositions) do
-            if v.ownedBy == 0 then
-                neutralBPs = neutralBPs + 1
+            if coalitionId == 1 then
+                evalCoalition = 2
             else
-                coalitionBPs[v.ownedBy] = coalitionBPs[v.ownedBy] + 1
+                evalCoalition = 1
             end
-            local bpPoint = v.point
-            local closerDepot = -1
-            local closerDistance = -1
-            for j = 1, #DFS.status[coalitionId].spawns.fd do
-                local depotPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..DFS.status[coalitionId].spawns.fd[j].spawnZone).point
-                local depotDist = Utils.PointDistance(depotPoint, bpPoint)
-                if closerDistance == -1 or depotDist < closerDistance then
-                    closerDepot = j
-                    closerDistance = depotDist
-                end
-            end
-            if v.ownedBy == 0 then
-                if bc.companyAssignedToBp(coalitionId, k) == false then
-                    table.insert(listOfNeutralBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
-                end
-            elseif v.ownedBy == enemyCoalition then
-                if bc.companyAssignedToBp(coalitionId, k) == false then
-                    table.insert(listOfEnemyBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
-                end
-            elseif v.ownedBy == coalitionId then
-                local bpStrength = bc.assessBpStrength(coalitionId, k)
-                if bpStrength < enemyAvailableStr then
-                    table.insert(listOfFriendlyBPsNeedingReinforcementByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
-                end
-            end
-        end
-        local enemyPointsToWin = totalBPs - coalitionBPs[enemyCoalition]
-        local ourPointsToWin = totalBPs - coalitionBPs[coalitionId]
-        local tierToSpawn = 1
-        local strengthToHold = 0
-        for i = 1, #companyCompTiers do
-            local tierStrength = bc.companyToStrength(companyCompTiers[i].composition)
-            if tierStrength >= enemyAvailableStr then
-                tierToSpawn = i
-                strengthToHold = tierStrength
-            end
-        end
-       env.info(coalitionId .. "-Tier needed to hold point: " .. tierToSpawn, false)
-        if enemyPointsToWin < 2 then
-            strengthToHold = 0
-            env.info("Enemy victory is imminent, send any avilable troops.", false)
-        end
-        local priority = "REINFORCE"
-        if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(companyCompTiers[math.floor(#companyCompTiers/2)]) or ourPointsToWin < 3 then
-            priority = "CAPTURE"
-        end
-        env.info("Priority: " .. priority, false)
-        table.sort(listOfNeutralBPsByDistance, function(a, b) return a.distance < b.distance end)
-        table.sort(listOfEnemyBPsByDistance, function(a, b) return a.distance < b.distance end)
-        table.sort(listOfFriendlyBPsNeedingReinforcementByDistance, function(a, b) return a.distance < b.distance end)
+            local listOfNeutralBPsByDistance = {}
+            local listOfEnemyBPsByDistance = {}
+            local listOfFriendlyBPsNeedingReinforcementByDistance = {}
+            local totalBPs = #battlePositions
 
-        local priorityTargetsTables = {}
-        if priority == "REINFORCE" then
-            priorityTargetsTables = {
-                [1] = listOfFriendlyBPsNeedingReinforcementByDistance,
-                [2] = listOfNeutralBPsByDistance,
-                [3] = listOfEnemyBPsByDistance
+            local neutralBPs = 0
+            local coalitionBPs = {
+                [1] = 0,
+                [2] = 0
             }
-        elseif priority == "CAPTURE" then
-            priorityTargetsTables = {
-                [1] = listOfNeutralBPsByDistance,
-                [2] = listOfEnemyBPsByDistance,
-                [3] = listOfFriendlyBPsNeedingReinforcementByDistance,
-            }
-        end
-        for i = 1, #priorityTargetsTables do
-            local targetTable = priorityTargetsTables[i]
-            for j = 1, #targetTable do
-                local availableCpy = bc.getAvailableStrengthTable(coalitionId)
-                local availableStr = bc.companyToStrength(availableCpy)
-                env.info("Our strength: " .. availableStr, false)
-                env.info("strength to hold: " .. strengthToHold, false)
-                if availableStr > 0 and availableStr >= strengthToHold then
-                    env.info("Sufficient company possible, sending", false)
-                    bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpy)
+            local enemyCoalition = 2
+            if coalitionId == 2 then enemyCoalition = 1 end
+            local enemyAvailableStr = bc.companyToStrength(bc.getAvailableStrengthTable(enemyCoalition))
+            enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
+
+            for k, v in pairs(battlePositions) do
+                if v.ownedBy == 0 then
+                    neutralBPs = neutralBPs + 1
                 else
-                    env.info("No Sufficient company possible, waiting", false)
+                    coalitionBPs[v.ownedBy] = coalitionBPs[v.ownedBy] + 1
+                end
+                local bpPoint = v.point
+                local closerDepot = -1
+                local closerDistance = -1
+                for j = 1, #DFS.status[coalitionId].spawns.fd do
+                    local depotPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..DFS.status[coalitionId].spawns.fd[j].spawnZone).point
+                    local depotDist = Utils.PointDistance(depotPoint, bpPoint)
+                    if closerDistance == -1 or depotDist < closerDistance then
+                        closerDepot = j
+                        closerDistance = depotDist
+                    end
+                end
+                if v.ownedBy == 0 then
+                    if bc.companyAssignedToBp(coalitionId, k) == false then
+                        table.insert(listOfNeutralBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
+                    end
+                elseif v.ownedBy == enemyCoalition then
+                    if bc.companyAssignedToBp(coalitionId, k) == false then
+                        table.insert(listOfEnemyBPsByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
+                    end
+                elseif v.ownedBy == coalitionId then
+                    local bpStrength = bc.assessBpStrength(coalitionId, k)
+                    if bpStrength < enemyAvailableStr then
+                        table.insert(listOfFriendlyBPsNeedingReinforcementByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
+                    end
                 end
             end
+            local enemyPointsToWin = totalBPs - coalitionBPs[enemyCoalition]
+            local ourPointsToWin = totalBPs - coalitionBPs[coalitionId]
+            local tierToSpawn = 1
+            local strengthToHold = 0
+            for i = 1, #companyCompTiers do
+                local tierStrength = bc.companyToStrength(companyCompTiers[i].composition)
+                if tierStrength >= enemyAvailableStr then
+                    tierToSpawn = i
+                    strengthToHold = tierStrength
+                end
+            end
+            env.info(coalitionId .. "-Tier needed to hold point: " .. tierToSpawn, false)
+            if enemyPointsToWin < 2 then
+                strengthToHold = 0
+                env.info("Enemy victory is imminent, send any avilable troops.", false)
+            end
+            local priority = "REINFORCE"
+    
+            if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(companyCompTiers[math.floor(#companyCompTiers/2)]) or ourPointsToWin < 3 or ourPointsToWin > math.floor((3*totalBPs)/4) then
+                priority = "CAPTURE"
+            end
+            env.info("Priority: " .. priority, false)
+            table.sort(listOfNeutralBPsByDistance, function(a, b) return a.distance < b.distance end)
+            table.sort(listOfEnemyBPsByDistance, function(a, b) return a.distance < b.distance end)
+            table.sort(listOfFriendlyBPsNeedingReinforcementByDistance, function(a, b) return a.distance < b.distance end)
+
+            local priorityTargetsTables = {}
+            if priority == "REINFORCE" then
+                priorityTargetsTables = {
+                    [1] = listOfFriendlyBPsNeedingReinforcementByDistance,
+                    [2] = listOfNeutralBPsByDistance,
+                    [3] = listOfEnemyBPsByDistance
+                }
+            elseif priority == "CAPTURE" then
+                priorityTargetsTables = {
+                    [1] = listOfNeutralBPsByDistance,
+                    [2] = listOfEnemyBPsByDistance,
+                    [3] = listOfFriendlyBPsNeedingReinforcementByDistance,
+                }
+            end
+            local sentCount = 0
+            for i = 1, #priorityTargetsTables do
+                local targetTable = priorityTargetsTables[i]
+                for j = 1, #targetTable do
+                    local availableCpy = bc.getAvailableStrengthTable(coalitionId)
+                    local availableStr = bc.companyToStrength(availableCpy)
+                    env.info("Our strength: " .. availableStr, false)
+                    env.info("strength to hold: " .. strengthToHold, false)
+                    if availableStr > 0 and availableStr >= strengthToHold then
+                        env.info("Sufficient company possible, sending", false)
+                        bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpy)
+                        sentCount = sentCount + 1
+                        if sentCount == 1 then
+                            if priorityBPs[coalitionId] == 0 or bc.priortyAchieved(coalitionId) then
+                                bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
+                            end
+                        end
+                    else
+                        env.info("No Sufficient company possible, waiting", false)
+                    end
+                end
+            end
+    end
+end
+function bc.priortyAchieved(coalitionId)
+    local priorityAchieved = false
+    local priorityBP = priorityBPs[coalitionId]
+    local priortyCpyId = bc.companyAssignedToBp(coalitionId, priorityBP)
+    local clearPriority = false
+    if priortyCpyId == -1 then
+        clearPriority = true
+    else
+        local priorityCompany = Companies[priortyCpyId]
+        if priorityCompany then
+            if priorityCompany.arrived or priorityCompany:getRemainingStrength() < 60 then
+                priorityAchieved = true
+            end
+        else
+            clearPriority = false
         end
     end
+    if clearPriority then
+        priorityBP[coalitionId] = 0
+        priorityAchieved = true
+    end
+    return priorityAchieved
 end
 function bc.main()
     local redPositions = 0
@@ -335,18 +379,44 @@ function bc.main()
     bc.deployments()
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
 end
-
-
+function bc.assignPriorityBp(coalitionId, bpId, priority)
+    if priorityBPs[coalitionId] ~= 0 then
+        for i = 1, #priorityMarkupIds[coalitionId] do
+            local markId = priorityMarkupIds[coalitionId][i]
+            if markId then trigger.action.removeMark(markId) end
+        end
+    end
+    priorityBPs[coalitionId] = bpId
+    local priorityString = ""
+    if priority == "CAPTURE" then
+        priorityString = "Our priority objective is to capture Battle Position " .. bpId .. "! Friendly ground forces are en route, give them air support."
+    elseif priority == "REINFORCE" then
+        priorityString = "Our priority objective is to hold Battle Position " .. bpId .. "! Provide air support until reinforcements arrive."
+    end
+    trigger.action.outTextForCoalition(coalitionId, priorityString, 60, false)
+    local battlePosition = battlePositions[bpId]
+    if battlePosition then
+        local priorityPoint = {x = battlePosition.point.x, y = 0, z = battlePosition.point.z - battlePosition.radius - 200}
+        priorityMarkupIds[coalitionId] = DrawingTools.drawPriorityMarker(coalitionId, priorityPoint, priority)
+    end
+end
 function bc.companyAssignedToBp(coalitionId, targetbp)
     local cpyAlreadyAssignedToBP = false
-    if Companies then
-        for k,v in pairs(Companies) do
-            if v.coalitionId == coalitionId and v.bp == targetbp then
-                cpyAlreadyAssignedToBP = true
-            end
+    for i = 1, #CompanyIDs[coalitionId] do
+        if Companies[CompanyIDs[coalitionId][i]].bp == targetbp then
+            cpyAlreadyAssignedToBP = true
         end
     end
     return cpyAlreadyAssignedToBP
+end
+function bc.getCompanyAssignedToBp(coalitionId, targetbp)
+    local assignedCompanyId = -1
+    for i = 1, #CompanyIDs[coalitionId] do
+        if Companies[CompanyIDs[coalitionId][i]].bp == targetbp then
+            assignedCompanyId = CompanyIDs[coalitionId][i]
+        end
+    end
+    return assignedCompanyId
 end
 function bc.companyToStrength(companyTable)
     if companyTable == nil then return 0 end
@@ -445,16 +515,23 @@ end
 function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
     local bpIdString = tostring(bpId)
     local message = ""
+    local audioMessage = nil
     if gained then
         message = "We have captured battle position " .. bpIdString .. "!"
+        audioMessage = radioObjectiveMessages["complete"]
     else
         if newOwnerCoalition == 1 or newOwnerCoalition == 2 then
             message = "The enemy has taken battle position " .. bpIdString .."!"
+            audioMessage = radioObjectiveMessages["failed"]
         else
             message = "Our units in battle position " .. bpIdString .. " have been destroyed!"
+            audioMessage = radioObjectiveMessages["failed"]
         end
     end
     trigger.action.outTextForCoalition(coalitionId, message, 30, false)
+    if audioMessage then
+        trigger.action.outSoundForCoalition(coalitionId, audioMessage)
+    end
 end
 
 bc.getPositions()

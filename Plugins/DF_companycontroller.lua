@@ -35,6 +35,7 @@ function cpyctl.saveCompanies()
             statusChangedTime = v.statusChangedTime,
             point = v.point,
             heading = v.heading,
+            initUnits = v.initUnits,
             units = v.units,
             waypoints = v.waypoints,
             groupName = v.groupName,

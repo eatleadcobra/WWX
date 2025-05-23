@@ -52,6 +52,7 @@ function Company.new(coalitionId, persistent, platoons, onRoad, convoy, convoyPa
             end
         end
     end
+    newCpy.initUnits = newCpy.units
     if persistent then
         Companies[newCpy.id] = newCpy
         table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
@@ -66,6 +67,7 @@ function Company.newFromTable(cpyData)
     newCpy.statusChangedTime = cpyData.statusChangedTime
     newCpy.point = cpyData.point
     newCpy.heading = cpyData.heading
+    newCpy.initUnits = cpyData.initUnits
     newCpy.units = cpyData.units
     newCpy.waypoints = cpyData.waypoints
     newCpy.groupName = cpyData.groupName
@@ -213,6 +215,13 @@ function Company.updateUnits(self, listOfUnits)
     self.units = {}
     for i = 1, #listOfUnits do
         table.insert(self.units, listOfUnits[i]:getTypeName())
+    end
+end
+function Company.getRemainingStrength(self)
+    if self.units and self.initUnits then
+        return math.floor((#self.units/#self.initUnits)*100)
+    else
+        return 100
     end
 end
 function Company.despawn(self)

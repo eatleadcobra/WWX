@@ -242,3 +242,76 @@ function DrawingTools.drawChevron(coalitionId, centerPoint, length)
     trigger.action.lineToAll(coalitionId, line2Id, topPoint, bottomRightPoint, {0,0,0,1}, 1, true, nil)
     return line1Id, line2Id
 end
+function DrawingTools.drawPriorityMarker(coalitionId, markPoint, priorityType)
+    local markIds = {}
+    if priorityType == "CAPTURE" then
+        markIds = DrawingTools.drawSwords(coalitionId, markPoint)
+    elseif "REINFORCE" then
+        markIds = DrawingTools.drawShield(coalitionId, markPoint)
+    end
+    return markIds
+end
+
+function DrawingTools.drawSwords(coalitionId, markPoint)
+    local markIds = {}
+    local gripLength = 100
+    local pommelRadius = 60
+    local crossGuardWidth = 200
+    local bladeLength = 500
+    --- pommel
+    local pommelPoint = markPoint
+    local pommelMarkId = DrawingTools.newMarkId()
+    table.insert(markIds, pommelMarkId)
+    trigger.action.circleToAll(coalitionId, pommelMarkId, pommelPoint, pommelRadius, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    --- grip
+    local gripLowerRight = {x = pommelPoint.x + (pommelRadius - pommelRadius/4), y = 0, z = pommelPoint.z + (pommelRadius - pommelRadius/3)}
+    local gripLowerLeft = {x = pommelPoint.x + (pommelRadius - pommelRadius/4), y = 0, z = pommelPoint.z - (pommelRadius - pommelRadius/3)}
+    local gripUpperRight = {x = gripLowerRight.x + gripLength, y = 0, z = gripLowerRight.z}
+    local gripUpperLeft = {x = gripLowerLeft.x + gripLength, y = 0, z = gripLowerLeft.z}
+    local gripMarkId = DrawingTools.newMarkId()
+    table.insert(markIds, gripMarkId)
+    trigger.action.quadToAll(coalitionId, gripMarkId, gripLowerLeft, gripUpperLeft, gripUpperRight, gripLowerRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    ---crossguard
+    local crossGuardLowerLeft = {x = gripUpperLeft.x, y = 0, z = gripUpperLeft.z - ((crossGuardWidth-(pommelRadius - pommelRadius/4))/2)}
+    local crossGuardUpperLeft = {x = crossGuardLowerLeft.x + crossGuardWidth/5, y = 0, z = crossGuardLowerLeft.z }
+    local crossGuardLowerRight = {x = gripUpperRight.x, y = 0, z = gripUpperRight.z + ((crossGuardWidth-(pommelRadius - pommelRadius/4))/2)}
+    local crossGuardUpperRight = {x = crossGuardLowerRight.x + crossGuardWidth/5, y = 0, z = crossGuardLowerRight.z}
+    local crossGuardMarkId = DrawingTools.newMarkId()
+    table.insert(markIds, crossGuardMarkId)
+    trigger.action.quadToAll(coalitionId, crossGuardMarkId, crossGuardLowerLeft, crossGuardUpperLeft, crossGuardUpperRight, crossGuardLowerRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    ---
+    local bladeLowerLeft = {x = gripUpperLeft.x + crossGuardWidth/5, y=0, z = gripUpperLeft.z - pommelRadius/6}
+    local bladeUpperLeft = {x = bladeLowerLeft.x + bladeLength, y=0, z = bladeLowerLeft.z}
+    local bladeLowerRight = {x = gripUpperRight.x + crossGuardWidth/5, y=0, z = gripUpperRight.z + pommelRadius/6}
+    local bladeUpperRight = {x = bladeLowerRight.x + bladeLength, y=0, z = bladeLowerRight.z}
+    local bladeMarkId = DrawingTools.newMarkId()
+    table.insert(markIds, bladeMarkId)
+    trigger.action.quadToAll(coalitionId, bladeMarkId, bladeLowerLeft, bladeUpperLeft, bladeUpperRight, bladeLowerRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    ---
+    local bladeTipLowerLeft = {x = bladeUpperLeft.x, y = 0, z = bladeUpperLeft.z}
+    local bladeTipLowerRight = {x = bladeUpperRight.x, y =0, z = bladeUpperRight.z}
+    local bladeTipPoint = {x = bladeUpperLeft.x + gripLength/2, y = 0, z = pommelPoint.z}
+    local bladeTipId = DrawingTools.newMarkId()
+    table.insert(markIds, bladeTipId)
+    trigger.action.markupToAll(7, coalitionId, bladeTipId, bladeTipLowerLeft, bladeTipPoint, bladeTipLowerRight, {0,0,0,1}, {0,0,0,1}, true, nil)
+    ---
+    return markIds
+end
+function DrawingTools.drawShield(coalitionId, markPoint)
+    local markIds = {}
+    local shieldSideSize = 400
+    ---
+    local shieldLowerLeft = { x = markPoint.x + shieldSideSize/1.5, y=0, z = markPoint.z - shieldSideSize/2 }
+    local shieldUpperLeft = { x = shieldLowerLeft.x + shieldSideSize, y=0, z = shieldLowerLeft.z}
+    local shieldLowerRight = { x = shieldLowerLeft.x, y=0, z = shieldLowerLeft.z + shieldSideSize }
+    local shieldUpperRight = { x = shieldUpperLeft.x, y=0, z = shieldLowerRight.z}
+    local shieldIntermediate1LowerLeft = {x = shieldLowerLeft.x - shieldSideSize/4, y = 0, z = shieldLowerLeft.z + shieldSideSize/8}
+    local shieldIntermediate1LowerRight = {x = shieldLowerRight.x - shieldSideSize/4, y = 0, z = shieldLowerRight.z - shieldSideSize/8}
+    local shieldIntermediate2LowerLeft = {x = shieldIntermediate1LowerLeft.x - shieldSideSize/4, y = 0, z = shieldIntermediate1LowerLeft.z + shieldSideSize/6}
+    local shieldIntermediate2LowerRight = {x = shieldIntermediate1LowerRight.x - shieldSideSize/4, y = 0, z = shieldIntermediate1LowerRight.z - shieldSideSize/6}
+    local shieldMarkId = DrawingTools.newMarkId()
+    trigger.action.markupToAll(7, coalitionId, shieldMarkId, markPoint, shieldIntermediate2LowerLeft, shieldIntermediate1LowerLeft, shieldLowerLeft, shieldUpperLeft, shieldUpperRight, shieldLowerRight, shieldIntermediate1LowerRight, shieldIntermediate2LowerRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    table.insert(markIds, shieldMarkId)
+    ---
+    return markIds
+end
