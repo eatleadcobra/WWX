@@ -108,10 +108,12 @@ local missionName = env.mission["date"]["Year"]
 local priorityBPFile = lfs.writedir() .. [[Logs/]] .. 'priorityBPs'..missionName..'.txt'
 
 function bc.savePriorities()
-    local bpFile = priorityBPFile
-    local f = io.open(bpFile, 'w')
-    if f then
-        f:write("return " .. Utils.saveToString(priorityBPs))
+    if MissionOver == false then
+        local bpFile = priorityBPFile
+        local f = io.open(bpFile, 'w')
+        if f then
+            f:write("return " .. Utils.saveToString(priorityBPs))
+        end
         f:close()
     end
 end
@@ -136,7 +138,9 @@ function BattleControl.reconBP(coalitionId, bpID)
     reconnedBPs[coalitionId][bpID] = true
     bc.fillCamera(coalitionId,bpID)
 end
-
+function BattleControl.endMission()
+    priorityBPs = {[1] = {}, [2] = {}}
+end
 function bc.getPositions()
     for i = 1, positionsCountLimit do
         local bpZone = trigger.misc.getZone("BP-"..i)
@@ -445,8 +449,11 @@ end
 function bc.companyAssignedToBp(coalitionId, targetbp)
     local cpyAlreadyAssignedToBP = false
     for i = 1, #CompanyIDs[coalitionId] do
-        if Companies[CompanyIDs[coalitionId][i]].bp == targetbp then
-            cpyAlreadyAssignedToBP = true
+        local company = Companies[CompanyIDs[coalitionId][i]]
+        if company then
+            if company.bp == targetbp then
+                cpyAlreadyAssignedToBP = true
+            end
         end
     end
     return cpyAlreadyAssignedToBP

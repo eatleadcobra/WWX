@@ -816,6 +816,7 @@ function dfc.blankData()
     dfc.saveData()
     dfc.emptyFirebases()
     CpyControl.wipeCompanies()
+    BattleControl.endMission()
 end
 function DFS.endMission(coalitionId)
     dfc.endMission(coalitionId)
