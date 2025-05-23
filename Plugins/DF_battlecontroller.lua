@@ -281,6 +281,8 @@ function bc.deployments()
                     if availableStr > 0 and availableStr >= strengthToHold then
                         env.info("Sufficient company possible, sending", false)
                         bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpy)
+                        env.info("SentCount: " .. sentCount, false)
+                        env.info("Priority BP: " .. priorityBPs[coalitionId], false)
                         sentCount = sentCount + 1
                         if sentCount == 1 then
                             if priorityBPs[coalitionId] == 0 or bc.priortyAchieved(coalitionId) then
@@ -300,18 +302,22 @@ function bc.priortyAchieved(coalitionId)
     local priortyCpyId = bc.companyAssignedToBp(coalitionId, priorityBP)
     local clearPriority = false
     if priortyCpyId == -1 then
+        env.info("No company assigned to priority BP", false)
         clearPriority = true
     else
         local priorityCompany = Companies[priortyCpyId]
         if priorityCompany then
             if priorityCompany.arrived or priorityCompany:getRemainingStrength() < 60 then
+                env.info("priority company arrived or is damaged", false)
                 priorityAchieved = true
             end
         else
+            env.info("priority company doesn't exist", false)
             clearPriority = false
         end
     end
     if clearPriority then
+        env.info("clearing priority", false)
         priorityBP[coalitionId] = 0
         priorityAchieved = true
     end
@@ -380,6 +386,7 @@ function bc.main()
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
 end
 function bc.assignPriorityBp(coalitionId, bpId, priority)
+    env.info("new priority BP for " .. coalitionId .. " ID: " .. bpId .. " priority: " .. priority, false)
     if priorityBPs[coalitionId] ~= 0 then
         for i = 1, #priorityMarkupIds[coalitionId] do
             local markId = priorityMarkupIds[coalitionId][i]
@@ -398,6 +405,7 @@ function bc.assignPriorityBp(coalitionId, bpId, priority)
     if battlePosition then
         local priorityPoint = {x = battlePosition.point.x, y = 0, z = battlePosition.point.z - battlePosition.radius - 200}
         priorityMarkupIds[coalitionId] = DrawingTools.drawPriorityMarker(coalitionId, priorityPoint, priority)
+        env.info("priority marker draw", false)
     end
 end
 function bc.companyAssignedToBp(coalitionId, targetbp)
