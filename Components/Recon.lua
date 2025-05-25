@@ -351,36 +351,46 @@ function recon.processBP(mission, playerGroupId)
         return true
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    local unitMarkIds = {}
     if #reconnedUnits > 0 then
         for i = 1, #reconnedUnits do
             local reconnedUnit = reconnedUnits[i]
             if reconnedUnit then
                 if reconnedUnit:hasAttribute("Infantry") then
                     local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnit:getPoint())
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    unitMarkIds[#unitMarkIds+1] = markId2
                     timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                     timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
                 elseif reconnedUnit:hasAttribute("Trucks") then
                     local markId1 = DrawingTools.drawCircle(mission.coalitionId, reconnedUnit:getPoint(), 12)
+                    unitMarkIds[#unitMarkIds+1] = markId1
                     timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                 elseif reconnedUnit:hasAttribute("APC") or reconnedUnit:hasAttribute("IFV") then
                     local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnit:getPoint())
                     local markId3 = DrawingTools.drawCircle(mission.coalitionId, reconnedUnit:getPoint(), 12)
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    unitMarkIds[#unitMarkIds+1] = markId2
+                    unitMarkIds[#unitMarkIds+1] = markId3
                     timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                     timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
                     timer.scheduleFunction(trigger.action.removeMark, markId3, timer:getTime() + 3600)
                 elseif reconnedUnit:hasAttribute("Tanks") then
                     local markId1, markId2 = DrawingTools.drawChevron(mission.coalitionId, reconnedUnit:getPoint())
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    unitMarkIds[#unitMarkIds+1] = markId2
                     timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                     timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
                 elseif reconnedUnit:hasAttribute("Armed Air Defence") then
                     local markId1 = DrawingTools.drawTriangle(mission.coalitionId, reconnedUnit:getPoint())
+                    unitMarkIds[#unitMarkIds+1] = markId1
                     timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                 end
             end
         end
     end
     if BattleControl then
-        BattleControl.reconBP(mission.coalitionId, mission.bp)
+        BattleControl.reconBP(mission.coalitionId, mission.bp, unitMarkIds)
     end
     trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
 end

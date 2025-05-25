@@ -20,6 +20,10 @@ local reconnedBPs = {
     [1] = {},
     [2] = {},
 }
+local reconnedBPMarkups = {
+    [1] = {},
+    [2] = {},
+}
 local priorityBPs = {
     [1] = {bpId = 0, priority = ""},
     [2] = {bpId = 0, priority = ""},
@@ -134,8 +138,9 @@ function bc.loadPriorities()
     end
 end
 
-function BattleControl.reconBP(coalitionId, bpID)
+function BattleControl.reconBP(coalitionId, bpID, markIds)
     reconnedBPs[coalitionId][bpID] = true
+    reconnedBPMarkups[coalitionId][bpID] = markIds
     bc.fillCamera(coalitionId,bpID)
 end
 function BattleControl.endMission()
@@ -393,12 +398,23 @@ function bc.main()
         if ownedBy == 1 then redPositions = redPositions + 1 end
         if ownedBy == 2 then bluePositions = bluePositions + 1 end
         if v.ownedBy ~= ownedBy then
-            if v.reconMissionId ~= -1 and v.ownedBy ~= 0 then
-                local missionCltn = 1
-                if v.ownedBy == 1 then
-                    missionCltn = 2
+            local rcnMissionCltn = 1
+            if v.ownedBy == 1 then
+                rcnMissionCltn = 2
+            end
+            local bpReconMarkIds = reconnedBPMarkups[rcnMissionCltn][v.id]
+            if bpReconMarkIds then
+                for i = 1, #bpReconMarkIds do
+                    trigger.action.removeMark(bpReconMarkIds[i])
                 end
-                Recon.cleanmission(missionCltn, v.reconMissionId)
+            end
+            if v.reconMarkups.fillIds then
+                for i = 1, #v.reconMarkups.fillIds do
+                    trigger.action.removeMark(v.reconMarkups.fillIds[i])
+                end
+            end
+            if v.reconMissionId ~= -1 and v.ownedBy ~= 0 then
+                Recon.cleanmission(rcnMissionCltn, v.reconMissionId)
             end
             if ownedBy ~= 0 then
                 local reconCoalitionId = 1
