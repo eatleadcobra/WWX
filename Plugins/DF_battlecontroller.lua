@@ -518,7 +518,10 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                 env.info(coalitionId .. " - Cannot send company this company, not enough supply.", false)
                 if desperate then
                     env.info(coalitionId .. " - Cannot send company this company. Trying lower tier.", false)
-                    bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate)
+                    strengthTableTier = strengthTableTier + 1
+                    if strengthTableTier < 10 then
+                        bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate)
+                    end
                 end
             end
         end
