@@ -128,7 +128,7 @@ local csarBases = {
 local autoCsarEnroll = {}
 function autoCsarEnroll:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF then
-        if event and event.initiator and event.initiator:getDesc().category == 1 then
+        if event and event.initiator and event.initiator.getDesc and event.initiator:getDesc().category == 1 then
             local foundPlayerName = event.initiator:getPlayerName()
             local playerCoalition = event.initiator:getCoalition()
             local playerGroup = event.initiator:getGroup()
