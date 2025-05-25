@@ -37,6 +37,7 @@ Airframes = {
     [2] = {
         main = {
             ["UH-1H"] = true,
+            ["UH-60L"] = true,
             ["SA342L"] = true,
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
@@ -55,6 +56,7 @@ Airframes = {
         },
         forward = {
             ["UH-1H"] = true,
+            ["UH-60L"] = true,
             ["SA342L"] = true,
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
@@ -65,6 +67,7 @@ Airframes = {
         },
         farp = {
             ["UH-1H"] = true,
+            ["UH-60L"] = true,
             ["SA342L"] = true,
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
