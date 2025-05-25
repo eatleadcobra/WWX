@@ -264,7 +264,7 @@ DFS.templates = {
     },
     [3] = {
         ["big"] = {
-            ["mass"] = 1200,
+            ["mass"] = 1400,
             ["heading"] = 0,
             ["shape_name"] = "iso_container_small_cargo",
             ["canCargo"] = true,
