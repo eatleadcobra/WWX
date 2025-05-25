@@ -110,6 +110,18 @@ DFS.heloCapacities = {
         volume = 15,
         seats = 14
     },
+    ["UH-60L"] = {
+        types = {
+            ["Fuel"] = 1,
+            ["Ammo"] = 2,
+            ["Equipment"] = 3,
+            ["Mortar Squad"] = 5,
+            ["Special Forces"] = 6,
+            ["Combat Engineers (Landmines)"] = 7,
+        },
+        volume = 20,
+        seats = 12
+    },
     ["SA342L"] = {
         types = {
             ["Fuel"] = 1,

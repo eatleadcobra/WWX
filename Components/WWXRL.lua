@@ -89,6 +89,7 @@ function wwxRacing.newLeague(division)
             ["Mi-8MT"] = 1,
             ["Mi-24P"] = 1,
             ["UH-1H"] = 1,
+            ["UH-60L"] = 1,
             ["SA342L"] = 1,
             ["CH-47Fbl1"] = 1,
             ["OH-6A"] = 1
