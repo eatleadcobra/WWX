@@ -41,6 +41,7 @@ Airframes = {
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
+            ["UH-60L"] = true,
             ["A-10A"] = true,
             ["Bronco-OV-10A"] = true,
             ["A-4E-C"] = true,
@@ -59,6 +60,7 @@ Airframes = {
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
+            ["UH-60L"] = true,
             ["Bronco-OV-10A"] = true,
             ["F-86F Sabre"] = true,
             ["F-86F_FC"] = true,
@@ -69,6 +71,7 @@ Airframes = {
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
+            ["UH-60L"] = true,
         }
     }
 }

@@ -320,10 +320,9 @@ function bc.deployments()
                         env.info("Sufficient company possible, sending", false)
                         bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpyTier, desperate)
                         env.info("SentCount: " .. sentCount, false)
-                        env.info("Priority BP: " .. priorityBPs[coalitionId].bpId, false)
                         sentCount = sentCount + 1
                         if sentCount == 1 then
-                            if priorityBPs[coalitionId].bpId == 0 or bc.priortyAchieved(coalitionId) then
+                            if priorityBPs[coalitionId].bpId and priorityBPs[coalitionId].bpId == 0 or bc.priortyAchieved(coalitionId) then
                                 bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
                             end
                         end
