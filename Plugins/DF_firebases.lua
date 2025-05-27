@@ -44,7 +44,7 @@ local firebaseRanges = {
 }
 local firebaseExpendQtys = {
     ["MORTAR"] = 9,
-    ["HOWITZER"] = 8,
+    ["HOWITZER"] = 12,
     ["SPG"] = 9,
 }
 local firebaseMaxAmmos = {
@@ -658,7 +658,7 @@ function fbFuncs.firebaseFire(firebase, targetmark)
         end
     end
     local missionTime = firemissionDelays[firebase.fbType].aiming + ((mission.expendQty-1)*firemissionDelays[firebase.fbType].perShot)
-    timer.scheduleFunction(fbFuncs.suppressArea, {point = targetmark.pos, radius = 500, duration = ((mission.expendQty)*firemissionDelays[firebase.fbType].perShot)}, timer:getTime() + firemissionDelays[firebase.fbType].aiming + 15)
+    timer.scheduleFunction(fbFuncs.suppressArea, {point = targetmark.pos, radius = 500, duration = ((mission.expendQty)*firemissionDelays[firebase.fbType].perShot) + 15}, timer:getTime() + firemissionDelays[firebase.fbType].aiming + 15)
     firebase:expendAmmo(mission.expendQty)
     Firebases.updateAmmoCounter(firebase)
     if targetmark.id then
