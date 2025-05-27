@@ -108,6 +108,10 @@ function fbEvents:onEvent(event)
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "MORTAR", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
+        if (string.upper(event.text) == 'SUP') then
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "SUPPRESS", playerName = playerName})
+            timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
+        end
         if (string.upper(event.text) == "B") then
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "BATTLE", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
@@ -635,6 +639,9 @@ function fbFuncs.firebaseFire(firebase, targetmark)
     mission.y = targetmark.pos.z
     mission.radius = 50
     mission.expendQty = firebaseExpendQtys[firebase.fbType]/#fbGroups
+    if targetmark.fbType == "SUPPRESS" then
+        mission.expendQty = mission.expendQty * 4
+    end
     if firebase.contents.ammo < mission.expendQty then mission.expendQty = firebase.contents.ammo end
     mission.expendQtyEnabled = true
     local fire = {id = 'FireAtPoint', params = mission}
