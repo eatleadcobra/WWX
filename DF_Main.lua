@@ -650,7 +650,7 @@ function dfcEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group then
                 dfc.addRadioCommandsForGroup(event.initiator:getGroup():getName())
-                if DFS.heloCapacities[event.initiator:getTypeName()] then
+                if CARGO and DFS.heloCapacities[event.initiator:getTypeName()] then
                     local dropMenu, troopsMenu = dfc.addRadioCommandsForCargoGroup(event.initiator:getGroup():getName())
                     dfc.addGroupToCargoList(event.initiator:getGroup():getName(), dropMenu, troopsMenu)
                 end
@@ -2542,5 +2542,7 @@ if MISSILEBOATS then
 end
 dfc.mainLoop()
 dfc.saveLoop()
-dfc.drawSupplyMarks()
+if CARGO then
+    dfc.drawSupplyMarks()
+end
 dfc.isItSunset()

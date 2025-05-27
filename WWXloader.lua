@@ -26,34 +26,44 @@ assert(loadfile(pathToWWX.."Components\\Companies\\Company.lua"))()
 assert(loadfile(pathToWWX.."Components\\Companies\\Platoon.lua"))()
 --battlepositions
 assert(loadfile(pathToWWX.."Components\\BattlePositions\\BattlePosition.lua"))()
---subs
-assert(loadfile(pathToWWX.."Components\\Subs\\SubControl.lua"))()
-assert(loadfile(pathToWWX.."Components\\Subs\\SubTools.lua"))()
+
 --standalone components
 assert(loadfile(pathToWWX.."Components\\Torpedo.lua"))()
-assert(loadfile(pathToWWX.."Components\\Sonobuoy.lua"))()
-assert(loadfile(pathToWWX.."Components\\VisiBuoy.lua"))()
-assert(loadfile(pathToWWX.."Components\\DepthCharge.lua"))()
 assert(loadfile(pathToWWX.."Components\\Landmine.lua"))()
 assert(loadfile(pathToWWX.."Components\\RocketTrackerFirebases.lua"))()
 assert(loadfile(pathToWWX.."Components\\BullsBot.lua"))()
 assert(loadfile(pathToWWX.."Components\\FastRope.lua"))()
-assert(loadfile(pathToWWX.."Components\\CasBot.lua"))()
-assert(loadfile(pathToWWX.."Components\\CODAR.lua"))()
-assert(loadfile(pathToWWX.."Components\\MAD.lua"))()
+
+if CAS then
+   assert(loadfile(pathToWWX.."Components\\CasBot.lua"))()
+end
+if SUBS then
+   assert(loadfile(pathToWWX.."Components\\Sonobuoy.lua"))()
+   assert(loadfile(pathToWWX.."Components\\VisiBuoy.lua"))()
+   assert(loadfile(pathToWWX.."Components\\CODAR.lua"))()
+   assert(loadfile(pathToWWX.."Components\\MAD.lua"))()
+   assert(loadfile(pathToWWX.."Components\\DepthCharge.lua"))()
+   --subs
+   assert(loadfile(pathToWWX.."Components\\Subs\\SubControl.lua"))()
+   assert(loadfile(pathToWWX.."Components\\Subs\\SubTools.lua"))()
+end
 assert(loadfile(pathToWWX.."Components\\WWXRL.lua"))()
-assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
-if theatre then
-   assert(loadfile(pathToWWX.."Components\\RandomNames_"..theatre..".lua"))()
-else
-   assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
+if CSAR then
+   assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
+   if theatre then
+      assert(loadfile(pathToWWX.."Components\\RandomNames_"..theatre..".lua"))()
+   else
+      assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
+   end
 end
 assert(loadfile(pathToWWX.."Components\\Recon.lua"))()
 env.info("Loading Plugins", false)
 -- "plugins" here are like wrappers or translation layers between the component and the specific mission requirements of WWX
 assert(loadfile(pathToWWX.."Plugins\\DF_firebases.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_submarines.lua"))()
-assert(loadfile(pathToWWX.."Plugins\\DF_slingbabysitter.lua"))()
+if CARGO then
+   assert(loadfile(pathToWWX.."Plugins\\DF_slingbabysitter.lua"))()
+end
 env.info("Loading main")
 assert(loadfile(pathToWWX.."DF_Main.lua"))()
 --Things that need to load after DF_Main because they access global vars defined in that file

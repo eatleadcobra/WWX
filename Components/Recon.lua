@@ -345,7 +345,7 @@ function recon.processBP(mission, playerGroupId)
         }
     }
     local ifFound = function(foundItem, val)
-        if foundItem:isExist() and foundItem:isActive() then
+        if foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() ~= mission.coalitionId then
             table.insert(reconnedUnits, foundItem)
         end
         return true

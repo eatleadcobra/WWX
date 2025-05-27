@@ -3,6 +3,10 @@ SUBS = true
 CAP = true
 BOMBERS = true
 PIRACY = true
+MISSILEBOATS = false
+CARGO = true
+CSAR = true
+CAS = true
 -- counts
 FDCount = 2
 AACount = 8
