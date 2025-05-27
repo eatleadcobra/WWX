@@ -530,7 +530,7 @@ function Firebases.getClosestUnassignedFirebaseInRangeByType(point, coalition, f
     local distanceToFirebase = 100000
     local returnBaseIndex = 0
     for i = 1, #FirebaseIds[coalition] do
-        if fbType == "ANY" or fbType == "STARSHELL" or (Firebases[FirebaseIds[coalition][i]].fbType and Firebases[FirebaseIds[coalition][i]].fbType == fbType) then
+        if fbType == "ANY" or fbType == "STARSHELL" or fbType == "SUPPRESS" or (Firebases[FirebaseIds[coalition][i]].fbType and Firebases[FirebaseIds[coalition][i]].fbType == fbType) then
             local distance = Utils.PointDistance(point, Firebases[FirebaseIds[coalition][i]].positions.location)
             if fbFuncs.inRange(Firebases[FirebaseIds[coalition][i]], point) and distance < distanceToFirebase and not Firebases[FirebaseIds[coalition][i]]:isAssigned() and Firebases[FirebaseIds[coalition][i]].contents.ammo > 0 then
                 distanceToFirebase = distance
