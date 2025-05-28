@@ -150,7 +150,8 @@ function bc.getPositions()
     for i = 1, positionsCountLimit do
         local bpZone = trigger.misc.getZone("BP-"..i)
         if bpZone then
-            local newBP = BattlePosition.new(i, bpZone.point, bpZone.radius, "BP-"..i)
+            local bpPoint = {x = bpZone.point.x, y = land.getHeight({x = bpZone.point.x, y = bpZone.point.z}), z = bpZone.point.z}
+            local newBP = BattlePosition.new(i, bpPoint, bpZone.radius, "BP-"..i)
             battlePositions[newBP.id] = newBP
             table.insert(bpIds, newBP.id)
             bc.drawCamera(newBP.id)
