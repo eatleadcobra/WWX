@@ -49,6 +49,21 @@ function Utils.RotateVector(vector, radians)
     newVector.y = vector.y
     return newVector
 end
+function Utils.GetBearingDeg(fromPoint, toPoint)
+    local vector = {x = toPoint.x - fromPoint.x, y = toPoint.y - fromPoint.y, z = toPoint.z - fromPoint.z}
+    ---@diagnostic disable-next-line: deprecated
+    local bearing = math.atan2(vector.z, vector.x)
+    if bearing < 0 then bearing = bearing + (2 * math.pi) end
+    local bearingInDeg = bearing * (180/math.pi)
+    return bearingInDeg
+end
+function Utils.GetBearingRad(fromPoint, toPoint)
+    local vector = {x = toPoint.x - fromPoint.x, y = toPoint.y - fromPoint.y, z = toPoint.z - fromPoint.z}
+    ---@diagnostic disable-next-line: deprecated
+    local bearing = math.atan2(vector.z, vector.x)
+    if bearing < 0 then bearing = bearing + (2 * math.pi) end
+    return bearing
+end
 function Utils.MidPoint(point1, point2)
     return
 end
