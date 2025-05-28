@@ -52,7 +52,7 @@ function reconEvents:onEvent(event)
                     trigger.action.outTextForGroup(group:getID(), "Valid recon flight being tracked.", 10, false)
                     trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax ASL: " .. math.floor(3.28*reconParams.maxASL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
                     recon.trackReconJet(groupName)
-                   missionCommands.removeItemForGroup(group:getID(), {[1] = "Unload Recon Equipment"})
+                    missionCommands.removeItemForGroup(group:getID(), {[1] = "Unload Recon Equipment"})
                 else
                     Recon.removeRadioCommandsForGroup(group:getID())
                 end
@@ -73,6 +73,9 @@ function reconEvents:onEvent(event)
                             recon.processPlayerFilm(group:getCoalition(), player, group:getID())
                         end
                     end
+                end
+                if potentialReconJets[groupName] == nil then
+                    Recon.addRadioCommandsForGroup(groupName)
                 end
             end
         end
