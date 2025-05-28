@@ -562,9 +562,9 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
             if (strengthTable or overrideTable) and canAfford then
                 local newCpy = {}
                 if overrideTable then
-                    newCpy =  Company.new(coalitionId, true, overrideTable, false)
+                    newCpy = Company.new(coalitionId, true, overrideTable, false)
                 else
-                    Company.new(coalitionId, true, strengthTable, false)
+                    newCpy = Company.new(coalitionId, true, strengthTable, false)
                 end
                 Companies[newCpy.id] = newCpy
                 table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
