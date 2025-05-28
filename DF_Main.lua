@@ -1047,8 +1047,12 @@ function dfc.isItSunset()
         timer.scheduleFunction(dfc.isItSunset, nil, timer:getTime() + 30)
     end
 end
+--params coalitionId, amount, type
+function DFS.IncreaseFrontSupply(param)
+    dfc.increaseFrontSupply(param)
+end
+--params coalitionId, amount, type
 function dfc.increaseFrontSupply(param)
-    --params coalitionId, amount
     DFS.status[param.coalitionId].supply.front[param.type] = DFS.status[param.coalitionId].supply.front[param.type] + param.amount
     if DFS.status[param.coalitionId].supply.front[param.type] > math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)) then
         local surplusAmt = DFS.status[param.coalitionId].supply.front[param.type] - (math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)))
