@@ -96,13 +96,17 @@ function reconEvents:onEvent(event)
     end
 end
 world.addEventHandler(reconEvents)
-function recon.newBaseMission(coalitionId, missionPoint)
+function recon.newBaseMission(coalitionId, missionPoint, noExpire)
     local newMissionId = recon.getNewMissionId()
     local newMission = Utils.deepcopy(missionTemplate)
     newMission.id = newMissionId
     newMission.coalitionId = coalitionId
     newMission.point = missionPoint
-    timer.scheduleFunction(recon.destroyMission, {coalitionId = coalitionId, missionId = newMissionId}, timer:getTime() + missionExpireTime)
+    if noExpire then
+        return newMission
+    else
+        timer.scheduleFunction(recon.destroyMission, {coalitionId = coalitionId, missionId = newMissionId}, timer:getTime() + missionExpireTime)
+    end
     return newMission
 end
 function Recon.createBDAMission(coalitionId, bdaPoint)
@@ -126,8 +130,8 @@ function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGrou
     currentMissions[coalitionId][newMission.id] = newMission
     return newMission.id
 end
-function Recon.createBPScoutingMission(coalitionId, missionPoint, bp)
-    local newMission = recon.newBaseMission(coalitionId, missionPoint)
+function Recon.createBPScoutingMission(coalitionId, missionPoint, bp, noExpire)
+    local newMission = recon.newBaseMission(coalitionId, missionPoint, noExpire)
     newMission.type = 4
     newMission.bp = bp
     currentMissions[coalitionId][newMission.id] = newMission

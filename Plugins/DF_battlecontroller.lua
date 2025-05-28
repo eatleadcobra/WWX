@@ -419,7 +419,7 @@ function bc.main()
             if ownedBy ~= 0 then
                 local reconCoalitionId = 1
                 if ownedBy == 1 then reconCoalitionId = 2 end
-                v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id)
+                v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id, true)
                 bc.notifyTeamofBPChange(ownedBy, ownedBy, v.id, true)
                 bc.notifyTeamofBPChange(v.ownedBy, ownedBy, v.id, false)
             else
