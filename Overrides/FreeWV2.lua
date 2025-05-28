@@ -4,7 +4,7 @@ CAP = true
 PIRACY = false
 BOMBERS = true
 MISSILEBOATS = false
-CARGO = false
+CARGO = true
 CSAR = true
 CAS = false
 -- counts
