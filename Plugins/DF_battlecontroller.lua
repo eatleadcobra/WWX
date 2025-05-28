@@ -237,7 +237,7 @@ function bc.deployments()
             }
             local enemyCoalition = 2
             if coalitionId == 2 then enemyCoalition = 1 end
-            local enemyAvailableStr = bc.companyToStrength(companyCompTiers[bc.getAvailableStrengthTable(enemyCoalition)].composition)
+            local enemyAvailableStr = bc.companyToStrength(companyCompTiers[bc.getAvailableStrengthTableTier(enemyCoalition)].composition)
             enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
 
             for k, v in pairs(battlePositions) do
@@ -267,8 +267,8 @@ function bc.deployments()
                     end
                 elseif v.ownedBy == coalitionId then
                     local bpStrength = bc.assessBpStrength(coalitionId, k)
-                    if bpStrength < enemyAvailableStr then
-                        table.insert(listOfFriendlyBPsNeedingReinforcementByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bc.assessBpStrength(coalitionId, k), ownedBy = v.ownedBy})
+                    if bpStrength < (enemyAvailableStr*(3/4)) then
+                        table.insert(listOfFriendlyBPsNeedingReinforcementByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bpStrength, ownedBy = v.ownedBy})
                     end
                 end
             end
@@ -317,13 +317,17 @@ function bc.deployments()
             for i = 1, #priorityTargetsTables do
                 local targetTable = priorityTargetsTables[i]
                 for j = 1, #targetTable do
-                    local availableCpyTier = bc.getAvailableStrengthTable(coalitionId)
+                    local availableCpyTier = bc.getAvailableStrengthTableTier(coalitionId)
                     local availableStr = bc.companyToStrength(companyCompTiers[availableCpyTier].composition)
                     env.info("Our strength: " .. availableStr, false)
                     env.info("strength to hold: " .. strengthToHold, false)
                     if availableStr > 0 and availableStr >= strengthToHold then
+                        local sendCpy = nil
+                        if priority == "REINFORCE" then
+                            sendCpy = bc.getReinforcementNeeded(targetTable[j].strength, strengthToHold)
+                        end
                         env.info("Sufficient company possible, sending", false)
-                        bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpyTier, desperate)
+                        bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpyTier, desperate, sendCpy)
                         env.info("SentCount: " .. sentCount, false)
                         sentCount = sentCount + 1
                         if sentCount == 1 then
@@ -492,6 +496,33 @@ function bc.companyToStrength(companyTable)
     end
     return cpyStrength
 end
+function bc.getReinforcementNeeded(currentBpStrength, strengthToHold)
+    local strDiff = strengthToHold - currentBpStrength
+    if strDiff < 1 then return nil end
+    local reinforcementsTable = {}
+    local loopCount = 0
+    while strDiff > 1 do
+        local addedStr = 0
+        if pltStrengths[1] < strDiff then
+            table.insert(reinforcementsTable, 1)
+            addedStr = pltStrengths[1]
+        elseif pltStrengths[2] < strDiff then
+            table.insert(reinforcementsTable, 2)
+            addedStr = pltStrengths[2]
+        else
+            table.insert(reinforcementsTable, 3)
+            addedStr = pltStrengths[3]
+        end
+        loopCount = loopCount + 1
+        strDiff = strDiff - addedStr
+        if loopCount > 30 then
+            trigger.action.outText("INFINITE LOOP REEEEEEE", 10, false)
+            break
+        end
+    end
+    env.info("reinforcements required: " .. Utils.dump(reinforcementsTable), false)
+    return reinforcementsTable
+end
 function bc.companyToCost(companyTable)
     local cpyCost = {
         [DFS.supplyType.FUEL] = 0,
@@ -505,10 +536,10 @@ function bc.companyToCost(companyTable)
     end
     return cpyCost
 end
-function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate)
-    if strengthTableTier > 0 then
+function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate, overrideTable)
+    if strengthTableTier > 0 or overrideTable then
         local strengthTable = companyCompTiers[strengthTableTier].composition
-        if strengthTable then
+        if strengthTable or overrideTable then
             local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot).point
             startPoint.x = startPoint.x + 50
             startPoint.z = startPoint.z + 50
@@ -520,8 +551,21 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                     canAfford = false
                 end
             end
-            if strengthTable and canAfford then
-                local newCpy = Company.new(coalitionId, true, strengthTable, false)
+            if overrideTable then
+                local overrideCost = bc.companyToCost(overrideTable)
+                for i = 1, 3 do
+                    if DFS.status[coalitionId].supply.front[i] < overrideCost[i] then
+                        canAfford = false
+                    end
+                end
+            end
+            if (strengthTable or overrideTable) and canAfford then
+                local newCpy = {}
+                if overrideTable then
+                    newCpy =  Company.new(coalitionId, true, overrideTable, false)
+                else
+                    Company.new(coalitionId, true, strengthTable, false)
+                end
                 Companies[newCpy.id] = newCpy
                 table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
                 newCpy:setWaypoints({startPoint, destination}, targetBP, 999)
@@ -529,7 +573,7 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                 DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.EQUIPMENT, amount = companyCost[DFS.supplyType.EQUIPMENT]})
                 DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.FUEL, amount = companyCost[DFS.supplyType.FUEL]})
                 DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.AMMO, amount = companyCost[DFS.supplyType.AMMO]})
-            else
+            elseif overrideTable == nil then
                 env.info(coalitionId .. " - Cannot send company this company, not enough supply.", false)
                 if desperate then
                     env.info(coalitionId .. " - Cannot send company this company. Trying lower tier.", false)
@@ -577,7 +621,7 @@ function bc.assessBpStrength(coalitionId, bpId)
     end
     return positionAssessedStrength
 end
-function bc.getAvailableStrengthTable(coalitionId)
+function bc.getAvailableStrengthTableTier(coalitionId)
     local availableEquipmentPct =  bc.availableEquipmentPct(coalitionId)
     local cpyTier = math.ceil((100-availableEquipmentPct)/10)
     if cpyTier == 0 then cpyTier = 1 end
