@@ -136,3 +136,7 @@ PlatoonUnitCarrierTypeNames = {
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
 }
+
+PlatoonFlakCarrierTypeNames = {
+    [""] = "FLAK"
+}

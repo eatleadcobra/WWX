@@ -83,5 +83,4 @@ ForwardAirbases = {
 IgnoreAirbases = {
     ["Peenemunde"] = true,
     ["CV59"] = true,
-    ["LHA-1"] = true
 }
