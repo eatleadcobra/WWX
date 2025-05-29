@@ -35,7 +35,7 @@ assert(loadfile(pathToWWX.."Components\\BullsBot.lua"))()
 assert(loadfile(pathToWWX.."Components\\FastRope.lua"))()
 
 if CAS then
-   assert(loadfile(pathToWWX.."Components\\CasBot.lua"))()
+   assert(loadfile(pathToWWX.."Components\\CAS2.lua"))()
 end
 if SUBS then
    assert(loadfile(pathToWWX.."Components\\Sonobuoy.lua"))()

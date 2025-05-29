@@ -13,6 +13,10 @@ AACount = 6
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
+BLUECASFREQ = 255
+REDCASFREQ = 45
+BLUECASMOD = 0
+REDCASMOD = 1
 
 Platoons = {
     [1] = {

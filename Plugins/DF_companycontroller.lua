@@ -21,6 +21,8 @@ CompanyIDs = {
     [1] = {},
     [2] = {}
 }
+
+
 local missionName = env.mission["date"]["Year"]
 local companyState = lfs.writedir() .. [[Logs/]] .. 'companies'..missionName..'.txt'
 function cpyctl.saveCompanies()

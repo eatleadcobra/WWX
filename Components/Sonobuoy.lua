@@ -64,7 +64,6 @@ local mhzAvailable = 150
 local detFreq = 1
 local sbCount = 20
 local buoyLifetime = 9000
--- TODO: Lookup TypeNames for these planes
 local planeRadioTypes = {
     det = {
         ["P-51D"] = 1,
@@ -73,7 +72,6 @@ local planeRadioTypes = {
         ["P-47D-40"] = 4,
     },
     khz = {
-        --["MosquitoFBMkVI"] = 1,
         ["MiG-19P"] = 1,
         ["Mi-8MT"] = 2,
         ["Mi-24P"] = 3,
@@ -96,15 +94,6 @@ local mpra = {
     ["P-47D-40"] = 1,
 }
 local coalitions = {1, 2}
-local enabledTypeNames = {["MosquitoFBMkVI"] = 1}
-local sbGroupName = {
-    [1] = {
-        truck = "Red-RadioTruck"
-    },
-    [2] = {
-        truck = "Blue-RadioTruck"
-    }
-}
 local playerCount = {
 
 }
@@ -123,15 +112,6 @@ local detrolaFreqs = {
 }
 local sbEvents = {}
 function sbEvents:onEvent(event)
-    if (event.id == 15) then
-        if event.initiator ~= nil and event.initiator.getGroup then
-            local group = event.initiator:getGroup()
-            if group then
-                --sb.addRadioCommandsForFixedWingGroup(event.initiator:getGroup():getName())
-                playerCount[event.initiator:getGroup():getName()] = sbCount
-            end
-        end
-    end
     --on takeoff 
     if event.id == world.event.S_EVENT_TAKEOFF then
         if event.initiator ~= nil and event.initiator.getGroup then
@@ -139,7 +119,11 @@ function sbEvents:onEvent(event)
                 playerCount[event.initiator:getGroup():getName()] = sbCount
                 local initUnit = event.initiator:getGroup():getUnit(1)
                 if initUnit then
-                    if mpra[initUnit:getTypeName()] then playerCount[event.initiator:getGroup():getName()] = sbCount*2 end
+                    if mpra[initUnit:getTypeName()] then
+                        playerCount[event.initiator:getGroup():getName()] = sbCount*2
+                    else
+                        playerCount[event.initiator:getGroup():getName()] = sbCount
+                    end
                 end
             end
         end
