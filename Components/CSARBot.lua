@@ -256,8 +256,8 @@ function CSB.csarAutoCheckIn(playerName, coalitionId, playerGroupID, playerGroup
     if not csarCheckIns[coalitionId][playerName] then
         csarCheckIns[coalitionId][playerName] = {groupID = playerGroupID, groupName = playerGroupName, typeName = typeName, unitName = unitName, onBoard = {}}
         CSB.addCsarRadioMenuToGroup(playerGroupID, playerGroupName, coalitionId)
+        trigger.action.outTextForGroup(playerGroupID,"Checked-in. Check CSAR menu for active rescues.",30,false)
     end
-    trigger.action.outTextForGroup(playerGroupID,"Checked-in. Check CSAR menu for active rescues.",30,false)
 end
 function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     -- check for ejection onto base for auto collection
