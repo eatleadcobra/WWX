@@ -182,11 +182,11 @@ function cas.designationLoop()
                     end
                 end
                 if v.isMoving == false and distanceToTgt < cas.dangerClose then
+                    if v.smokeColor == -1 then
+                            v.smokeColor = smokeColors[math.random(1,3)]
+                    end
                     casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[v.smokeColor] .."smoke."
                     if v.smokeTime == -1 or timer:getTime() - v.smokeTime > 300 then
-                        if v.smokeColor == -1 then
-                            v.smokeColor = smokeColors[math.random(1,3)]
-                        end
                         trigger.action.smoke(Utils.VectorAdd(v.currentPoint, Utils.ScalarMult(atmosphere.getWind(v.currentPoint), 10 + math.random(5))), v.smokeColor)
                         v.smokeTime = timer:getTime()
                     end
