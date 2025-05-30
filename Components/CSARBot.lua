@@ -125,6 +125,26 @@ local csarBases = {
         [1] = "Blue Forward Field Hospital"
     }
 }
+local autoCsarEnroll = {}
+function autoCsarEnroll:onEvent(event)
+    if event.id == world.event.S_EVENT_TAKEOFF then
+        if event and event.initiator and event.initiator.getDesc and event.initiator:getDesc().category == 1 then
+            local foundPlayerName = event.initiator:getPlayerName()
+            local playerCoalition = event.initiator:getCoalition()
+            local playerGroup = event.initiator:getGroup()
+            local playerTypeName = event.initiator:getTypeName()
+            local playerUnitName = event.initiator:getName()
+            if playerGroup then
+                local playerGroupID = playerGroup:getID()
+                local playerGroupName = playerGroup:getName()
+                if foundPlayerName and playerCoalition and playerGroupID then
+                    env.info("Found player: "..foundPlayerName, false)
+                    CSB.csarAutoCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
+                end
+            end
+        end
+    end
+end
 function CSB.load()
     local redZone = trigger.misc.getZone(stackZones[1])
     local blueZone = trigger.misc.getZone(stackZones[2])
@@ -156,11 +176,16 @@ function CSB.load()
     end
 end
 function CSB.main()
-    CSB.searchCsarStacks()
+    if CSARAUTOENROLL then
+        world.addEventHandler(autoCsarEnroll)
+    else
+        CSB.searchCsarStacks()
+    end
     CSB.trackCsar()
     --timer.scheduleFunction(CSB.debugCsarGeneration,nil,timer.getTime()+10)
     CSB.refreshCsarTransmissions()
 end
+
 function CSB.searchCsarStacks()
     timer.scheduleFunction(CSB.searchCsarStacks, nil, timer:getTime() + searchStackInterval)
     for c = 1,2 do
@@ -222,6 +247,14 @@ function CSB.csarCheckIn(playerName, coalitionId, playerGroupID, playerGroupName
         CSB.generateCsar(nil, coalitionId, nil, nil, nil, nil, nil, nil)
     end
     if not prev then
+        CSB.addCsarRadioMenuToGroup(playerGroupID, playerGroupName, coalitionId)
+    end
+    trigger.action.outTextForGroup(playerGroupID,"Checked-in. Check CSAR menu for active rescues.",30,false)
+end
+function CSB.csarAutoCheckIn(playerName, coalitionId, playerGroupID, playerGroupName, typeName, unitName, prev)
+    if not prev then prev = false end
+    if not csarCheckIns[coalitionId][playerName] then
+        csarCheckIns[coalitionId][playerName] = {groupID = playerGroupID, groupName = playerGroupName, typeName = typeName, unitName = unitName, onBoard = {}}
         CSB.addCsarRadioMenuToGroup(playerGroupID, playerGroupName, coalitionId)
     end
     trigger.action.outTextForGroup(playerGroupID,"Checked-in. Check CSAR menu for active rescues.",30,false)
@@ -714,8 +747,8 @@ function CSB:onEvent(e)
     local isCsarUnit = false
     local playerName = nil
     --//EJECTION EVENTS
-    if evtId == 6 then -- eject
-        local group = e.initiator:getGroup()
+    if evtId == 6 and evtInitr and evtInitr.getGroup then -- eject
+        local group = evtInitr:getGroup()
         if group then
             local groupName = group:getName()
             if groupName and string.find(groupName, "RACER") then return end
@@ -791,10 +824,7 @@ function CSB.checkCsarLanding(eUnit)
                 if bInCsarBase then
                     for i,m in pairs(csci.onBoard) do
                         trigger.action.outTextForCoalition(pSide, pName .. " safely delivered " .. m.displayName .. " to " .. sBaseName .. ".", 30, false)
-                        if DFS then
-                            DFS.status[pSide].health = DFS.status[pSide].health + 1
-                            DFS.updateHealthbar(pSide)
-                        end
+                        if DFS then DFS.IncreaseFrontSupply({coalitionId = pSide, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
                         if WWEvents then WWEvents.playerCsarMissionCompleted(pName, pSide, sBaseName," rescued ".. m.displayName .. " from the battlefield.") end
                     end
                     if transporterTable then

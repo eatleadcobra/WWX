@@ -64,7 +64,6 @@ function DF_UTILS.vector(param)
 		local bearing = math.atan2(vector.z, vector.x)
 		if bearing < 0 then bearing = bearing + (2 * math.pi) end
 		local bearingInDeg = bearing * (180/math.pi)
-        env.info(tostring(bearingInDeg))
 		local reverseBearingInDeg = bearingInDeg + 180
 		if reverseBearingInDeg > 360 then reverseBearingInDeg = reverseBearingInDeg - 360 end
 		--trigger.action.outText("Bearing from Tgt to Interceptor: " .. reverseBearingInDeg, 1)

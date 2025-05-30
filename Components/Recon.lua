@@ -2,18 +2,22 @@
 -- Requires Utils/drawingTools.lua
 Recon = {}
 local recon = {}
+local potentialReconJets = {
+
+}
 local reconParams = {
     pointRadius = 1000,
-    minAGL = 610,
-    maxAGL = 3049,
-    maxPitch = 0.18,
-    maxRoll = 0.27
+    minAGL = 200,
+    maxASL = env.mission.weather.clouds.base,
+    maxPitch = 0.35,
+    maxRoll = 0.55
 }
 local maxCaptures = 4
 local missionTypes = {
     [1] = "BDA",
     [2] = "Suspected Enemy Location",
     [3] = "Convoy",
+    [4] = "BP"
 }
 local missionIdCounter = 1
 local missionExpireTime = 3600
@@ -33,14 +37,9 @@ local currentMissions = {
     [2] = {
     },
 }
-local reconJetTypes = {
-    ["Yak-52"] = 1,
-    ["TF-51D"] = 1,
-}
 local currentReconJets = {
 
 }
-local reconGroupIdentifier = "RECON"
 local reconEvents = {}
 function reconEvents:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF then
@@ -48,11 +47,14 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 local groupName = group:getName()
-                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] then
+                if potentialReconJets[groupName] then
                     currentReconJets[groupName] = group:getID()
                     trigger.action.outTextForGroup(group:getID(), "Valid recon flight being tracked.", 10, false)
-                    trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax AGL: " .. math.floor(3.28*reconParams.maxAGL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
+                    trigger.action.outTextForGroup(group:getID(), "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax ASL: " .. math.floor(3.28*reconParams.maxASL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
                     recon.trackReconJet(groupName)
+                    missionCommands.removeItemForGroup(group:getID(), {[1] = "Unload Recon Equipment"})
+                else
+                    Recon.removeRadioCommandsForGroup(group:getID())
                 end
             end
         end
@@ -62,8 +64,8 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 local groupName = group:getName()
-                if string.find(groupName, reconGroupIdentifier) or reconJetTypes[event.initiator:getTypeName()] then
-                    currentReconJets[group:getName()] = nil
+                if currentReconJets[groupName] then
+                    currentReconJets[groupName] = nil
                     local unit = group:getUnit(1)
                     if unit then
                         local player = unit:getPlayerName()
@@ -71,6 +73,9 @@ function reconEvents:onEvent(event)
                             recon.processPlayerFilm(group:getCoalition(), player, group:getID())
                         end
                     end
+                end
+                if potentialReconJets[groupName] == nil then
+                    Recon.addRadioCommandsForGroup(groupName)
                 end
             end
         end
@@ -81,6 +86,7 @@ function reconEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group ~= nil then
                 currentReconJets[group:getName()] = nil
+                potentialReconJets[group:getName()] = nil
                 local unit = group:getUnit(1)
                 if unit then
                     local player = unit:getPlayerName()
@@ -93,30 +99,29 @@ function reconEvents:onEvent(event)
     end
 end
 world.addEventHandler(reconEvents)
-function recon.newBaseMission(coalitionId, missionPoint)
-    env.info("Creating Base Mission",false)
+function recon.newBaseMission(coalitionId, missionPoint, noExpire)
     local newMissionId = recon.getNewMissionId()
     local newMission = Utils.deepcopy(missionTemplate)
     newMission.id = newMissionId
     newMission.coalitionId = coalitionId
     newMission.point = missionPoint
-    env.info("Base Mission Created", false)
-    timer.scheduleFunction(recon.destroyMission, {coalitionId = coalitionId, missionId = newMissionId}, timer:getTime() + missionExpireTime)
+    if noExpire then
+        return newMission
+    else
+        timer.scheduleFunction(recon.destroyMission, {coalitionId = coalitionId, missionId = newMissionId}, timer:getTime() + missionExpireTime)
+    end
     return newMission
 end
 function Recon.createBDAMission(coalitionId, bdaPoint)
-    env.info("Creating BDA Mission", false)
     local missionMarkId = DrawingTools.newMarkId()
     trigger.action.circleToAll(coalitionId, missionMarkId, bdaPoint, reconParams.pointRadius, {0.3,1,0,1}, {0,0,0,0.2}, 4, true, nil)
     local newMission = recon.newBaseMission(coalitionId, bdaPoint)
     newMission.type = 1
     newMission.markId = missionMarkId
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("BDA Mission Created", false)
     return newMission.id
 end
 function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGroupName)
-    env.info("Creating Enemy Location Mission", false)
     local missionMarkId = DrawingTools.newMarkId()
     missionPoint.x = missionPoint.x + math.random(-300, 300)
     missionPoint.z = missionPoint.z + math.random(-300, 300)
@@ -126,20 +131,60 @@ function Recon.createEnemyLocationMission(coalitionId, missionPoint, missionGrou
     newMission.type = 2
     newMission.markId = missionMarkId
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("Enemy Location Mission Created", false)
     return newMission.id
 end
+function Recon.createBPScoutingMission(coalitionId, missionPoint, bp, noExpire)
+    local newMission = recon.newBaseMission(coalitionId, missionPoint, noExpire)
+    newMission.type = 4
+    newMission.bp = bp
+    currentMissions[coalitionId][newMission.id] = newMission
+    return newMission.id
+end
+
 function Recon.createEnemyLocationMissionNoMarker(coalitionId, missionPoint, missionGroupName)
-    env.info("Creating Enemy Location Mission No Marker", false)
     local newMission = recon.newBaseMission(coalitionId, missionPoint)
     newMission.groupName = missionGroupName
     newMission.type = 2
     currentMissions[coalitionId][newMission.id] = newMission
-    env.info("Enemy Location Mission Created No Marker", false)
     return newMission.id
 end
 function Recon.createConvoyLocationMission(coalitionId, convoyGroupName)
     
+end
+function Recon.cleanmission(coalitionId, missionId)
+    recon.cleanMission(coalitionId, missionId)
+end
+function Recon.addRadioCommandsForGroup(groupName)
+    local addGroup = Group.getByName(groupName)
+    if addGroup ~= nil then
+        local addID = addGroup:getID()
+        missionCommands.addCommandForGroup(addID, "Load Recon Equipment", nil, recon.registerReconGroup, groupName)
+    end
+end
+function Recon.removeRadioCommandsForGroup(groupID)
+    missionCommands.removeItemForGroup(groupID, {[1] = "Load Recon Equipment"})
+    missionCommands.removeItemForGroup(groupID, {[1] = "Check Recon Parameters"})
+    missionCommands.removeItemForGroup(groupID, {[1] = "Unload Recon Equipment"})
+end
+function recon.registerReconGroup(groupName)
+    local addGroup = Group.getByName(groupName)
+    if addGroup ~= nil then
+        local addID = addGroup:getID()
+        potentialReconJets[groupName] = true
+        missionCommands.removeItemForGroup(addID, {[1] = "Load Recon Equipment"})
+        missionCommands.addCommandForGroup(addID, "Check Recon Parameters", nil, recon.checkReconParams, addID)
+        local param = {groupName = groupName, groupID = addID}
+        missionCommands.addCommandForGroup(addID, "Unload Recon Equipment", nil, recon.deregisterReconGroup, param)
+    end
+end
+function recon.deregisterReconGroup(param)
+    potentialReconJets[param.groupName] = nil
+    missionCommands.removeItemForGroup(param.groupID, {[1] = "Unload Recon Equipment"})
+    missionCommands.removeItemForGroup(param.groupID, {[1] = "Check Recon Parameters"})
+    missionCommands.addCommandForGroup(param.groupID, "Load Recon Equipment", nil, recon.registerReconGroup, param.groupName)
+end
+function recon.checkReconParams(groupID)
+    trigger.action.outTextForGroup(groupID, "Recon parameters:\nMax Roll: " .. math.floor(math.deg(reconParams.maxRoll)).."°\nMax Pitch: " .. math.floor(math.deg(reconParams.maxPitch)) .. "°\nMax ASL: " .. math.floor(3.28*reconParams.maxASL).."ft".."\nMin AGL: " .. math.floor(3.28*reconParams.minAGL).."ft" , 30, false)
 end
 function recon.trackReconJet(reconGroupName)
     if currentReconJets[reconGroupName] then
@@ -166,7 +211,7 @@ function recon.inParams(position, point)
     local roll = math.abs(math.atan2(-position.z.y, position.y.y))
     local AGL = Utils.getAGL(point)
     --trigger.action.outText("Pitch: " .. pitch .. " Roll: " .. roll .. " AGL: " .. AGL, 1, false)
-    if pitch < reconParams.maxPitch and roll < reconParams.maxRoll and (reconParams.minAGL < AGL and AGL < reconParams.maxAGL ) then
+    if pitch < reconParams.maxPitch and roll < reconParams.maxRoll and (reconParams.minAGL < AGL and point.y < reconParams.maxASL ) then
         --trigger.action.outText("In params", 1, false)
         return true
     else
@@ -189,7 +234,6 @@ function recon.getMissionInCaptureRange(coalitionId, playerPoint)
     return closestMissionId
 end
 function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
-    env.info(playerName.." Capturing Mission: " .. missionId, false)
     if captures[playerName] == nil then
         captures[playerName] = {}
     end
@@ -229,7 +273,6 @@ function recon.processPlayerFilm(coalitionId, playerName, playerGroupId)
     end
 end
 function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
-    env.info("Processing Completed Mission " .. missionId, false)
     local mission = currentMissions[coalitionId][missionId]
     if mission then
         local completedBy = mission.capturedBy
@@ -239,24 +282,27 @@ function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
             recon.processBDA(mission, playerGroupId)
         elseif missionType == 2 then
             recon.processLocation(mission, playerGroupId)
-        elseif missionTypes == 3 then
+        elseif missionType == 3 then
 
+        elseif missionType == 4 then
+            recon.processBP(mission, playerGroupId)
         end
         recon.cleanMission(coalitionId, missionId)
     end
 end
 function recon.cleanMission(coalitionId, missionId)
-    env.info("cleaning mission", false)
-    local missionMarkId = currentMissions[coalitionId][missionId].markId
-    local capturedBy = currentMissions[coalitionId][missionId].capturedBy
-    if capturedBy then
-        captures[capturedBy][missionId] = nil
+    local mission = currentMissions[coalitionId][missionId]
+    if mission then
+        local missionMarkId = mission.markId
+        local capturedBy = mission.capturedBy
+        if capturedBy then
+            captures[capturedBy][missionId] = nil
+        end
+        if missionMarkId then
+            trigger.action.removeMark(missionMarkId)
+        end
+        currentMissions[coalitionId][missionId] = nil
     end
-    if missionMarkId then
-        env.info("removing mark", false)
-        trigger.action.removeMark(missionMarkId)
-    end
-    currentMissions[coalitionId][missionId] = nil
 end
 --coalitionId, missionId
 function recon.destroyMission(param)
@@ -267,13 +313,11 @@ function recon.destroyMission(param)
             timer.scheduleFunction(recon.destroyMission, param, timer:getTime() + missionExpireTime/4)
             return
         else
-            env.info("Destroying recon mission: " .. param.missionId, false)
             recon.cleanMission(param.coalitionId, param.missionId)
         end
     end
 end
 function recon.processBDA(mission, playerGroupId)
-    env.info("Processing BDA Mission", false)
     local enemyCoalition = 1
     if mission.coalitionId == 1 then enemyCoalition = 2 end
     if DFS then
@@ -282,15 +326,12 @@ function recon.processBDA(mission, playerGroupId)
     trigger.action.outTextForGroup(playerGroupId, "BDA Mission Completed!", 5, false)
 end
 function recon.processLocation(mission, playerGroupId)
-    env.info("Processing Location Mission", false)
     local discoveredGroupName = mission.groupName
-    env.info("discoveredGroupName: " ..  discoveredGroupName, false)
     local discoveredGroup = Group.getByName(discoveredGroupName)
     if discoveredGroup then
         for i = 1, discoveredGroup:getSize() do
             local markingUnit = discoveredGroup:getUnit(i)
             if markingUnit then
-                env.info("drawing marks", false)
                 local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, markingUnit:getPoint())
                 timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
                 timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
@@ -298,6 +339,65 @@ function recon.processLocation(mission, playerGroupId)
                 break
             end
         end
+    end
+    trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
+end
+function recon.processBP(mission, playerGroupId)
+    local reconnedUnits = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = mission.point,
+            radius = 1200
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() ~= mission.coalitionId then
+            table.insert(reconnedUnits, foundItem)
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    local unitMarkIds = {}
+    if #reconnedUnits > 0 then
+        for i = 1, #reconnedUnits do
+            local reconnedUnit = reconnedUnits[i]
+            if reconnedUnit then
+                if reconnedUnit:hasAttribute("Infantry") then
+                    local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnit:getPoint())
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    unitMarkIds[#unitMarkIds+1] = markId2
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("Trucks") then
+                    local markId1 = DrawingTools.drawCircle(mission.coalitionId, reconnedUnit:getPoint(), 12)
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("APC") or reconnedUnit:hasAttribute("IFV") then
+                    local markId1, markId2 = DrawingTools.drawX(mission.coalitionId, reconnedUnit:getPoint())
+                    local markId3 = DrawingTools.drawCircle(mission.coalitionId, reconnedUnit:getPoint(), 12)
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    unitMarkIds[#unitMarkIds+1] = markId2
+                    unitMarkIds[#unitMarkIds+1] = markId3
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId3, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("Tanks") then
+                    local markId1, markId2 = DrawingTools.drawChevron(mission.coalitionId, reconnedUnit:getPoint())
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    unitMarkIds[#unitMarkIds+1] = markId2
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                    timer.scheduleFunction(trigger.action.removeMark, markId2, timer:getTime() + 3600)
+                elseif reconnedUnit:hasAttribute("Armed Air Defence") then
+                    local markId1 = DrawingTools.drawTriangle(mission.coalitionId, reconnedUnit:getPoint())
+                    unitMarkIds[#unitMarkIds+1] = markId1
+                    timer.scheduleFunction(trigger.action.removeMark, markId1, timer:getTime() + 3600)
+                end
+            end
+        end
+    end
+    if BattleControl then
+        BattleControl.reconBP(mission.coalitionId, mission.bp, unitMarkIds)
     end
     trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
 end
@@ -313,9 +413,8 @@ function recon.statusLoop()
 end
 recon.statusLoop()
 function recon.quickTest()
-    local testGroupName = "test"
     local testGroupPoint = Group.getByName("test"):getUnit(1):getPoint()
-    local newMissionId = Recon.createEnemyLocationMission(2, testGroupPoint, testGroupName)
-    local newMissionId2 = Recon.createBDAMission(2, trigger.misc.getZone("bda").point)
+    local newMissionId = Recon.createBPScoutingMission(2, testGroupPoint, 1)
+    recon.processBP(currentMissions[2][newMissionId], Group.getByName("test"):getID())
 end
 --recon.quickTest()

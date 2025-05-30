@@ -15,11 +15,14 @@ local gunAssignments = {
 local assignedGunKills = {
 
 }
+local suppressions = {
+
+}
 local fbId = 1
 local markId = 3000
 local resupDistance = 300
 local firebaseCheckInterval = 20
-local gracePeriod = 10
+local gracePeriod = 20
 local fbFuncs = {}
 local targetMarks = {}
 local drawing = {
@@ -35,18 +38,18 @@ local drawing = {
     groupCountRadius = 50
 }
 local firebaseRanges = {
-    ["MORTAR"] = 3000,
-    ["HOWITZER"] = 7000,
+    ["MORTAR"] = 3500,
+    ["HOWITZER"] = 7500,
     ["SPG"] = 12000,
 }
 local firebaseExpendQtys = {
     ["MORTAR"] = 9,
-    ["HOWITZER"] = 6,
+    ["HOWITZER"] = 12,
     ["SPG"] = 9,
 }
 local firebaseMaxAmmos = {
     ["MORTAR"] = 100,
-    ["HOWITZER"] = 60,
+    ["HOWITZER"] = 100,
     ["SPG"] = 100,
 }
 local supplyTypes = {
@@ -64,8 +67,8 @@ local firemissionDelays = {
         perShot = 2,
     },
     ["HOWITZER"] = {
-        aiming = 17,
-        perShot = 4,
+        aiming = 18,
+        perShot = 6,
     },
     ["SPG"] = {
         aiming = 120,
@@ -81,13 +84,13 @@ function fbEvents:onEvent(event)
     if (event.id == world.event.S_EVENT_MARK_CHANGE) then
         local playerName =  nil
         if event.idx then
-            env.info("Mark Changed: " .. event.idx, false)
             if event.initiator ~= nil then
                 playerName = event.initiator:getPlayerName()
             end
-            if event.pos and event.pos.x and event.pos.z then
-                env.info("changed at: \nX: " .. event.pos.x .. '\nZ: ' .. event.pos.z, false)
-            end
+        end
+        if (string.upper(event.text) == 'I') then
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "STARSHELL", playerName = playerName})
+            timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
         if (string.upper(event.text) == 'X') then
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "ANY", playerName = playerName})
@@ -105,6 +108,10 @@ function fbEvents:onEvent(event)
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "MORTAR", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
+        if (string.upper(event.text) == 'SUP') then
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "SUPPRESS", playerName = playerName})
+            timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
+        end
         if (string.upper(event.text) == "B") then
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "BATTLE", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
@@ -112,12 +119,6 @@ function fbEvents:onEvent(event)
     end
     --on mark remove
     if (event.id == world.event.S_EVENT_MARK_REMOVED) then
-        if event.idx then
-            env.info("Mark Removed: " .. event.idx, false)
-            if event.pos and event.pos.x and event.pos.z then
-                env.info("changed at: \nX: " .. event.pos.x .. '\nZ: ' .. event.pos.z, false)
-            end
-        end
         for i = 1, #targetMarks do
             if targetMarks[i].id == event.idx then
                 table.remove(targetMarks, i)
@@ -399,10 +400,64 @@ function fbFuncs.createGroupCounter(firebase)
     for i = 1, #firebase.positions.spawnPoints.groups do
         local currentCounterPos = {x = baseCounterPos.x + 2*drawing.groupCountRadius*i, y = baseCounterPos.y, z = baseCounterPos.z}
         local newMarkId = DrawingTools.newMarkId()
-        trigger.action.circleToAll(firebase.coalition,newMarkId,currentCounterPos, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,0.2},1, true)
+        trigger.action.circleToAll(firebase.coalition,newMarkId,currentCounterPos, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,0.2},1, true, nil)
         firebase.markups.groups.backgrounds[i] = newMarkId
     end
     Firebases.updateGroupCounter(firebase)
+end
+--point, radius, duration
+function fbFuncs.suppressArea(param)
+    local groupsToSuppress = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = param.point,
+            radius = param.radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:isExist() and foundItem:isActive() then
+            local foundGroup = foundItem:getGroup()
+            if foundGroup then
+                local foundGroupName = foundGroup:getName()
+                if foundGroupName then
+                    groupsToSuppress[foundGroupName] = true
+                end
+            end
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    for groupName, included in pairs(groupsToSuppress) do
+        local group = Group.getByName(groupName)
+        if group then
+            local groupController = group:getController()
+            if groupController then
+                --ROE return only
+                groupController:setOption(0,3)
+                --Target ground only
+                groupController:setOption(28, 2)
+            end
+        end
+    end
+    local suppressionId = Utils.uuid()
+    suppressions[suppressionId] = groupsToSuppress
+    timer.scheduleFunction(fbFuncs.unsuppress, suppressionId, timer:getTime() + param.duration)
+end
+function fbFuncs.unsuppress(suppressionId)
+    local suppressedGroups = suppressions[suppressionId]
+    for k,v in pairs(suppressedGroups) do
+        local group = Group.getByName(k)
+        if group then
+            local groupController = group:getController()
+            if groupController then
+                --ROE free fire
+                groupController:setOption(0,2)
+                --ROE remove target restritions
+                groupController:setOption(28, 0)
+            end
+        end
+    end
 end
 function Firebases.updateGroupCounter(firebase)
     for i = 1, #firebase.markups.groups.backgrounds do
@@ -475,7 +530,7 @@ function Firebases.getClosestUnassignedFirebaseInRangeByType(point, coalition, f
     local distanceToFirebase = 100000
     local returnBaseIndex = 0
     for i = 1, #FirebaseIds[coalition] do
-        if fbType == "ANY" or (Firebases[FirebaseIds[coalition][i]].fbType and Firebases[FirebaseIds[coalition][i]].fbType == fbType) then
+        if fbType == "ANY" or fbType == "STARSHELL" or fbType == "SUPPRESS" or (Firebases[FirebaseIds[coalition][i]].fbType and Firebases[FirebaseIds[coalition][i]].fbType == fbType) then
             local distance = Utils.PointDistance(point, Firebases[FirebaseIds[coalition][i]].positions.location)
             if fbFuncs.inRange(Firebases[FirebaseIds[coalition][i]], point) and distance < distanceToFirebase and not Firebases[FirebaseIds[coalition][i]]:isAssigned() and Firebases[FirebaseIds[coalition][i]].contents.ammo > 0 then
                 distanceToFirebase = distance
@@ -524,17 +579,24 @@ function Firebases.sendFireMission(coalitionId)
             if closestIndex ~= -1 then
                 local firebase = Firebases[closestIndex]
                 if firebase.contents.ammo > 0 then
-                    firebase:assign()
-                    fbFuncs.firebaseFire(firebase, targetMarks[i])
-                    table.remove(targetMarks, i)
-                    return
+                    if targetMarks[i].fbType == "STARSHELL" then
+                        firebase:expendAmmo(1)
+                        timer.scheduleFunction(fbFuncs.firebaseIllum, targetMarks[i].pos, timer:getTime() + (5 + math.random(4)))
+                        trigger.action.removeMark(targetMarks[i].id)
+                        table.remove(targetMarks, i)
+                        return
+                    else
+                        firebase:assign()
+                        fbFuncs.firebaseFire(firebase, targetMarks[i])
+                        table.remove(targetMarks, i)
+                        return
+                    end
                 end
             end
             if targetMarks[i].fbType == "BATTLE" then
                 local shipGroups = coalition.getGroups(coalitionId, 3)
                 for j=1, #shipGroups do
                     if shipGroups[j]:getUnit(1):hasAttribute('Armed ships') and (shipGroups[j]:getUnit(1):getTypeName() == "leander-gun-andromeda" or shipGroups[i]:getUnit(1):getTypeName() == "leander-gun-condell") then
-                        env.info('valid battleship group found', false)
                         local thawkShipGroup = shipGroups[j]
                         if thawkShipGroup ~= nil then
                             local thawkShipUnit = thawkShipGroup:getUnit(1)
@@ -549,7 +611,6 @@ function Firebases.sendFireMission(coalitionId)
                                     mission.expendQtyEnabled = true
                                     local fire = {id = 'FireAtPoint', params = mission}
                                     thawkShipGroup:getController():pushTask(fire)
-                                    env.info("fire task pushed", false)
                                     trigger.action.removeMark(targetMarks[i].id)
                                     table.remove(targetMarks, i)
                                     local lineId = DrawingTools.newMarkId()
@@ -566,6 +627,11 @@ function Firebases.sendFireMission(coalitionId)
         end
     end
 end
+function fbFuncs.firebaseIllum(point)
+    if point then
+        trigger.action.illuminationBomb({x=point.x, y = land.getHeight({x = point.x, y = point.z})+700, z = point.z}, 8000)
+    end
+end
 function fbFuncs.firebaseFire(firebase, targetmark)
     local mission = {}
     local fbGroups = firebase.contents.groups
@@ -573,6 +639,9 @@ function fbFuncs.firebaseFire(firebase, targetmark)
     mission.y = targetmark.pos.z
     mission.radius = 50
     mission.expendQty = firebaseExpendQtys[firebase.fbType]/#fbGroups
+    if targetmark.fbType == "SUPPRESS" then
+        mission.expendQty = mission.expendQty * 4
+    end
     if firebase.contents.ammo < mission.expendQty then mission.expendQty = firebase.contents.ammo end
     mission.expendQtyEnabled = true
     local fire = {id = 'FireAtPoint', params = mission}
@@ -596,6 +665,7 @@ function fbFuncs.firebaseFire(firebase, targetmark)
         end
     end
     local missionTime = firemissionDelays[firebase.fbType].aiming + ((mission.expendQty-1)*firemissionDelays[firebase.fbType].perShot)
+    timer.scheduleFunction(fbFuncs.suppressArea, {point = targetmark.pos, radius = 500, duration = ((mission.expendQty)*firemissionDelays[firebase.fbType].perShot) + 15}, timer:getTime() + firemissionDelays[firebase.fbType].aiming + 15)
     firebase:expendAmmo(mission.expendQty)
     Firebases.updateAmmoCounter(firebase)
     if targetmark.id then

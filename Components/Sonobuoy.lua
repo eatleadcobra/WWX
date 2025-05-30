@@ -64,7 +64,6 @@ local mhzAvailable = 150
 local detFreq = 1
 local sbCount = 20
 local buoyLifetime = 9000
--- TODO: Lookup TypeNames for these planes
 local planeRadioTypes = {
     det = {
         ["P-51D"] = 1,
@@ -73,7 +72,6 @@ local planeRadioTypes = {
         ["P-47D-40"] = 4,
     },
     khz = {
-        --["MosquitoFBMkVI"] = 1,
         ["MiG-19P"] = 1,
         ["Mi-8MT"] = 2,
         ["Mi-24P"] = 3,
@@ -96,15 +94,6 @@ local mpra = {
     ["P-47D-40"] = 1,
 }
 local coalitions = {1, 2}
-local enabledTypeNames = {["MosquitoFBMkVI"] = 1}
-local sbGroupName = {
-    [1] = {
-        truck = "Red-RadioTruck"
-    },
-    [2] = {
-        truck = "Blue-RadioTruck"
-    }
-}
 local playerCount = {
 
 }
@@ -123,15 +112,6 @@ local detrolaFreqs = {
 }
 local sbEvents = {}
 function sbEvents:onEvent(event)
-    if (event.id == 15) then
-        if event.initiator ~= nil and event.initiator.getGroup then
-            local group = event.initiator:getGroup()
-            if group then
-                --sb.addRadioCommandsForFixedWingGroup(event.initiator:getGroup():getName())
-                playerCount[event.initiator:getGroup():getName()] = sbCount
-            end
-        end
-    end
     --on takeoff 
     if event.id == world.event.S_EVENT_TAKEOFF then
         if event.initiator ~= nil and event.initiator.getGroup then
@@ -139,7 +119,11 @@ function sbEvents:onEvent(event)
                 playerCount[event.initiator:getGroup():getName()] = sbCount
                 local initUnit = event.initiator:getGroup():getUnit(1)
                 if initUnit then
-                    if mpra[initUnit:getTypeName()] then playerCount[event.initiator:getGroup():getName()] = sbCount*2 end
+                    if mpra[initUnit:getTypeName()] then
+                        playerCount[event.initiator:getGroup():getName()] = sbCount*2
+                    else
+                        playerCount[event.initiator:getGroup():getName()] = sbCount
+                    end
                 end
             end
         end
@@ -165,7 +149,6 @@ function sb.createBuoy(param)
             local unit = group:getUnit(1)
             if unit ~= nil then
                 local location = unit:getPoint()
-                env.info("Beacon dropped by: " .. unit:getTypeName(), false)
                 local isWater = land.getSurfaceType({x = location.x, y = location.z})
                 if isWater == 2 or isWater == 3 then
                     local buoyMarkId = DrawingTools.newMarkId()
@@ -261,7 +244,6 @@ end
 function sb.checkBuoy(param)
     local buoy = buoys[param.coalition][param.index]
     if buoy.message ~= nil and buoy.message ~= "Starting" then
-        env.info("Stopping transmission of " .. buoy.message,  false)
         trigger.action.stopRadioTransmission(buoy.message)
     end
     local currentTime = timer:getTime()
@@ -315,7 +297,6 @@ function sb.checkBuoyLoop()
     timer.scheduleFunction(sb.checkBuoyLoop, nil, timer:getTime() + 15)
 end
 function sb.searchForSubs(location)
-    env.info("Searching for subs at point: X:" .. location.x .. " Y: " ..location.z, false)
     local closestSub = {}
     local volS = {
         id = world.VolumeType.SPHERE,
@@ -332,7 +313,6 @@ function sb.searchForSubs(location)
                 local xDistance = math.abs(location.x - subPoint.x)
                 local yDistance = math.abs(location.z - subPoint.z)
                 local distance = math.sqrt(xDistance*xDistance + yDistance*yDistance)
-                env.info("Found submarine " .. foundItem:getName() .. " distance: " .. distance, false)
                 if distance ~= nil then
                     if closestSub.distance == nil or distance < closestSub.distance then
                         closestSub.distance = distance
@@ -372,7 +352,6 @@ function sb.transmitBeacon(freq, msg, range, point, txType)
                 freq = tonumber(txFreq) * 1000000
             end
         end
-        env.info("Starting transmission of " .. msg .. " Range: " .. range .. " freq: " .. freq, false)
         trigger.action.radioTransmission(beaconSounds[range], point, 0, true, freq, 300, msg)
     end
 end

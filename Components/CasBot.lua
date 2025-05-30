@@ -59,7 +59,6 @@ function cb.searchCasZones()
             }
         }
         local ifFound = function(foundItem, val)
-            env.info("CAS search", false)
             if (foundItem:getDesc().category == 0 or foundItem:getDesc().category == 1) and foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() == c then
                 local foundPlayerName = foundItem:getPlayerName()
                 local playerCoalition = foundItem:getCoalition()
@@ -67,9 +66,7 @@ function cb.searchCasZones()
                 if playerGroup then
                     local playerGroupID = playerGroup:getID()
                     if foundPlayerName and playerCoalition and playerGroupID then
-                        env.info("Found player: "..foundPlayerName, false)
                         if assignments[c][foundPlayerName] == nil then
-                            env.info("player added to list: "..foundPlayerName, false)
                             currentLists[c][foundPlayerName] = {name = foundPlayerName, coalition = playerCoalition, groupID = playerGroupID}
                         end
                     end
@@ -81,7 +78,6 @@ function cb.searchCasZones()
             if previousLists[c][k] and assignments[c][k] == nil or previousLists[c][k] and (assignments[c][k].startTime > casReassignTime) then
                 assignments[c][k] = nil
                 cb.assignCas(v.name, v.coalition, v.groupID)
-                env.info("player assigned: ".. v.name, false)
             else
                 trigger.action.outTextForGroup(v.groupID, "You are on station for CAS. Stand by for assignment.", 20, false)
             end
@@ -122,8 +118,7 @@ function cb.flareGroup(groupName)
 				local missionTime = timer.getAbsTime()
 				if 27000 > missionTime or missionTime > 68400 then
 				    trigger.action.illuminationBomb({x=groupPoint.x, y=groupPoint.y + 500, z=groupPoint.z}, 5000)
-                    env.info("Creating illumination marker for: " .. groupName, false)
-				end
+                end
 		    end
 		end
     end

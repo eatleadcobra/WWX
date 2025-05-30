@@ -49,31 +49,5 @@ function dfrecon.depotLoop()
     end
     timer.scheduleFunction(dfrecon.loop, nil, timer:getTime() + missionExpireTime)
 end
-function dfrecon.aaLoop()
-    for c = 1, 2 do
-        local enemyCoalition = 2
-        if c == 2 then enemyCoalition = 1 end
-        for i = 1, #DFS.status[enemyCoalition].spawns.aa do
-            local aaGroupSpawn = DFS.status[enemyCoalition].spawns.aa[i]
-            if aaGroupSpawn then
-                local missionGroupName = aaGroupSpawn.groupName
-                if missionGroupName then
-                    local missionGroup = Group.getByName(missionGroupName)
-                    if missionGroup then
-                        local missionUnit = missionGroup:getUnit(1)
-                        if missionUnit then
-                            local missionPoint = missionUnit:getPoint()
-                            if missionPoint then
-                                Recon.createEnemyLocationMissionNoMarker(c, missionPoint, missionGroupName)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    timer.scheduleFunction(dfrecon.loop, nil, timer:getTime() + missionExpireTime)
-end
 dfrecon.loop()
 dfrecon.depotLoop()
-dfrecon.aaLoop()

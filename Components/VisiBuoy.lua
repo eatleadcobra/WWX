@@ -97,8 +97,7 @@ function VB.createDCpoint(point, coalitionId)
     for i = 1, #removeList do
         VB.destroyStatic(removeList[i])
     end
-    env.info("Spawned " .. towerCount+containerCount+boxCount .. " objects to place flag", false)
-    removeList = {}
+   removeList = {}
     return flagName
 end
 
@@ -133,7 +132,6 @@ function VB.createBuoy(point, coalitionId)
     for i = 1, #removeList do
         VB.destroyStatic(removeList[i])
     end
-    env.info("Spawned " .. towerCount+containerCount+boxCount .. " objects to place flag", false)
     removeList = {}
     return flagName
 end

@@ -45,7 +45,6 @@ WWEvents.latches = {
     }
 }
 function WWEvents.convoyAmbushDetected(coalitionId, destination)
-    env.info("ambush event triggered: " .. coalitionId .. "-" ..destination, false)
     trigger.action.outTextForCoalition(coalitionId, "Intelligence has discovered an ambush on the route to front depot " .. destination .. "!", 20, false)
     local Event = {
         id = world.event.S_EVENT_WWX_CONVOY_AMBUSH_DETECTED,

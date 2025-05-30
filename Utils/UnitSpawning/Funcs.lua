@@ -12,7 +12,7 @@ function SpawnFuncs.setGroupWaypoints(groupTable, listOfWaypoints)
         groupTable["units"][i].y = listOfWaypoints[1].y
     end
 end
-function SpawnFuncs.createWPListFromPoints(listOfPoints)
+function SpawnFuncs.createWPListFromPoints(listOfPoints, speed)
     local wps = {}
     for i = 1, #listOfPoints do
         local point = SpawnFuncs.deepcopy(SpawnTemplates.pointTemplate)
@@ -22,6 +22,9 @@ function SpawnFuncs.createWPListFromPoints(listOfPoints)
                 point.y = listOfPoints[i].z
             else
                 point.y = listOfPoints[i].y
+            end
+            if speed then
+                point.speed = speed
             end
             wps[#wps+1] = point
         end
@@ -35,17 +38,17 @@ function SpawnFuncs.createMission(listOfWaypoints)
     end
     return missionTable
 end
-function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, listOfUnitTypes, listOfWaypoints)
+function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, listOfUnitTypeNames, listOfWaypoints)
     local newGroupId = SpawnFuncs.getNextGroupId()
     local countryId = 80 + (2-coalitionId)
     local groupTable = SpawnFuncs.deepcopy(SpawnTemplates.groupTemplate)
-    groupTable["name"] = country.name[countryId] .. newGroupId
+    groupTable["name"] = groupType .. newGroupId
     groupTable["groupId"] = newGroupId
     local unitsTable = {}
-    for i = 1, #listOfUnitTypes do
+    for i = 1, #listOfUnitTypeNames do
         local addUnitTable = SpawnFuncs.deepcopy(SpawnTemplates.unitTemplates[groupType])
-        addUnitTable["type"] = SpawnValues.units[listOfUnitTypes[i]].type
-        addUnitTable["name"] = SpawnValues.units[listOfUnitTypes[i]].type .. newGroupId .. i
+        addUnitTable["type"] = listOfUnitTypeNames[i]
+        addUnitTable["name"] = listOfUnitTypeNames[i] .. newGroupId .. i
         unitsTable[#unitsTable+1] = addUnitTable
         addUnitTable = {}
     end

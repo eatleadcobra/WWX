@@ -49,6 +49,21 @@ function Utils.RotateVector(vector, radians)
     newVector.y = vector.y
     return newVector
 end
+function Utils.GetBearingDeg(fromPoint, toPoint)
+    local vector = {x = toPoint.x - fromPoint.x, y = toPoint.y - fromPoint.y, z = toPoint.z - fromPoint.z}
+    ---@diagnostic disable-next-line: deprecated
+    local bearing = math.atan2(vector.z, vector.x)
+    if bearing < 0 then bearing = bearing + (2 * math.pi) end
+    local bearingInDeg = bearing * (180/math.pi)
+    return bearingInDeg
+end
+function Utils.GetBearingRad(fromPoint, toPoint)
+    local vector = {x = toPoint.x - fromPoint.x, y = toPoint.y - fromPoint.y, z = toPoint.z - fromPoint.z}
+    ---@diagnostic disable-next-line: deprecated
+    local bearing = math.atan2(vector.z, vector.x)
+    if bearing < 0 then bearing = bearing + (2 * math.pi) end
+    return bearing
+end
 function Utils.MidPoint(point1, point2)
     return
 end
@@ -127,6 +142,26 @@ function Utils.relativeCompassBearing(p1,p2)
     local zdiff = p1.z - p2.z
     local bearing = math.atan2(zdiff, xdiff)
     bearing = math.floor(bearing / math.pi * 180)
+    if bearing > 360 then bearing = bearing - 360 end
+    if bearing < 0 then bearing = bearing + 360 end
+    if bearing < 23 then return "North" end
+    if bearing < 68 then return "NE" end
+    if bearing < 112 then return "East" end
+    if bearing < 158 then return "SE" end
+    if bearing < 202 then return "South" end
+    if bearing < 248 then return "SW" end
+    if bearing < 292 then return "West" end
+    if bearing < 338 then return "NW" end
+    return "North"
+end
+function Utils.getDegBearingFromPosition(position)
+    ---@diagnostic disable-next-line: deprecated
+    local headingRad = math.atan2(position.x.z, position.x.x)
+    if headingRad < 0 then headingRad = headingRad + (2 * math.pi) end
+    local headingDeg = headingRad * (180/math.pi)
+    return headingDeg
+end
+function Utils.degToCompass(bearing)
     if bearing > 360 then bearing = bearing - 360 end
     if bearing < 0 then bearing = bearing + 360 end
     if bearing < 23 then return "North" end
