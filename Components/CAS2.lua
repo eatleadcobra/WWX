@@ -117,7 +117,7 @@ function cas.checkGroup(groupName)
                                         local detectedDistance = Utils.PointDistance(checkingPoint, leadPoint)
                                         local bearingToTgt = Utils.GetBearingDeg(checkingPoint, leadPoint)
                                         if detectedDistance <= cas.engagementDistance then
-                                            groups[groupName].targetGroups[k] = { distanceToTgt = detectedDistance, bearingToTgt = bearingToTgt, onRoad = land.getSurfaceType({x = leadPoint.x, y = leadPoint.z})}
+                                            groups[groupName].targetGroups[k] = { distanceToTgt = detectedDistance, bearingToTgt = bearingToTgt, onRoad = (land.getSurfaceType({x = leadPoint.x, y = leadPoint.z}) == 4)}
                                             if detectedDistance < cas.dangerClose then
                                                 if stoppedGroups[groupName] == nil then
                                                     cas.stopGroup(groupName)
@@ -157,57 +157,46 @@ function cas.designationLoop()
         end
         casMessage = casMessage .. locationMessage
         local groupCount = 0
-        local closestGroup = nil
-        local closestTargetInfo = nil
-        local closestGroupDist = -1
         for group, targetInfo in pairs(v.targetGroups) do
             local tgtGroup = Group.getByName(group)
             if tgtGroup then
                 groupCount = groupCount + 1
-                local groupDistance = targetInfo.distanceToTgt
-                if groupDistance < closestGroupDist or closestGroupDist == -1 then
-                    closestGroup = group
-                    closestGroupDist = groupDistance
-                    closestTargetInfo = targetInfo
+                local bearingToTgt = math.floor(targetInfo.bearingToTgt)
+                local compassBearingToTgt = Utils.degToCompass(bearingToTgt)
+                local bearingString = tostring(bearingToTgt)
+                if v.jtacType == CAS.JTACType.NONE then bearingString = compassBearingToTgt end
+                local distanceToTgt = targetInfo.distanceToTgt / 1000
+                casMessage = casMessage .. "\nGroup " .. groupCount .. ": " .. bearingString .. " for " .. string.format("%.1f", distanceToTgt) .. "km"
+                if targetInfo.onRoad then casMessage = casMessage .. " on the road." end
+                if v.jtacType == CAS.JTACType.JTAC_DESIGNATOR then
+                    if v.lasers[group] then
+                        cas.cleanLaser(v.lasers[group])
+                    end
+                    local laserGroup = Group.getByName(k)
+                    if laserGroup then
+                        local laserUnit = laserGroup:getUnit(1)
+                        if laserUnit then
+                            v.lasers[group] = Spot.createLaser(laserUnit, {x = 0, y = 2, z = 0}, v.currentPoint, 1113)
+                            timer.scheduleFunction(cas.cleanLaser, v.lasers[group], timer:getTime() + 300)
+                            casMessage = casMessage .. "\nEnemy marked by laser. Code 1113"
+                        end
+                    end
+                end
+                if v.isMoving == false and distanceToTgt < cas.dangerClose then
+                    if v.smokeColor == -1 then
+                            v.smokeColor = smokeColors[math.random(1,3)]
+                    end
+                    casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[v.smokeColor] .."smoke."
+                    if v.smokeTime == -1 or timer:getTime() - v.smokeTime > 300 then
+                        trigger.action.smoke(Utils.VectorAdd(v.currentPoint, Utils.ScalarMult(atmosphere.getWind(v.currentPoint), 10 + math.random(5))), v.smokeColor)
+                        v.smokeTime = timer:getTime()
+                    end
                 end
                 v.inContact = true
             else
                 groupCount = groupCount - 1
                 casMessage = "Target destroyed!"
                 v.targetGroups[group] = nil
-            end
-        end
-        if closestGroup and closestTargetInfo then
-            local bearingToTgt = math.floor(closestTargetInfo.bearingToTgt)
-            local compassBearingToTgt = Utils.degToCompass(bearingToTgt)
-            local bearingString = tostring(bearingToTgt)
-            if v.jtacType == CAS.JTACType.NONE then bearingString = compassBearingToTgt end
-            local distanceToTgt = closestTargetInfo.distanceToTgt / 1000
-            casMessage = casMessage .. "\nGroup " .. groupCount .. ": " .. bearingString .. " for " .. string.format("%.1f", distanceToTgt) .. "km"
-            if closestTargetInfo.onRoad then casMessage = casMessage .. " on the road." end
-            if v.jtacType == CAS.JTACType.JTAC_DESIGNATOR then
-                if v.lasers[closestGroup] then
-                    cas.cleanLaser(v.lasers[closestGroup])
-                end
-                local laserGroup = Group.getByName(k)
-                if laserGroup then
-                    local laserUnit = laserGroup:getUnit(1)
-                    if laserUnit then
-                        v.lasers[closestGroup] = Spot.createLaser(laserUnit, {x = 0, y = 2, z = 0}, v.currentPoint, 1113)
-                        timer.scheduleFunction(cas.cleanLaser, v.lasers[closestGroup], timer:getTime() + 300)
-                        casMessage = casMessage .. "\nEnemy marked by laser. Code 1113"
-                    end
-                end
-            end
-            if v.isMoving == false and distanceToTgt < cas.dangerClose then
-                if v.smokeColor == -1 then
-                        v.smokeColor = smokeColors[math.random(1,3)]
-                end
-                casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[v.smokeColor] .."smoke."
-                if v.smokeTime == -1 or timer:getTime() - v.smokeTime > 300 then
-                    trigger.action.smoke(Utils.VectorAdd(v.currentPoint, Utils.ScalarMult(atmosphere.getWind(v.currentPoint), 50 + math.random(5))), v.smokeColor)
-                    v.smokeTime = timer:getTime()
-                end
             end
         end
         if v.inContact then
