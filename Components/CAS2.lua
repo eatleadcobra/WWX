@@ -168,20 +168,6 @@ function cas.designationLoop()
                 local distanceToTgt = targetInfo.distanceToTgt / 1000
                 casMessage = casMessage .. "\nGroup " .. groupCount .. ": " .. bearingString .. " for " .. string.format("%.1f", distanceToTgt) .. "km"
                 if targetInfo.onRoad then casMessage = casMessage .. " on the road." end
-                if v.jtacType == CAS.JTACType.JTAC_DESIGNATOR then
-                    if v.lasers[group] then
-                        cas.cleanLaser(v.lasers[group])
-                    end
-                    local laserGroup = Group.getByName(k)
-                    if laserGroup then
-                        local laserUnit = laserGroup:getUnit(1)
-                        if laserUnit then
-                            v.lasers[group] = Spot.createLaser(laserUnit, {x = 0, y = 2, z = 0}, v.currentPoint, 1113)
-                            timer.scheduleFunction(cas.cleanLaser, v.lasers[group], timer:getTime() + 300)
-                            casMessage = casMessage .. "\nEnemy marked by laser. Code 1113"
-                        end
-                    end
-                end
                 if v.isMoving == false and distanceToTgt < cas.dangerClose then
                     if v.smokeColor == -1 then
                             v.smokeColor = smokeColors[math.random(1,3)]
@@ -318,10 +304,6 @@ function cas.trackCas()
             end
         end
     end
-end
-
-function cas.cleanLaser(laser)
-    if laser then laser:destroy() end
 end
 
 cas.loop()
