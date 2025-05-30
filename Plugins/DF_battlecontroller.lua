@@ -655,19 +655,6 @@ function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
         trigger.action.outSoundForCoalition(coalitionId, audioMessage)
     end
 end
-function bc.newCallsign(coalitionId)
-    local callsign = callsigns.alphanumerics[coalitionId][callsigns.counts[coalitionId].alpha] .. "-" .. callsigns.counts[coalitionId].number
-    callsigns.counts[coalitionId].number = callsigns.counts[coalitionId].number + 1
-    if callsigns.counts[coalitionId].number > callsigns.numberLimit then
-        callsigns.counts[coalitionId].alpha = callsigns.counts[coalitionId].alpha + 1
-        callsigns.counts[coalitionId].number = 1
-        if callsigns.counts[coalitionId].alpha > #callsigns.alphanumerics[coalitionId] then
-            callsigns.counts[coalitionId].alpha = 1
-        end
-    end
-    trigger.action.outText("New group callsign: " .. callsign, 10, false)
-    return callsign
-end
 
 bc.getPositions()
 bc.setBPMarkups()

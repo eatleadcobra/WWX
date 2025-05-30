@@ -11,20 +11,20 @@ cm.callsigns = {
     --TODO move these to overrides
     alphanumerics = {
         [1] = {
+            [1] = "Granit",
+            [2] = "Akatsia",
+            [3] = "Aurora",
+            [4] = "Shapka",
+            [5] = "Empire",
+            [6] = "Sirena",
+        },
+        [2] = {
             [1] = "ALPHA",
             [2] = "BRAVO",
             [3] = "CHARLIE",
             [4] = "DELTA",
             [5] = "ECHO",
             [6] = "FOXTROT"
-        },
-        [2] = {
-            [1] = "Granit",
-            [2] = "Akatsia",
-            [3] = "Aurora",
-            [4] = "Shapka",
-            [5] = "Empire",
-            [6] = "Sirena"
         }
     },
     numberLimit = 5,
@@ -337,6 +337,5 @@ function cm.newCallsign(coalitionId)
             cm.callsigns.counts[coalitionId].alpha = 1
         end
     end
-    trigger.action.outText("New group callsign: " .. callsign, 10, false)
     return callsign
 end

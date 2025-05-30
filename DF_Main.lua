@@ -1426,7 +1426,7 @@ function dfc.destroyGroup(name)
     end
 end
 function dfc.startConvoy(param)
-    local startPoint =  trigger.misc.getZone(DFS.spawnNames[param.coalitionId].convoyStart).point
+    local startPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].convoyStart).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].deliver..param.deliverZone).point
     local checkConvoyParam = {convoyName = "", deliverZone = param.deliverZone, type = param.type}
     CpyControl.newConvoy(param.coalitionId, param.type, startPoint, endPoint, checkConvoyParam)

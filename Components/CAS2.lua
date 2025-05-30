@@ -63,6 +63,11 @@ function cas.loop()
         if group then
             cas.checkGroup(groupName)
         else
+            if groups[groupName].markups.radio then
+                for i = 1, #groups[groupName].markups.radio do
+                    trigger.action.removeMark(groups[groupName].markups.radio[i])
+                end
+            end
             groups[groupName] = nil
         end
     end
