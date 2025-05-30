@@ -71,9 +71,8 @@ Platoons = {
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
-            [1] = "Ural-375 ZU-23",
-            [2] = "Ural-375 ZU-23",
-            [3] = "KAMAZ Truck"
+            [1] = "M-113",
+            [2] = "KAMAZ Truck"
         }
     },
     [2] = {
