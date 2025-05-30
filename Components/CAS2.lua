@@ -18,12 +18,14 @@ local stoppedGroups = {
 
 }
 local smokeColors = {
-    [1] = 1,
-    [2] = 4,
+    [1] = 0,
+    [2] = 2,
+    [3] = 3,
 }
 local smokeNames = {
-    [1] = " red ",
-    [2] = " blue ",
+    [0] = " green ",
+    [2] = " white ",
+    [3] = " orange "
 }
 local stackZones = {
     [1] = "RedCas",
@@ -42,7 +44,7 @@ cas.casHeight = 1000
 cas.casRadius = 4000
 
 function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, modulation)
-    groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, markups = {radio = {}, bearings = {}}}
+    groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {}}
     local follwingGroup = Group.getByName(groupName)
     if follwingGroup then
         local followingController = follwingGroup:getController()
@@ -165,10 +167,27 @@ function cas.designationLoop()
                 if v.jtacType == CAS.JTACType.NONE then bearingString = compassBearingToTgt end
                 local distanceToTgt = targetInfo.distanceToTgt / 1000
                 casMessage = casMessage .. "\nGroup " .. groupCount .. ": " .. bearingString .. " for " .. string.format("%.1f", distanceToTgt) .. "km"
+                if v.jtacType == CAS.JTACType.JTAC_DESIGNATOR then
+                    if v.lasers[group] then
+                        cas.cleanLaser(v.lasers[group])
+                        local laserGroup = Group.getByName(k)
+                        if laserGroup then
+                            local laserUnit = laserGroup:getUnit(1)
+                            if laserUnit then
+                                v.lasers[group] = Spot.createLaser(laserUnit, {x = 0, y = 2, z = 0}, v.currentPoint, 1113)
+                                timer.scheduleFunction(cas.cleanLaser, v.lasers[group], timer:getTime() + 300)
+                                casMessage = casMessage .. "\nEnemy marked by laser. Code 1113"
+                            end
+                        end
+                    end
+                end
                 if v.isMoving == false and distanceToTgt < cas.dangerClose then
-                    casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[v.coalitionId] .."smoke."
+                    casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[v.smokeColor] .."smoke."
                     if v.smokeTime == -1 or timer:getTime() - v.smokeTime > 300 then
-                        trigger.action.smoke(Utils.VectorAdd(v.currentPoint, Utils.ScalarMult(atmosphere.getWind(v.currentPoint), 10 + math.random(5))), smokeColors[v.coalitionId])
+                        if v.smokeColor == -1 then
+                            v.smokeColor = smokeColors[math.random(1,3)]
+                        end
+                        trigger.action.smoke(Utils.VectorAdd(v.currentPoint, Utils.ScalarMult(atmosphere.getWind(v.currentPoint), 10 + math.random(5))), v.smokeColor)
                         v.smokeTime = timer:getTime()
                     end
                 end
@@ -298,6 +317,10 @@ function cas.trackCas()
             end
         end
     end
+end
+
+function cas.cleanLaser(laser)
+    if laser then laser:destroy() end
 end
 
 cas.loop()
