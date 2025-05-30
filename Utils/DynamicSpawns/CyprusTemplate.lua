@@ -20,6 +20,8 @@ Airframes = {
             ["F-86F_FC"] = true,
         },
         forward = {
+            ["Mi-8MT"] = true,
+            ["OH58D"] = true,
         },
         farp = {
         }
@@ -45,6 +47,8 @@ Airframes = {
         forward = {
         },
         farp = {
+            ["UH-1H"] = true,
+            ["SA342L"] = true,
         }
     }
 }
@@ -52,5 +56,9 @@ ForwardAirbases = {
     [1] = {
     },
     [2] = {
-    }
+    },
+}
+IgnoreAirbases = {
+    [1] = {},
+    [2] = {},
 }

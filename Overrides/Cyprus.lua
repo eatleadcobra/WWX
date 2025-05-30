@@ -13,6 +13,10 @@ AACount = 8
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
+BLUECASFREQ = 139
+REDCASFREQ = 45
+BLUECASMOD = 0
+REDCASMOD = 1
 
 Platoons = {
     [1] = {
@@ -124,8 +128,7 @@ Platoons = {
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
-            [1] = "Ural-375 ZU-23",
-            [2] = "Ural-375 ZU-23",
+            [1] = "M-113",
             [3] = "GAZ-66"
         }
     }
