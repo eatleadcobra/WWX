@@ -20,10 +20,10 @@ Airframes = {
             ["F-86F_FC"] = true,
         },
         forward = {
-            ["Mi-8MT"] = true,
-            ["OH58D"] = true,
         },
         farp = {
+            ["Mi-8MT"] = true,
+            ["OH58D"] = true,
         }
     },
     [2] = {
