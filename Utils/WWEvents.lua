@@ -16,6 +16,7 @@ world.event.S_EVENT_WWX_FIREMISSION_KILL = 8416
 world.event.S_EVENT_WWX_RACE_PING = 8417
 world.event.S_EVENT_WWX_RACE_COMPLETED = 8418
 world.event.S_EVENT_WWX_RACE_ENTRANT_RESULT = 8419
+world.event.S_EVENT_WWX_BATTLE_POSITION_CAPTURE = 8420
 
 WWEvents = {}
 WWEvents.latches = {
@@ -233,6 +234,16 @@ function WWEvents.raceEntrantResult(raceId, categoryId, playerName, finishTime, 
     finishTime = finishTime,
     totalTime = totalTime,
     aircraft = aircraft
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.battlePositionCapture(bpId, message)
+    local Event = {
+        id = world.event.S_EVENT_WWX_BATTLE_POSITION_CAPTURE,
+        time = timer:getTime(),
+        bpId = bpId,
+        text = "Battle Position #"..bpId..message
     }
     world.onEvent(Event)
 end
