@@ -48,9 +48,9 @@ local firebaseExpendQtys = {
     ["SPG"] = 9,
 }
 local firebaseMaxAmmos = {
-    ["MORTAR"] = 100,
+    ["MORTAR"] = 140,
     ["HOWITZER"] = 100,
-    ["SPG"] = 100,
+    ["SPG"] = 120,
 }
 local supplyTypes = {
     ["MORTAR"] = "BOMBS",
