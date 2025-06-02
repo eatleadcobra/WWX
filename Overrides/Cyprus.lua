@@ -1,4 +1,4 @@
-trigger.misc.setUserFlag("MISSION_ID", 2)
+trigger.action.setUserFlag("MISSION_ID", 2)
 -- enabled features
 SUBS = true
 CAP = false
