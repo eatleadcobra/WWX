@@ -1,6 +1,7 @@
 --check BPs for ownership
 BattleControl = {}
 local positionsCountLimit = 20
+local junkRemoval = true
 local bc = {}
 local bcmarkups = {
     lines = {
@@ -402,6 +403,18 @@ function bc.main()
         if ownedBy == 1 then redPositions = redPositions + 1 end
         if ownedBy == 2 then bluePositions = bluePositions + 1 end
         if v.ownedBy ~= ownedBy then
+            if junkRemoval then
+                local junkPoint = v.point
+                local junkRadius = v.radius
+                local junkSphere = {
+                id = world.VolumeType.SPHERE,
+                    params = {
+                        point = junkPoint,
+                        radius = junkRadius
+                    }
+                }
+                world.removeJunk(junkSphere)
+            end
             local rcnMissionCltn = 1
             if v.ownedBy == 1 then
                 rcnMissionCltn = 2
