@@ -324,7 +324,11 @@ function Company.updateMarks(self)
             trigger.action.setMarkupPositionStart(self.markUps.marker, self.point)
         else
             self.markUps.marker = DrawingTools.newMarkId()
-            trigger.action.circleToAll(self.coalitionId, self.markUps.marker, self.point, 75, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+            if self.isShip == false then
+                trigger.action.circleToAll(self.coalitionId, self.markUps.marker, self.point, 75, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+            else
+                trigger.action.circleToAll(self.coalitionId, self.markUps.marker, self.point, 200, {0,0,0,1}, {0,0,0,0}, 1, true, nil)
+            end
         end
     end
 end

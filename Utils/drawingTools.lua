@@ -338,3 +338,15 @@ function DrawingTools.drawRadio(coalitionId, markPoint)
     ---
     return markIds
 end
+function DrawingTools.numberBP(point, radius, number, max)
+    local radsToRotate = (1/max) * (2*math.pi)
+    local tickLength = 30
+    local northVec = {x = 1, y = 0, z = 0}
+    for i = 1, number do
+        local tickVec = Utils.RotateVector(northVec, radsToRotate*(i-1))
+        local tickStart = Utils.VectorAdd(point, Utils.ScalarMult(tickVec, radius))
+        local tickEnd = Utils.VectorAdd(point, Utils.ScalarMult(tickVec, radius+tickLength))
+        local tickId = DrawingTools.newMarkId()
+        trigger.action.lineToAll(-1, tickId, tickStart, tickEnd, {0,0,0,1}, 1, true, nil)
+    end
+end

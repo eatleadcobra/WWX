@@ -166,6 +166,7 @@ function bc.setBPMarkups()
         end
         local newMarkId = DrawingTools.newMarkId()
         trigger.action.circleToAll(-1, newMarkId, v.point, v.radius, bcmarkups.lines[v.ownedBy], bcmarkups.fills[v.ownedBy], 1, true, "")
+        DrawingTools.numberBP(v.point, v.radius, v.id, #battlePositions)
         v.markupId = newMarkId
     end
     timer.scheduleFunction(bc.setBPMarkups, nil, timer:getTime() + 30)
