@@ -203,3 +203,9 @@ function Utils.getGroupPoint(groupName)
     end
     return returnPoint
 end
+
+function Utils.fileExists(file)
+    local f = io.open(file, 'rb')
+    if f then f:close() end
+    return f ~= nil
+end
