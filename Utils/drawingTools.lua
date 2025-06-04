@@ -340,7 +340,7 @@ function DrawingTools.drawRadio(coalitionId, markPoint)
 end
 function DrawingTools.numberBP(point, radius, number, max)
     local radsToRotate = (1/max) * (2*math.pi)
-    local tickLength = 30
+    local tickLength = radius/4
     local northVec = {x = 1, y = 0, z = 0}
     for i = 1, number do
         local tickVec = Utils.RotateVector(northVec, radsToRotate*(i-1))
