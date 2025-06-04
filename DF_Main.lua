@@ -1459,6 +1459,9 @@ function dfc.checkConvoy(param)
         timer.scheduleFunction(dfc.checkConvoy, param, timer.getTime() + 10)
     end
 end
+function DFS.checkShip(param)
+    dfc.checkShipping(param)
+end
 function dfc.checkShipping(param)
     local convoyGroup = Group.getByName(param.convoyName)
     if convoyGroup ~= nil then
@@ -1540,21 +1543,10 @@ function dfc.checkPirate(param)
         timer.scheduleFunction(dfc.checkPirate, param, timer.getTime() + 60)
     end
 end
-function dfc.startShipping()
-    local redConvoyName = mist.cloneGroup('Red-ShipConvoy-Init').name
-    dfc.checkShipping({convoyName = redConvoyName, escortName = nil})
-    local blueConvoyName = mist.cloneGroup('Blue-ShipConvoy-Init').name
-    dfc.checkShipping({convoyName = blueConvoyName, escortName = nil})
-    dfc.shippingLoop()
-end
 function dfc.shippingLoop()
     for c = 1,2 do
         if timer:getTime() - DFS.status[c].lastShipTime > (DFS.status[c].industrialModifier * DFS.status.shipConvoyInterval) or DFS.status[c].lastShipTime == 0 then
-            local ctlnString = "Red"
-            if c == 2 then ctlnString = "Blue" end
-            local spawnNum = math.random(3)
-            local convoyName = mist.cloneGroup(ctlnString..'-ShipConvoy-'..spawnNum).name
-            dfc.checkShipping({convoyName = convoyName, escortName = nil})
+            CpyControl.newShip(c, nil)
             DFS.status[c].lastShipTime = timer:getTime()
             if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
         end
@@ -2537,7 +2529,7 @@ dfc.getData()
 dfc.initSpawns()
 dfc.createSupplyDrawings()
 dfc.initConvoys()
-dfc.startShipping()
+timer.scheduleFunction(dfc.shippingLoop, nil, timer:getTime() + 30)
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)
 end

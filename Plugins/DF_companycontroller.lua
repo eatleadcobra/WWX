@@ -48,6 +48,7 @@ function cpyctl.saveCompanies()
             speed = v.speed,
             bp = v.bp,
             isConvoy = v.isConvoy,
+            isShip = v.isShip,
             convoyParam = v.convoyParam
         }
         companiesData[v.id] = cpyData
@@ -82,8 +83,15 @@ function CpyControl.wipeCompanies()
     end
 end
 function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, convoyParam)
-    local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true, true, convoyParam)
+    local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true, true, false, convoyParam)
     newCpy:setWaypoints({startPoint, destination}, -1, 999)
+    newCpy:spawn()
+    return newCpy.groupName
+end
+function CpyControl.newShip(coalitionId, escort)
+    local convoyParam = {convoyName = "", escortName = nil}
+    local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam)
+    newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 7.2)
     newCpy:spawn()
     return newCpy.groupName
 end
@@ -168,6 +176,24 @@ function cpyctl.getCompanyStrength(cpy)
     end
     local strengthscore = math.floor(tankCount * 16.6) + math.floor(carrierCount * 8.3)
     return strengthscore
+end
+
+function cpyctl.getShipPoints(coalitionId)
+    local lowerLeftBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-SW").point
+    local upperRightBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-NE").point
+    local xDiff = upperRightBoundPoint.x - lowerLeftBoundPoint.x
+    local zDiff = upperRightBoundPoint.z - lowerLeftBoundPoint.z
+    local shipStartPoint = {x = lowerLeftBoundPoint.x + math.random(0, xDiff), y=0, z = lowerLeftBoundPoint.z + math.random(0, zDiff)}
+    local shipPoints = {}
+    table.insert(shipPoints, shipStartPoint)
+    for i = 1, 20 do
+        local nextShipWP = trigger.misc.getZone(coalitionId.."-shiproute-"..i)
+        if nextShipWP then
+            local shipPoint = nextShipWP.point
+            table.insert(shipPoints, shipPoint)
+        end
+    end
+    return shipPoints
 end
 
 cpyctl.getCompanies()

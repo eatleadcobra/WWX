@@ -74,6 +74,9 @@ Platoons = {
         ["EmbeddedAD"] = {
             [1] = "M-113",
             [2] = "KAMAZ Truck"
+        },
+        ["Shipping"] = {
+            [1] = "Ship_Tilde_Supply"
         }
     },
     [2] = {
@@ -130,6 +133,9 @@ Platoons = {
         ["EmbeddedAD"] = {
             [1] = "M-113",
             [3] = "GAZ-66"
+        },
+        ["Shipping"] = {
+            [1] = "Ship_Tilde_Supply"
         }
     }
 }

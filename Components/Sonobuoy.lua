@@ -229,11 +229,6 @@ function sb.destroyBuoy(param)
     trigger.action.removeMark(buoys[param.coalition][param.index].markId)
     --destroy flag
     VB.destroyStatic(buoys[param.coalition][param.index].flag)
-    --destroy Txs
-    local khzTxGp = Group.getByName(buoys[param.coalition][param.index].freqs["KHz"].beaconGroupName)
-    local mhzTxGp = Group.getByName(buoys[param.coalition][param.index].freqs["MHz"].beaconGroupName)
-    if khzTxGp ~= nil then khzTxGp:destroy() end
-    if mhzTxGp ~= nil then mhzTxGp:destroy() end
     --remove buoy
     if CODAR then
         CODAR.removeBuoy(param.coalition, buoys[param.coalition][param.index].id)

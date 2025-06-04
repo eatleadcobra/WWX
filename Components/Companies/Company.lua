@@ -75,14 +75,18 @@ Company = {
     isDeployed = false,
     bp = 0,
     isConvoy = false,
+    isShip = false,
     convoyParam = {}
 }
-function Company.new(coalitionId, persistent, platoons, onRoad, convoy, convoyParam)
+function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, convoyParam)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
     if convoy then
         newCpy.isConvoy = true
+        newCpy.convoyParam = convoyParam
+    elseif ship then
+        newCpy.isShip = true
         newCpy.convoyParam = convoyParam
     end
     if onRoad == nil or onRoad == false then
@@ -125,6 +129,7 @@ function Company.newFromTable(cpyData)
     newCpy.speed = cpyData.speed
     newCpy.bp = cpyData.bp
     newCpy.isConvoy = cpyData.isConvoy
+    newCpy.isShip = cpyData.isShip
     newCpy.convoyParam = cpyData.convoyParam
     return newCpy
 end
@@ -141,7 +146,10 @@ function Company.setWaypoints(self, waypoints, bp, speed)
 end
 function Company.spawn(self)
     local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
-    if self.onRoad == false and self.arrived == false then
+    if self.isShip then
+        points = self.waypoints
+    end
+    if self.onRoad == false and self.arrived == false and self.isShip == false then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
         local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 500))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
@@ -151,7 +159,7 @@ function Company.spawn(self)
     end
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points, self.speed)
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints)
-    if self.onRoad == false then
+    if self.onRoad == false and self.isShip == false then
         for j = 1, #cpyGroupTable["units"] do
             local deployPoint = self.waypoints[1]
             cpyGroupTable["units"][j].x = deployPoint.x + (12*(j-1))
@@ -161,16 +169,23 @@ function Company.spawn(self)
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
-    else
+    elseif self.isShip == false then
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "On Road"
     end
     self.groupName = cpyGroupTable["name"]
     --spawn group
-    coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
+    if self.isShip == false then
+        coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
+    else
+        coalition.addGroup(80+(2-self.coalitionId), 3, cpyGroupTable)
+    end
     if self.isConvoy then
         self.convoyParam.convoyName = self.groupName
         DFS.checkConvoy(self.convoyParam)
+    elseif self.isShip then
+        self.convoyParam.convoyName = self.groupName
+        DFS.checkShip(self.convoyParam)
     else
         if CAS then
             CAS.followGroup(self.coalitionId, self.groupName, cm.newCallsign(self.coalitionId), math.random(1,3), cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
