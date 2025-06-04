@@ -885,6 +885,10 @@ function dfc.initSpawns()
                     local firebaseData = fbData[i]
                     dfc.respawnArtilleryGroup({coalitionId = c, spawnPoint = firebaseData.location, type = firebaseData.fbType, guns = firebaseData.guns, ammo = firebaseData.ammo})
                 end
+            else
+                for i = 1, DFS.status.artSpawnTotal do
+                    dfc.respawnArtilleryGroup({coalitionId = c, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..i).point, type = "HOWITZER", spawnZone = i})
+                end
             end
         end
     else
