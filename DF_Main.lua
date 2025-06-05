@@ -880,7 +880,7 @@ function dfc.initSpawns()
             local fbFile = redFbs
             if c == 2 then fbFile = blueFbs end
             local fbData = dofile(fbFile)
-            if fbData then
+            if fbData and #fbData > 0 then
                 for i = 1, #fbData do
                     local firebaseData = fbData[i]
                     dfc.respawnArtilleryGroup({coalitionId = c, spawnPoint = firebaseData.location, type = firebaseData.fbType, guns = firebaseData.guns, ammo = firebaseData.ammo})

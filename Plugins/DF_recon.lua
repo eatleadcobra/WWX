@@ -24,7 +24,6 @@ function dfrecon.depotLoop()
             end
         end
     end
-    timer.scheduleFunction(dfrecon.loop, nil, timer:getTime() + missionExpireTime)
+    timer.scheduleFunction(dfrecon.depotLoop, nil, timer:getTime() + missionExpireTime)
 end
-dfrecon.loop()
 dfrecon.depotLoop()
