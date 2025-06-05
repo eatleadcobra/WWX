@@ -123,6 +123,17 @@ function cpyctl.cpyStatusLoop()
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
                 end
+                if cpy.isShip then
+                    if #cpy.waypoints > 2 then
+                        if Utils.PointDistance(currentPoint, cpy.waypoints[2]) < 200 then
+                            local newWaypoints = {[1] = currentPoint}
+                            for j = 3, #cpy.waypoints do
+                                table.insert(newWaypoints, cpy.waypoints[j])
+                            end
+                            cpy:setWaypoints(newWaypoints)
+                        end
+                    end
+                end
                 local cpyGroup = Group.getByName(cpy.groupName)
                 if cpyGroup then
                     cpy:updateUnits(cpyGroup:getUnits())
