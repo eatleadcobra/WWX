@@ -74,7 +74,7 @@ function reconEvents:onEvent(event)
                         end
                     end
                 end
-                if potentialReconJets[groupName] == nil then
+                if potentialReconJets[groupName] == nil and event.initiator:getDesc().category == 0 then
                     Recon.addRadioCommandsForGroup(groupName)
                 end
             end

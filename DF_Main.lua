@@ -58,6 +58,10 @@ DFS.cargoVolumes = {
 DFS.internalCargo = {
 
 }
+DFS.deployedGroups = {
+    [1] = {},
+    [2] = {}
+}
 DFS.madAircraft = {
     ["Mi-8MT"] = 1,
     ["Mi-24P"] = 2,
@@ -473,8 +477,8 @@ DFS.status = {
             small = 5
         },
         [6] = {
-            big = 2,
-            small = 2
+            big = 1,
+            small = 1
         },
         [7] = {
             big = 0,
@@ -667,7 +671,7 @@ function dfcEvents:onEvent(event)
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
-                dfc.addRadioCommandsForGroup(event.initiator:getGroup():getName())
+                dfc.addRadioCommandsForGroup(event.initiator:getGroup():getName(), event.initiator:getDesc().category == 0 )
                 if CARGO and DFS.heloCapacities[event.initiator:getTypeName()] then
                     local dropMenu, troopsMenu = dfc.addRadioCommandsForCargoGroup(event.initiator:getGroup():getName())
                     dfc.addGroupToCargoList(event.initiator:getGroup():getName(), dropMenu, troopsMenu)
@@ -1056,6 +1060,24 @@ function dfc.checkRDHealth()
                 dfc.decreaseRearSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
                 dfc.decreaseRearSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
                 dfc.decreaseRearSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
+            end
+        end
+    end
+end
+function dfc.checkDeployedGroups()
+    for c = 1, 2 do
+        for groupName, data in pairs(DFS.deployedGroups[c]) do
+            local checkingGroup = Group.getByName(groupName)
+            if checkingGroup then
+                local checkingUnit = checkingGroup:getUnit(1)
+                if checkingUnit then
+                    local checkingPoint = checkingUnit:getPoint()
+                    if checkingPoint then
+                        DFS.deployedGroups[c][groupName].point = checkingPoint
+                    end
+                end
+            else
+                DFS.deployedGroups[c][groupName] = nil
             end
         end
     end
@@ -1691,6 +1713,7 @@ function dfc.mainLoop()
         dfc.checkArtHealth()
         dfc.checkFDHealth()
         dfc.checkRDHealth()
+        dfc.checkDeployedGroups()
         --dfc.sendConvoyLoop()
         dfc.newConvoyLoop()
         dfc.checkNoFlyZones()
@@ -1932,6 +1955,73 @@ function dfc.unloadInternalCargo(param)
                     secondLevel = "Troop Transportation"
                 end
                 missionCommands.removeItemForGroup(param.groupId, {[1] = "Cargo/Troop Transport", [2] = secondLevel, [3] = param.removeCommand})
+                if param.type == DFS.supplyType.SF then
+                    missionCommands.removeItemForGroup(param.groupId, {[1] = "Begin Fast Rope (60s)"})
+                end
+            end
+        end
+    end
+end
+
+--groupName
+function dfc.loadNearestTroops(param)
+    local pickupGroup = Group.getByName(param.groupName)
+    if pickupGroup then
+        local transporterTable = DFS.helos[param.groupName]
+        local pickupCoalition = pickupGroup:getCoalition()
+        local pickupUnit = pickupGroup:getUnit(1)
+        if transporterTable and pickupUnit then
+            local pickupPoint = pickupUnit:getPoint()
+            if pickupPoint then
+                local troops = DFS.deployedGroups[pickupCoalition]
+                local closestGroup = nil
+                local closestGroupDistance = -1
+                for k,v in pairs(troops) do
+                    local troopGroup = v
+                    if troopGroup then
+                        local troopPoint = troopGroup.point
+                        local pickupDistance = Utils.PointDistance(pickupPoint, troopPoint)
+                        if pickupDistance < 500 then
+                            if pickupDistance < closestGroupDistance or closestGroupDistance == -1 then
+                                closestGroup = k
+                                closestGroupDistance = pickupDistance
+                            end
+                        end
+                    end
+                end
+                if closestGroup ~= nil then
+                    local pickupTroop = troops[closestGroup]
+                    if pickupTroop then
+                        local pickupTroopGroup = Group.getByName(pickupTroop.groupName)
+                        if pickupTroopGroup then
+                            local pickupTroopType = pickupTroop.type
+                            if DFS.heloCapacities[pickupUnit:getTypeName()].types[DFS.supplyNames[pickupTroopType]] == nil then
+                                trigger.action.outTextForGroup(pickupGroup:getID(), "This helicopter cannot carry " .. DFS.supplyNames[pickupTroopType].." internally!", 5, false)
+                            elseif transporterTable.cargo.volumeUsed + DFS.cargoVolumes[pickupTroopType] > DFS.heloCapacities[pickupUnit:getTypeName()].volume then
+                                trigger.action.outTextForGroup(pickupGroup:getID(), "Cannot fit any more internal cargo!", 5, false)
+                            else
+                                local menuForDrop = transporterTable.troopsMenu
+                                if pickupTroopType == DFS.supplyType.SF then
+                                    missionCommands.addCommandForGroup(pickupGroup:getID(), "Begin Fast Rope (60s)", {}, FR.ropeLoop, {groupName = param.groupName, startTime = 0})
+                                end
+                                missionCommands.addCommandForGroup(pickupGroup:getID(), "Drop " .. DFS.supplyNames[pickupTroopType], menuForDrop, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = pickupTroopType, country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Drop " .. DFS.supplyNames[pickupTroopType]})
+                                if transporterTable.cargo.carrying == false then
+                                    missionCommands.addCommandForGroup(pickupGroup:getID(), "Unload All", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = "ALL", country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Unload All"})
+                                else
+                                    missionCommands.removeItemForGroup(pickupGroup:getID(), {[1] = "Cargo/Troop Transport", [2] = "Internal Cargo", [3] = "Unload All"})
+                                    missionCommands.addCommandForGroup(pickupGroup:getID(), "Unload All", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = "ALL", country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Unload All"})
+                                end
+                                transporterTable.cargo.carrying = true
+                                pickupTroopGroup:destroy()
+                                trigger.action.outTextForGroup(pickupGroup:getID(), "Loaded " .. DFS.supplyNames[pickupTroopType],5, false)
+                            end
+                        else
+                            trigger.action.outTextForGroup(pickupGroup:getID(), "The group you're trying to load is DEAD",5, false)
+                        end
+                    end
+                else
+                    trigger.action.outTextForGroup(pickupGroup:getID(), "No friendly groups in pickup range! (500m)",5, false)
+                end
             end
         end
     end
@@ -1994,7 +2084,6 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                                 [2] = {type = "m249", point = spawnPoints[2]},
                                 [3] = {type = "m249", point = spawnPoints[3]},
                                 [4] = {type = "m249", point = spawnPoints[4]},
-                                
                             }
                             local sfGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
                             dfc.hvbss(sfGroup, droppingPoint, droppingGroup:getCoalition(), droppingGroup:getID(), droppingPlayerName)
@@ -2009,6 +2098,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                                 [3] = {type = "rpg", point = spawnPoints[3]},
                             }
                             local sfGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
+                            DFS.deployedGroups[droppingGroup:getCoalition()][sfGroup] = {groupName = sfGroup, type = troopType, point = droppingPoint}
                             Group.getByName(sfGroup):getController():setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.RED)
                         end
                     elseif troopType == "TRUCK" then
@@ -2024,16 +2114,17 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                         Mine.spawnPublic(minePoint, droppingPos)
                     elseif troopType == DFS.supplyType.SMALL_MORTAR then
                         local spawnPoints = {}
-                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.3), 10))
-                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.2), 9))
-                            spawnPoints[3] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.0), 9))
-                            local groups = {
-                                [1] = {type = "inf", point = spawnPoints[1]},
-                                [2] = {type = "inf", point = spawnPoints[2]},
-                                [3] = {type = "MORTAR", point = spawnPoints[3]},
-                            }
-                            local sfGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
-                            Group.getByName(sfGroup):getController():setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.RED)
+                        spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.3), 10))
+                        spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.2), 9))
+                        spawnPoints[3] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.0), 9))
+                        local groups = {
+                            [1] = {type = "inf", point = spawnPoints[1]},
+                            [2] = {type = "inf", point = spawnPoints[2]},
+                            [3] = {type = "MORTAR", point = spawnPoints[3]},
+                        }
+                        local sfGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
+                        DFS.deployedGroups[droppingGroup:getCoalition()][sfGroup] = {groupName = sfGroup, type = troopType, point = droppingPoint}
+                        Group.getByName(sfGroup):getController():setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.RED)
                     end
                 end
             end
@@ -2473,13 +2564,13 @@ function dfc.copyTemplate(templateTable)
     end
     return newTable
 end
-function dfc.addRadioCommandsForGroup(groupName)
+function dfc.addRadioCommandsForGroup(groupName, fixedWing)
     local addGroup = Group.getByName(groupName)
     if addGroup then
         if SUBS and Sonobuoys then
             Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
         end
-        if Recon then
+        if Recon and fixedWing then
             Recon.addRadioCommandsForGroup(groupName)
         end
     end
@@ -2515,6 +2606,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
         end
         local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation", cargoMenu)
         missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
+        missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase) - 5 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
          missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
@@ -2558,7 +2650,9 @@ end
 if debug then missionCommands.addCommand('End Mission', nil, dfc.endMission, 1) end
 
 world.addEventHandler(dfcEvents)
-dfc.makeAirfieldsNonCapturable()
+if CAPTURE == false then
+    dfc.makeAirfieldsNonCapturable()
+end
 dfc.getMission()
 dfc.getData()
 dfc.initSpawns()

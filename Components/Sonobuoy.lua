@@ -418,6 +418,7 @@ function Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
             --if enabledTypeNames[addGroup:getUnit(1):getTypeName()] ~= nil then
                 local sbMenu = missionCommands.addSubMenuForGroup(addID, "Sonobuoys", nil)
                 missionCommands.addCommandForGroup(addID, "Drop Sonobuoy", sbMenu, sb.createBuoy, {groupName = groupName, coalition = addGroup:getCoalition()})
+                missionCommands.addCommandForGroup(addID, "Drop Illumination Flare", sbMenu, sb.dropFlare, groupName)
                 missionCommands.addCommandForGroup(addID, "Check Buoys", sbMenu, sb.checkBuoys, groupName)
                 local sbTestSubMenu = missionCommands.addSubMenuForGroup(addID, "Training Sounds and Instructions", sbMenu)
                 missionCommands.addCommandForGroup(addID, "How to use", sbTestSubMenu, sb.faq, addID)
@@ -427,12 +428,10 @@ function Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
                 missionCommands.addCommandForGroup(addID, "Training - 4km or less", sbTestSubMenu, sb.testSound, {groupId = addID, sound = "4000m"})
             --end
         end
-        missionCommands.addCommandForGroup(addID, "Drop Illumination Flare", nil, sb.dropFlare, groupName)
     end
 end
 function Sonobuoys.removeRadioCommandsForGroup(groupID)
     missionCommands.removeItemForGroup(groupID, {[1] = "Sonobuoys"})
-    missionCommands.removeItemForGroup(groupID, {[1] = "Drop Illumination Flare"})
 end
 world.addEventHandler(sbEvents)
 sb.checkBuoyLoop()
