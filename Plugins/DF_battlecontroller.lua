@@ -55,8 +55,8 @@ local pltCosts = {
         [DFS.supplyType.EQUIPMENT] = 2
     },
     [3] = {
-        [DFS.supplyType.FUEL] = 4,
-        [DFS.supplyType.AMMO] = 4,
+        [DFS.supplyType.FUEL] = 3,
+        [DFS.supplyType.AMMO] = 2,
         [DFS.supplyType.EQUIPMENT] = 1
     },
     [7] = {
