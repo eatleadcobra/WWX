@@ -91,7 +91,7 @@ end
 function CpyControl.newShip(coalitionId, escort)
     local convoyParam = {convoyName = "", escortName = nil}
     local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam)
-    newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 7.2)
+    newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
     newCpy:spawn()
     return newCpy.groupName
 end
