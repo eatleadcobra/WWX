@@ -1,6 +1,16 @@
 local dsm = {}
 local airbaseList = world.getAirbases()
 
+if CAPTURE then
+    local dsmEvents = {}
+    function dsmEvents:onEvent(event)
+        if event.id == world.event.S_EVENT_BASE_CAPTURED then
+            dsm.loop()
+        end
+    end
+    world.addEventHandler(dsmEvents)
+end
+
 function dsm.loop()
     for i = 1, #airbaseList do
         local airbase = airbaseList[i]

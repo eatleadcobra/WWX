@@ -492,6 +492,10 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
             startPoint.x = startPoint.x + 50
             startPoint.z = startPoint.z + 50
             local destination = trigger.misc.getZone(battlePositions[targetBP].zoneName).point
+            local coalitionOffset = 15
+            if coalitionId == 2 then coalitionOffset = -15 end
+            destination.x = destination.x + coalitionOffset
+            destination.z = destination.z + coalitionOffset
             local companyCost = bc.companyToCost(strengthTable)
             local canAfford = true
             for i = 1, 3 do
