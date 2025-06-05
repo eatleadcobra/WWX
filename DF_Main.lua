@@ -433,9 +433,9 @@ DFS.status = {
         [3] = 18,
     },
     shippingResupplyAmts = {
-        [1] = 120,
-        [2] = 300,
-        [3] = 48,
+        [1] = 240,
+        [2] = 600,
+        [3] = 96,
     },
     playerResupplyAmts = {
         [1] = {
@@ -474,9 +474,9 @@ DFS.status = {
         [3] = 24,
     },
     maxSuppliesRear = {
-        [1] = 270,
-        [2] = 720,
-        [3] = 108,
+        [1] = 540,
+        [2] = 1440,
+        [3] = 216,
     },
     maxSuppliesPirate = {
         [1] = 80,
