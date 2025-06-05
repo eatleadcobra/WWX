@@ -183,38 +183,38 @@ CompanyCompTiers = {
     [0] = {composition = nil},
     [1] = {
         --tank, apc, AD
-        composition = {3,1,7},
+        composition = {3,1,3,7},
     },
     [2] = {
         --tank, ifv, AD
-        composition = {2,1,7},
+        composition = {2,1,3,7},
     },
     [3] = {
         --ifv, apc, AD
-        composition = {2,3,7},
+        composition = {2,3,3,7},
     },
     [4] = {
         --apc, apc, AD
-        composition = {3,3,7},
+        composition = {3,3,3,7},
     },
     [5] = {
         --tank, tank, apc
-        composition = {1,2},
+        composition = {1,2,3},
     },
     [6] = {
         --tank, ifv, apc
-        composition = {3,1},
+        composition = {3,1,3},
     },
     [7] = {
         -- ifv, ifv, apc
-        composition = {2,3},
+        composition = {2,3,3},
     },
     [8] = {
         -- ifv, apc, apc
-        composition = {3,3},
+        composition = {3,3,3},
     },
     [9] = {
         -- apc, apc, apc
-        composition = {3},
+        composition = {3,3},
     },
 }
