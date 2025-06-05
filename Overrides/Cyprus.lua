@@ -3,11 +3,13 @@ trigger.action.setUserFlag("MISSION_ID", 2)
 SUBS = true
 CAP = false
 BOMBERS = true
-PIRACY = true
+PIRACY = false
 MISSILEBOATS = false
 CARGO = true
 CSAR = true
 CAS = true
+SHIPPING = true
+CAPTURE = false
 -- counts
 FDCount = 2
 AACount = 8
@@ -23,7 +25,6 @@ Platoons = {
     [1] = {
         ["Armor"] = {
             [1] = "M4_Sherman",
-            [2] = "M2A1_halftrack",
             [3] = "Bedford_MWD"
         },
         ["Mech"] = {
@@ -72,7 +73,7 @@ Platoons = {
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
-            [1] = "M-113",
+            [1] = "HL_DSHK",
             [2] = "KAMAZ Truck"
         },
         ["Shipping"] = {
@@ -82,15 +83,14 @@ Platoons = {
     [2] = {
         ["Armor"] = {
             [1] = "Pz_IV_H",
-            [2] = "Sd_Kfz_251",
             [3] = "Blitz_36-6700A"
         },
         ["Mech"] = {
             [1] = "Sd_Kfz_251",
-            [2] = "GAZ-66",
+            [2] = "Blitz_36-6700A",
         },
         ["Inf"] = {
-            [1] = "GAZ-66",
+            [1] = "Blitz_36-6700A",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
@@ -131,7 +131,7 @@ Platoons = {
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
-            [1] = "M-113",
+            [1] = "tt_DSHK",
             [3] = "GAZ-66"
         },
         ["Shipping"] = {
@@ -148,4 +148,73 @@ PlatoonUnitCarrierTypeNames = {
 
 PlatoonFlakCarrierTypeNames = {
     [""] = "FLAK"
+}
+
+
+PltStrengths = {
+    [1] = 8,
+    [2] = 3 + #Platoons[1]["DeployedInf"],
+    [3] = 2 + #Platoons[1]["DeployedInf"],
+    [7] = 1
+}
+PltCosts = {
+    [1] = {
+        [1] = 5, --fuel
+        [2] = 9, --ammo
+        [3] = 3, --equipment
+    },
+    [2] = {
+        [1] = 3, --fuel
+        [2] = 4, --ammo
+        [3] = 2, --equipment
+    },
+    [3] = {
+        [1] = 1, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
+    },
+    [7] = {
+        [1] = 4, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
+    },
+}
+CompanyCompTiers = {
+    [0] = {composition = nil},
+    [1] = {
+        --tank, apc, AD
+        composition = {3,1,7},
+    },
+    [2] = {
+        --tank, ifv, AD
+        composition = {2,1,7},
+    },
+    [3] = {
+        --ifv, apc, AD
+        composition = {2,3,7},
+    },
+    [4] = {
+        --apc, apc, AD
+        composition = {3,3,7},
+    },
+    [5] = {
+        --tank, tank, apc
+        composition = {1,2},
+    },
+    [6] = {
+        --tank, ifv, apc
+        composition = {3,1},
+    },
+    [7] = {
+        -- ifv, ifv, apc
+        composition = {2,3},
+    },
+    [8] = {
+        -- ifv, apc, apc
+        composition = {3,3},
+    },
+    [9] = {
+        -- apc, apc, apc
+        composition = {3},
+    },
 }

@@ -37,73 +37,7 @@ local radioObjectiveMessages = {
     ["complete"] = "l10n/DEFAULT/ObjectiveComplete.ogg",
     ["failed"] = "l10n/DEFAULT/ObjectiveFailed.ogg",
 }
-local pltStrengths = {
-    [1] = 15,
-    [2] = 4 + #Platoons[1]["DeployedInf"],
-    [3] = 3 + #Platoons[1]["DeployedInf"],
-    [7] = 2
-}
-local pltCosts = {
-    [1] = {
-        [DFS.supplyType.FUEL] = 8,
-        [DFS.supplyType.AMMO] = 15,
-        [DFS.supplyType.EQUIPMENT] = 4
-    },
-    [2] = {
-        [DFS.supplyType.FUEL] = 4,
-        [DFS.supplyType.AMMO] = 4,
-        [DFS.supplyType.EQUIPMENT] = 2
-    },
-    [3] = {
-        [DFS.supplyType.FUEL] = 3,
-        [DFS.supplyType.AMMO] = 2,
-        [DFS.supplyType.EQUIPMENT] = 1
-    },
-    [7] = {
-        [DFS.supplyType.FUEL] = 4,
-        [DFS.supplyType.AMMO] = 2,
-        [DFS.supplyType.EQUIPMENT] = 2
-    },
-}
-local companyCompTiers = {
-    [0] = {composition = nil},
-    [1] = {
-        --tank, tank, apc, AD
-        composition = {3,1,1,7},
-    },
-    [2] = {
-        --tank, ifv, apc, AD
-        composition = {2,1,3,7},
-    },
-    [3] = {
-        --ifv, ifv, apc, AD
-        composition = {2,2,3,7},
-    },
-    [4] = {
-        --ifv, apc, apc, AD
-        composition = {2,3,3,7},
-    },
-    [5] = {
-        --tank, tank, apc
-        composition = {3,1,3,7},
-    },
-    [6] = {
-        --tank, ifv, apc
-        composition = {3,1,2},
-    },
-    [7] = {
-        -- ifv, ifv, apc
-        composition = {2,2,3},
-    },
-    [8] = {
-        -- ifv, apc, apc
-        composition = {2,3,3},
-    },
-    [9] = {
-        -- apc, apc, apc
-        composition = {3,3,3},
-    },
-}
+
 function bc.fileExists(file)
     local f = io.open(file, 'rb')
     if f then f:close() end
@@ -239,7 +173,7 @@ function bc.deployments()
             }
             local enemyCoalition = 2
             if coalitionId == 2 then enemyCoalition = 1 end
-            local enemyAvailableStr = bc.companyToStrength(companyCompTiers[bc.getAvailableStrengthTableTier(enemyCoalition)].composition)
+            local enemyAvailableStr = bc.companyToStrength(CompanyCompTiers[bc.getAvailableStrengthTableTier(enemyCoalition)].composition)
             enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
 
             for k, v in pairs(battlePositions) do
@@ -279,8 +213,8 @@ function bc.deployments()
             local tierToSpawn = 1
             local strengthToHold = 0
             local desperate = false
-            for i = 1, #companyCompTiers do
-                local tierStrength = bc.companyToStrength(companyCompTiers[i].composition)
+            for i = 1, #CompanyCompTiers do
+                local tierStrength = bc.companyToStrength(CompanyCompTiers[i].composition)
                 if tierStrength >= enemyAvailableStr then
                     tierToSpawn = i
                     strengthToHold = tierStrength
@@ -293,7 +227,7 @@ function bc.deployments()
                 env.info("Enemy victory is imminent, send any avilable troops.", false)
             end
             local priority = "REINFORCE"
-            if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(companyCompTiers[math.floor(#companyCompTiers/2)]) or ourPointsToWin < 3 or ourPointsToWin > math.floor((3*totalBPs)/4) then
+            if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(CompanyCompTiers[math.floor(#CompanyCompTiers/2)]) or ourPointsToWin < 3 or ourPointsToWin > math.floor((3*totalBPs)/4) then
                 priority = "CAPTURE"
             end
             env.info("Priority: " .. priority, false)
@@ -320,7 +254,7 @@ function bc.deployments()
                 local targetTable = priorityTargetsTables[i]
                 for j = 1, #targetTable do
                     local availableCpyTier = bc.getAvailableStrengthTableTier(coalitionId)
-                    local availableStr = bc.companyToStrength(companyCompTiers[availableCpyTier].composition)
+                    local availableStr = bc.companyToStrength(CompanyCompTiers[availableCpyTier].composition)
                     env.info("Our strength: " .. availableStr, false)
                     env.info("strength to hold: " .. strengthToHold, false)
                     if availableStr > 0 and availableStr >= strengthToHold then
@@ -506,7 +440,7 @@ function bc.companyToStrength(companyTable)
     if companyTable == nil then return 0 end
     local cpyStrength = 0
     for i = 1, #companyTable do
-        cpyStrength = cpyStrength + pltStrengths[companyTable[i]]
+        cpyStrength = cpyStrength + PltStrengths[companyTable[i]]
     end
     return cpyStrength
 end
@@ -517,15 +451,15 @@ function bc.getReinforcementNeeded(currentBpStrength, strengthToHold)
     local loopCount = 0
     while strDiff > 1 do
         local addedStr = 0
-        if pltStrengths[1] < strDiff then
+        if PltStrengths[1] < strDiff then
             table.insert(reinforcementsTable, 1)
-            addedStr = pltStrengths[1]
-        elseif pltStrengths[2] < strDiff then
+            addedStr = PltStrengths[1]
+        elseif PltStrengths[2] < strDiff then
             table.insert(reinforcementsTable, 2)
-            addedStr = pltStrengths[2]
+            addedStr = PltStrengths[2]
         else
             table.insert(reinforcementsTable, 3)
-            addedStr = pltStrengths[3]
+            addedStr = PltStrengths[3]
         end
         loopCount = loopCount + 1
         strDiff = strDiff - addedStr
@@ -544,15 +478,15 @@ function bc.companyToCost(companyTable)
         [DFS.supplyType.EQUIPMENT] = 0,
     }
     for i = 1, #companyTable do
-        cpyCost[DFS.supplyType.FUEL] = cpyCost[DFS.supplyType.FUEL] + pltCosts[companyTable[i]][DFS.supplyType.FUEL]
-        cpyCost[DFS.supplyType.AMMO] = cpyCost[DFS.supplyType.AMMO] + pltCosts[companyTable[i]][DFS.supplyType.AMMO]
-        cpyCost[DFS.supplyType.EQUIPMENT] = cpyCost[DFS.supplyType.EQUIPMENT] + pltCosts[companyTable[i]][DFS.supplyType.EQUIPMENT]
+        cpyCost[DFS.supplyType.FUEL] = cpyCost[DFS.supplyType.FUEL] + PltCosts[companyTable[i]][DFS.supplyType.FUEL]
+        cpyCost[DFS.supplyType.AMMO] = cpyCost[DFS.supplyType.AMMO] + PltCosts[companyTable[i]][DFS.supplyType.AMMO]
+        cpyCost[DFS.supplyType.EQUIPMENT] = cpyCost[DFS.supplyType.EQUIPMENT] + PltCosts[companyTable[i]][DFS.supplyType.EQUIPMENT]
     end
     return cpyCost
 end
 function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate, overrideTable)
     if strengthTableTier > 0 or overrideTable then
-        local strengthTable = companyCompTiers[strengthTableTier].composition
+        local strengthTable = CompanyCompTiers[strengthTableTier].composition
         if strengthTable or overrideTable then
             local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot).point
             startPoint.x = startPoint.x + 50

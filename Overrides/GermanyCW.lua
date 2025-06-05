@@ -8,6 +8,8 @@ MISSILEBOATS = true
 CARGO = true
 CSAR = true
 CAS = true
+SHIPPING = true
+CAPTURE = false
 -- counts
 FDCount = 2
 AACount = 6
@@ -157,4 +159,73 @@ PlatoonUnitCarrierTypeNames = {
     ["BMP-1"] = "IFV",
     ["TPZ"] = "APC",
     ["BTR-80"] = "APC",
+}
+
+
+PltStrengths = {
+    [1] = 15,
+    [2] = 4 + #Platoons[1]["DeployedInf"],
+    [3] = 3 + #Platoons[1]["DeployedInf"],
+    [7] = 2
+}
+PltCosts = {
+    [1] = {
+        [1] = 8, --fuel
+        [2] = 15, --ammo
+        [3] = 4, --equipment
+    },
+    [2] = {
+        [1] = 4, --fuel
+        [2] = 4, --ammo
+        [3] = 2, --equipment
+    },
+    [3] = {
+        [1] = 3, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
+    },
+    [7] = {
+        [1] = 4, --fuel
+        [2] = 2, --ammo
+        [3] = 2, --equipment
+    },
+}
+CompanyCompTiers = {
+    [0] = {composition = nil},
+    [1] = {
+        --tank, tank, apc, AD
+        composition = {3,1,1,7},
+    },
+    [2] = {
+        --tank, ifv, apc, AD
+        composition = {2,1,3,7},
+    },
+    [3] = {
+        --ifv, ifv, apc, AD
+        composition = {2,2,3,7},
+    },
+    [4] = {
+        --ifv, apc, apc, AD
+        composition = {2,3,3,7},
+    },
+    [5] = {
+        --tank, tank, apc
+        composition = {3,1,3,7},
+    },
+    [6] = {
+        --tank, ifv, apc
+        composition = {3,1,2},
+    },
+    [7] = {
+        -- ifv, ifv, apc
+        composition = {2,2,3},
+    },
+    [8] = {
+        -- ifv, apc, apc
+        composition = {2,3,3},
+    },
+    [9] = {
+        -- apc, apc, apc
+        composition = {3,3,3},
+    },
 }
