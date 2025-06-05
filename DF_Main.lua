@@ -8,6 +8,7 @@ DFS.supplyType = {
     MORTAR_SQUAD = 5,
     SF = 6,
     CE = 7,
+    SMALL_MORTAR = 8
 }
 DFS.resupplyTypes = {
     [1] = 1,
@@ -17,11 +18,13 @@ DFS.resupplyTypes = {
     [5] = 3,
     [6] = 3,
     [7] = 3,
+    [8] = 3,
 }
 DFS.troopSupplyTypes = {
     [5] = true,
     [6] = true,
     [7] = true,
+    [8] = true,
 }
 DFS.slungResupModifier = 2
 DFS.supplyNames = {
@@ -31,7 +34,8 @@ DFS.supplyNames = {
     [4] = "Equipment",
     [5] = "Mortar Squad",
     [6] = "Special Forces",
-    [7] = "Combat Engineers (Landmines)"
+    [7] = "Combat Engineers (Landmines)",
+    [8] = "Small Mortar Squad"
 }
 DFS.cargoMasses = {
     [1] = 900,
@@ -40,6 +44,7 @@ DFS.cargoMasses = {
     [5] = 850,
     [6] = 500,
     [7] = 400,
+    [8] = 550,
 }
 DFS.cargoVolumes = {
     [1] = 5,
@@ -48,6 +53,7 @@ DFS.cargoVolumes = {
     [5] = 10,
     [6] = 5,
     [7] = 2,
+    [8] = 5,
 }
 DFS.internalCargo = {
 
@@ -82,6 +88,7 @@ DFS.heloCapacities = {
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 25,
         seats = 24
@@ -94,6 +101,7 @@ DFS.heloCapacities = {
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 15,
         seats = 8
@@ -106,6 +114,7 @@ DFS.heloCapacities = {
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 15,
         seats = 14
@@ -118,6 +127,7 @@ DFS.heloCapacities = {
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 20,
         seats = 12
@@ -130,6 +140,7 @@ DFS.heloCapacities = {
             ["Mortar Squad"] = 6,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 10,
         seats = 3
@@ -141,6 +152,7 @@ DFS.heloCapacities = {
             ["Equipment"] = 3,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 10,
         seats = 2
@@ -153,6 +165,7 @@ DFS.heloCapacities = {
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 30,
         seats = 30
@@ -164,6 +177,7 @@ DFS.heloCapacities = {
             ["Equipment"] = 3,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
         },
         volume = 5,
         seats = 2
@@ -465,7 +479,11 @@ DFS.status = {
         [7] = {
             big = 0,
             small = 0
-        }
+        },
+        [8] = {
+            big = 2,
+            small = 2
+        },
     },
     --totals
     maxSuppliesFront = {
@@ -2004,6 +2022,18 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                     elseif troopType ==  DFS.supplyType.CE then
                         local minePoint = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(droppingPos.x, 15))
                         Mine.spawnPublic(minePoint, droppingPos)
+                    elseif troopType == DFS.supplyType.SMALL_MORTAR then
+                        local spawnPoints = {}
+                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.3), 10))
+                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.2), 9))
+                            spawnPoints[3] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.0), 9))
+                            local groups = {
+                                [1] = {type = "inf", point = spawnPoints[1]},
+                                [2] = {type = "inf", point = spawnPoints[2]},
+                                [3] = {type = "MORTAR", point = spawnPoints[3]},
+                            }
+                            local sfGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
+                            Group.getByName(sfGroup):getController():setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.RED)
                     end
                 end
             end
@@ -2485,8 +2515,9 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
         end
         local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation", cargoMenu)
         missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
-        missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad - 5 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
+        missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase) - 5 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
+         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
         return internalCargoMenu, troopsMenu
     end
