@@ -2608,7 +2608,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
         missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
         missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase) - 5 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
-        missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
+        missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 1 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
          missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
         return internalCargoMenu, troopsMenu
