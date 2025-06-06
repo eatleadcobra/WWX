@@ -909,7 +909,7 @@ function dfc.initSpawns()
                 end
             else
                 for i = 1, DFS.status.artSpawnTotal do
-                    dfc.respawnArtilleryGroup({coalitionId = c, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..i).point, type = "HOWITZER", spawnZone = i})
+                    dfc.respawnArtilleryGroup({coalitionId = c, spawnPoint = trigger.misc.getZone(DFS.spawnNames[c].artillery..i).point, type = "HOWITZER", spawnZone = i})
                 end
             end
         end
