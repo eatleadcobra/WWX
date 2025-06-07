@@ -29,13 +29,14 @@ Platoons = {
         },
         ["Mech"] = {
             [1] = "M2A1_halftrack",
+            [2] = "M1045 HMMWV TOW",
             [3] = "Bedford_MWD"
         },
         ["Inf"] = {
             [1] = "Bedford_MWD",
         },
         ["DeployedInf"] = {
-            [1] = "Infantry AK ver2",
+            [1] = "Paratrooper RPG-16",
             [2] = "Infantry AK ver2",
             [3] = "Infantry AK ver2",
             [4] = "Paratrooper RPG-16",
@@ -83,17 +84,18 @@ Platoons = {
     [2] = {
         ["Armor"] = {
             [1] = "Pz_IV_H",
-            [3] = "Blitz_36-6700A"
+            [2] = "Blitz_36-6700A"
         },
         ["Mech"] = {
             [1] = "Sd_Kfz_251",
-            [2] = "Blitz_36-6700A",
+            [2] = "M1045 HMMWV TOW",
+            [3] = "Blitz_36-6700A",
         },
         ["Inf"] = {
             [1] = "Blitz_36-6700A",
         },
         ["DeployedInf"] = {
-            [1] = "Infantry AK ver2",
+            [1] = "Paratrooper RPG-16",
             [2] = "Infantry AK ver2",
             [3] = "Infantry AK ver2",
             [4] = "Paratrooper RPG-16",
