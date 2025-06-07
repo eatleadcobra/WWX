@@ -7,9 +7,11 @@
 - Each mission should have an overrides file created (see ./Overrides for examples for a few missions) to define the parameters of the mission and what features are enabled or disabled in a mission. The overrides file is also where the platoons and companies are defined.
 
 # List of required zones to create a mission:
+## Battle Positions
+The front line is now defined with several zones called "battle positions" that units will fight to capture. You can have any number of BPs between 1 and 20 (this is set in DF_battlecontroller.lua in ./Plugins). The zones are named "BP-1", "BP-2", etc.
+
 ## Spawning Zones
 These zones are all required in the mission for frontline units, artillery, and depots to spawn.
-
 
 DFS.spawnNames = {
 [1] = {
