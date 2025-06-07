@@ -79,6 +79,7 @@ function wwxRacing.newLeague(division)
     local currentRace = {}
     local racerQueue = {}
     local createdRacers = {}
+    local courseId = tostring(trigger.misc.getUserFlag("MISSION_ID")..division)
     local racingStatus = {
         ["Pre-Race"] = 1,
         ["In Progress"] = 2,
@@ -233,8 +234,9 @@ function wwxRacing.newLeague(division)
                             if racerPoint and racer.currentGate then
                                 if racer.currentGate == 0 then
                                     racer.currentGate = 1
-                                    if (Utils.PointDistance(racerPoint, trigger.misc.getZone(division.."-Race Start Zone").point) > trigger.misc.getZone(division.."-Race Start Zone").radius) or (Utils.getAGL(racerPoint) > 3) then
-                                        --trigger.action.outText(Utils.getAGL(racerPoint), 10,false)
+                                    local raceStartPoint = trigger.misc.getZone(division.."-Race Start Zone").point
+                                    raceStartPoint.y = land.getHeight({x = raceStartPoint.x, y = raceStartPoint.z})
+                                    if (Utils.PointDistance(racerPoint, raceStartPoint) > trigger.misc.getZone(division.."-Race Start Zone").radius) or (Utils.getAGL(racerPoint) > 3) then
                                         trigger.action.outTextForGroup(racer.groupID, "You are disqualified because you were not within the starting zone at race start.", 20, false)
                                         racer.disqualified = true
                                     end
@@ -320,7 +322,7 @@ function wwxRacing.newLeague(division)
                 wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. winningTimeString)
                 if WWEvents and raceTable.winner and raceTable.winner ~= "" and raceTable.winningTime > 0 then
                     env.info("Race completed notification sent", false)
-                    WWEvents.raceCompleted(raceTable.raceID, raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString)
+                    WWEvents.raceCompleted(raceTable.raceID, raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString, courseId)
                     env.info("Race completed notification sent", false)
                 end
                 wwxrl.messageToRacers("To join another race, please return to the race start area.")
@@ -419,7 +421,7 @@ function wwxRacing.newLeague(division)
                     local racerTotalElapsedTime = (racer.endTime + racer.penaltyTime) - racer.startTime
                     if racerElapsedTime < 0 then racerElapsedTime = 0 end
                     if racerTotalElapsedTime < 0 then racerTotalElapsedTime = 0 end
-                    WWEvents.raceEntrantResult(currentRace.raceID, division, racer.playerName, racerElapsedTime, racerTotalElapsedTime, racer.aircraft)
+                    WWEvents.raceEntrantResult(currentRace.raceID, division, racer.playerName, racerElapsedTime, racerTotalElapsedTime, racer.aircraft, courseId)
                 end
                 if racer.completed then
                     local completionTime = (racer.endTime + racer.penaltyTime) - racer.startTime
@@ -453,10 +455,12 @@ function wwxRacing.newLeague(division)
         timer.scheduleFunction(wwxrl.queueLoop, nil, timer.getTime() + 5)
     end
     function wwxrl.racerCreationLoop()
+        local spherePoint = trigger.misc.getZone(division.."-Race Start Zone").point
+        spherePoint.y = land.getHeight({x = spherePoint.x, y = spherePoint.z})
         local volS = {
             id = world.VolumeType.SPHERE,
             params = {
-                point = trigger.misc.getZone(division.."-Race Start Zone").point,
+                point = spherePoint,
                 radius = trigger.misc.getZone(division.."-Race Start Zone").radius
             }
         }

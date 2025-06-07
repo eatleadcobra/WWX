@@ -212,7 +212,7 @@ function WWEvents.raceNotification(categoryId)
     world.onEvent(Event)
 end
 
-function WWEvents.raceCompleted(raceId, winner, winningTime, message)
+function WWEvents.raceCompleted(raceId, winner, winningTime, message, courseId)
     local Event = {
         id = world.event.S_EVENT_WWX_RACE_COMPLETED,
         time = timer.getTime(),
@@ -220,11 +220,12 @@ function WWEvents.raceCompleted(raceId, winner, winningTime, message)
         winner = winner, -- string
         winningTime = winningTime, -- number of seconds
         text = message, -- string
+        courseId = courseId,
     }
     world.onEvent(Event)
 end
 
-function WWEvents.raceEntrantResult(raceId, categoryId, playerName, finishTime, totalTime, aircraft)
+function WWEvents.raceEntrantResult(raceId, categoryId, playerName, finishTime, totalTime, aircraft, courseId)
     local Event = {
     id = world.event.S_EVENT_WWX_RACE_ENTRANT_RESULT,
     time = timer.getTime(),
@@ -233,7 +234,8 @@ function WWEvents.raceEntrantResult(raceId, categoryId, playerName, finishTime, 
     playerName = playerName,
     finishTime = finishTime,
     totalTime = totalTime,
-    aircraft = aircraft
+    aircraft = aircraft,
+    courseId = courseId,
     }
     world.onEvent(Event)
 end
