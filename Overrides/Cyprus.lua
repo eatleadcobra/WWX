@@ -24,12 +24,12 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "M4_Sherman",
+            [1] = "MTLB",
+            [2] = "M1045 HMMWV TOW",
             [3] = "Bedford_MWD"
         },
         ["Mech"] = {
             [1] = "M2A1_halftrack",
-            [2] = "M1045 HMMWV TOW",
             [3] = "Bedford_MWD"
         },
         ["Inf"] = {
@@ -83,13 +83,13 @@ Platoons = {
     },
     [2] = {
         ["Armor"] = {
-            [1] = "Pz_IV_H",
-            [2] = "Blitz_36-6700A"
+            [1] = "M-113",
+            [2] = "M1045 HMMWV TOW",
+            [3] = "Blitz_36-6700A"
         },
         ["Mech"] = {
             [1] = "Sd_Kfz_251",
-            [2] = "M1045 HMMWV TOW",
-            [3] = "Blitz_36-6700A",
+            [2] = "Blitz_36-6700A",
         },
         ["Inf"] = {
             [1] = "Blitz_36-6700A",
