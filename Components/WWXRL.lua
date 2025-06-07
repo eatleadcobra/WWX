@@ -79,7 +79,7 @@ function wwxRacing.newLeague(division)
     local currentRace = {}
     local racerQueue = {}
     local createdRacers = {}
-    local courseId = tostring(trigger.action.getUserFlag(MISSION_ID)..division)
+    local courseId = tostring(trigger.misc.getUserFlag(MISSION_ID)..division)
     local racingStatus = {
         ["Pre-Race"] = 1,
         ["In Progress"] = 2,
