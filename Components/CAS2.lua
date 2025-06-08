@@ -35,6 +35,7 @@ local stackPoints = {
     [1] = {},
     [2] = {}
 }
+local targetKillers = {}
 
 cas.loopInterval = 5
 cas.battleLoopInterval = 9
@@ -42,6 +43,39 @@ cas.engagementDistance = 3000
 cas.dangerClose = 1200
 cas.casHeight = 1000
 cas.casRadius = 4000
+
+
+local casEvents = {}
+function casEvents:onEvent(event)
+    -- on kill
+    if (event.id == world.event.S_EVENT_KILL) then
+        if event and event.initiator and event.target and event.initiator:getDesc().category == 0 or event.initiator:getDesc().category == 1 then
+            local target = event.target
+            local casPlayer = event.initiator:getName()
+            if casPlayer and target then
+                local targetName = target:getName()
+                local playerCoalition = casPlayer:getCoalition()
+                local isCasTarget = false
+                local groupDefended = nil
+                for k,v in pairs(groups[playerCoalition]) do
+                    local targets = v.targetGroups
+                    if targets then
+                        for groupName, groupInfo in pairs(targets) do
+                            if string.find(groupName, targetName) then
+                                isCasTarget = true
+                                groupDefended = k
+                            end
+                        end
+                    end
+                end
+                if isCasTarget and groupDefended then
+                    table.insert(targetKillers[groupDefended], casPlayer)
+                end
+            end
+        end
+    end
+end
+world.addEventHandler(casEvents)
 
 function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, modulation)
     groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {}}
@@ -182,6 +216,12 @@ function cas.designationLoop()
             else
                 groupCount = groupCount - 1
                 casMessage = "Target destroyed!"
+                for i = 1, #targetKillers[k] do
+                    if WWEvents then
+                        WWEvents.playerCasMissionCompleted(targetKillers[k][i], v.coalitionId, " killed an enemy group in contact with " .. v.callsign)
+                    end
+                end
+                targetKillers[k] = nil
                 v.targetGroups[group] = nil
             end
         end
