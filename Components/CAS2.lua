@@ -50,32 +50,39 @@ function casEvents:onEvent(event)
     if event then
         -- on kill
         if (event.id == world.event.S_EVENT_KILL) then
+            env.info("Kill event", false)
             local eventInit = event.initiator
             local eventTgt = event.target
             if eventInit and eventTgt then
+                env.info("initiator and target", false)
+                if eventInit.getPlayerName then
                 local casPlayerName = eventInit:getPlayerName()
-                if casPlayerName then
-                    env.info("Player kill: " .. Utils.dump(eventInit), false)
-                    local targetName = eventTgt:getName()
-                    local isCasTarget = false
-                    local groupDefended = nil
-                    for k,v in pairs(groups) do
-                        local targets = v.targetGroups
-                        if targets then
-                            for groupName, groupInfo in pairs(targets) do
-                                if string.find(targetName, groupName) then
-                                    env.info("Kill matched. Unit: " ..targetName .. " Group: " ..groupName, false)
-                                    isCasTarget = true
-                                    groupDefended = k
+                    env.info("has player name", false)
+                    if casPlayerName then
+                        env.info("Player kill: " .. Utils.dump(eventInit), false)
+                        local targetName = eventTgt:getName()
+                        local isCasTarget = false
+                        local groupDefended = nil
+                        for k,v in pairs(groups) do
+                            local targets = v.targetGroups
+                            if targets then
+                                for groupName, groupInfo in pairs(targets) do
+                                    if string.find(targetName, groupName) then
+                                        env.info("Kill matched. Unit: " ..targetName .. " Group: " ..groupName, false)
+                                        isCasTarget = true
+                                        groupDefended = k
+                                    end
                                 end
                             end
                         end
-                    end
-                    if isCasTarget and groupDefended then
-                        if targetKillers[groupDefended] == nil then
-                            targetKillers[groupDefended] = {}
+                        if isCasTarget and groupDefended then
+                            env.info("Valid CAS Kill", false)
+                            if targetKillers[groupDefended] == nil then
+                                targetKillers[groupDefended] = {}
+                            end
+                            targetKillers[groupDefended][casPlayerName] = true
+                            env.info("Kill event done", false)
                         end
-                        targetKillers[groupDefended][casPlayerName] = true
                     end
                 end
             end
