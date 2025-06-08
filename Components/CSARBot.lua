@@ -67,68 +67,32 @@ local csarPoints = {
 local csarFreqs = {
     [1] = {
         [1] = {
-            ["NDB"] = {
-                20,
-                69
-            },
-            ["TACAN"] = {
-                10,
-                59
-            }
+            ["NDB"] = {20,69},
+            ["TACAN"] = {10,59}
         },
         [2] = {
-            ["NDB"] = {
-                71,
-                120
-            },
-            ["TACAN"] = {
-                61,
-                110,
-            }
+            ["NDB"] = {71,120},
+            ["TACAN"] = {61,110}
         }
     },
     [2] = {
         [1] = {
-            ["NDB"] = {
-                20,
-                69
-            },
-            ["TACAN"] = {
-                10,
-                59
-            }
+            ["NDB"] = {20,69},
+            ["TACAN"] = {10,59}
         },
         [2] = {
-            ["NDB"] = {
-                71,
-                120
-            },
-            ["TACAN"] = {
-                61,
-                110,
-            }
+            ["NDB"] = {71,120},
+            ["TACAN"] = {61,110}
         }
     },
     [3] = {
         [1] = {
-            ["NDB"] = {
-                20,
-                69
-            },
-            ["TACAN"] = {
-                10,
-                59
-            }
+            ["NDB"] = {20,69},
+            ["TACAN"] = {10,59}
         },
         [2] = {
-            ["NDB"] = {
-                71,
-                120
-            },
-            ["TACAN"] = {
-                61,
-                110,
-            }
+            ["NDB"] = {71,120},
+            ["TACAN"] = {61,110}
         }
     }
 }
@@ -136,55 +100,15 @@ local csarFreqCollisions = {
     [1] = {
         [1] = {
             ["NDB"] = {
-                21,
-                22,
-                24,
-                25,
-                28,
-                29,
-                30,
-                31,
-                32,
-                33,
-                34,
-                35,
-                40,
-                41,
-                43,
-                44,
-                49,
-                52,
-                53,
-                58,
-                59,
-                62,
-                63,
-                68,
-                69
+                21,22,24,25,28,29,30,31,32,33,34,35,40,41,43,44,49,52,53,58,59,62,63,68,69
             },
             ["TACAN"] = {
-                16,
-                22,
-                25,
-                31,
-                44
+                16,22,25,31,44
             }
         },
         [2] = {
             ["NDB"] = {
-                71,
-                72,
-                76,
-                80,
-                81,
-                87,
-                92,
-                93,
-                99,
-                100,
-                105,
-                106,
-                107
+                71,72,76,80,81,87,92,93,99,100,105,106,107
             },
             ["TACAN"] = {
                 67
@@ -194,24 +118,7 @@ local csarFreqCollisions = {
     [2] = {
         [1] = {
             ["NDB"] = {
-                26,
-                27,
-                29,
-                30,
-                31,
-                32,
-                33,
-                34,
-                35,
-                36,
-                37,
-                39,
-                40,
-                41,
-                42,
-                43,
-                44,
-                45
+                26,27,29,30,31,32,33,34,35,36,37,39,40,41,42,43,44,45
             },
             ["TACAN"] = {
                 21
@@ -221,88 +128,25 @@ local csarFreqCollisions = {
             ["NDB"] = {
             },
             ["TACAN"] = {
-                71,
-                73,
-                75,
-                79,
-                84,
-                85,
-                87,
-                89,
-                90,
-                92,
-                95,
-                100,
-                106,
-                107,
-                109
+                71,73,75,79,84,85,87,89,90,92,95,100,106,107,109
             }
         }
     },
     [3] = {
         [1] = {
             ["NDB"] = {
-                20,
-                21,
-                22,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32,
-                33,
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40,
-                41,
-                42,
-                43,
-                44,
-                45,
-                46,
-                47,
-                48,
-                62,
-                66,
-                67,
-                68
+                20,21,22,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,62,66,67,68
             },
             ["TACAN"] = {
-                24,
-                28,
-                32,
-                47,
-                48,
-                56
+                24,28,32,47,48,56
             }
         },
         [2] = {
             ["NDB"] = {
-                76,
-                77,
-                84,
-                85,
-                86,
-                87,
-                89,
-                90,
-                95,
-                96,
-                97,
-                98
+                76,77,84,85,86,87,89,90,95,96,97,98
             },
             ["TACAN"] = {
-                77,
-                81,
-                84,
-                88,
-                89,
-                108
+                77,81,84,88,89,108
             }
         }
     }
@@ -360,19 +204,19 @@ function CSB.load()
     local blueCsarZone = trigger.misc.getZone(csarZones[2])
     if redZone and blueZone then
         stackPoints[1] = {x=redZone.point.x, y = land.getHeight({x = redZone.point.x, y = redZone.point.z})+csarStackHeight, z = redZone.point.z}
-        trigger.action.circleToAll(1, DrawingTools.newMarkId(), stackPoints[1], csarStackRadius, {1,0,0,0.6}, {0,0,0,0}, 4, true, nil)
+        trigger.action.circleToAll(1, DrawingTools.newMarkId(), stackPoints[1], csarStackRadius, {1,0,0,0.6}, {0,0,0,0}, 4, true, "")
         trigger.action.textToAll(1, DrawingTools.newMarkId(), stackPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "CSAR Stack")
         stackPoints[2] = {x=blueZone.point.x, y = land.getHeight({x = blueZone.point.x, y = blueZone.point.z})+csarStackHeight, z = blueZone.point.z}
-        trigger.action.circleToAll(2, DrawingTools.newMarkId(), stackPoints[2], csarStackRadius, {0,0,1,0.6}, {0,0,0,0}, 4, true, nil)
+        trigger.action.circleToAll(2, DrawingTools.newMarkId(), stackPoints[2], csarStackRadius, {0,0,1,0.6}, {0,0,0,0}, 4, true, "")
         trigger.action.textToAll(2, DrawingTools.newMarkId(), stackPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CSAR Stack")
     end
     if redCsarZone and blueCsarZone then
         csarZoneRadius = redCsarZone.radius
         csarPoints[1] = {x=redCsarZone.point.x, y = land.getHeight({x = redCsarZone.point.x, y = redCsarZone.point.z})+3, z = redCsarZone.point.z}
-        trigger.action.circleToAll(1,DrawingTools.newMarkId(),csarPoints[1],csarZoneRadius,{1,0,0,0.6},{0,0,0,0}, 4, true, nil)
+        trigger.action.circleToAll(1,DrawingTools.newMarkId(),csarPoints[1],csarZoneRadius,{1,0,0,0.6},{0,0,0,0}, 4, true, "")
         trigger.action.textToAll(1, DrawingTools.newMarkId(), csarPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "CSAR Coverage")
         csarPoints[2] = {x=blueCsarZone.point.x, y = land.getHeight({x = blueCsarZone.point.x, y = blueCsarZone.point.z})+3, z = blueCsarZone.point.z}
-        trigger.action.circleToAll(2,DrawingTools.newMarkId(),csarPoints[2],csarZoneRadius,{0,0,1,0.6},{0,0,0,0}, 4, true, nil)
+        trigger.action.circleToAll(2,DrawingTools.newMarkId(),csarPoints[2],csarZoneRadius,{0,0,1,0.6},{0,0,0,0}, 4, true, "")
         trigger.action.textToAll(2, DrawingTools.newMarkId(), csarPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CSAR Coverage")
     end
     CSB.buildLavaList()
@@ -424,7 +268,7 @@ function CSB.searchCsarStacks()
                             env.info("player already checked-in for CSAR: "..foundPlayerName, false)
                             env.info("csarMission count for " .. c .. " is " .. #csarMissions[c], false)
                             if #csarMissions[c] < 4 then
-                                env.info("calling csarCheckIn for: " .. foundPlayerName)
+                                env.info("calling csarCheckIn for: " .. foundPlayerName, false)
                                 CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
                             end
                         end
@@ -487,19 +331,14 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     end
     if cwispy then
         trigger.action.outTextForCoalition(coalitionId, "Ejected pilot landed close to " .. volcanoName .. " and was picked up.",20,false)
-        --Object.destroy(inUnit) -- not sure if you can destroy a player connected object in MP
         return
     end
-    --local args = {inUnit = inUnit}
-    --local cleanUpTimer = 10
     local anyTerrain = nil
     pos = {x = pos.x, y = pos.y-agl, z = pos.z}
     if overWater then
-        --cleanUpTimer = 5
         anyTerrain = true
     end
     CSB.generateCsar(pos,coalitionId,nil,nil,1000,anyTerrain,nil,playerName)
-    --timer.scheduleFunction(CSB.cleanUpPilot,args,timer.getTime()+cleanUpTimer) -- not sure if you can destroy a player connected object in MP
 end
 function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, anyTerrain, timeLimit, playerName)
     local fName = ""
@@ -509,8 +348,8 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
     generatedCsar.coalition = coalitionId
     if playerName then
         fName = "ejected "..playerName.." "..genCsarCounter
-    elseif randomNames and randomNames.getNewName then
-        fName = randomNames.getNewName(coalitionId)
+    elseif RandomNames and RandomNames.getNewName then
+        fName = RandomNames.getNewName(coalitionId)
     else
         fName = "Chris Burnett "..genCsarCounter
     end
@@ -624,7 +463,7 @@ function CSB.getClearFreq(coalitionId,freqType,min,max)
             end
         end
         if breakVar then break end
-        if j==50 then 
+        if j==50 then
             env.info("Could not find a clear frequency for new CSAR",false)
             return 0
         end
@@ -632,7 +471,7 @@ function CSB.getClearFreq(coalitionId,freqType,min,max)
     return freq
 end
 function CSB.addCsarRadioMenuToGroup(groupID, groupName, coalitionId)
-    local csarSubMenu = missionCommands.addSubMenuForGroup(groupID, "CSAR", nil)
+    local csarSubMenu = missionCommands.addSubMenuForGroup(groupID, "CSAR", {})
     missionCommands.addCommandForGroup(groupID,"Show Active Rescues", csarSubMenu, CSB.showRescueList, {groupID = groupID, groupName = groupName, coalitionId = coalitionId})
 end
 function CSB.removeCsarRadioCommandsForGroup(groupID)
@@ -886,7 +725,6 @@ function CSB.refreshCsarTransmissions()
             end
         end
     end
-    --trigger.action.outText("CSAR transmissions refreshed",30,false)
 end
 function CSB.startTransmission(args)
     local targetGroup = Group.getByName(args.groupName)
