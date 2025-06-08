@@ -49,27 +49,33 @@ local casEvents = {}
 function casEvents:onEvent(event)
     -- on kill
     if (event.id == world.event.S_EVENT_KILL) then
-        if event and event.initiator and event.target and event.initiator:getDesc().category == 0 or event.initiator:getDesc().category == 1 then
+        if event and event.initiator and event.target and event.target:getDesc().category ~= 4 and event.initiator:getDesc().category == 0 or event.initiator:getDesc().category == 1 then
             local target = event.target
-            local casPlayer = event.initiator:getName()
+            local casPlayer = event.initiator
             if casPlayer and target then
-                local targetName = target:getName()
-                local playerCoalition = casPlayer:getCoalition()
-                local isCasTarget = false
-                local groupDefended = nil
-                for k,v in pairs(groups[playerCoalition]) do
-                    local targets = v.targetGroups
-                    if targets then
-                        for groupName, groupInfo in pairs(targets) do
-                            if string.find(groupName, targetName) then
-                                isCasTarget = true
-                                groupDefended = k
+                local casPlayerName = casPlayer:getPlayerName()
+                if casPlayerName then
+                    local targetName = target:getName()
+                    local playerCoalition = casPlayer:getCoalition()
+                    local isCasTarget = false
+                    local groupDefended = nil
+                    for k,v in pairs(groups) do
+                        local targets = v.targetGroups
+                        if targets then
+                            for groupName, groupInfo in pairs(targets) do
+                                if string.find(targetName, groupName) then
+                                    isCasTarget = true
+                                    groupDefended = k
+                                end
                             end
                         end
                     end
-                end
-                if isCasTarget and groupDefended then
-                    table.insert(targetKillers[groupDefended], casPlayer)
+                    if isCasTarget and groupDefended then
+                        if targetKillers[groupDefended] == nil then
+                            targetKillers[groupDefended] = {}
+                        end
+                        targetKillers[groupDefended][casPlayerName] = true
+                    end
                 end
             end
         end
@@ -216,9 +222,12 @@ function cas.designationLoop()
             else
                 groupCount = groupCount - 1
                 casMessage = "Target destroyed!"
-                for i = 1, #targetKillers[k] do
-                    if WWEvents then
-                        WWEvents.playerCasMissionCompleted(targetKillers[k][i], v.coalitionId, " killed an enemy group in contact with " .. v.callsign)
+                if targetKillers[k] then
+                    for playerName, groupId in pairs(targetKillers[k]) do
+                        if WWEvents then
+                            WWEvents.playerCasMissionCompleted(playerName, v.coalitionId, " killed an enemy group in contact with " .. v.callsign)
+                        end
+                        trigger.action.outTextForGroup(groupId, "You have destroyed an enemy group in contact with " .. v.callsign .. "!", 15, false)
                     end
                 end
                 targetKillers[k] = nil
