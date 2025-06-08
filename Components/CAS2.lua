@@ -234,6 +234,8 @@ function cas.designationLoop()
                         end
                         trigger.action.outTextForGroup(groupId, "You have destroyed an enemy group in contact with " .. v.callsign .. "!", 15, false)
                     end
+                else
+                    env.info("No players killed enemies for this group: " .. k, false)
                 end
                 targetKillers[k] = nil
                 v.targetGroups[group] = nil
