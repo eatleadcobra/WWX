@@ -49,32 +49,36 @@ local casEvents = {}
 function casEvents:onEvent(event)
     -- on kill
     if (event.id == world.event.S_EVENT_KILL) then
-        if event and event.initiator and event.target and event.target.getDesc and event.initiator.getDesc and event.target:getDesc().category ~= 4 and event.initiator:getDesc().category == 0 or event.initiator:getDesc().category == 1 then
-            local target = event.target
-            local casPlayer = event.initiator
-            if casPlayer and target then
-                local casPlayerName = casPlayer:getPlayerName()
-                if casPlayerName then
-                    local targetName = target:getName()
-                    local playerCoalition = casPlayer:getCoalition()
-                    local isCasTarget = false
-                    local groupDefended = nil
-                    for k,v in pairs(groups) do
-                        local targets = v.targetGroups
-                        if targets then
-                            for groupName, groupInfo in pairs(targets) do
-                                if string.find(targetName, groupName) then
-                                    isCasTarget = true
-                                    groupDefended = k
+        if event and event.initiator and event.target and event.target.getDesc and event.initiator.getDesc then
+            if event.target:getDesc().category ~= 4 then
+                if event.initiator:getDesc().category == 0 or event.initiator:getDesc().category == 1 then
+                    local target = event.target
+                    local casPlayer = event.initiator
+                    if casPlayer and target then
+                        local casPlayerName = casPlayer:getPlayerName()
+                        if casPlayerName then
+                            local targetName = target:getName()
+                            local playerCoalition = casPlayer:getCoalition()
+                            local isCasTarget = false
+                            local groupDefended = nil
+                            for k,v in pairs(groups) do
+                                local targets = v.targetGroups
+                                if targets then
+                                    for groupName, groupInfo in pairs(targets) do
+                                        if string.find(targetName, groupName) then
+                                            isCasTarget = true
+                                            groupDefended = k
+                                        end
+                                    end
                                 end
                             end
+                            if isCasTarget and groupDefended then
+                                if targetKillers[groupDefended] == nil then
+                                    targetKillers[groupDefended] = {}
+                                end
+                                targetKillers[groupDefended][casPlayerName] = true
+                            end
                         end
-                    end
-                    if isCasTarget and groupDefended then
-                        if targetKillers[groupDefended] == nil then
-                            targetKillers[groupDefended] = {}
-                        end
-                        targetKillers[groupDefended][casPlayerName] = true
                     end
                 end
             end
