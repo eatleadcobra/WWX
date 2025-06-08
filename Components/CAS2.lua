@@ -49,7 +49,7 @@ local casEvents = {}
 function casEvents:onEvent(event)
     -- on kill
     if (event.id == world.event.S_EVENT_KILL) then
-        if event and event.initiator and event.target and event.target:getDesc().category ~= 4 and event.initiator:getDesc().category == 0 or event.initiator:getDesc().category == 1 then
+        if event and event.initiator and event.target and event.target.getDesc and event.target:getDesc().category ~= 4 and event.initiator:getDesc().category == 0 or event.initiator:getDesc().category == 1 then
             local target = event.target
             local casPlayer = event.initiator
             if casPlayer and target then
