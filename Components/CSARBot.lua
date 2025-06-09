@@ -848,6 +848,7 @@ function CSB.checkCsarLanding(eUnit)
         local pSide = eUnit:getCoalition()
         local pPosn = eUnit:getPoint()
         local pVelo = eUnit:getVelocity()
+        local pType = eUnit:getTypeName()
         local inSafeVeloParams = CSB.checkVelocity(pVelo)
         local bInCsarBase = false
         local sBaseName = "Nowhere"
@@ -855,21 +856,20 @@ function CSB.checkCsarLanding(eUnit)
             local zonePoint = nil
             local csci = csarCheckIns[pSide][pName]
             local transporterTable = DFS.helos[csci.groupName]
-            if #csci.onBoard > 0 then -- check for drop off
-                for j = 1, #csarBases[msnId][pSide] do
-                    zonePoint = trigger.misc.getZone(csarBases[msnId][pSide][j])
-                    if zonePoint then
-                        if Utils.pointInCircleTriggerZone(pPosn, zonePoint) then
-                            if inSafeVeloParams then
-                                bInCsarBase = true
-                                sBaseName = csarBases[msnId][pSide][j]
-                            else
-                                trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe drop-off.", 30, false)
-                            end
-                        end
+            for j = 1, #csarBases[msnId][pSide] do
+                zonePoint = trigger.misc.getZone(csarBases[msnId][pSide][j])
+                if zonePoint then
+                    if Utils.pointInCircleTriggerZone(pPosn, zonePoint) then
+                        bInCsarBase = true
+                        sBaseName = csarBases[msnId][pSide][j]
+                        break
                     end
                 end
-                if bInCsarBase then
+            end
+            if bInCsarBase and #csci.onBoard > 0 then -- check for drop off
+                if not inSafeVeloParams then
+                    trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe drop-off.", 30, false)
+                else
                     for i,m in pairs(csci.onBoard) do
                         trigger.action.outTextForCoalition(pSide, pName .. " safely delivered " .. m.displayName .. " to " .. sBaseName .. ".", 30, false)
                         if DFS then DFS.IncreaseFrontSupply({coalitionId = pSide, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
@@ -886,19 +886,23 @@ function CSB.checkCsarLanding(eUnit)
                 for i,m in pairs(csarMissions[pSide]) do
                     if Utils.PointDistance(pPosn, m.point) < csarPickupRadius then
                         if inSafeVeloParams then
-                            trigger.action.outTextForCoalition(pSide, pName .. " is extracting " .. m.displayName .. "...", 30, false)
-                            local args = {}
-                            args.pName = pName
-                            args.pSide = pSide
-                            args.groupName = m.groupName
-                            args.fName = m.name
-                            args.equipment = m.equipment
-                            args.pGrId = csci.groupID
-                            args.pGrNm = csci.groupName
-                            args.pUnit = eUnit
-                            args.mission = m
-                            args.displayName = m.displayName
-                            timer.scheduleFunction(CSB.fakeExtractionTime, args, timer.getTime() + math.random(3,6))
+                            if transporterTable and transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[pType].volume then
+                                trigger.action.outTextForGroup(csci.groupID, "The airframe is at it's volume limit. Extraction not possible.", 30, false)
+                            else
+                                trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 30, false)
+                                local args = {}
+                                args.pName = pName
+                                args.pSide = pSide
+                                args.groupName = m.groupName
+                                args.fName = m.name
+                                args.equipment = m.equipment
+                                args.pGrId = csci.groupID
+                                args.pGrNm = csci.groupName
+                                args.pUnit = eUnit
+                                args.mission = m
+                                args.displayName = m.displayName
+                                timer.scheduleFunction(CSB.fakeExtractionTime, args, timer.getTime() + math.random(3,6))
+                            end
                         else
                             trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe pickup.", 30, false)
                         end
