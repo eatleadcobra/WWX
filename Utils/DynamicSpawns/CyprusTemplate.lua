@@ -32,6 +32,7 @@ Airframes = {
             ["MosquitoFBMkVI"] = true,
             ["Bf-109K-4"] = true,
             ["P-51D"] = true,
+            ["I-16"] = true,
             --FAC
             ["TF-51D"] = true,
             --Helos
@@ -49,6 +50,7 @@ Airframes = {
         farp = {
             ["UH-1H"] = true,
             ["SA342L"] = true,
+            ["I-16"] = true,
         }
     }
 }
