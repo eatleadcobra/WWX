@@ -804,11 +804,13 @@ function CSB:onEvent(e)
         local isOverWater = false
         if e.target then evtInitr = e.target end
         if evtInitr.Desc then mist.utils.oneLineSerialize(evtInitr.Desc) end
-        local p = evtInitr:getPoint()
-        p.y = p.z
-        local terrtype = land.getSurfaceType(p)
-        if terrtype == 2 or terrtype == 3 then isOverWater = true end
-        CSB.wrappedGenerateCsar(evtInitr,c,isOverWater,playerName)
+        if evtInitr.getPoint then
+            local p = evtInitr:getPoint()
+            p.y = p.z
+            local terrtype = land.getSurfaceType(p)
+            if terrtype == 2 or terrtype == 3 then isOverWater = true end
+            CSB.wrappedGenerateCsar(evtInitr,c,isOverWater,playerName)
+        end
     end
     if evtId == 33 then -- discard chair
         local args = {inUnit = e.target}
