@@ -89,7 +89,7 @@ function casEvents:onEvent(event)
         end
     end
 end
-world.addEventHandler(casEvents)
+--world.addEventHandler(casEvents)
 
 function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, modulation)
     groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {}}
