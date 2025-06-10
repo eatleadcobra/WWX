@@ -21,7 +21,29 @@ CompanyIDs = {
     [1] = {},
     [2] = {}
 }
-
+cpyctl.casFreqs = {
+    [1] = 45,
+    [2] = 155,
+}
+cpyctl.casModulation = {
+    [1] = 1,
+    [2] = 0,
+}
+if CAS then
+    cpyctl.casFreqs[1] = REDCASFREQ
+    cpyctl.casModulation[1] = REDCASMOD
+    cpyctl.casFreqs[2] = BLUECASFREQ
+    cpyctl.casModulation[2] = BLUECASMOD
+end
+cpyctl.casGroups = {
+    [1] = {},
+    [2] = {}
+}
+cpyctl.casTrackCounts = {
+    [1] = 0,
+    [2] = 0,
+}
+cpyctl.casLimit = 3
 
 local missionName = env.mission["date"]["Year"]
 local companyState = lfs.writedir() .. [[Logs/]] .. 'companies'..missionName..'.txt'
@@ -117,11 +139,20 @@ function cpyctl.cpyStatusLoop()
         for i = 1, #CompanyIDs[c] do
             local cpy = Companies[CompanyIDs[c][i]]
             if cpy then
-                cpy:updateMarks()
+                --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
+                    if cpyctl.casTrackCounts[c] < cpyctl.casLimit then
+                        CAS.followGroup(cpy.coalitionId, cpy.groupName, cpy.callsign, math.random(1,3), cpyctl.casFreqs[cpy.coalitionId], cpyctl.casModulation[cpy.coalitionId])
+                        cpyctl.casGroups[c][cpy.groupName] = true
+                        cpyctl.casTrackCounts[c] = cpyctl.casTrackCounts[c] + 1
+                    end
+                else
+                    CAS.stopFollowingGroup(cpy.groupName)
+                    cpyctl.casGroups[c][cpy.groupName] = nil
+                    cpyctl.casTrackCounts[c] = cpyctl.casTrackCounts[c] - 1
                 end
                 if cpy.isShip then
                     if #cpy.waypoints > 2 then
@@ -158,6 +189,10 @@ function cpyctl.cpyStatusLoop()
                     break
                 end
             else
+                if cpyctl.casGroups[c][cpy.groupName] ~= nil then
+                    cpyctl.casTrackCounts[c] = cpyctl.casTrackCounts[c] - 1
+                    cpyctl.casGroups[c][cpy.groupName] = nil
+                end
                 table.remove(CompanyIDs[c], i)
                 break
             end
