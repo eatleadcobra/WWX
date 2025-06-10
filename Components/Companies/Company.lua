@@ -6,6 +6,39 @@ cm.status = {
     [3] = "Under Attack",
     [4] = "Defeated"
 }
+
+cm.callsigns = {
+    --TODO move these to overrides
+    alphanumerics = {
+        [1] = {
+            [1] = "Granit",
+            [2] = "Akatsia",
+            [3] = "Aurora",
+            [4] = "Shapka",
+            [5] = "Empire",
+            [6] = "Sirena",
+        },
+        [2] = {
+            [1] = "ALPHA",
+            [2] = "BRAVO",
+            [3] = "CHARLIE",
+            [4] = "DELTA",
+            [5] = "ECHO",
+            [6] = "FOXTROT"
+        }
+    },
+    numberLimit = 5,
+    counts = {
+        [1] = {
+            alpha = 1,
+            number = 1,
+        },
+        [2] = {
+            alpha = 1,
+            number = 1,
+        },
+    }
+}
 Company = {
     id = 0,
     coalitionId = 0,
@@ -294,4 +327,16 @@ function Company.deepcopy(orig)
         copy = orig
     end
     return copy
+end
+function cm.newCallsign(coalitionId)
+    local callsign = cm.callsigns.alphanumerics[coalitionId][cm.callsigns.counts[coalitionId].alpha] .. "-" .. cm.callsigns.counts[coalitionId].number
+    cm.callsigns.counts[coalitionId].number = cm.callsigns.counts[coalitionId].number + 1
+    if cm.callsigns.counts[coalitionId].number > cm.callsigns.numberLimit then
+        cm.callsigns.counts[coalitionId].alpha = cm.callsigns.counts[coalitionId].alpha + 1
+        cm.callsigns.counts[coalitionId].number = 1
+        if cm.callsigns.counts[coalitionId].alpha > #cm.callsigns.alphanumerics[coalitionId] then
+            cm.callsigns.counts[coalitionId].alpha = 1
+        end
+    end
+    return callsign
 end
