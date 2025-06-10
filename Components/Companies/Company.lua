@@ -39,6 +39,20 @@ cm.callsigns = {
         },
     }
 }
+cm.casFreqs = {
+    [1] = 45,
+    [2] = 155,
+}
+cm.casModulation = {
+    [1] = 1,
+    [2] = 0,
+}
+if CAS then
+    cm.casFreqs[1] = REDCASFREQ
+    cm.casModulation[1] = REDCASMOD
+    cm.casFreqs[2] = BLUECASFREQ
+    cm.casModulation[2] = BLUECASMOD
+end
 Company = {
     id = 0,
     coalitionId = 0,
@@ -172,6 +186,10 @@ function Company.spawn(self)
     elseif self.isShip then
         self.convoyParam.convoyName = self.groupName
         DFS.checkShip(self.convoyParam)
+    else
+        if CAS then
+            CAS.followGroup(self.coalitionId, self.groupName, cm.newCallsign(self.coalitionId), math.random(1,3), cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
+        end
     end
 end
 function Company.updateMission(self, listOfPoints, bp)

@@ -92,25 +92,20 @@ end
 --world.addEventHandler(casEvents)
 
 function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, modulation)
-    if groups[groupName] == nil then
-        groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {}}
-        local follwingGroup = Group.getByName(groupName)
-        if follwingGroup then
-            local followingController = follwingGroup:getController()
-            if followingController and frequency and modulation then
-                local cmd = {}
-                cmd.id = "SetFrequency"
-                cmd.params = {}
-                cmd.params.frequency = tonumber(frequency) * 1000000
-                cmd.params.modulation = modulation
-                cmd.params.power = 120
-                followingController:setCommand(cmd)
-            end
+    groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {}}
+    local follwingGroup = Group.getByName(groupName)
+    if follwingGroup then
+        local followingController = follwingGroup:getController()
+        if followingController and frequency and modulation then
+            local cmd = {}
+            cmd.id = "SetFrequency"
+            cmd.params = {}
+            cmd.params.frequency = tonumber(frequency) * 1000000
+            cmd.params.modulation = modulation
+            cmd.params.power = 120
+            followingController:setCommand(cmd)
         end
     end
-end
-function CAS.stopFollowingGroup(groupName)
-    groups[groupName] = nil
 end
 function cas.loop()
     for groupName, groupInfo in pairs(groups) do
