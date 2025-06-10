@@ -29,6 +29,38 @@ cpyctl.casModulation = {
     [1] = 1,
     [2] = 0,
 }
+cpyctl.callsigns = {
+    --TODO move these to overrides
+    alphanumerics = {
+        [1] = {
+            [1] = "Granit",
+            [2] = "Akatsia",
+            [3] = "Aurora",
+            [4] = "Shapka",
+            [5] = "Empire",
+            [6] = "Sirena",
+        },
+        [2] = {
+            [1] = "ALPHA",
+            [2] = "BRAVO",
+            [3] = "CHARLIE",
+            [4] = "DELTA",
+            [5] = "ECHO",
+            [6] = "FOXTROT"
+        }
+    },
+    numberLimit = 5,
+    counts = {
+        [1] = {
+            alpha = 1,
+            number = 1,
+        },
+        [2] = {
+            alpha = 1,
+            number = 1,
+        },
+    }
+}
 if CAS then
     cpyctl.casFreqs[1] = REDCASFREQ
     cpyctl.casModulation[1] = REDCASMOD
@@ -145,7 +177,7 @@ function cpyctl.cpyStatusLoop()
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
                     if cpyctl.casTrackCounts[c] < cpyctl.casLimit then
-                        CAS.followGroup(cpy.coalitionId, cpy.groupName, cpy.callsign, math.random(1,3), cpyctl.casFreqs[cpy.coalitionId], cpyctl.casModulation[cpy.coalitionId])
+                        CAS.followGroup(cpy.coalitionId, cpy.groupName, cpyctl.newCallsign(cpy.coalitionId), math.random(1,3), cpyctl.casFreqs[cpy.coalitionId], cpyctl.casModulation[cpy.coalitionId])
                         cpyctl.casGroups[c][cpy.groupName] = true
                         cpyctl.casTrackCounts[c] = cpyctl.casTrackCounts[c] + 1
                     end
@@ -241,7 +273,18 @@ function cpyctl.getShipPoints(coalitionId)
     end
     return shipPoints
 end
-
+function cpyctl.newCallsign(coalitionId)
+    local callsign = cpyctl.callsigns.alphanumerics[coalitionId][cpyctl.callsigns.counts[coalitionId].alpha] .. "-" .. cpyctl.callsigns.counts[coalitionId].number
+    cpyctl.callsigns.counts[coalitionId].number = cpyctl.callsigns.counts[coalitionId].number + 1
+    if cpyctl.callsigns.counts[coalitionId].number > cpyctl.callsigns.numberLimit then
+        cpyctl.callsigns.counts[coalitionId].alpha = cpyctl.callsigns.counts[coalitionId].alpha + 1
+        cpyctl.callsigns.counts[coalitionId].number = 1
+        if cpyctl.callsigns.counts[coalitionId].alpha > #cpyctl.callsigns.alphanumerics[coalitionId] then
+            cpyctl.callsigns.counts[coalitionId].alpha = 1
+        end
+    end
+    return callsign
+end
 cpyctl.getCompanies()
 cpyctl.spawnCompanies()
 
