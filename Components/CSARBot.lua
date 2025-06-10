@@ -22,7 +22,9 @@ local genCsarCounter = 25
 local msnId = trigger.misc.getUserFlag("MISSION_ID")
 -- 1 = WWCAUC
 -- 2 = Cyprus
--- 3 = GermanyCW
+-- 3 = Germany70
+-- 4 = WWSlop
+-- 5 = SyriaCW
 
 local csarCheckIns = {
     [1] = {},
@@ -94,6 +96,26 @@ local csarFreqs = {
             ["NDB"] = {71,120},
             ["TACAN"] = {61,110}
         }
+    },
+    [4] = {
+        [1] = {
+            ["NDB"] = {20,69},
+            ["TACAN"] = {10,59}
+        },
+        [2] = {
+            ["NDB"] = {71,120},
+            ["TACAN"] = {61,110}
+        }
+    },
+    [5] = {
+        [1] = {
+            ["NDB"] = {20,69},
+            ["TACAN"] = {10,59}
+        },
+        [2] = {
+            ["NDB"] = {71,120},
+            ["TACAN"] = {61,110}
+        }
     }
 }
 local csarFreqCollisions = {
@@ -149,6 +171,34 @@ local csarFreqCollisions = {
                 77,81,84,88,89,108
             }
         }
+    },
+    [4] = {
+        [1] = {
+            ["NDB"] = {
+            },
+            ["TACAN"] = {
+            }
+        },
+        [2] = {
+            ["NDB"] = {
+            },
+            ["TACAN"] = {
+            }
+        }
+    },
+    [5] = {
+        [1] = {
+            ["NDB"] = {
+            },
+            ["TACAN"] = {
+            }
+        },
+        [2] = {
+            ["NDB"] = {
+            },
+            ["TACAN"] = {
+            }
+        }
     }
 }
 local csarBases = {
@@ -169,6 +219,22 @@ local csarBases = {
         }
     },
     [3] = {
+        [1] = {
+            [1] = "Red Forward Field Hospital"
+        },
+        [2] = {
+            [1] = "Blue Forward Field Hospital"
+        }
+    },
+    [4] = {
+        [1] = {
+            [1] = "Red Forward Field Hospital"
+        },
+        [2] = {
+            [1] = "Blue Forward Field Hospital"
+        }
+    },
+    [5] = {
         [1] = {
             [1] = "Red Forward Field Hospital"
         },
