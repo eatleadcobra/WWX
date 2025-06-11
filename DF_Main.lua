@@ -1010,9 +1010,7 @@ function dfc.checkFDHealth()
         for i = 1, #DFS.status[a].spawns.fd do
             local group = DFS.status[a].spawns.fd[i]
             if group == nil then break end
-            env.info("Group get by name start", false)
             local depotGroup = Group.getByName(group.groupName)
-            env.info("Group get by name end", false)
             local groupDead = false
             if depotGroup == nil then
                 groupDead = true
@@ -1393,24 +1391,24 @@ function dfc.newConvoyLoop()
            --fuel check
             if anytime and fueltime and hasConvoyFuel and needsFuel and hasFuelAmt then
                 local deliverZone = activeFDs[math.random(#activeFDs)]
-                --dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
-                --dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
+                dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
+                dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
             end
             --ammo check
             if anytime and ammotime and hasConvoyFuel and needsAmmo and hasAmmoAmt then
                 local deliverZone = activeFDs[math.random(#activeFDs)]
-                --dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
-                --dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
-                --dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
+                dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
+                dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
+                dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
             end
             --equipment check 
             if anytime and equiptime and hasConvoyFuel and needsEquipment and hasEquipmentAmt then
                 local deliverZone = activeFDs[math.random(#activeFDs)]
-                --dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
-                --dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
-                --dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
+                dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
+                dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
+                dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
             end
         end
@@ -1592,7 +1590,7 @@ end
 function dfc.shippingLoop()
     for c = 1,2 do
         if timer:getTime() - DFS.status[c].lastShipTime > (DFS.status[c].industrialModifier * DFS.status.shipConvoyInterval) or DFS.status[c].lastShipTime == 0 then
-            --CpyControl.newShip(c, nil)
+            CpyControl.newShip(c, nil)
             DFS.status[c].lastShipTime = timer:getTime()
             if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
         end

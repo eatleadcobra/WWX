@@ -7,7 +7,7 @@ PIRACY = false
 MISSILEBOATS = false
 CARGO = true
 CSAR = true
-CAS = true
+CAS = false
 SHIPPING = true
 CAPTURE = false
 -- counts

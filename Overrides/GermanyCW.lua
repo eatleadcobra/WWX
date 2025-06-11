@@ -7,7 +7,7 @@ BOMBERS = true
 MISSILEBOATS = true
 CARGO = true
 CSAR = true
-CAS = true
+CAS = false
 SHIPPING = true
 CAPTURE = false
 -- counts
