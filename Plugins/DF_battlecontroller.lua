@@ -263,7 +263,7 @@ function bc.deployments()
                             sendCpy = bc.getReinforcementNeeded(targetTable[j].strength, strengthToHold)
                         end
                         env.info("Sufficient company possible, sending", false)
-                        bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpyTier, desperate, sendCpy)
+                        --bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpyTier, desperate, sendCpy)
                         env.info("SentCount: " .. sentCount, false)
                         sentCount = sentCount + 1
                         if sentCount == 1 then
