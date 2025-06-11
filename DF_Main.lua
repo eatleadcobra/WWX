@@ -1010,7 +1010,9 @@ function dfc.checkFDHealth()
         for i = 1, #DFS.status[a].spawns.fd do
             local group = DFS.status[a].spawns.fd[i]
             if group == nil then break end
+            env.info("Group get by name start", false)
             local depotGroup = Group.getByName(group.groupName)
+            env.info("Group get by name end", false)
             local groupDead = false
             if depotGroup == nil then
                 groupDead = true
