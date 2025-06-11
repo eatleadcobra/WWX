@@ -117,7 +117,7 @@ function cpyctl.cpyStatusLoop()
         for i = 1, #CompanyIDs[c] do
             local cpy = Companies[CompanyIDs[c][i]]
             if cpy then
-                cpy:updateMarks()
+                --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
