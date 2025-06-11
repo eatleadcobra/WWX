@@ -1334,17 +1334,6 @@ function dfc.updateSupplyDrawings(depot, coalitionId)
         end
     end
 end
-function dfc.supplyDrawingRefreshLoop()
-    dfc.updateSupplyDrawings("FRONT", 1)
-    dfc.updateSupplyDrawings("FRONT", 2)
-    dfc.updateSupplyDrawings("REAR", 1)
-    dfc.updateSupplyDrawings("REAR", 2)
-    if PIRACY then
-        dfc.updateSupplyDrawings("PIRATE", 1)
-        dfc.updateSupplyDrawings("PIRATE", 2)
-    end
-    timer.scheduleFunction(dfc.supplyDrawingRefreshLoop, nil, timer:getTime() + 300)
-end
 --CONVOY AND SHIPPING FUNCS
 function dfc.newConvoyLoop()
     for ctln = 1, 2 do
