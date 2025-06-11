@@ -23,7 +23,7 @@ local msnId = trigger.misc.getUserFlag("MISSION_ID")
 -- 1 = WWCAUC
 -- 2 = Cyprus
 -- 3 = Germany70
--- 4 = WWSlop
+-- 4 = Lebanon92
 -- 5 = SyriaCW
 
 local csarCheckIns = {
@@ -246,7 +246,7 @@ local csarBases = {
 local autoCsarEnroll = {}
 function autoCsarEnroll:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF then
-        if event and event.initiator and event.initiator.getDesc and event.initiator:getDesc().category == 1 then
+        if event and event.initiator and event.initiator.getDesc and event.initiator:getDesc().category == 1 and DFS.heloCapacities[event.initiator:getTypeName()] then
             local foundPlayerName = event.initiator:getPlayerName()
             local playerCoalition = event.initiator:getCoalition()
             local playerGroup = event.initiator:getGroup()
@@ -257,7 +257,7 @@ function autoCsarEnroll:onEvent(event)
                 local playerGroupName = playerGroup:getName()
                 if foundPlayerName and playerCoalition and playerGroupID then
                     env.info("Found player: "..foundPlayerName, false)
-                    CSB.csarAutoCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
+                    CSB.csarAutoCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName)
                 end
             end
         end
@@ -296,9 +296,8 @@ end
 function CSB.main()
     if CSARAUTOENROLL then
         world.addEventHandler(autoCsarEnroll)
-    else
-        CSB.searchCsarStacks()
     end
+    CSB.searchCsarStacks()
     CSB.trackCsar()
     --timer.scheduleFunction(CSB.debugCsarGeneration,nil,timer.getTime()+10)
     CSB.refreshCsarTransmissions()
@@ -333,7 +332,7 @@ function CSB.searchCsarStacks()
                         else
                             env.info("player already checked-in for CSAR: "..foundPlayerName, false)
                             env.info("csarMission count for " .. c .. " is " .. #csarMissions[c], false)
-                            if #csarMissions[c] < 4 then
+                            if #csarMissions[c] < 1 then
                                 env.info("calling csarCheckIn for: " .. foundPlayerName, false)
                                 CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
                             end
@@ -369,8 +368,7 @@ function CSB.csarCheckIn(playerName, coalitionId, playerGroupID, playerGroupName
     end
     trigger.action.outTextForGroup(playerGroupID,"Checked-in. Check CSAR menu for active rescues.",30,false)
 end
-function CSB.csarAutoCheckIn(playerName, coalitionId, playerGroupID, playerGroupName, typeName, unitName, prev)
-    if not prev then prev = false end
+function CSB.csarAutoCheckIn(playerName, coalitionId, playerGroupID, playerGroupName, typeName, unitName)
     if not csarCheckIns[coalitionId][playerName] then
         csarCheckIns[coalitionId][playerName] = {groupID = playerGroupID, groupName = playerGroupName, typeName = typeName, unitName = unitName, onBoard = {}}
         CSB.addCsarRadioMenuToGroup(playerGroupID, playerGroupName, coalitionId)
