@@ -392,12 +392,9 @@ function cas.startGroup(groupName)
     end
 end
 function cas.groupMarkups(point, groupName, inContact, smokeColor)
-    trigger.action.outText("group markups", 10, false)
     if inContact then
-        trigger.action.outText("in contact", 10, false)
         if groups[groupName].markups then
             if groups[groupName].markups.radio and groups[groupName].markups.radioPoint and #groups[groupName].markups.radio > 0 then
-                trigger.action.outText("has radio", 10, false)
                 local screenMarkupId = groups[groupName].markups.radio[3]
                 local groupMovedDist = Utils.PointDistance(point, groups[groupName].markups.radioPoint)
                 if groupMovedDist < 500 then
@@ -406,12 +403,10 @@ function cas.groupMarkups(point, groupName, inContact, smokeColor)
                     for i = 1, #groups[groupName].markups.radio do
                         trigger.action.removeMark(groups[groupName].markups.radio[i])
                     end
-                    trigger.action.outText("Group moved more than 500m, redrawing", 10, false)
                     groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
                     groups[groupName].markups.radioPoint = point
                 end
             else
-                trigger.action.outText("no existing radio markup, creating", 10, false)
                 groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
                 groups[groupName].markups.radioPoint = point
             end
