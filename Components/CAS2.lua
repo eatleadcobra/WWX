@@ -123,7 +123,7 @@ function cas.loop()
     end
     timer.scheduleFunction(cas.loop, nil, timer:getTime() + cas.loopInterval)
 end
-function cas.checkGroup(groupName)
+function CAS.checkGroup(groupName)
     local checkingGroup = Group.getByName(groupName)
     if checkingGroup then
         local checkingUnit = checkingGroup:getUnit(1)
@@ -262,7 +262,7 @@ function CAS.designateGroup(groupName)
                         }
                     }
                     casController:setCommand(msg)
-                    for groupName, active in pairs(casGroups[v.coalitionId]) do
+                    for groupName, active in pairs(casGroups[desGroup.coalitionId]) do
                         local group = Group.getByName(groupName)
                         if group then
                             local groupId = group:getID()
@@ -278,7 +278,6 @@ function CAS.designateGroup(groupName)
         end
     end
 end
-
 
 function cas.designationLoop()
     for k,v in pairs(groups) do
@@ -484,7 +483,7 @@ function cas.trackCas()
     end
 end
 
-cas.loop()
-cas.designationLoop()
+--cas.loop()
+--cas.designationLoop()
 cas.loadZones()
 cas.stackLoop()

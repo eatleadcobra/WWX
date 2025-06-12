@@ -112,9 +112,27 @@ function cpyctl.saveLoop()
     end
 end
 -- this really isn't mission specific and should be moved to a file in components
+local cpyIndices = {
+    [1] = 1,
+    [2] = 1,
+}
+local designated = {
+    [1] = {},
+    [2] = {}
+}
+-- coalitionId, groupId
+function cpyctl.cleanDesGroup(param)
+    designated[param.coalitionId][param.groupName] = nil
+end
+local cpysPerLoop = 4
 function cpyctl.cpyStatusLoop()
     for c = 1,2 do
-        for i = 1, #CompanyIDs[c] do
+        local startIndex = cpyIndices[c]
+        if startIndex > #CompanyIDs[c] then startIndex = 1 end
+        local endIndex = startIndex + (cpysPerLoop-1)
+        if endIndex > #CompanyIDs[c] then endIndex = #CompanyIDs[c] end
+        cpyIndices[c] = endIndex+1
+        for i = startIndex, endIndex do
             local cpy = Companies[CompanyIDs[c][i]]
             if cpy then
                 --cpy:updateMarks()
@@ -136,6 +154,12 @@ function cpyctl.cpyStatusLoop()
                 end
                 local cpyGroup = Group.getByName(cpy.groupName)
                 if cpyGroup then
+                    if cpy.casTracked and designated[c][cpy.groupName] == nil then
+                        CAS.checkGroup(cpy.groupName)
+                        CAS.designateGroup(cpy.groupName)
+                        designated[c][cpy.groupName] = true
+                        timer.scheduleFunction(cpyctl.cleanDesGroup, {coalitionId = c, groupName = cpy.groupName}, timer:getTime() + 30)
+                    end
                     cpy:updateUnits(cpyGroup:getUnits())
                     local lastUnit = cpyGroup:getUnit(cpyGroup:getSize())
                     local firstUnit = cpyGroup:getUnit(1)
