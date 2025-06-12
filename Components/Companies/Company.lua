@@ -76,6 +76,7 @@ Company = {
     bp = 0,
     isConvoy = false,
     isShip = false,
+    casTracked = false,
     convoyParam = {}
 }
 function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, convoyParam)
@@ -189,6 +190,7 @@ function Company.spawn(self)
     else
         if CAS then
             CAS.followGroup(self.coalitionId, self.groupName, cm.newCallsign(self.coalitionId), math.random(1,3), cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
+            self.casTracked = true
         end
     end
 end

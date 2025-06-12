@@ -315,9 +315,15 @@ function DrawingTools.drawShield(coalitionId, markPoint)
     ---
     return markIds
 end
-function DrawingTools.drawRadio(coalitionId, markPoint)
+local screenColors = {
+    [-1] = {1,1,1,0.3},
+    [0] = {0.3,1,0.6,1},
+    [2] = {1,1,1,1},
+    [3] = {1,0.65,0,1}
+}
+local radioRectangleHeight = 500
+function DrawingTools.drawRadio(coalitionId, markPoint, color)
     local markIds = {}
-    local radioRectangleHeight = 500
     local rectangleMarkId = DrawingTools.newMarkId()
     table.insert(markIds, rectangleMarkId)
     local rectLowerLeft = markPoint
@@ -334,9 +340,28 @@ function DrawingTools.drawRadio(coalitionId, markPoint)
     local screenUpperRight = {x = screenLowerLeft.x + ((1/5)*radioRectangleHeight), y = 0, z = screenLowerLeft.z + ((1/2)*radioRectangleHeight) }
     local screenMarkId = DrawingTools.newMarkId()
     table.insert(markIds, screenMarkId)
-    trigger.action.rectToAll(coalitionId, screenMarkId, screenLowerLeft, screenUpperRight, {0,0,0,1}, {0.3,1,0.6, 1}, 1, true, nil)
+
+    trigger.action.rectToAll(coalitionId, screenMarkId, screenLowerLeft, screenUpperRight, {0,0,0,1}, screenColors[color], 1, true, nil)
     ---
     return markIds
+end
+function DrawingTools.moveRadio(point, bodyId, antennaId, screenId, screenColor)
+    local bodyStart = point
+    local bodyEnd = { x = point.x + radioRectangleHeight, y = 0, z = point.z + (radioRectangleHeight*(2/3)) }
+    local antennaStart = {x = point.x + radioRectangleHeight, y = 0, z = point.z + (radioRectangleHeight/16)}
+    local antennaEnd = {x = antennaStart.x + (radioRectangleHeight/2), y = 0, z = antennaStart.z + (radioRectangleHeight/8)}
+    local screenStart = {x = point.x + ((3/5)*radioRectangleHeight), y = 0, z = point.z + (radioRectangleHeight/12)}
+    local screenEnd = {x = screenStart.x + ((1/5)*radioRectangleHeight), y = 0, z = screenStart.z + ((1/2)*radioRectangleHeight) }
+    trigger.action.setMarkupPositionStart(bodyId, bodyStart)
+    trigger.action.setMarkupPositionEnd(bodyId, bodyEnd)
+    trigger.action.setMarkupPositionStart(antennaId, antennaStart)
+    trigger.action.setMarkupPositionEnd(antennaId, antennaEnd)
+    trigger.action.setMarkupPositionStart(screenId, screenStart)
+    trigger.action.setMarkupPositionEnd(screenId, screenEnd)
+    DrawingTools.updateRadioColor(screenId, screenColor)
+end
+function DrawingTools.updateRadioColor(screenId, screenColor)
+    trigger.action.setMarkupColorFill(screenId, screenColors[screenColor])
 end
 function DrawingTools.numberBP(point, radius, number, max)
     local radsToRotate = (1/max) * (2*math.pi)
