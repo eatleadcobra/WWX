@@ -13,7 +13,7 @@ SubControl.subValues = {
 }
 function SubControl.createSubWithIntercept(coalitionId, point, subType, depth, closestShip)
     if closestShip.distance then
-        local closestRunIn, attackRunEndPoint, bearing, speedToRunIn = SubTools.calculateIntercept(closestShip.point, point, closestShip.position, closestShip.velocity, SubControl.subValues[subType].maxSpeed)
+        local closestRunIn, attackRunEndPoint, bearing, speedToRunIn = SubTools.newCalculateIntercept(closestShip.point, point, closestShip.position, closestShip.velocity, SubControl.subValues[subType].maxSpeed)
         if closestRunIn then
             local wpList = SpawnFuncs.createWPListFromPoints({point, closestRunIn, attackRunEndPoint, point})
             local groupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, 3, {subType}, wpList)
@@ -36,8 +36,9 @@ function SubControl.createSubWithIntercept(coalitionId, point, subType, depth, c
     end
 end
 function SubControl.updateSubMissionWithIntercept(groupName, point, subType, depth, closestShip)
+    trigger.action.outText("Update sub with intercept", 10, false)
     if closestShip.distance then
-        local closestRunIn, attackRunEndPoint, bearing, speedToRunIn = SubTools.calculateIntercept(closestShip.point, point, closestShip.position, closestShip.velocity, SubControl.subValues[subType].maxSpeed)
+        local closestRunIn, attackRunEndPoint, bearing, speedToRunIn = SubTools.newCalculateIntercept(closestShip.point, point, closestShip.position, closestShip.velocity, SubControl.subValues[subType].maxSpeed)
         if closestRunIn then
             local wpList = SpawnFuncs.createWPListFromPoints({point, closestRunIn, attackRunEndPoint, point})
             local missionTable = SpawnFuncs.createMission(wpList)
@@ -81,6 +82,7 @@ function SubControl.createSubWithNoIntercept(coalitionId, startPoint, endPoint, 
     return groupTable["name"]
 end
 function SubControl.updateSubMissionWithNoIntercept(groupName, startPoint, endPoint, subType, startDepth, endDepth)
+    trigger.action.outText("Update sub no intercept", 10, false)
     local wpList = SpawnFuncs.createWPListFromPoints({startPoint, endPoint})
     local missionTable = SpawnFuncs.createMission(wpList)
     local point1depth = (SubControl.subValues[subType].maxDepth)/2
@@ -102,6 +104,7 @@ function SubControl.updateSubMissionWithNoIntercept(groupName, startPoint, endPo
 end
 function SubControl.engage(coalitionId, groupName)
     env.info("Sub engage start", false)
+    trigger.action.outText("Sub engage start", 10, false)
     local subGroup = Group.getByName(groupName)
     if subGroup ~= nil then
         local subUnit = subGroup:getUnit(1)
@@ -119,9 +122,11 @@ function SubControl.engage(coalitionId, groupName)
             }
             local closestShip = {}
             local ifFound = function(foundItem, val)
+                trigger.action.outText("Found something", 10, false)
                 if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 3 and foundItem:getCoalition() ~= coalitionId and foundItem:hasAttribute("Unarmed ships") then
                     local shipPoint = foundItem:getPoint()
                     env.info("Sub Engage Found: " .. foundItem:getName(), false)
+                    trigger.action.outText("Found: " .. foundItem:getName(), 10, false)
                     if shipPoint ~= nil then
                         local xDistance = math.abs(subPoint.x - shipPoint.x)
                         local yDistance = math.abs(subPoint.z - shipPoint.z)

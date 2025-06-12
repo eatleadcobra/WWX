@@ -49,6 +49,7 @@ function DFSubs.subDamaged(coalitionId)
     end
 end
 function DFSubs.subSearch(coalitionId)
+    trigger.action.outText("Sub Search", 10, false)
     local sub = DFSubs.subs[coalitionId]
     local groupName = sub.groupName
     local subGroup = Group.getByName(groupName)
@@ -66,6 +67,7 @@ function DFSubs.subSearch(coalitionId)
     end
 end
 function DFSubs.subLoop(coalitionId)
+    trigger.action.outText("Sub Loop", 10, false)
     local sub = DFSubs.subs[coalitionId]
     --groupName subType intercepting damaged spawnTime , kills = 0
     local groupName = sub.groupName
