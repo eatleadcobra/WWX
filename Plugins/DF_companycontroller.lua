@@ -188,7 +188,7 @@ function cpyctl.cpyStatusLoop()
             end
         end
     end
-    timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 10)
+    timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 15)
 end
 
 function cpyctl.getCompanyStrength(cpy)
