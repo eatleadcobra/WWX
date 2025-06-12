@@ -60,7 +60,4 @@ ForwardAirbases = {
     [2] = {
     },
 }
-IgnoreAirbases = {
-    [1] = {},
-    [2] = {},
-}
+IgnoreAirbases = {}
