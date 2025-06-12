@@ -131,6 +131,7 @@ function cpyctl.cpyStatusLoop()
         if startIndex > #CompanyIDs[c] then startIndex = 1 end
         local endIndex = startIndex + (cpysPerLoop-1)
         if endIndex > #CompanyIDs[c] then endIndex = #CompanyIDs[c] end
+        env.info("Cpy loop checking " .. c .. " companies " .. startIndex .. " through " .. endIndex, false)
         cpyIndices[c] = endIndex+1
         for i = startIndex, endIndex do
             local cpy = Companies[CompanyIDs[c][i]]
