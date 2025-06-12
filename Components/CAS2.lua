@@ -184,6 +184,102 @@ function cas.checkGroup(groupName)
     end
 end
 
+function CAS.designateGroup(groupName)
+    local desGroup = groups[groupName]
+    if desGroup then
+        local casMessage = "This is " .. desGroup.callsign .. ". We are in contact with enemy forces!"
+        local locationMessage = "\nWe are located at "
+        local groupLat, groupLong, groupAlt = coord.LOtoLL(desGroup.currentPoint)
+        local groupMGRS = coord.LLtoMGRS(groupLat, groupLong)
+        local eastingString = tostring(groupMGRS.Easting)
+        local northingString = tostring(groupMGRS.Northing)
+        for i = 1, 5 - #eastingString do
+            eastingString = tostring(0)..eastingString
+        end
+        for i = 1, 5 - #northingString do
+            northingString = tostring(0)..northingString
+        end
+        local location = groupMGRS.MGRSDigraph .. eastingString:sub(1,desGroup.jtacType)..northingString:sub(1,desGroup.jtacType)
+        locationMessage = locationMessage .. location
+        if desGroup.isMoving then
+                locationMessage = locationMessage .. "\nWe are moving " .. Utils.degToCompass(desGroup.heading)
+        end
+        casMessage = casMessage .. locationMessage
+        local groupCount = 0
+        for group, targetInfo in pairs(desGroup.targetGroups) do
+            local tgtGroup = Group.getByName(group)
+            if tgtGroup then
+                groupCount = groupCount + 1
+                local bearingToTgt = math.floor(targetInfo.bearingToTgt)
+                local compassBearingToTgt = Utils.degToCompass(bearingToTgt)
+                local bearingString = tostring(bearingToTgt)
+                if desGroup.jtacType == CAS.JTACType.NONE then bearingString = compassBearingToTgt end
+                local distanceToTgt = targetInfo.distanceToTgt / 1000
+                casMessage = casMessage .. "\nGroup " .. groupCount .. ": " .. bearingString .. " for " .. string.format("%.1f", distanceToTgt) .. "km"
+                if targetInfo.onRoad then casMessage = casMessage .. " on the road." end
+                if desGroup.isMoving == false and distanceToTgt < cas.dangerClose then
+                    if desGroup.smokeColor == -1 then
+                            desGroup.smokeColor = smokeColors[math.random(1,3)]
+                    end
+                    casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[desGroup.smokeColor] .."smoke."
+                    if desGroup.smokeTime == -1 or timer:getTime() - desGroup.smokeTime > 300 then
+                        trigger.action.smoke(Utils.VectorAdd(desGroup.currentPoint, Utils.ScalarMult(atmosphere.getWind(desGroup.currentPoint), 10 + math.random(5))), desGroup.smokeColor)
+                        desGroup.smokeTime = timer:getTime()
+                    end
+                end
+                desGroup.inContact = true
+            else
+                groupCount = groupCount - 1
+                casMessage = "Target destroyed!"
+                if targetKillers[groupName] then
+                    for playerName, groupId in pairs(targetKillers[groupName]) do
+                        if WWEvents then
+                            WWEvents.playerCasMissionCompleted(playerName, desGroup.coalitionId, " killed an enemy group in contact with " .. desGroup.callsign)
+                        end
+                        trigger.action.outTextForGroup(groupId, "You have destroyed an enemy group in contact with " .. desGroup.callsign .. "!", 15, false)
+                    end
+                else
+                    env.info("No players killed enemies for this group: " .. groupName, false)
+                end
+                targetKillers[groupName] = nil
+                desGroup.targetGroups[group] = nil
+            end
+        end
+        if desGroup.inContact then
+            if groupCount < 1 then desGroup.inContact = false end
+            local casGroup = Group.getByName(groupName)
+            if casGroup then
+                cas.groupMarkups(desGroup.currentPoint, groupName, desGroup.inContact, desGroup.smokeColor)
+                local casController = casGroup:getController()
+                if casController then
+                    local msg = {
+                        id = 'TransmitMessage',
+                        params = {
+                            duration = 30,
+                            subtitle = casMessage,
+                            loop = false,
+                            file = "l10n/DEFAULT/Alert.ogg",
+                        }
+                    }
+                    casController:setCommand(msg)
+                    for groupName, active in pairs(casGroups[v.coalitionId]) do
+                        local group = Group.getByName(groupName)
+                        if group then
+                            local groupId = group:getID()
+                            if groupId then
+                                trigger.action.outTextForGroup(groupId, casMessage, 30, false)
+                            end
+                        else
+                            casGroups[groupName] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+
 function cas.designationLoop()
     for k,v in pairs(groups) do
         local casMessage = "This is " .. v.callsign .. ". We are in contact with enemy forces!"
@@ -248,7 +344,7 @@ function cas.designationLoop()
             if groupCount < 1 then v.inContact = false end
             local casGroup = Group.getByName(k)
             if casGroup then
-                cas.groupMarkups(v.currentPoint, k, v.inContact)
+                cas.groupMarkups(v.currentPoint, k, v.inContact, v.smokeColor)
                 local casController = casGroup:getController()
                 if casController then
                     local msg = {
@@ -276,7 +372,7 @@ function cas.designationLoop()
             end
         end
     end
-    timer.scheduleFunction(cas.designationLoop, nil, timer:getTime() + 30)
+    timer.scheduleFunction(cas.designationLoop, nil, timer:getTime() + 15)
 end
 function cas.stopGroup(groupName)
     if stoppedGroups[groupName] == nil then
@@ -296,16 +392,39 @@ function cas.startGroup(groupName)
         end
     end
 end
-function cas.groupMarkups(point, groupName, inContact)
-    if groups[groupName].markups then
-        if groups[groupName].markups.radio then
-            for i = 1, #groups[groupName].markups.radio do
-                trigger.action.removeMark(groups[groupName].markups.radio[i])
+function cas.groupMarkups(point, groupName, inContact, smokeColor)
+    trigger.action.outText("group markups", 10, false)
+    if inContact then
+        trigger.action.outText("in contact", 10, false)
+        if groups[groupName].markups then
+            if groups[groupName].markups.radio and groups[groupName].markups.radioPoint and #groups[groupName].markups.radio > 0 then
+                trigger.action.outText("has radio", 10, false)
+                local screenMarkupId = groups[groupName].markups.radio[3]
+                local groupMovedDist = Utils.PointDistance(point, groups[groupName].markups.radioPoint)
+                if groupMovedDist < 500 then
+                    DrawingTools.updateRadioColor(screenMarkupId, smokeColor)
+                else
+                    for i = 1, #groups[groupName].markups.radio do
+                        trigger.action.removeMark(groups[groupName].markups.radio[i])
+                    end
+                    trigger.action.outText("Group moved more than 500m, redrawing", 10, false)
+                    groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
+                    groups[groupName].markups.radioPoint = point
+                end
+            else
+                trigger.action.outText("no existing radio markup, creating", 10, false)
+                groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
+                groups[groupName].markups.radioPoint = point
             end
         end
-    end
-    if inContact then
-        groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point)
+    else
+        if groups[groupName].markups then
+            if groups[groupName].markups.radio then
+                for i = 1, #groups[groupName].markups.radio do
+                    trigger.action.removeMark(groups[groupName].markups.radio[i])
+                end
+            end
+        end
     end
 end
 function cas.loadZones()
