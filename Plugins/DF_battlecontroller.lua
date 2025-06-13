@@ -95,13 +95,14 @@ end
 --set markups
 function bc.setBPMarkups()
     for k,v in pairs(battlePositions) do
-        if v.markupId ~= 0 then
-            trigger.action.removeMark(v.markupId)
+        if v.markupId == 0 then
+            local newMarkId = DrawingTools.newMarkId()
+            trigger.action.circleToAll(-1, newMarkId, v.point, v.radius, bcmarkups.lines[v.ownedBy], bcmarkups.fills[v.ownedBy], 1, true, "")
+            DrawingTools.numberBP(v.point, v.radius, v.id, #battlePositions)
+            v.markupId = newMarkId
+        else
+            trigger.action.setMarkupColorFill(v.markupId, bcmarkups.fills[v.ownedBy])
         end
-        local newMarkId = DrawingTools.newMarkId()
-        trigger.action.circleToAll(-1, newMarkId, v.point, v.radius, bcmarkups.lines[v.ownedBy], bcmarkups.fills[v.ownedBy], 1, true, "")
-        DrawingTools.numberBP(v.point, v.radius, v.id, #battlePositions)
-        v.markupId = newMarkId
     end
     timer.scheduleFunction(bc.setBPMarkups, nil, timer:getTime() + 30)
 end
