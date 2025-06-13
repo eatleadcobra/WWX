@@ -183,6 +183,16 @@ function CAS.checkGroup(groupName)
         end
     end
 end
+function CAS.cleanGroupMarkups(groupName)
+    local casGroup = groups[groupName]
+    if casGroup then
+        if casGroup.markups.radio then
+            for i = 1, #casGroup.markups.radio do
+                trigger.action.removeMark(groups[groupName].markups.radio[i])
+            end
+        end
+    end
+end
 
 function CAS.designateGroup(groupName)
     local desGroup = groups[groupName]
