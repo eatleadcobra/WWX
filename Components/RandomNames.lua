@@ -1,7 +1,4 @@
-RandomNames = {}
 RandomNames.used = {}
-RandomNames.firstNames = {}
-RandomNames.lastNames = {}
 function RandomNames.randomFirstName(side, country)
 	return RandomNames.firstNames[side][country][math.random(#RandomNames.firstNames[side][country])]
 end
