@@ -291,7 +291,10 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targ
                         if nextUnit then
                             local nextUnitPoint = nextUnit:getPoint()
                             if Utils.PointDistance(nextUnitPoint, targetPoint) > mergedRange then
-                                local subUnitCallsign = callsign .. "-targetIndex"
+                                local subUnitCallsign = nil
+                                if callsign then
+                                    subUnitCallsign = callsign .. "-targetIndex"
+                                end
                                 bullsString = bullsString .. "\n" .. bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targetIndex + 1, subUnitCallsign)
                             end
                         end
