@@ -197,7 +197,7 @@ end
 function bulls.vectorTargets(coalitionId)
     for i = 1, #groupsList[coalitionId] do
         for j = 1, #radioUnits[coalitionId] do
-            local vectorString = bulls.pointsVector(bullsPoints[coalitionId], groupsList[coalitionId][i].groupName, radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]], groupsList[coalitionId][i].isFriendly, groupsList[coalitionId][i].callsign)
+            local vectorString = bulls.pointsVector(bullsPoints[coalitionId], groupsList[coalitionId][i].groupName, radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]], groupsList[coalitionId][i].isFriendly, 1, groupsList[coalitionId][i].callsign)
             if vectorString then
                 --trigger.action.outText("radio group: " .. radioUnits[coalitionId][j], 5)
                 local radioGroup = Group.getByName(radioUnits[coalitionId][j])
@@ -217,10 +217,10 @@ function bulls.vectorTargets(coalitionId)
         end
     end
 end
-function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, callsign)
+function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targetIndex, callsign)
     local targetGroup = Group.getByName(targetGroupName)
     if targetGroup then
-        local targetIndex = 1
+        if targetIndex == nil then targetIndex = 1 end
         if targetIndex <= targetGroup:getSize() then
             local leadUnit = targetGroup:getUnit(targetIndex)
             if leadUnit then
@@ -291,11 +291,11 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, call
                         if nextUnit then
                             local nextUnitPoint = nextUnit:getPoint()
                             if Utils.PointDistance(nextUnitPoint, targetPoint) > mergedRange then
-                                bullsString = bullsString .. "\n" .. bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targetIndex + 1)
+                                local subUnitCallsign = callsign .. "-targetIndex"
+                                bullsString = bullsString .. "\n" .. bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targetIndex + 1, subUnitCallsign)
                             end
                         end
                     end
-
                     return bullsString
                 end
             end
