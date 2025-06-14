@@ -124,7 +124,7 @@ local designated = {
 function cpyctl.cleanDesGroup(param)
     designated[param.coalitionId][param.groupName] = nil
 end
-local cpysPerLoop = 10
+local cpysPerLoop = 6
 function cpyctl.cpyStatusLoop()
     for c = 1,2 do
         local startIndex = cpyIndices[c]
