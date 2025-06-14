@@ -33,6 +33,55 @@ local radioDistanceUnits = {
     [1] = {},
     [2] = {}
 }
+local contactCallsigns = {
+
+}
+bulls.callsigns = {
+    --TODO move these to overrides
+    alphanumerics = {
+        [1] = {
+            [1] = "10",
+            [2] = "20",
+            [3] = "30",
+            [4] = "40",
+            [5] = "50",
+            [6] = "60",
+        },
+        [2] = {
+            [1] = "Blackjack",
+            [2] = "Lancer",
+            [3] = "Wasp",
+            [4] = "Patriot",
+            [5] = "Wichita",
+            [6] = "Domino"
+        }
+    },
+    numberLimit = 6,
+    counts = {
+        [1] = {
+            alpha = 1,
+            number = 1,
+        },
+        [2] = {
+            alpha = 1,
+            number = 1,
+        },
+    }
+}
+function bulls.newCallsign(coalitionId)
+    local callsign = bulls.callsigns.alphanumerics[coalitionId][bulls.callsigns.counts[coalitionId].alpha] .. "-" .. bulls.callsigns.counts[coalitionId].number
+    bulls.callsigns.counts[coalitionId].number = bulls.callsigns.counts[coalitionId].number + 1
+    if bulls.callsigns.counts[coalitionId].number > bulls.callsigns.numberLimit then
+        bulls.callsigns.counts[coalitionId].alpha = bulls.callsigns.counts[coalitionId].alpha + 1
+        bulls.callsigns.counts[coalitionId].number = 1
+        if bulls.callsigns.counts[coalitionId].alpha > #bulls.callsigns.alphanumerics[coalitionId] then
+            bulls.callsigns.counts[coalitionId].alpha = 1
+        end
+    end
+    return callsign
+end
+
+
 function Bulls.loop()
     bulls.getTargets(1)
     bulls.vectorTargets(1)
@@ -99,7 +148,15 @@ function bulls.getTargets(coalitionId, targetGroupName)
                         local foundGroupName = foundGroup:getName()
                         if (targetGroupName and foundGroupName == targetGroupName) or targetGroupName == nil then
                             if #foundGroups < 1 then
-                                foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly}
+                                local groupCallsign = contactCallsigns[foundGroupName]
+                                if isFriendly then
+                                    if groupCallsign == nil then
+                                        groupCallsign = bulls.newCallsign(coalitionId)
+                                        contactCallsigns[foundGroupName] = groupCallsign
+                                        trigger.action.outTextForGroup(foundGroup:getID(), "Your callsign is " .. groupCallsign, 60, false)
+                                    end
+                                end
+                                foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly, callsign = groupCallsign}
                             else
                                 local alreadyFound = false
                                 for i = 1, #foundGroups do
@@ -108,7 +165,15 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                     end
                                 end
                                 if alreadyFound == false then
-                                    foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly}
+                                    local groupCallsign = contactCallsigns[foundGroupName]
+                                    if isFriendly then
+                                        if groupCallsign == nil then
+                                            groupCallsign = bulls.newCallsign(coalitionId)
+                                            contactCallsigns[foundGroupName] = groupCallsign
+                                            trigger.action.outTextForGroup(foundGroup:getID(), "Your callsign is " .. groupCallsign, 60, false)
+                                        end
+                                    end
+                                    foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly, callsign = groupCallsign}
                                 end
                             end
                         end
@@ -120,10 +185,19 @@ function bulls.getTargets(coalitionId, targetGroupName)
         groupsList[coalitionId] = foundGroups
     end
 end
+function bulls.cleanCallsignsLoop()
+    for groupname, callsign in pairs(contactCallsigns) do
+        local group = Group.getByName(groupname)
+        if group == nil then
+            contactCallsigns[groupname] = nil
+        end
+    end
+    timer.scheduleFunction(bulls.cleanCallsignsLoop, nil, timer:getTime() + 63)
+end
 function bulls.vectorTargets(coalitionId)
     for i = 1, #groupsList[coalitionId] do
         for j = 1, #radioUnits[coalitionId] do
-            local vectorString = bulls.pointsVector(bullsPoints[coalitionId], groupsList[coalitionId][i].groupName, radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]], groupsList[coalitionId][i].isFriendly)
+            local vectorString = bulls.pointsVector(bullsPoints[coalitionId], groupsList[coalitionId][i].groupName, radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]], groupsList[coalitionId][i].isFriendly, groupsList[coalitionId][i].callsign)
             if vectorString then
                 --trigger.action.outText("radio group: " .. radioUnits[coalitionId][j], 5)
                 local radioGroup = Group.getByName(radioUnits[coalitionId][j])
@@ -143,10 +217,10 @@ function bulls.vectorTargets(coalitionId)
         end
     end
 end
-function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targetIndex)
+function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, callsign)
     local targetGroup = Group.getByName(targetGroupName)
     if targetGroup then
-        if targetIndex == nil then targetIndex = 1 end
+        local targetIndex = 1
         if targetIndex <= targetGroup:getSize() then
             local leadUnit = targetGroup:getUnit(targetIndex)
             if leadUnit then
@@ -208,8 +282,10 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targ
                     if isFriendly then
                         bullsPrefix = "FRIENDLY "
                     end
+                    if callsign then
+                        bullsPrefix = bullsPrefix .."("..callsign ..") "
+                    end
                     local bullsString = "--BULLS " ..bullsPrefix..  bearingString .. "° for " .. distanceToTargetString .. " | " .. altString .. " | " .. targetHeadingCardinal .." | " .. targetType
-                    
                     if targetIndex < targetGroup:getSize() then
                         local nextUnit = targetGroup:getUnit(targetIndex+1)
                         if nextUnit then
@@ -229,4 +305,5 @@ end
 bulls.getBulls()
 bulls.getUnits()
 bulls.getEWRs()
+bulls.cleanCallsignsLoop()
 Bulls.loop()
