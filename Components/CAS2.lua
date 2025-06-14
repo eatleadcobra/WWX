@@ -427,6 +427,7 @@ function cas.groupMarkups(point, groupName, inContact, smokeColor)
                 for i = 1, #groups[groupName].markups.radio do
                     trigger.action.removeMark(groups[groupName].markups.radio[i])
                 end
+                groups[groupName].markups.radio = {}
             end
         end
     end
