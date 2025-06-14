@@ -56,6 +56,25 @@ function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, 
     SpawnFuncs.setGroupWaypoints(groupTable, listOfWaypoints)
     return groupTable
 end
+function SpawnFuncs.spawnCustomGroundGroup(coalitionId, groupType, groupTypespawnPoint, listOfUnitTypeNames, formation)
+    local newGroupId = SpawnFuncs.getNextGroupId()
+    local countryId = 80 + (2-coalitionId)
+    local groupTable = SpawnFuncs.deepcopy(SpawnTemplates.groupTemplate)
+    groupTable["name"] = groupType .. newGroupId
+    groupTable["groupId"] = newGroupId
+    local unitsTable = {}
+    for i = 1, #listOfUnitTypeNames do
+        local addUnitTable = SpawnFuncs.deepcopy(SpawnTemplates.unitTemplates[groupType])
+        addUnitTable["type"] = listOfUnitTypeNames[i]
+        addUnitTable["name"] = listOfUnitTypeNames[i] .. newGroupId .. i
+        unitsTable[#unitsTable+1] = addUnitTable
+        addUnitTable = {}
+    end
+    groupTable["units"] = unitsTable
+    local groupName = coalition.addGroup(countryId, type, groupTable):getName()
+    return groupName
+end
+
 function SpawnFuncs.getNextGroupId()
     local returnId = SpawnFuncs.groupId
     SpawnFuncs.groupId = SpawnFuncs.groupId+1

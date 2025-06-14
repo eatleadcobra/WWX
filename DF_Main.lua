@@ -1807,9 +1807,6 @@ function dfc.spawnSupply(param)
                         dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                     end
                     dfc.trackCargo({coalition = transporterCoalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
-                    if SBS then
-                        SBS.watchCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
-                    end
                 else
                     trigger.action.outTextForGroup(transporterGroup:getID(), "This depot does not have enough " .. DFS.supplyNames[param.type].. " to create a crate!", 5, false)
                     if frontPickup  then
@@ -2346,7 +2343,6 @@ function dfc.trackCargo(param)
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
                         end
                         if (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= 2000)) then
-                            SBS.endWatch(cargo)
                             env.info("Group: " .. param.groupId .. "-" .. param.groupName .. " delivered " .. param.cargo .. " to " .. closestDepotToCargo.depotName, false)
                             local deliverType = "FRONT"
                             if closestDepotToCargo.isRear then deliverType = "REAR" end
@@ -2356,7 +2352,6 @@ function dfc.trackCargo(param)
                             if cargo and cargo:isExist() and not chinookCargo then cargo:destroy() end
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["AMMO"] then
-                            SBS.endWatch(cargo)
                             Firebases.resupplyFirebase(Firebases[closestFirebaseToCargo], DFS.status.playerResupplyAmts[param.supplyType][param.modifier])
                             dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
@@ -2364,7 +2359,6 @@ function dfc.trackCargo(param)
                             if cargo and cargo:isExist() and not chinookCargo then cargo:destroy() end
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["GUN"] then
-                            SBS.endWatch(cargo)
                             Firebases.addGroupToFirebase(Firebases[closestFirebaseToCargo], Firebases[closestFirebaseToCargo].fbType)
                             dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
@@ -2372,7 +2366,6 @@ function dfc.trackCargo(param)
                             if cargo and cargo:isExist() and not chinookCargo then cargo:destroy() end
                             return
                         elseif timer:getTime() - param.spawnTime > 29 and closestFirebaseToCargo == -1 and dfc.findPickupZone(cargo:getPoint(), param.coalition) == nil and param.supplyType == DFS.supplyType["GUN"] then
-                            SBS.endWatch(cargo)
                             env.info("Group: " .. param.groupId .. " deployed howitzer firebase", false)
                             trigger.action.outTextForGroup(param.groupId, "You have deployed a firebase", 10, false)
                             Firebases.deployStatic(cargo:getName(), "HOWITZER")
