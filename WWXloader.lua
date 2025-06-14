@@ -1,8 +1,4 @@
 local pathToWWX = "C:\\WWX\\"
-local theatre = false
-if env.mission.theatre then
-   theatre = env.mission.theatre
-end
 if DEBUG then
    pathToWWX = "F:\\Games\\WWX\\"
 end
@@ -50,11 +46,6 @@ end
 assert(loadfile(pathToWWX.."Components\\WWXRL.lua"))()
 if CSAR then
    assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
-   if theatre then
-      assert(loadfile(pathToWWX.."Components\\RandomNames_"..theatre..".lua"))()
-   else
-      assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
-   end
 end
 assert(loadfile(pathToWWX.."Components\\Recon.lua"))()
 env.info("Loading Plugins", false)
@@ -62,11 +53,11 @@ env.info("Loading Plugins", false)
 assert(loadfile(pathToWWX.."Plugins\\DF_firebases.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_submarines.lua"))()
 
-env.info("Loading main")
+env.info("Loading main", false)
 assert(loadfile(pathToWWX.."DF_Main.lua"))()
 --Things that need to load after DF_Main because they access global vars defined in that file
 assert(loadfile(pathToWWX.."WWXFactoryTracker.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_recon.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_companycontroller.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_battlecontroller.lua"))()
-env.info("Finished loading WWX")
+env.info("Finished loading WWX", false)
