@@ -46,6 +46,7 @@ end
 assert(loadfile(pathToWWX.."Components\\WWXRL.lua"))()
 if CSAR then
    assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
+   assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
 end
 assert(loadfile(pathToWWX.."Components\\Recon.lua"))()
 env.info("Loading Plugins", false)
