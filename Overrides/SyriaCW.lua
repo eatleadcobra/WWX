@@ -227,3 +227,38 @@ CompanyCompTiers = {
         composition = {3,3,3},
     },
 }
+CSARFreqs = {
+    [1] = {
+        ["NDB"] = {20,69},
+        ["TACAN"] = {10,59}
+    },
+    [2] = {
+        ["NDB"] = {71,120},
+        ["TACAN"] = {61,110}
+    }
+}
+CSARBases = {
+    [1] = {
+        [1] = "Red Forward Field Hospital"
+    },
+    [2] = {
+        [1] = "Blue Forward Field Hospital"
+    }
+}
+CSARFreqCollisions = {
+    [1] = {
+        ["NDB"] = {
+            26,27,29,30,31,32,33,34,35,36,37,39,40,41,42,43,44,45
+        },
+        ["TACAN"] = {
+            21
+        }
+    },
+    [2] = {
+        ["NDB"] = {
+        },
+        ["TACAN"] = {
+            79,84,85,106,107
+        }
+    }
+}

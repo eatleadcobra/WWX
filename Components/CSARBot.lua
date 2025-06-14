@@ -19,13 +19,6 @@ local csarTroopVol = 2
 local csarAutoProcRadius = 3000
 local genCsarCounter = 25
 
-local msnId = trigger.misc.getUserFlag("MISSION_ID")
--- 1 = WWCAUC
--- 2 = Cyprus
--- 3 = Germany70
--- 4 = Lebanon92
--- 5 = SyriaCW
-
 local csarCheckIns = {
     [1] = {},
     [2] = {}
@@ -65,189 +58,6 @@ local csarZones = {
 local csarPoints = {
     [1] = {},
     [2] = {}
-}
-local csarFreqs = {
-    [1] = {
-        [1] = {
-            ["NDB"] = {20,69},
-            ["TACAN"] = {10,59}
-        },
-        [2] = {
-            ["NDB"] = {71,120},
-            ["TACAN"] = {61,110}
-        }
-    },
-    [2] = {
-        [1] = {
-            ["NDB"] = {20,69},
-            ["TACAN"] = {10,59}
-        },
-        [2] = {
-            ["NDB"] = {71,120},
-            ["TACAN"] = {61,110}
-        }
-    },
-    [3] = {
-        [1] = {
-            ["NDB"] = {20,69},
-            ["TACAN"] = {10,59}
-        },
-        [2] = {
-            ["NDB"] = {71,120},
-            ["TACAN"] = {61,110}
-        }
-    },
-    [4] = {
-        [1] = {
-            ["NDB"] = {20,69},
-            ["TACAN"] = {10,59}
-        },
-        [2] = {
-            ["NDB"] = {71,120},
-            ["TACAN"] = {61,110}
-        }
-    },
-    [5] = {
-        [1] = {
-            ["NDB"] = {20,69},
-            ["TACAN"] = {10,59}
-        },
-        [2] = {
-            ["NDB"] = {71,120},
-            ["TACAN"] = {61,110}
-        }
-    }
-}
-local csarFreqCollisions = {
-    [1] = {
-        [1] = {
-            ["NDB"] = {
-                21,22,24,25,28,29,30,31,32,33,34,35,40,41,43,44,49,52,53,58,59,62,63,68,69
-            },
-            ["TACAN"] = {
-                16,22,25,31,44
-            }
-        },
-        [2] = {
-            ["NDB"] = {
-                71,72,76,80,81,87,92,93,99,100,105,106,107
-            },
-            ["TACAN"] = {
-                67
-            }
-        }
-    },
-    [2] = {
-        [1] = {
-            ["NDB"] = {
-                26,27,29,30,31,32,33,34,35,36,37,39,40,41,42,43,44,45
-            },
-            ["TACAN"] = {
-                21
-            }
-        },
-        [2] = {
-            ["NDB"] = {
-            },
-            ["TACAN"] = {
-                79,84,85,106,107
-            }
-        }
-    },
-    [3] = {
-        [1] = {
-            ["NDB"] = {
-                20,21,22,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,62,66,67,68
-            },
-            ["TACAN"] = {
-                24,28,32,47,48,56
-            }
-        },
-        [2] = {
-            ["NDB"] = {
-                76,77,84,85,86,87,89,90,95,96,97,98
-            },
-            ["TACAN"] = {
-                77,81,84,88,89,108
-            }
-        }
-    },
-    [4] = {
-        [1] = {
-            ["NDB"] = {
-                26,27,29,30,31,32,33,34,35,36,37,39,40,41,42,43,44,45
-            },
-            ["TACAN"] = {
-                21
-            }
-        },
-        [2] = {
-            ["NDB"] = {
-            },
-            ["TACAN"] = {
-                79,84,85,106,107
-            }
-        }
-    },
-    [5] = {
-        [1] = {
-            ["NDB"] = {
-                26,27,29,30,31,32,33,34,35,36,37,39,40,41,42,43,44,45
-            },
-            ["TACAN"] = {
-                21
-            }
-        },
-        [2] = {
-            ["NDB"] = {
-            },
-            ["TACAN"] = {
-                79,84,85,106,107
-            }
-        }
-    }
-}
-local csarBases = {
-    [1] = {
-        [1] = {
-            [1] = "Red Forward Field Hospital"
-        },
-        [2] = {
-            [1] = "Blue Forward Field Hospital"
-        }
-    },
-    [2] = {
-        [1] = {
-            [1] = "Red Forward Field Hospital"
-        },
-        [2] = {
-            [1] = "Blue Forward Field Hospital"
-        }
-    },
-    [3] = {
-        [1] = {
-            [1] = "Red Forward Field Hospital"
-        },
-        [2] = {
-            [1] = "Blue Forward Field Hospital"
-        }
-    },
-    [4] = {
-        [1] = {
-            [1] = "Red Forward Field Hospital"
-        },
-        [2] = {
-            [1] = "Blue Forward Field Hospital"
-        }
-    },
-    [5] = {
-        [1] = {
-            [1] = "Red Forward Field Hospital"
-        },
-        [2] = {
-            [1] = "Blue Forward Field Hospital"
-        }
-    }
 }
 local autoCsarEnroll = {}
 function autoCsarEnroll:onEvent(event)
@@ -294,8 +104,8 @@ function CSB.load()
     CSB.buildLavaList()
     CSB.main()
     for c = 1, 2 do
-        for z = 1, #csarBases[msnId][c] do
-            DrawingTools.drawHealth(trigger.misc.getZone(csarBases[msnId][c][z]).point, c, 500)
+        for z = 1, #CSARBases[c] do
+            DrawingTools.drawHealth(trigger.misc.getZone(CSARBases[c][z]).point, c, 500)
         end
     end
 end
@@ -487,11 +297,11 @@ function CSB.createCsarUnit(csarMissionTable)
     env.info("csarGroupName = " .. csarGroupName,false)
     env.info("csarGearGroupName = " .. csarGearGroupName,false)
     if not csarMissionTable.freq then
-        local ndbFreq = CSB.getClearFreq(csarMissionTable.coalition, "NDB", csarFreqs[msnId][csarMissionTable.coalition]["NDB"][1], csarFreqs[msnId][csarMissionTable.coalition]["NDB"][2])
+        local ndbFreq = CSB.getClearFreq(csarMissionTable.coalition, "NDB", CSARFreqs[csarMissionTable.coalition]["NDB"][1], CSARFreqs[csarMissionTable.coalition]["NDB"][2])
         csarMissionTable.freq = ndbFreq
     end
     if not csarMissionTable.channel then
-        csarMissionTable.channel = CSB.getClearFreq(csarMissionTable.coalition, "TACAN", csarFreqs[msnId][csarMissionTable.coalition]["TACAN"][1],csarFreqs[msnId][csarMissionTable.coalition]["TACAN"][2])
+        csarMissionTable.channel = CSB.getClearFreq(csarMissionTable.coalition, "TACAN", CSARFreqs[csarMissionTable.coalition]["TACAN"][1],CSARFreqs[csarMissionTable.coalition]["TACAN"][2])
     end
     if csarMissionTable.freq == 0 or csarMissionTable.channel == 0 then return false end
     local args = {}
@@ -509,7 +319,7 @@ function CSB.getClearFreq(coalitionId,freqType,min,max)
     local breakVar = true
     for j=1,50 do
         freq = math.random(min,max)
-        for i,v in pairs(csarFreqCollisions[msnId][coalitionId][freqType]) do
+        for i,v in pairs(CSARFreqCollisions[coalitionId][freqType]) do
             if freq == v then
                 breakVar = false
                 break
@@ -926,12 +736,12 @@ function CSB.checkCsarLanding(eUnit)
             local zonePoint = nil
             local csci = csarCheckIns[pSide][pName]
             local transporterTable = DFS.helos[csci.groupName]
-            for j = 1, #csarBases[msnId][pSide] do
-                zonePoint = trigger.misc.getZone(csarBases[msnId][pSide][j])
+            for j = 1, #CSARBases[pSide] do
+                zonePoint = trigger.misc.getZone(CSARBases[pSide][j])
                 if zonePoint then
                     if Utils.pointInCircleTriggerZone(pPosn, zonePoint) then
                         bInCsarBase = true
-                        sBaseName = csarBases[msnId][pSide][j]
+                        sBaseName = CSARBases[pSide][j]
                         break
                     end
                 end

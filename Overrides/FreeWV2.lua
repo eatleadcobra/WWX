@@ -135,3 +135,39 @@ PlatoonUnitCarrierTypeNames = {
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
 }
+CSARFreqs = {
+    [1] = {
+        ["NDB"] = {20,69},
+        ["TACAN"] = {10,59}
+    },
+    [2] = {
+        ["NDB"] = {71,120},
+        ["TACAN"] = {61,110}
+    }
+}
+CSARBases = {
+    [1] = {
+        [1] = "Red Forward Field Hospital"
+    },
+    [2] = {
+        [1] = "Blue Forward Field Hospital"
+    }
+}
+CSARFreqCollisions = {
+    [1] = {
+        ["NDB"] = {
+            21,22,24,25,28,29,30,31,32,33,34,35,40,41,43,44,49,52,53,58,59,62,63,68,69
+        },
+        ["TACAN"] = {
+            16,22,25,31,44
+        }
+    },
+    [2] = {
+        ["NDB"] = {
+            71,72,76,80,81,87,92,93,99,100,105,106,107
+        },
+        ["TACAN"] = {
+            67
+        }
+    }
+}
