@@ -124,7 +124,7 @@ local designated = {
 function cpyctl.cleanDesGroup(param)
     designated[param.coalitionId][param.groupName] = nil
 end
-local cpysPerLoop = 4
+local cpysPerLoop = 10
 function cpyctl.cpyStatusLoop()
     for c = 1,2 do
         local startIndex = cpyIndices[c]
@@ -191,7 +191,7 @@ function cpyctl.cpyStatusLoop()
             end
         end
     end
-    timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 15)
+    timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 10)
 end
 
 function cpyctl.getCompanyStrength(cpy)
