@@ -232,10 +232,10 @@ CSARFreqs = {
 }
 CSARBases = {
     [1] = {
-        [1] = "Red Forward Field Hospital"
+        [1] = "National Rehabilitation Center"
     },
     [2] = {
-        [1] = "Blue Forward Field Hospital"
+        [1] = "Larnaca Teaching Hospital"
     }
 }
 CSARFreqCollisions = {
