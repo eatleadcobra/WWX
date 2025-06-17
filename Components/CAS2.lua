@@ -470,6 +470,7 @@ function cas.searchCasZones()
                         if casGroups[c][playerGroup:getName()] == nil then
                             casGroups[c][playerGroup:getName()] = true
                             trigger.action.outTextForGroup(playerGroupID, "You are checked in for CAS. You will receive messages from the ground coordinator for any groups needing support.", 15, false)
+                            missionCommands.addCommandForGroup(playerGroupID, "CAS Check-out", {}, cas.checkout, {coalitionId = c, playerGroupName = playerGroup:getName(), playerGroupID = playerGroupID})
                         end
                     end
                 end
@@ -477,6 +478,11 @@ function cas.searchCasZones()
         end
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
     end
+end
+--coalitionId, playerGroupName, playerGroupID
+function cas.checkout(param)
+    casGroups[param.coalitionId][param.playerGroupName] = nil
+    missionCommands.removeItemForGroup(param.playerGroupID, {[1] = "CAS Check-out"})
 end
 function cas.trackCas()
     for c = 1, 2 do
