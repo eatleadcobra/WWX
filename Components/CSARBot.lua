@@ -150,6 +150,7 @@ function CSB.searchCsarStacks()
                             env.info("csarMission count for " .. c .. " is " .. #csarMissions[c], false)
                             if #csarMissions[c] < 1 then
                                 env.info("calling csarCheckIn for: " .. foundPlayerName, false)
+                                trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 20, false)
                                 CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
                             end
                         end
@@ -177,7 +178,7 @@ function CSB.csarCheckIn(playerName, coalitionId, playerGroupID, playerGroupName
         csarCheckIns[coalitionId][playerName] = {groupID = playerGroupID, groupName = playerGroupName, typeName = typeName, unitName = unitName, onBoard = {}}
     end
     if #csarMissions[coalitionId] < 1 then
-        CSB.generateCsar(nil, coalitionId, nil, nil, nil, nil, nil, nil)
+        CSB.generateCsar(nil, coalitionId, nil, nil, nil, nil, nil, nil, false)
     end
     if not prev then
         CSB.addCsarRadioMenuToGroup(playerGroupID, playerGroupName, coalitionId)
@@ -218,9 +219,9 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     if overWater then
         anyTerrain = true
     end
-    CSB.generateCsar(pos,coalitionId,nil,nil,1000,anyTerrain,nil,playerName)
+    CSB.generateCsar(pos,coalitionId,nil,nil,1000,anyTerrain,nil,playerName,false)
 end
-function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, anyTerrain, timeLimit, playerName)
+function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, anyTerrain, timeLimit, playerName, radioSilence)
     local fName = ""
     local smokeNum = math.random(0,4)
     local generatedCsar = {}
@@ -260,6 +261,7 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
     generatedCsar.modulation = 0
     generatedCsar.contacts = {}
     generatedCsar.winchers = {}
+    generatedCsar.radioSilence = radioSilence
     local cloneSource = true
     if not mist.DBs.groupsByName["SOS-"..coalitionId] then cloneSource = false end
     env.info("about to create new CSAR unit for " .. fName .." - Clone source is: " .. tostring(cloneSource), false)
@@ -269,7 +271,11 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
         return
     end
     genCsarCounter = genCsarCounter + 1
-    env.info("created new CSAR unit transmitting on " .. generatedCsar.freq * 10 .. "kHz/" .. generatedCsar.channel .. "X", false)
+    if radioSilence then
+        env.info("created new CSAR unit maintaining radio silence", false)
+    else
+        env.info("created new CSAR unit transmitting on " .. generatedCsar.freq * 10 .. "kHz/" .. generatedCsar.channel .. "X", false)
+    end
     generatedCsar.startTime = timer.getTime()
     if not timeLimit or #timeLimit ~= 2 then timeLimit = {csarTimeLimitMin, csarTimeLimitMax} end
     local exp = math.random(math.floor(math.abs(timeLimit[2] - timeLimit[1]) / 60)) * 60
@@ -282,36 +288,41 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
         generatedCsar.displayName = fName
     end
     table.insert(csarMissions[coalitionId], generatedCsar)
-    trigger.action.outTextForCoalition(coalitionId, "- " .. generatedCsar.displayName .. " is requesting immediate extraction...\n - holding position for next " .. math.floor(generatedCsar.expires/60) .. " minutes...\n - broadcasting on " .. generatedCsar.freq * 10 .. "kHz/" .. generatedCsar.channel .. "X", 30, false)
+    if not radioSilence then
+        trigger.action.outTextForCoalition(coalitionId, "- " .. generatedCsar.displayName .. " is requesting immediate extraction...\n - holding position for next " .. math.floor(generatedCsar.expires/60) .. " minutes...\n - broadcasting on " .. generatedCsar.freq * 10 .. "kHz/" .. generatedCsar.channel .. "X", 30, false)
+    end
 end
 function CSB.createCsarUnit(csarMissionTable)
     local anyTerrain = false
     if not csarMissionTable.terrainLimit then anyTerrain = true end
     env.info("SOS - coalition: " .. csarMissionTable.coalition .. "| point: x=" .. csarMissionTable.point.x .. ", y=" .. csarMissionTable.point.y .. ", z=" .. csarMissionTable.point.z .. "| name: " .. csarMissionTable.name, false)
     local csarGroupName = DF_UTILS.spawnGroupWide("SOS-".. csarMissionTable.coalition, csarMissionTable.point,"clone",2, anyTerrain, csarMissionTable.terrainLimit , csarMissionTable.name)
-    env.info("TCN - coalition: " .. csarMissionTable.coalition .. "| point: x=" .. csarMissionTable.gearPoint.x .. ", y=" .. csarMissionTable.gearPoint.y .. ", z=" .. csarMissionTable.gearPoint.z .. "| name: " .. csarMissionTable.name, false)
-    local csarGearGroupName = DF_UTILS.spawnGroupWide("TCN-".. csarMissionTable.coalition, csarMissionTable.gearPoint,"clone",2, anyTerrain, csarMissionTable.terrainLimit , csarMissionTable.name .. "-TCN")
-    if not csarGroupName or not csarGearGroupName then return false end
+    if not csarGroupName then return false end
     csarMissionTable.groupName = csarGroupName
-    csarMissionTable.equipment = csarGearGroupName
     env.info("csarGroupName = " .. csarGroupName,false)
-    env.info("csarGearGroupName = " .. csarGearGroupName,false)
-    if not csarMissionTable.freq then
-        local ndbFreq = CSB.getClearFreq(csarMissionTable.coalition, "NDB", CSARFreqs[csarMissionTable.coalition]["NDB"][1], CSARFreqs[csarMissionTable.coalition]["NDB"][2])
-        csarMissionTable.freq = ndbFreq
+    if not csarMissionTable.radioSilence then
+        env.info("TCN - coalition: " .. csarMissionTable.coalition .. "| point: x=" .. csarMissionTable.gearPoint.x .. ", y=" .. csarMissionTable.gearPoint.y .. ", z=" .. csarMissionTable.gearPoint.z .. "| name: " .. csarMissionTable.name, false)
+        local csarGearGroupName = DF_UTILS.spawnGroupWide("TCN-".. csarMissionTable.coalition, csarMissionTable.gearPoint,"clone",2, anyTerrain, csarMissionTable.terrainLimit , csarMissionTable.name .. "-TCN")
+        if not csarGearGroupName then return false end
+        csarMissionTable.equipment = csarGearGroupName
+        env.info("csarGearGroupName = " .. csarGearGroupName,false)
+        if not csarMissionTable.freq then
+            local ndbFreq = CSB.getClearFreq(csarMissionTable.coalition, "NDB", CSARFreqs[csarMissionTable.coalition]["NDB"][1], CSARFreqs[csarMissionTable.coalition]["NDB"][2])
+            csarMissionTable.freq = ndbFreq
+        end
+        if not csarMissionTable.channel then
+            csarMissionTable.channel = CSB.getClearFreq(csarMissionTable.coalition, "TACAN", CSARFreqs[csarMissionTable.coalition]["TACAN"][1],CSARFreqs[csarMissionTable.coalition]["TACAN"][2])
+        end
+        if csarMissionTable.freq == 0 or csarMissionTable.channel == 0 then return false end
+        local args = {}
+        args.groupName = csarGroupName
+        args.freq = csarMissionTable.freq
+        args.channel = csarMissionTable.channel
+        args.amfm = csarMissionTable.modulation
+        args.soundFile = "l10n/DEFAULT/dah2.ogg"
+        args.equipment = csarGearGroupName
+        timer.scheduleFunction(CSB.startTransmission, args, timer.getTime() + math.random(10,20))
     end
-    if not csarMissionTable.channel then
-        csarMissionTable.channel = CSB.getClearFreq(csarMissionTable.coalition, "TACAN", CSARFreqs[csarMissionTable.coalition]["TACAN"][1],CSARFreqs[csarMissionTable.coalition]["TACAN"][2])
-    end
-    if csarMissionTable.freq == 0 or csarMissionTable.channel == 0 then return false end
-    local args = {}
-    args.groupName = csarGroupName
-    args.freq = csarMissionTable.freq
-    args.channel = csarMissionTable.channel
-    args.amfm = csarMissionTable.modulation
-    args.soundFile = "l10n/DEFAULT/dah2.ogg"
-    args.equipment = csarGearGroupName
-    timer.scheduleFunction(CSB.startTransmission, args, timer.getTime() + math.random(10,20))
     return true
 end
 function CSB.getClearFreq(coalitionId,freqType,min,max)
@@ -319,7 +330,7 @@ function CSB.getClearFreq(coalitionId,freqType,min,max)
     local breakVar = true
     for j=1,50 do
         freq = math.random(min,max)
-        for i,v in pairs(CSARFreqCollisions[coalitionId][freqType]) do
+        for _,v in pairs(CSARFreqCollisions[coalitionId][freqType]) do
             if freq == v then
                 breakVar = false
                 break
@@ -327,7 +338,7 @@ function CSB.getClearFreq(coalitionId,freqType,min,max)
             breakVar = true
         end
         if breakVar then
-            for i,v in pairs(csarMissions[coalitionId]) do
+            for _,v in pairs(csarMissions[coalitionId]) do
                 if freqType == "NDB" then
                     if freq == v.freq then
                         breakVar = false
@@ -364,7 +375,7 @@ function CSB.showRescueList(args)
     if not (playerUnit and playerUnit:isExist()) then return end
     local playerPos = playerUnit:getPoint()
     local rescueList = {}
-    for i,m in pairs(csarMissions[args.coalitionId]) do
+    for _,m in pairs(csarMissions[args.coalitionId]) do
         table.insert(rescueList, m)
         local r = Utils.PointDistance(playerPos, rescueList[#rescueList].point)
         r = math.floor(r/10)/100
@@ -376,10 +387,14 @@ function CSB.showRescueList(args)
         outString = outString .. "\n\nCheck-in at the CSAR stack(s) for new tasking.\n"
     else
         local rescueCount = #rescueList
+        local rescueOverflow = 0
         local checkTime = timer.getTime()
         local currentState = "GREEN ++ Safe ++ "
         table.sort(rescueList, function (r1,r2) return r1.range < r2.range end)
-        if rescueCount > csarMaxDisplayed then rescueCount = csarMaxDisplayed end
+        if rescueCount > csarMaxDisplayed then
+            rescueOverflow = rescueCount - csarMaxDisplayed
+            rescueCount = csarMaxDisplayed
+        end
         for j=1,rescueCount do
             local rescue = rescueList[j]
             if rescue.expires then
@@ -392,6 +407,9 @@ function CSB.showRescueList(args)
             end
             local nearestBase, dist, dir = CSB.closestBaseTo(rescue.point)
             outString = outString .. "\n -> " .. rescue.displayName .. " | NDB/TACAN: " .. rescue.freq * 10 .. "kHz/" .. rescue.channel .. "X | " .. currentState .. " | LastKnown: apprx " .. dist .. "km " .. dir .. " of " .. nearestBase
+        end
+        if rescueOverflow > 0 then
+            outString = outString .. "\nPlus " .. rescueOverflow .. " distant signals..."
         end
     end
     trigger.action.outTextForGroup(args.groupID, outString, 30, false)
@@ -419,7 +437,7 @@ end
 function CSB.wellnessCheck(coalitionId)
     local safeAsHouses = {}
     local checkTime = timer.getTime()
-    for i,m in pairs(csarMissions[coalitionId]) do
+    for _,m in pairs(csarMissions[coalitionId]) do
         if not m.skipWellness then
             local timeLeft = true
             local isAlive = true
@@ -468,19 +486,19 @@ function CSB.trackCsar()
                 if transporterTable then
                     if transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[playerTypeName].volume then noRoomAtInn = true end
                 end
-                for i,m in pairs(csarMissions[c]) do
+                for _,m in pairs(csarMissions[c]) do
                     if not m.skipWellness then
                         local dist = Utils.PointDistance(playerPos, m.point)
                         local clockBearing = Utils.relativeClockBearing(playerPos, m.point, playerHdg)
                         if dist < csarBreakCoverRange then
                             local pContacted = false
-                            for n,h in pairs(m.contacts) do
+                            for _,h in pairs(m.contacts) do
                                 if h == pUnitName then
                                     pContacted = true
                                     break
                                 end
                             end
-                            if not pContacted then
+                            if not pContacted and not m.radioSilence then
                                 -- they do want this smoke
                                 local smokeColor = smokeColors[m.smokeNum]
                                 trigger.action.outTextForGroup(v.groupID, "This is " .. m.displayName .. ", have eyes on - popping " .. smokeColor .. " smoke to your " .. clockBearing .. " o'clock.", 30, false)
@@ -490,7 +508,7 @@ function CSB.trackCsar()
                                 m.smokeTime = timer.getTime()
                             else
                                 -- too long
-                                if (timer.getTime() - m.smokeTime > 300) then
+                                if (timer.getTime() - m.smokeTime > 300) and not m.radioSilence then
                                     local smokeColor = smokeColors[m.smokeNum]
                                     trigger.action.outTextForGroup(v.groupID, "This is " .. m.displayName .. ", popping fresh " .. smokeColor .. " smoke to your " .. clockBearing .. " o'clock.", 30, false)
                                     if DFS and DFS.smokeGroup then DFS.smokeGroup(m.groupName, m.smokeNum) end
@@ -560,7 +578,7 @@ function CSB.trackCsar()
         end -- end of csar check-ins for loop
         if didYouEvenLift then
             local leanedOut = {}
-            for i,m in pairs(csarMissions[c]) do
+            for _,m in pairs(csarMissions[c]) do
                 if m.status == 0 then
                     table.insert(leanedOut,m)
                 end
@@ -572,36 +590,38 @@ end
 function CSB.refreshCsarTransmissions()
     timer.scheduleFunction(CSB.refreshCsarTransmissions,nil,timer.getTime()+300)
     for n=1,2 do
-        for i,m in pairs(csarMissions[n]) do
-            local args = {}
-            local cmd = {}
-            local targetGroup = Group.getByName(m.groupName)
-            if targetGroup and targetGroup:isExist() then
-                args.groupName = m.groupName
-                args.freq = m.freq
-                args.channel = m.channel
-                args.amfm = m.modulation
-                args.soundfile = "l10n/DEFAULT/dah2.ogg"
-                args.equipment = m.equipment
-                local aiCtrllr = targetGroup:getController()
-                if aiCtrllr and aiCtrllr.setCommand then
-                    cmd.params = {}
-                    cmd.id = "StopTransmission"
-                    aiCtrllr:setCommand(cmd)
-                    env.info("[CSB.refreshCsarTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. args.groupName, false)
-                end
-                targetGroup = Group.getByName(args.equipment)
+        for _,m in pairs(csarMissions[n]) do
+            if not m.radioSilence then
+                local args = {}
+                local cmd = {}
+                local targetGroup = Group.getByName(m.groupName)
                 if targetGroup and targetGroup:isExist() then
-                    local eqCtrllr = targetGroup:getController()
-                    if eqCtrllr and eqCtrllr.setCommand then
-                        cmd = {}
+                    args.groupName = m.groupName
+                    args.freq = m.freq
+                    args.channel = m.channel
+                    args.amfm = m.modulation
+                    args.soundfile = "l10n/DEFAULT/dah2.ogg"
+                    args.equipment = m.equipment
+                    local aiCtrllr = targetGroup:getController()
+                    if aiCtrllr and aiCtrllr.setCommand then
                         cmd.params = {}
-                        cmd.id = "DeactivateBeacon"
-                        eqCtrllr:setCommand(cmd)
-                        env.info("[CSB.refreshCsarTransmissions] - Stopping ".. m.channel .."X TACAN beacon of ".. args.equipment, false)
+                        cmd.id = "StopTransmission"
+                        aiCtrllr:setCommand(cmd)
+                        env.info("[CSB.refreshCsarTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. args.groupName, false)
                     end
+                    targetGroup = Group.getByName(args.equipment)
+                    if targetGroup and targetGroup:isExist() then
+                        local eqCtrllr = targetGroup:getController()
+                        if eqCtrllr and eqCtrllr.setCommand then
+                            cmd = {}
+                            cmd.params = {}
+                            cmd.id = "DeactivateBeacon"
+                            eqCtrllr:setCommand(cmd)
+                            env.info("[CSB.refreshCsarTransmissions] - Stopping ".. m.channel .."X TACAN beacon of ".. args.equipment, false)
+                        end
+                    end
+                    timer.scheduleFunction(CSB.startTransmission,args,timer.getTime()+math.random(5))
                 end
-                timer.scheduleFunction(CSB.startTransmission,args,timer.getTime()+math.random(5))
             end
         end
     end
@@ -704,7 +724,7 @@ function CSB:onEvent(e)
     --//CSAR-CAPABLE INITIATOR EVENTS
     isCsarUnit = evtInitr and Unit.isExist(evtInitr) and evtInitr.getPlayerName and evtInitr:getPlayerName() and DFS.heloCapacities[evtInitr:getTypeName()]
     if isCsarUnit then
-        if evtId == 4 or evtId == 55 then -- Landing
+        if evtId == 4 then -- Landing
             CSB.checkCsarLanding(evtInitr)
         end
         if evtId == 5 then --crash
@@ -750,7 +770,7 @@ function CSB.checkCsarLanding(eUnit)
                 if not inSafeVeloParams then
                     trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe drop-off.", 30, false)
                 else
-                    for i,m in pairs(csci.onBoard) do
+                    for _,m in pairs(csci.onBoard) do
                         trigger.action.outTextForCoalition(pSide, pName .. " safely delivered " .. m.displayName .. " to " .. sBaseName .. ".", 30, false)
                         if DFS then DFS.IncreaseFrontSupply({coalitionId = pSide, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
                         if WWEvents then WWEvents.playerCsarMissionCompleted(pName, pSide, sBaseName," rescued ".. m.displayName .. " from the battlefield.") end
@@ -763,11 +783,12 @@ function CSB.checkCsarLanding(eUnit)
                     csci.onBoard = {}
                 end
             else -- check for pickup
-                for i,m in pairs(csarMissions[pSide]) do
+                for _,m in pairs(csarMissions[pSide]) do
                     if Utils.PointDistance(pPosn, m.point) < csarPickupRadius then
                         if inSafeVeloParams then
                             if transporterTable and transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[pType].volume then
-                                trigger.action.outTextForGroup(csci.groupID, "The airframe is at it's volume limit. Extraction not possible.", 30, false)
+                                trigger.action.outTextForGroup(csci.groupID, "The airframe is at it's volume limit. Extraction of " .. m.displayName .. "not possible.", 30, false)
+                                break
                             else
                                 trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 30, false)
                                 local args = {}
@@ -809,7 +830,7 @@ function CSB.fakeExtractionTime(args)
             end
             CSB.cleanupCsarGroup(args)
             local filtered = {}
-            for i,m in pairs(csarMissions[args.pSide]) do
+            for _,m in pairs(csarMissions[args.pSide]) do
                 if m ~= args.mission then
                     table.insert(filtered, m)
                 end
@@ -839,7 +860,7 @@ function CSB.checkVelocity(pVelo,limit)
 end
 function CSB.buildLavaList()
     local aybabtu = world.getAirbases()
-    for i, base in pairs(aybabtu) do
+    for _,base in pairs(aybabtu) do
         local baseType = base:getDesc().category
         if baseType == 0 or baseType == 1 then
             floorIsLava[base:getName()] = base:getPoint()
@@ -854,7 +875,7 @@ function CSB.debugCsarGeneration()
     timer.scheduleFunction(CSB.debugCsarGeneration,nil,timer.getTime()+10)
     for i=1,2 do
         if #csarMissions[i] < 2 then
-            CSB.generateCsar(nil,i,nil,nil,nil,nil,nil,nil)
+            CSB.generateCsar(nil,i,nil,nil,nil,nil,nil,nil,false)
         end
     end
 end
