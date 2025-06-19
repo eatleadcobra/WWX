@@ -77,12 +77,16 @@ Company = {
     isConvoy = false,
     isShip = false,
     casTracked = false,
-    convoyParam = {}
+    convoyParam = {},
+    groupType = 2,
 }
-function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, convoyParam)
+function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, convoyParam, navalUnit)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
+    if navalUnit then
+        newCpy.groupType = 3
+    end
     if convoy then
         newCpy.isConvoy = true
         newCpy.convoyParam = convoyParam
@@ -132,6 +136,7 @@ function Company.newFromTable(cpyData)
     newCpy.isConvoy = cpyData.isConvoy
     newCpy.isShip = cpyData.isShip
     newCpy.convoyParam = cpyData.convoyParam
+    newCpy.groupType = cpyData.groupType
     return newCpy
 end
 function Company.setWaypoints(self, waypoints, bp, speed)
@@ -170,17 +175,13 @@ function Company.spawn(self)
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
-    elseif self.isShip == false then
+    elseif self.isShip == false and self.groupType == 2 then
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "On Road"
     end
     self.groupName = cpyGroupTable["name"]
     --spawn group
-    if self.isShip == false then
-        coalition.addGroup(80+(2-self.coalitionId), 2, cpyGroupTable)
-    else
-        coalition.addGroup(80+(2-self.coalitionId), 3, cpyGroupTable)
-    end
+    coalition.addGroup(80+(2-self.coalitionId), self.groupType, cpyGroupTable)
     if self.isConvoy then
         self.convoyParam.convoyName = self.groupName
         DFS.checkConvoy(self.convoyParam)

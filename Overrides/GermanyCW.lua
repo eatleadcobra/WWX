@@ -10,6 +10,10 @@ CSAR = true
 CAS = true
 SHIPPING = true
 CAPTURE = false
+NAVALCONVOY = {
+    [1] = false,
+    [2] = false,
+}
 -- counts
 FDCount = 2
 AACount = 6

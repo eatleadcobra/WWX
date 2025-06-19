@@ -49,7 +49,8 @@ function cpyctl.saveCompanies()
             bp = v.bp,
             isConvoy = v.isConvoy,
             isShip = v.isShip,
-            convoyParam = v.convoyParam
+            convoyParam = v.convoyParam,
+            groupType = v.groupType,
         }
         companiesData[v.id] = cpyData
     end
@@ -82,15 +83,17 @@ function CpyControl.wipeCompanies()
         f:close()
     end
 end
-function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, convoyParam)
-    local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true, true, false, convoyParam)
-    newCpy:setWaypoints({startPoint, destination}, -1, 999)
+function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, convoyParam, navalConvoy)
+    local newCpy = Company.new(coalitionId, true, {convoyPltTypes[convoyType]}, true, true, false, convoyParam, navalConvoy)
+    local convoySpeed = 999
+    if navalConvoy then convoySpeed = 7.2 end
+    newCpy:setWaypoints({startPoint, destination}, -1, convoySpeed)
     newCpy:spawn()
     return newCpy.groupName
 end
 function CpyControl.newShip(coalitionId, escort)
     local convoyParam = {convoyName = "", escortName = nil}
-    local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam)
+    local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam, true)
     newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
     newCpy:spawn()
     return newCpy.groupName
