@@ -172,7 +172,7 @@ function Company.spawn(self)
             cpyGroupTable["units"][j].y = deployPoint.z + (12*(j-1))
             cpyGroupTable["units"][j].heading = self.heading
         end
-        cpyGroupTable["route"]["points"][1].action = "On Road"
+        --cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
     elseif self.isShip == false and self.groupType == 2 then

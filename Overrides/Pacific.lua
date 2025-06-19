@@ -1,12 +1,12 @@
 trigger.action.setUserFlag("MISSION_ID", 2)
 -- enabled features
-SUBS = false
+SUBS = true
 CAP = false
 BOMBERS = false
 PIRACY = false
 MISSILEBOATS = false
 CARGO = false
-CSAR = false
+CSAR = true
 CAS = true
 SHIPPING = true
 CAPTURE = false
@@ -28,12 +28,12 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "Type_98_Ke_Ni",
+            [1] = "Type_89_I_Go",
             [2] = "Type_98_So_Da",
             [3] = "Type_94_Truck"
         },
         ["Mech"] = {
-            [1] = "Type_89_I_Go",
+            [1] = "Type_98_Ke_Ni",
             [2] = "Type_98_So_Da",
             [3] = "Type_94_Truck"
         },

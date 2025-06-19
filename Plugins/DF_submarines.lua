@@ -8,7 +8,7 @@ local maxSubRuninDistance = 4500
 --coalitionId subtype
 function DFSubs.initSub(param)
     if param.subType == nil then param.subType = "santafe" end
-    local initZone = math.random(1,7)
+    local initZone = math.random(1,4)
     local startZone = param.coalitionId.."-sub-start-"..initZone
     local endZone = param.coalitionId.."-sub-end-"..initZone
     local startPoint = trigger.misc.getZone(startZone).point
