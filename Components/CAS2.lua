@@ -271,6 +271,7 @@ function CAS.designateGroup(groupName)
                             file = "l10n/DEFAULT/Alert.ogg",
                         }
                     }
+                    env.info("Starting CAS Radio Transmission from " .. groupName, false)
                     casController:setCommand(msg)
                     for groupName, active in pairs(casGroups[desGroup.coalitionId]) do
                         local group = Group.getByName(groupName)
