@@ -2,17 +2,17 @@ trigger.action.setUserFlag("MISSION_ID", 2)
 -- enabled features
 SUBS = true
 CAP = false
-BOMBERS = true
+BOMBERS = false
 PIRACY = false
 MISSILEBOATS = false
-CARGO = true
+CARGO = false
 CSAR = true
 CAS = true
 SHIPPING = true
 CAPTURE = false
 NAVALCONVOY = {
     [1] = false,
-    [2] = false,
+    [2] = true,
 }
 -- counts
 FDCount = 2
@@ -28,8 +28,60 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "MTLB",
-            [2] = "M1045 HMMWV TOW",
+            [1] = "Type_89_I_Go",
+            [2] = "Type_98_So_Da",
+            [3] = "Type_94_Truck"
+        },
+        ["Mech"] = {
+            [1] = "Type_98_Ke_Ni",
+            [2] = "Type_98_So_Da",
+            [3] = "Type_94_Truck"
+        },
+        ["Inf"] = {
+            [1] = "Type_98_So_Da",
+            [2] = "Type_94_Truck"
+        },
+        ["DeployedInf"] = {
+            [1] = "Paratrooper RPG-16",
+            [2] = "Infantry AK ver2",
+            [3] = "Infantry AK ver2",
+            [4] = "Paratrooper RPG-16",
+            [5] = "Infantry AK ver2",
+            [6] = "Infantry AK ver2",
+        },
+        ["FuelConvoy"] = {
+            [1] = "ATZ-5",
+            [2] = "ATZ-5",
+            [3] = "ATZ-5",
+            [4] = "Type_94_25mm_AA_Truck",
+            [5] = "ATZ-5",
+        },
+        ["AmmoConvoy"] = {
+            [1] = "Type_94_25mm_AA_Truck",
+            [2] = "Ural-375",
+            [3] = "Ural-375",
+            [4] = "Ural-375",
+            [5] = "Ural-375",
+        },
+        ["EquipmentConvoy"] = {
+            [1] = "Type_94_Truck",
+            [2] = "Type_94_25mm_AA_Truck",
+            [3] = "Type_94_Truck",
+            [4] = "Type_94_Truck",
+            [5] = "Type_94_Truck"
+        },
+        ["EmbeddedAD"] = {
+            [1] = "Type_94_25mm_AA_Truck",
+            [2] = "Type_94_Truck"
+        },
+        ["Shipping"] = {
+            [1] = "Ship_Tilde_Supply"
+        }
+    },
+    [2] = {
+        ["Armor"] = {
+            [1] = "M4_Sherman",
+            [2] = "M2A1_halftrack",
             [3] = "Bedford_MWD"
         },
         ["Mech"] = {
@@ -40,7 +92,7 @@ Platoons = {
             [1] = "Bedford_MWD",
         },
         ["DeployedInf"] = {
-            [1] = "Paratrooper RPG-16",
+            [1] = "Infantry AK ver2",
             [2] = "Infantry AK ver2",
             [3] = "Infantry AK ver2",
             [4] = "Paratrooper RPG-16",
@@ -48,93 +100,13 @@ Platoons = {
             [6] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "ATZ-5",
-            [3] = "ATZ-5",
-            [4] = "ATZ-5",
-            [5] = "ATZ-5",
-            [6] = "ATZ-5",
-            [7] = "M2A1_halftrack",
-            [8] = "ATZ-5",
+            [1] = "CastleClass_01",
         },
         ["AmmoConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "Ural-375",
-            [3] = "Ural-375",
-            [4] = "Ural-375",
-            [5] = "Ural-375",
-            [6] = "Ural-375",
-            [7] = "M2A1_halftrack",
-            [8] = "Ural-375",
+            [1] = "CastleClass_01",
         },
         ["EquipmentConvoy"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "KAMAZ Truck",
-            [3] = "KAMAZ Truck",
-            [4] = "KAMAZ Truck",
-            [5] = "KAMAZ Truck",
-            [6] = "KAMAZ Truck",
-            [7] = "M2A1_halftrack",
-            [8] = "KAMAZ Truck",
-        },
-        ["EmbeddedAD"] = {
-            [1] = "HL_DSHK",
-            [2] = "KAMAZ Truck"
-        },
-        ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply"
-        }
-    },
-    [2] = {
-        ["Armor"] = {
-            [1] = "M-113",
-            [2] = "M1045 HMMWV TOW",
-            [3] = "Blitz_36-6700A"
-        },
-        ["Mech"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "Blitz_36-6700A",
-        },
-        ["Inf"] = {
-            [1] = "Blitz_36-6700A",
-        },
-        ["DeployedInf"] = {
-            [1] = "Paratrooper RPG-16",
-            [2] = "Infantry AK ver2",
-            [3] = "Infantry AK ver2",
-            [4] = "Paratrooper RPG-16",
-            [5] = "Infantry AK ver2",
-            [6] = "Infantry AK ver2",
-        },
-        ["FuelConvoy"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "M978 HEMTT Tanker",
-            [3] = "M978 HEMTT Tanker",
-            [4] = "M978 HEMTT Tanker",
-            [5] = "M978 HEMTT Tanker",
-            [6] = "M978 HEMTT Tanker",
-            [7] = "Sd_Kfz_251",
-            [8] = "M978 HEMTT Tanker",
-        },
-        ["AmmoConvoy"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "GAZ-66",
-            [3] = "GAZ-66",
-            [4] = "GAZ-66",
-            [5] = "GAZ-66",
-            [6] = "GAZ-66",
-            [7] = "Sd_Kfz_251",
-            [8] = "GAZ-66",
-        },
-        ["EquipmentConvoy"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "M 818",
-            [3] = "M 818",
-            [4] = "M 818",
-            [5] = "M 818",
-            [6] = "M 818",
-            [7] = "Sd_Kfz_251",
-            [8] = "M 818",
+            [1] = "CastleClass_01",
         },
         ["EmbeddedAD"] = {
             [1] = "tt_DSHK",
@@ -147,9 +119,9 @@ Platoons = {
 }
 
 PlatoonUnitCarrierTypeNames = {
-    ["Land_Rover_101_FC"] = "APC",
+    ["M2A1_halftrack"] = "APC",
     ["Bedford_MWD"] = "APC",
-    ["Blitz_36-6700A"] =  "APC",
+    ["Type_98_So_Da"] =  "APC",
 }
 
 PlatoonFlakCarrierTypeNames = {
@@ -236,27 +208,20 @@ CSARFreqs = {
 }
 CSARBases = {
     [1] = {
-        [1] = "National Rehabilitation Center"
+        [1] = "Red Field Hospital"
     },
     [2] = {
-        [1] = "Larnaca Teaching Hospital"
+        [1] = "Blue Field Hospital"
     }
 }
 CSARFreqCollisions = {
     [1] = {
-        ["NDB"] = {
-            26,27,29,30,31,32,33,34,35,36,37,39,40,41,42,43,44,45
-        },
-        ["TACAN"] = {
-            21
-        }
+        ["NDB"] = {},
+        ["TACAN"] = {}
     },
     [2] = {
-        ["NDB"] = {
-        },
-        ["TACAN"] = {
-            79,84,85,106,107
-        }
+        ["NDB"] = {},
+        ["TACAN"] = {}
     }
 }
 RandomNames = {}
