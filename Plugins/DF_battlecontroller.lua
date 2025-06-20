@@ -339,18 +339,6 @@ function bc.main()
         if ownedBy == 1 then redPositions = redPositions + 1 end
         if ownedBy == 2 then bluePositions = bluePositions + 1 end
         if v.ownedBy ~= ownedBy then
-            if junkRemoval then
-                local junkPoint = v.point
-                local junkRadius = v.radius
-                local junkSphere = {
-                id = world.VolumeType.SPHERE,
-                    params = {
-                        point = junkPoint,
-                        radius = junkRadius
-                    }
-                }
-                world.removeJunk(junkSphere)
-            end
             local rcnMissionCltn = 1
             if v.ownedBy == 1 then
                 rcnMissionCltn = 2
@@ -379,6 +367,18 @@ function bc.main()
                 bc.notifyTeamofBPChange(v.ownedBy, ownedBy, v.id, false)
             end
             v.ownedBy = ownedBy
+        end
+        if junkRemoval then
+            local junkPoint = v.point
+            local junkRadius = v.radius
+            local junkSphere = {
+            id = world.VolumeType.SPHERE,
+                params = {
+                    point = junkPoint,
+                    radius = junkRadius
+                }
+            }
+            world.removeJunk(junkSphere)
         end
     end
     DFS.status[1].health = redPositions
