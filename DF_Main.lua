@@ -672,7 +672,7 @@ function dfcEvents:onEvent(event)
             local group = event.initiator:getGroup()
             if group then
                 dfc.addRadioCommandsForGroup(event.initiator:getGroup():getName(), event.initiator:getDesc().category == 0 )
-                if CARGO and DFS.heloCapacities[event.initiator:getTypeName()] then
+                if DFS.heloCapacities[event.initiator:getTypeName()] then
                     local dropMenu, troopsMenu = dfc.addRadioCommandsForCargoGroup(event.initiator:getGroup():getName())
                     dfc.addGroupToCargoList(event.initiator:getGroup():getName(), dropMenu, troopsMenu)
                 end
@@ -2619,6 +2619,7 @@ function dfc.addGroupToCargoList(groupName, dropMenu, troopsMenu)
                     }
                 }
                 DFS.helos[groupName] = heloTable
+                env.info("Added " .. groupName .. " to helo table", false)
             end
         end
     end
