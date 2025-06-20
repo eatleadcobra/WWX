@@ -144,7 +144,7 @@ function torp.TrackTorpedo(param)
             if shipPoint ~= nil then
                 trigger.action.explosion(shipPoint, 1000)
                 if WWEvents then
-                    WWEvents.playerTorpedoedShip(param.playerName, param.playerName .. " hit a ship with a torpedo. That's badass!", param.coalitionId)
+                    WWEvents.playerTorpedoedShip(param.playerName, " hit a ship with a torpedo. That's badass!", param.coalitionId)
                 end
                 if param.torpedo:isExist() then param.torpedo:destroy() end
             end
