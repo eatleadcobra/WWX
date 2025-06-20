@@ -479,12 +479,15 @@ function CSB.trackCsar()
                 local playerTypeName = playerUnit:getTypeName()
                 local pUnitName = playerUnit:getName()
                 local pVelo = playerUnit:getVelocity()
-                local inSafeVeloParams = CSB.checkVelocity(pVelo,1.0)
+                local inSafeVeloParams = CSB.checkVelocity(pVelo,1.5)
                 v.typeName = playerTypeName -- keep it current in case relevant for weight/volume
                 local noRoomAtInn = false
                 local transporterTable = DFS.helos[v.groupName]
                 if transporterTable then
                     if transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[playerTypeName].volume then noRoomAtInn = true end
+                else
+                    env.info("[CSARBot] transporterTable was nil", false)
+                    return
                 end
                 for _,m in pairs(csarMissions[c]) do
                     if not m.skipWellness then
