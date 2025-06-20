@@ -279,3 +279,36 @@ RandomNames.lastNames = {
         [1] = {"Cohen","Levi","Rosenberg","Goldstein","Friedman","Schwartz","Katz","Stein","Weiss","Adler","Rosen","Klein","Shapiro","Berman","Levy","Kaplan","Hirsch","Ben-David","Bernstein","Singer","Rubin","Steinberg","Shulman","Mandel","Mandelbaum"}
     }
 }
+
+CASCALLSIGNS = {
+    --TODO move these to overrides
+    alphanumerics = {
+        [1] = {
+            [1] = "Granit",
+            [2] = "Akatsia",
+            [3] = "Aurora",
+            [4] = "Shapka",
+            [5] = "Empire",
+            [6] = "Sirena",
+        },
+        [2] = {
+            [1] = "ALPHA",
+            [2] = "BRAVO",
+            [3] = "CHARLIE",
+            [4] = "DELTA",
+            [5] = "ECHO",
+            [6] = "FOXTROT"
+        }
+    },
+    numberLimit = 5,
+    counts = {
+        [1] = {
+            alpha = 1,
+            number = 1,
+        },
+        [2] = {
+            alpha = 1,
+            number = 1,
+        },
+    }
+}

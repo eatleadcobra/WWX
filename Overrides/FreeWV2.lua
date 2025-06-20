@@ -192,3 +192,36 @@ RandomNames.lastNames = {
         [1] = {"Georgiou","Charalambous","Ioannou","Constantinou","Christodoulou","Demetriou","Michael","Nicolaou","Andreou","Antoniou","Kyriacou","Savva","Stylianou","Christou","Panayiotou","Petrou","Christoforou","Christofi","Vassiliou","Theodorou","Loizou","Stavrou","Neophytou","Panayi","Philippou","Michaelides","Pavlou","Chrysostomou","Alexandrou","Kyprianou","Louca","Papadopoulos","Panteli","Elia","Eleftheriou","Georgiades","Constantinides","Spyrou","Efstathiou","Ioannides","Demosthenous","Anastassiou","Chrysanthou","Soteriou","Gregoriou","Savvides","Socratous","Achilleos","Kyriakides","Sophocleous","Lambrou","Evangelou","Iacovou","Costa","Aristidou","Papageorgiou","Kyriakou","Nicolaides","Xenophontos","Theocharous","Solomou","Adamou","Nikolaou","Polycarpou","Evripidou","Theophanous","Paraskeva","Efthymiou","Antoniades","Hadjigeorgiou","Avraam","Theodoulou","Cleanthous","Neocleous","Argyrou","Christodoulides","Christofides","Heracleous","Themistocleous","Lazarou","Yiangou","Athanassiou","Sofroniou","Leonidou","Gavriel","Prodromou","Michaelidou","Papadopoulou","Menelaou","Theodossiou","Demetriades","Photiou","Symeou","Aristodemou","Marcou","Herodotou","Pericleous","Loizides","Agathocleous","Mina","Zenonos","Procopiou","Polydorou","Pieri","Economou","Charalambides","Papaioannou","Varnava","Economides","Konstantinou","Petrides","Stephanou","Thoma","Anastasiou","Tryfonos","Apostolou","Papamichael","Kokkinos","Panayides","Aristotelous","Mattheou","Constantinidou","Charalampous","Zachariou","Nicola","Eliades","Aresti","Avgousti","Damianou","Charilaou","Erotokritou","Yiannakou","Georgiadou","Miltiadous","Nearchou","Ioannidou","Panagiotou","Mylonas","Pavlides","Ellinas","Stavrinou","Vasiliou","Agapiou","Agathangelou","Hadjimichael","Odysseos","Evagorou","Stylianides","Zacharia","Savvidou","Paphitis","Iacovides","Papanicolaou","Yianni","Panagi","Polyviou","Kallis","Hadjioannou","Kyriakidou","Costi","Nicolaidou","Manoli","Andronicou","Hadjikyriacou","Violaris","Vassiliades","Orphanides","Kalli","Hadjicharalambous","Mavrommatis","Pittas","Timotheou","Angeli","Neofytou","Patsalides","Iosif","Papademetriou","Tsangarides","Papakyriacou","Kalogirou","Onissiforou","Athanasiou","Dionyssiou","Protopapas","Thrassyvoulou","Papacharalambous","Koumi","Loucaides","Papapetrou","Anastassi","Afxentiou","Dimitriou","Pitsillides","Papachristoforou","Pantelides","Karaolis","Theodotou","Louka","Papaconstantinou","Antoniadou","Constanti","Pierides","Phylactou","Serghiou","Gavrielides","Onoufriou","Markou","Tsangaris","Markides","Papantoniou","Argyrides","Theodosiou","Christodoulidou","Charitou","Filippou","Frangou","Ioackim","Christofidou","Gerolemou","Hadjiyiannis","Toumazou","Demetri","Karayiannis","Poyiadjis","Psaras","Philippides","Papachristodoulou","Xenofontos","Hadjidemetriou","Droussiotis","Stavrinides","Artemiou","Loizidou","Eftychiou","Evgeniou","Sergiou","Vasileiou","Flourentzou","Kleanthous","Sofocleous","Avraamides","Komodromos","Petsas","Zachariades","Angelides","Michail","Paschali","Kakoullis","Iordanou","Papandreou","Orphanou","Theophilou","Demetriadou","Konnaris","Spanos","Anastassiades","Marinou","Ignatiou","Symeonides","Polykarpou","Hadjiloizou","Apostolides","Mylona","Andronikou","Kokkinou","Petridou","Miltiadou","Nicodemou","Theofanous","Hadjinicolaou","Hadjichristodoulou","Nikiforou","Omirou","Economidou","Macris","Payt","Nicou","Roussos","Makrides","Zavros","Sofokleous","Stylianidou","Demou","Solomonides","Kountouris","Chari","Yiannaki","Papa","Theocharides","Yiallouros","Zeniou","Leonida","Steliou","Athinodorou","Epiphaniou","Leontiou","Maratheftis","Shiakallis","Pavlidou","Andrea"}
     }
 }
+
+CASCALLSIGNS = {
+    --TODO move these to overrides
+    alphanumerics = {
+        [1] = {
+            [1] = "Granit",
+            [2] = "Akatsia",
+            [3] = "Aurora",
+            [4] = "Shapka",
+            [5] = "Empire",
+            [6] = "Sirena",
+        },
+        [2] = {
+            [1] = "ALPHA",
+            [2] = "BRAVO",
+            [3] = "CHARLIE",
+            [4] = "DELTA",
+            [5] = "ECHO",
+            [6] = "FOXTROT"
+        }
+    },
+    numberLimit = 5,
+    counts = {
+        [1] = {
+            alpha = 1,
+            number = 1,
+        },
+        [2] = {
+            alpha = 1,
+            number = 1,
+        },
+    }
+}

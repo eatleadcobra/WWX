@@ -292,3 +292,36 @@ RandomNames.lastNames = {
         [3] = {"Martin","Bernard","Robert","Richard","Durand","Dubois","Moreau","Simon","Laurent","Michel","Garcia","Thomas","Leroy","David","Morel","Roux","Girard","Fournier","Lambert","Lefebvre","Mercier","Blanc","Dupont","Faure","Bertrand","Morin","Garnier","Nicolas","Marie","Rousseau","Bonnet","Vincent","Henry","Masson","Robin","Martinez","Boyer","Muller","Chevalier","Denis","Meyer","Blanchard","Lemaire","Dufour","Gauthier","Vidal","Perez","Perrin","Fontaine","Joly"}
     }
 }
+
+CASCALLSIGNS = {
+    --TODO move these to overrides
+    alphanumerics = {
+        [1] = {
+            [1] = "Granit",
+            [2] = "Akatsia",
+            [3] = "Aurora",
+            [4] = "Shapka",
+            [5] = "Empire",
+            [6] = "Sirena",
+        },
+        [2] = {
+            [1] = "ALPHA",
+            [2] = "BRAVO",
+            [3] = "CHARLIE",
+            [4] = "DELTA",
+            [5] = "ECHO",
+            [6] = "FOXTROT"
+        }
+    },
+    numberLimit = 5,
+    counts = {
+        [1] = {
+            alpha = 1,
+            number = 1,
+        },
+        [2] = {
+            alpha = 1,
+            number = 1,
+        },
+    }
+}
