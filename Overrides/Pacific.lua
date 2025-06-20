@@ -100,17 +100,19 @@ Platoons = {
             [6] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "CastleClass_01",
+            [1] = "HarborTug",
+            [2] = "HarborTug",
         },
         ["AmmoConvoy"] = {
-            [1] = "CastleClass_01",
+            [1] = "HarborTug",
+            [2] = "HarborTug",
         },
         ["EquipmentConvoy"] = {
-            [1] = "CastleClass_01",
+            [1] = "HarborTug",
+            [2] = "HarborTug",
         },
         ["EmbeddedAD"] = {
-            [1] = "tt_DSHK",
-            [3] = "GAZ-66"
+            [1] = "tt_DSHK"
         },
         ["Shipping"] = {
             [1] = "Ship_Tilde_Supply"
