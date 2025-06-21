@@ -2338,7 +2338,7 @@ function dfc.trackCargo(param)
                 if cargoPoint then env.info("cargo location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z, false) end
                 if (velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) and (altitude < 1) then
                    param.successfulDeployChecks = param.successfulDeployChecks + 1
-                    if param.successfulDeployChecks > 3 then
+                    if param.successfulDeployChecks > 1 then
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
                         end
