@@ -121,6 +121,8 @@ end
 
 function CSB.searchCsarStacks()
     timer.scheduleFunction(CSB.searchCsarStacks, nil, timer:getTime() + searchStackInterval)
+    local genCsarFlag = false
+    local genCsarCoalition = 0
     for c = 1,2 do
         local volS = {
             id = world.VolumeType.SPHERE,
@@ -149,9 +151,12 @@ function CSB.searchCsarStacks()
                             env.info("player already checked-in for CSAR: "..foundPlayerName, false)
                             env.info("csarMission count for " .. c .. " is " .. #csarMissions[c], false)
                             if #csarMissions[c] < 1 then
-                                env.info("calling csarCheckIn for: " .. foundPlayerName, false)
+                                --env.info("calling csarCheckIn for: " .. foundPlayerName, false)
                                 trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 20, false)
-                                CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
+                                --CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
+                                env.info("setting genCsarFlag to true", false)
+                                genCsarFlag = true
+                                genCsarCoalition = playerCoalition
                             end
                         end
                     end
@@ -159,6 +164,7 @@ function CSB.searchCsarStacks()
             end
         end
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
+        if genCsarFlag and genCsarCoalition ~= 0 then CSB.generateCsar(nil,genCsarCoalition,nil,nil,nil,nil,nil,nil,false) end
         for k,v in pairs(currentLists[c]) do
             if previousLists[c][k] then
                 CSB.csarCheckIn(v.name, v.coalition, v.groupID, v.groupName, v.typeName, v.unitName)
@@ -201,17 +207,30 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     local p1 = {x = pos.x, y = 0, z = pos.z}
     local cwispy = false
     local volcanoName = nil
+    local volcanoSide = 0
+    local oppo = 2
+    local enemyBase = false
+    local pilotStr = " (AI)"
+    if playerName then pilotStr = " (" .. playerName .. ")" end
+    if coalitionId == 2 then oppo = 1 end
     for volcano,lavaVent in pairs(floorIsLava) do
-        local p2 = {x = lavaVent.x, y = 0, z = lavaVent.z}
+        local p2 = {x = lavaVent.pos.x, y = 0, z = lavaVent.pos.z}
         local dist = Utils.PointDistance(p1,p2)
         if dist < csarAutoProcRadius then
             cwispy = true
             volcanoName = volcano
+            volcanoSide = lavaVent.side
+            if lavaVent.side == oppo then enemyBase = true end
             break
         end
     end
-    if cwispy then
-        trigger.action.outTextForCoalition(coalitionId, "Ejected pilot landed close to " .. volcanoName .. " and was picked up.",20,false)
+    if cwispy and volcanoSide ~= 0 then
+        if enemyBase then
+            trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to enemy airbase at " .. volcanoName .. " and was captured.",20,false)
+            -- todo: give enemy a small boost equipment/recon?
+        else
+            trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to friendly airbase at " .. volcanoName .. " and was picked up.",20,false)
+        end
         return
     end
     local anyTerrain = nil
@@ -228,7 +247,7 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
     local genPoint = nil
     generatedCsar.coalition = coalitionId
     if playerName then
-        fName = "ejected "..playerName.." "..genCsarCounter
+        fName = playerName.." (ejected) "..genCsarCounter
     elseif RandomNames and RandomNames.getNewName then
         fName = RandomNames.getNewName(coalitionId)
     else
@@ -262,9 +281,12 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
     generatedCsar.contacts = {}
     generatedCsar.winchers = {}
     generatedCsar.radioSilence = radioSilence
-    local cloneSource = true
-    if not mist.DBs.groupsByName["SOS-"..coalitionId] then cloneSource = false end
-    env.info("about to create new CSAR unit for " .. fName .." - Clone source is: " .. tostring(cloneSource), false)
+    local cloneSourceGroup = Group.getByName("SOS-"..coalitionId)
+    if not cloneSourceGroup then
+        env.info("Could not find source group for clone", false)
+        return
+    end
+    env.info("about to create new CSAR unit for " .. fName, false)
     local isCreated = CSB.createCsarUnit(generatedCsar)
     if not isCreated then
         env.info("Failed to create CSAR unit", false)
@@ -421,13 +443,13 @@ function CSB.closestBaseTo(p)
     local csarX = p.x
     local csarZ = p.z
     for n,o in pairs(floorIsLava) do
-        local xDiff = csarX - o.x
-        local zDiff = csarZ - o.z
+        local xDiff = csarX - o.pos.x
+        local zDiff = csarZ - o.pos.z
         local dist = (xDiff^2 + zDiff^2)^0.5
         if dist < closestBaseDist then
             closestBaseDist = dist
             closestBaseName = n
-            closestBaseObj = o
+            closestBaseObj = o.pos
         end
     end
     local direction = Utils.relativeCompassBearing(p,closestBaseObj)
@@ -866,7 +888,9 @@ function CSB.buildLavaList()
     for _,base in pairs(aybabtu) do
         local baseType = base:getDesc().category
         if baseType == 0 or baseType == 1 then
-            floorIsLava[base:getName()] = base:getPoint()
+            floorIsLava[base:getName()] = {}
+            floorIsLava[base:getName()].pos = base:getPoint()
+            floorIsLava[base:getName()].side = base:getCoalition()
         end
     end
 end
