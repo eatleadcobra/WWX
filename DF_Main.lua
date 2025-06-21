@@ -1024,12 +1024,21 @@ function dfc.checkFDHealth()
                 local spawnZone = DFS.status[a].spawns.fd[i].spawnZone
                 table.remove(DFS.status[a].spawns.fd, i)
                 timer.scheduleFunction(dfc.respawnFrontDepot, {coalitionId = a, spawnZone = spawnZone}, timer.getTime() + DFS.status.fdSpawnDelay)
-                local decreaseFuelAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.FUEL] / #DFS.status[a].spawns.fd)
-                local decreaseEquipmentAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] / #DFS.status[a].spawns.fd)
-                local decreaseAmmoAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.AMMO] / #DFS.status[a].spawns.fd)
-                dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
-                dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
-                dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
+                if #DFS.status[a].spawns.fd > 0  then
+                    local decreaseFuelAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.FUEL] / #DFS.status[a].spawns.fd)
+                    local decreaseEquipmentAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] / #DFS.status[a].spawns.fd)
+                    local decreaseAmmoAmt = math.floor(DFS.status[a].supply.front[DFS.supplyType.AMMO] / #DFS.status[a].spawns.fd)
+                    dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
+                    dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
+                    dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
+                else
+                    local decreaseFuelAmt = DFS.status[a].supply.front[DFS.supplyType.FUEL]
+                    local decreaseEquipmentAmt = DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT]
+                    local decreaseAmmoAmt = DFS.status[a].supply.front[DFS.supplyType.AMMO]
+                    dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
+                    dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
+                    dfc.decreaseFrontSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
+                end
             end
         end
     end
@@ -1054,12 +1063,22 @@ function dfc.checkRDHealth()
                 local subDepot = DFS.status[a].spawns.rd[i].subDepot
                 table.remove(DFS.status[a].spawns.rd, i)
                 timer.scheduleFunction(dfc.respawnRearDepot, {coalitionId = a, spawnZone = spawnZone, subDepot = subDepot}, timer.getTime() + DFS.status.rdSpawnDelay)
-                local decreaseFuelAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.FUEL]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
-                local decreaseEquipmentAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.EQUIPMENT]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
-                local decreaseAmmoAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.AMMO]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
-                dfc.decreaseRearSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
-                dfc.decreaseRearSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
-                dfc.decreaseRearSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
+
+                if #DFS.status[a].spawns.rd > 0  then
+                    local decreaseFuelAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.FUEL]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
+                    local decreaseEquipmentAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.EQUIPMENT]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
+                    local decreaseAmmoAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.AMMO]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
+                    dfc.decreaseRearSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
+                    dfc.decreaseRearSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
+                    dfc.decreaseRearSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
+                else
+                    local decreaseFuelAmt = DFS.status[a].supply.rear[DFS.supplyType.FUEL]
+                    local decreaseEquipmentAmt = DFS.status[a].supply.rear[DFS.supplyType.EQUIPMENT]
+                    local decreaseAmmoAmt = DFS.status[a].supply.rear[DFS.supplyType.AMMO]
+                    dfc.decreaseRearSupply({coalitionId = a, amount = decreaseFuelAmt, type = DFS.supplyType.FUEL})
+                    dfc.decreaseRearSupply({coalitionId = a, amount = decreaseEquipmentAmt, type = DFS.supplyType.EQUIPMENT})
+                    dfc.decreaseRearSupply({coalitionId = a, amount = decreaseAmmoAmt, type = DFS.supplyType.AMMO})
+                end
             end
         end
     end
@@ -1097,6 +1116,10 @@ function DFS.IncreaseFrontSupply(param)
 end
 --params coalitionId, amount, type
 function dfc.increaseFrontSupply(param)
+    local frontSupply = DFS.status[param.coalitionId].supply.front[param.type]
+    if frontSupply == "-nan(ind)" then
+        DFS.status[param.coalitionId].supply.front[param.type] = 0
+    end
     DFS.status[param.coalitionId].supply.front[param.type] = DFS.status[param.coalitionId].supply.front[param.type] + param.amount
     if DFS.status[param.coalitionId].supply.front[param.type] > math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)) then
         local surplusAmt = DFS.status[param.coalitionId].supply.front[param.type] - (math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)))
@@ -2654,3 +2677,7 @@ if CARGO then
     dfc.drawSupplyMarks()
 end
 dfc.isItSunset()
+trigger.action.outText("Red Front fuel: " .. DFS.status[1].supply.front[1], 10, false)
+if DFS.status[1].supply.front[1] < 0  then
+    trigger.action.outText("Red Front fuel not a number", 10, false)
+end
