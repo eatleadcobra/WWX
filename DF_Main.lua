@@ -2677,7 +2677,3 @@ if CARGO then
     dfc.drawSupplyMarks()
 end
 dfc.isItSunset()
-trigger.action.outText("Red Front fuel: " .. DFS.status[1].supply.front[1], 10, false)
-if DFS.status[1].supply.front[1] < 0  then
-    trigger.action.outText("Red Front fuel not a number", 10, false)
-end
