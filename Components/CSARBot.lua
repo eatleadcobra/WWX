@@ -227,7 +227,8 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     if cwispy and volcanoSide ~= 0 then
         if enemyBase then
             trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to enemy airbase at " .. volcanoName .. " and was captured.",20,false)
-            -- todo: give enemy a small boost equipment/recon?
+            -- placeholder: maybe use a recon function to reveal some targets due to interrogation
+            if DFS then DFS.IncreaseFrontSupply({coalitionId = oppo, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
         else
             trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to friendly airbase at " .. volcanoName .. " and was picked up.",20,false)
         end
@@ -717,6 +718,17 @@ function CSB:onEvent(e)
     local evtId = e.id
     local isCsarUnit = false
     local playerName = nil
+    --//BIRTH EVENT
+    if evtId == 15 and evtInitr and evtInitr.getPlayerName then
+        local pName = evtInitr:getPlayerName()
+        if pName then
+            local pSide = evtInitr:getCoalition()
+            if csarCheckIns[pSide][pName] then
+                env.info("[CSAR] Checked-out " .. pName .. " on new spawn",false)
+                csarCheckIns[pSide][pName] = nil
+            end
+        end
+    end
     --//EJECTION EVENTS
     if evtId == 6 and evtInitr and evtInitr.getGroup then -- eject
         local group = evtInitr:getGroup()
