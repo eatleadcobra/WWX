@@ -861,7 +861,7 @@ function dfc.endMission(coalitionId)
     local winningTeam = 'Red Team'
     if coalitionId == 2 then winningTeam = 'Blue Team' end
     if WWEvents then WWEvents.campaignCompleted(coalitionId) end
-    trigger.action.outText(winningTeam..' has won the campaign! Mission will restart in 2 minutes.', 120)
+    trigger.action.outText(winningTeam..' has won the battle! Mission will restart in 2 minutes.', 120)
     dfc.blankData()
 end
 --INIT FUNCS
