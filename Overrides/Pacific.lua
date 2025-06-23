@@ -28,7 +28,7 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "Type_89_I_Go",
+            [1] = "Pz_IV_H",
             [2] = "Type_98_So_Da",
             [3] = "Type_94_Truck"
         },
