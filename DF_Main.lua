@@ -955,10 +955,28 @@ function dfc.respawnArtilleryGroup(param)
 end
 function dfc.respawnFrontDepot(param)
     local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].depot..param.spawnZone).point
+    local removeJunkPoint = { x = spawnPoint.x, y = land.getHeight({x = spawnPoint.x, y = spawnPoint.z}), z = spawnPoint.z}
+    local junkSphere = {
+    id = world.VolumeType.SPHERE,
+        params = {
+            point = removeJunkPoint,
+            radius = 1200
+        }
+    }
+    world.removeJunk(junkSphere)
     table.insert(DFS.status[param.coalitionId].spawns.fd, {groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].depot,spawnPoint,'clone'), spawnZone = param.spawnZone})
 end
 function dfc.respawnRearDepot(param)
     local spawnPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].reardepot..param.spawnZone .. '-' .. param.subDepot).point
+    local removeJunkPoint = { x = spawnPoint.x, y = land.getHeight({x = spawnPoint.x, y = spawnPoint.z}), z = spawnPoint.z}
+    local junkSphere = {
+    id = world.VolumeType.SPHERE,
+        params = {
+            point = removeJunkPoint,
+            radius = 1200
+        }
+    }
+    world.removeJunk(junkSphere)
     table.insert(DFS.status[param.coalitionId].spawns.rd, {groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].depot, spawnPoint, 'clone'), spawnZone = param.spawnZone, subDepot = param.subDepot})
 end
 -- HEALTH CHECK FUNCS
