@@ -272,8 +272,9 @@ function CAS.designateGroup(groupName)
                 end
             end
         else
-            if desGroup.smokeTime ~= -1 then
+            if groupName then
                 trigger.action.effectSmokeStop(groupName)
+                CAS.cleanGroupMarkups(groupName)
             end
         end
     end
