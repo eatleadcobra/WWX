@@ -328,20 +328,20 @@ function DrawingTools.drawRadio(coalitionId, markPoint, color)
     table.insert(markIds, rectangleMarkId)
     local rectLowerLeft = markPoint
     local rectUpperRight = {x = rectLowerLeft.x + radioRectangleHeight, y = 0, z = rectLowerLeft.z + (radioRectangleHeight*(2/3))}
-    trigger.action.rectToAll(coalitionId, rectangleMarkId, rectLowerLeft, rectUpperRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    trigger.action.rectToAll(coalitionId, rectangleMarkId, rectLowerLeft, rectUpperRight, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
     ---
     local antennaLowerLeft = {x = rectUpperRight.x, y = 0, z = rectLowerLeft.z + (radioRectangleHeight/16)}
     local antennaUpperRight = {x = antennaLowerLeft.x + (radioRectangleHeight/2), y = 0, z = antennaLowerLeft.z + (radioRectangleHeight/8)}
     local antennaMarkId = DrawingTools.newMarkId()
     table.insert(markIds, antennaMarkId)
-    trigger.action.rectToAll(coalitionId, antennaMarkId, antennaLowerLeft, antennaUpperRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    trigger.action.rectToAll(coalitionId, antennaMarkId, antennaLowerLeft, antennaUpperRight, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
     ---
     local screenLowerLeft = {x = rectLowerLeft.x + ((3/5)*radioRectangleHeight), y = 0, z = rectLowerLeft.z + (radioRectangleHeight/12)}
     local screenUpperRight = {x = screenLowerLeft.x + ((1/5)*radioRectangleHeight), y = 0, z = screenLowerLeft.z + ((1/2)*radioRectangleHeight) }
     local screenMarkId = DrawingTools.newMarkId()
     table.insert(markIds, screenMarkId)
 
-    trigger.action.rectToAll(coalitionId, screenMarkId, screenLowerLeft, screenUpperRight, {0,0,0,1}, screenColors[color], 1, true, nil)
+    trigger.action.rectToAll(coalitionId, screenMarkId, screenLowerLeft, screenUpperRight, {0,0,0,0.6}, screenColors[color], 1, true, nil)
     ---
     return markIds
 end

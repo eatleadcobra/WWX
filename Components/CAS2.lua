@@ -107,22 +107,6 @@ function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, 
         end
     end
 end
-function cas.loop()
-    for groupName, groupInfo in pairs(groups) do
-        local group = Group.getByName(groupName)
-        if group then
-            cas.checkGroup(groupName)
-        else
-            if groups[groupName].markups.radio then
-                for i = 1, #groups[groupName].markups.radio do
-                    trigger.action.removeMark(groups[groupName].markups.radio[i])
-                end
-            end
-            groups[groupName] = nil
-        end
-    end
-    timer.scheduleFunction(cas.loop, nil, timer:getTime() + cas.loopInterval)
-end
 function CAS.checkGroup(groupName)
     local checkingGroup = Group.getByName(groupName)
     if checkingGroup then
@@ -233,7 +217,8 @@ function CAS.designateGroup(groupName)
                     end
                     casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[desGroup.smokeColor] .."smoke."
                     if desGroup.smokeTime == -1 or timer:getTime() - desGroup.smokeTime > 300 then
-                        trigger.action.smoke(Utils.VectorAdd(desGroup.currentPoint, Utils.ScalarMult(atmosphere.getWind(desGroup.currentPoint), 10 + math.random(5))), desGroup.smokeColor)
+                        trigger.action.smoke(Utils.VectorAdd(desGroup.currentPoint, Utils.ScalarMult(atmosphere.getWind(desGroup.currentPoint), 10 + math.random(5))), desGroup.smokeColor, groupName)
+                        timer.scheduleFunction(trigger.action.effectSmokeStop, groupName, timer:getTime()+300)
                         desGroup.smokeTime = timer:getTime()
                     end
                 end
@@ -286,104 +271,15 @@ function CAS.designateGroup(groupName)
                     end
                 end
             end
+        else
+            if desGroup.smokeTime ~= -1 then
+                trigger.action.effectSmokeStop(groupName)
+            end
         end
     end
 end
 
-function cas.designationLoop()
-    for k,v in pairs(groups) do
-        local casMessage = "This is " .. v.callsign .. ". We are in contact with enemy forces!"
-        local locationMessage = "\nWe are located at "
-        local groupLat, groupLong, groupAlt = coord.LOtoLL(v.currentPoint)
-        local groupMGRS = coord.LLtoMGRS(groupLat, groupLong)
-        local eastingString = tostring(groupMGRS.Easting)
-        local northingString = tostring(groupMGRS.Northing)
-        for i = 1, 5 - #eastingString do
-            eastingString = tostring(0)..eastingString
-        end
-        for i = 1, 5 - #northingString do
-            northingString = tostring(0)..northingString
-        end
-        local location = groupMGRS.MGRSDigraph .. eastingString:sub(1,v.jtacType)..northingString:sub(1,v.jtacType)
-        locationMessage = locationMessage .. location
-        if v.isMoving then
-                locationMessage = locationMessage .. "\nWe are moving " .. Utils.degToCompass(v.heading)
-        end
-        casMessage = casMessage .. locationMessage
-        local groupCount = 0
-        for group, targetInfo in pairs(v.targetGroups) do
-            local tgtGroup = Group.getByName(group)
-            if tgtGroup then
-                groupCount = groupCount + 1
-                local bearingToTgt = math.floor(targetInfo.bearingToTgt)
-                local compassBearingToTgt = Utils.degToCompass(bearingToTgt)
-                local bearingString = tostring(bearingToTgt)
-                if v.jtacType == CAS.JTACType.NONE then bearingString = compassBearingToTgt end
-                local distanceToTgt = targetInfo.distanceToTgt / 1000
-                casMessage = casMessage .. "\nGroup " .. groupCount .. ": " .. bearingString .. " for " .. string.format("%.1f", distanceToTgt) .. "km"
-                if targetInfo.onRoad then casMessage = casMessage .. " on the road." end
-                if v.isMoving == false and distanceToTgt < cas.dangerClose then
-                    if v.smokeColor == -1 then
-                            v.smokeColor = smokeColors[math.random(1,3)]
-                    end
-                    casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[v.smokeColor] .."smoke."
-                    if v.smokeTime == -1 or timer:getTime() - v.smokeTime > 300 then
-                        trigger.action.smoke(Utils.VectorAdd(v.currentPoint, Utils.ScalarMult(atmosphere.getWind(v.currentPoint), 10 + math.random(5))), v.smokeColor)
-                        v.smokeTime = timer:getTime()
-                    end
-                end
-                v.inContact = true
-            else
-                groupCount = groupCount - 1
-                casMessage = "Target destroyed!"
-                if targetKillers[k] then
-                    for playerName, groupId in pairs(targetKillers[k]) do
-                        if WWEvents then
-                            WWEvents.playerCasMissionCompleted(playerName, v.coalitionId, " killed an enemy group in contact with " .. v.callsign)
-                        end
-                        trigger.action.outTextForGroup(groupId, "You have destroyed an enemy group in contact with " .. v.callsign .. "!", 15, false)
-                    end
-                else
-                    env.info("No players killed enemies for this group: " .. k, false)
-                end
-                targetKillers[k] = nil
-                v.targetGroups[group] = nil
-            end
-        end
-        if v.inContact then
-            if groupCount < 1 then v.inContact = false end
-            local casGroup = Group.getByName(k)
-            if casGroup then
-                cas.groupMarkups(v.currentPoint, k, v.inContact, v.smokeColor)
-                local casController = casGroup:getController()
-                if casController then
-                    local msg = {
-                        id = 'TransmitMessage',
-                        params = {
-                            duration = 30,
-                            subtitle = casMessage,
-                            loop = false,
-                            file = "l10n/DEFAULT/Alert.ogg",
-                        }
-                    }
-                    casController:setCommand(msg)
-                    for groupName, active in pairs(casGroups[v.coalitionId]) do
-                        local group = Group.getByName(groupName)
-                        if group then
-                            local groupId = group:getID()
-                            if groupId then
-                                trigger.action.outTextForGroup(groupId, casMessage, 30, false)
-                            end
-                        else
-                            casGroups[groupName] = nil
-                        end
-                    end
-                end
-            end
-        end
-    end
-    timer.scheduleFunction(cas.designationLoop, nil, timer:getTime() + 15)
-end
+
 function cas.stopGroup(groupName)
     if stoppedGroups[groupName] == nil then
         local group = Group.getByName(groupName)
@@ -496,7 +392,5 @@ function cas.trackCas()
     end
 end
 
---cas.loop()
---cas.designationLoop()
 cas.loadZones()
 cas.stackLoop()
