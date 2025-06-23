@@ -1730,7 +1730,8 @@ function DFS.smokeGroup(groupName, smokeColor)
         if missionUnit then
             local missionPos = missionUnit:getPoint()
             if missionPos then
-                trigger.action.smoke(Utils.VectorAdd(missionPos, Utils.ScalarMult(atmosphere.getWind(missionPos), 10 + math.random(5))), smokeColor)
+                trigger.action.smoke(Utils.VectorAdd(missionPos, Utils.ScalarMult(atmosphere.getWind(missionPos), 10 + math.random(5))), smokeColor, groupName.."_smk")
+                timer.scheduleFunction(trigger.action.effectSmokeStop, groupName.."_smk", timer:getTime()+295)
             end
         end
     end

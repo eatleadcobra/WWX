@@ -27,7 +27,7 @@ local csarMissions = {
     [1] = {},
     [2] = {}
 }
-local floorIsLava = {}
+local activeAirbases = {}
 local smokeColors = {
     [0] = "green",
     [1] = "red",
@@ -101,7 +101,7 @@ function CSB.load()
         trigger.action.circleToAll(2,DrawingTools.newMarkId(),csarPoints[2],csarZoneRadius,{0,0,1,0.6},{0,0,0,0}, 4, true, "")
         trigger.action.textToAll(2, DrawingTools.newMarkId(), csarPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CSAR Coverage")
     end
-    CSB.buildLavaList()
+    CSB.buildMissionAirbaseList()
     CSB.main()
     for c = 1, 2 do
         for z = 1, #CSARBases[c] do
@@ -151,9 +151,7 @@ function CSB.searchCsarStacks()
                             env.info("player already checked-in for CSAR: "..foundPlayerName, false)
                             env.info("csarMission count for " .. c .. " is " .. #csarMissions[c], false)
                             if #csarMissions[c] < 1 then
-                                --env.info("calling csarCheckIn for: " .. foundPlayerName, false)
                                 trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 20, false)
-                                --CSB.csarCheckIn(foundPlayerName, playerCoalition, playerGroupID, playerGroupName, playerTypeName, playerUnitName, true)
                                 env.info("setting genCsarFlag to true", false)
                                 genCsarFlag = true
                                 genCsarCoalition = playerCoalition
@@ -205,32 +203,32 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     local pos = inUnit:getPoint()
     local agl = Utils.getAGL(pos)
     local p1 = {x = pos.x, y = 0, z = pos.z}
-    local cwispy = false
-    local volcanoName = nil
-    local volcanoSide = 0
-    local oppo = 2
+    local isCloseToBase = false
+    local airbaseName = nil
+    local airbaseSide = 0
+    local opposition = 2
     local enemyBase = false
     local pilotStr = " (AI)"
     if playerName then pilotStr = " (" .. playerName .. ")" end
-    if coalitionId == 2 then oppo = 1 end
-    for volcano,lavaVent in pairs(floorIsLava) do
-        local p2 = {x = lavaVent.pos.x, y = 0, z = lavaVent.pos.z}
+    if coalitionId == 2 then opposition = 1 end
+    for abName,abInfo in pairs(activeAirbases) do
+        local p2 = {x = abInfo.pos.x, y = 0, z = abInfo.pos.z}
         local dist = Utils.PointDistance(p1,p2)
         if dist < csarAutoProcRadius then
-            cwispy = true
-            volcanoName = volcano
-            volcanoSide = lavaVent.side
-            if lavaVent.side == oppo then enemyBase = true end
+            isCloseToBase = true
+            airbaseName = abName
+            airbaseSide = abInfo.side
+            if abInfo.side == opposition then enemyBase = true end
             break
         end
     end
-    if cwispy and volcanoSide ~= 0 then
+    if isCloseToBase and airbaseSide ~= 0 then
         if enemyBase then
-            trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to enemy airbase at " .. volcanoName .. " and was captured.",20,false)
+            trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to enemy airbase at " .. airbaseName .. " and was captured.",20,false)
             -- placeholder: maybe use a recon function to reveal some targets due to interrogation
-            if DFS then DFS.IncreaseFrontSupply({coalitionId = oppo, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
+            if DFS then DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
         else
-            trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to friendly airbase at " .. volcanoName .. " and was picked up.",20,false)
+            trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to friendly airbase at " .. airbaseName .. " and was picked up.",20,false)
         end
         return
     end
@@ -443,7 +441,7 @@ function CSB.closestBaseTo(p)
     local closestBaseDist = math.huge
     local csarX = p.x
     local csarZ = p.z
-    for n,o in pairs(floorIsLava) do
+    for n,o in pairs(activeAirbases) do
         local xDiff = csarX - o.pos.x
         local zDiff = csarZ - o.pos.z
         local dist = (xDiff^2 + zDiff^2)^0.5
@@ -460,6 +458,8 @@ end
 function CSB.wellnessCheck(coalitionId)
     local safeAsHouses = {}
     local checkTime = timer.getTime()
+    local opposition = 2
+    if coalitionId == 2 then opposition = 1 end
     for _,m in pairs(csarMissions[coalitionId]) do
         if not m.skipWellness then
             local timeLeft = true
@@ -471,6 +471,10 @@ function CSB.wellnessCheck(coalitionId)
                 table.insert(safeAsHouses,m)
             else
                 trigger.action.outTextForCoalition(coalitionId, "!!! " .. m.displayName .. "'s transponder is no longer active...",20,false)
+                -- placeholder for possible recon integration
+                if math.random() < 0.5 then
+                    if DFS then DFS.IncreaseFrontSupply({{coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT}}) end
+                end
                 CSB.cleanupCsarGroup(m)
             end
         else
@@ -500,103 +504,107 @@ function CSB.trackCsar()
                 local playerAgl = Utils.getAGL(playerPos)
                 local playerHdg = Utils.getHdgFromPosition(playerUnit:getPosition())
                 local playerTypeName = playerUnit:getTypeName()
+                local playerName = playerUnit:getPlayerName()
                 local pUnitName = playerUnit:getName()
                 local pVelo = playerUnit:getVelocity()
                 local inSafeVeloParams = CSB.checkVelocity(pVelo,1.5)
                 v.typeName = playerTypeName -- keep it current in case relevant for weight/volume
                 local noRoomAtInn = false
                 local transporterTable = DFS.helos[v.groupName]
+                local skipRest = false
                 if transporterTable then
                     if transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[playerTypeName].volume then noRoomAtInn = true end
                 else
-                    env.info("[CSARBot] transporterTable was nil", false)
-                    return
+                    env.info("[CSARBot] transporterTable was nil for " .. playerName, false)
+                    skipRest = true
                 end
-                for _,m in pairs(csarMissions[c]) do
-                    if not m.skipWellness then
-                        local dist = Utils.PointDistance(playerPos, m.point)
-                        local clockBearing = Utils.relativeClockBearing(playerPos, m.point, playerHdg)
-                        if dist < csarBreakCoverRange then
-                            local pContacted = false
-                            for _,h in pairs(m.contacts) do
-                                if h == pUnitName then
-                                    pContacted = true
-                                    break
+                if not skipRest then
+                    for _,m in pairs(csarMissions[c]) do
+                        if not m.skipWellness then
+                            local dist = Utils.PointDistance(playerPos, m.point)
+                            local clockBearing = Utils.relativeClockBearing(playerPos, m.point, playerHdg)
+                            if dist < csarBreakCoverRange then
+                                local pContacted = false
+                                for _,h in pairs(m.contacts) do
+                                    if h == pUnitName then
+                                        pContacted = true
+                                        break
+                                    end
                                 end
-                            end
-                            if not pContacted and not m.radioSilence then
-                                -- they do want this smoke
-                                local smokeColor = smokeColors[m.smokeNum]
-                                trigger.action.outTextForGroup(v.groupID, "This is " .. m.displayName .. ", have eyes on - popping " .. smokeColor .. " smoke to your " .. clockBearing .. " o'clock.", 30, false)
-                                table.insert(m.contacts, pUnitName)
-                                if DFS and DFS.smokeGroup then DFS.smokeGroup(m.groupName, m.smokeNum) end
-                                if cb and cb.flareGroup then cb.flareGroup(m.groupName) end
-                                m.smokeTime = timer.getTime()
-                            else
-                                -- too long
-                                if (timer.getTime() - m.smokeTime > 300) and not m.radioSilence then
+                                if not pContacted and not m.radioSilence then
+                                    -- they do want this smoke
                                     local smokeColor = smokeColors[m.smokeNum]
-                                    trigger.action.outTextForGroup(v.groupID, "This is " .. m.displayName .. ", popping fresh " .. smokeColor .. " smoke to your " .. clockBearing .. " o'clock.", 30, false)
+                                    trigger.action.outTextForGroup(v.groupID, "This is " .. m.displayName .. ", have eyes on - popping " .. smokeColor .. " smoke to your " .. clockBearing .. " o'clock.", 30, false)
+                                    table.insert(m.contacts, pUnitName)
                                     if DFS and DFS.smokeGroup then DFS.smokeGroup(m.groupName, m.smokeNum) end
                                     if cb and cb.flareGroup then cb.flareGroup(m.groupName) end
                                     m.smokeTime = timer.getTime()
-                                end
-                                if dist < csarBreakCoverRange * 0.5 then
-                                    local nicedist = math.floor(dist * 10)/10
-                                    local outText = nil
-                                    if noRoomAtInn then
-                                        outText = "The airframe is at it's volume limit. Extraction not possible."
-                                    else
-                                        if playerTypeName ~= "AV8BNA" and playerTypeName ~= "Yak-52" then
-                                            outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
-                                            -- hover pick-up check
-                                            if dist < csarHoverRadius then
-                                                if playerAgl <= csarHoverAgl and playerAgl > 3 then
-                                                    if inSafeVeloParams then
-                                                        local hoverTime = m.winchers[pUnitName]
-                                                        if not hoverTime then
-                                                            hoverTime = timer.getTime()
-                                                            m.winchers[pUnitName] = timer.getTime()
-                                                        end
-                                                        hoverTime = timer.getTime() - hoverTime
-                                                        local countdown = math.floor(csarHoverTime - hoverTime)
-                                                        outText = "Winch Op: " .. nicedist .. "m to your " .. clockBearing .. " o'clock. Package inbound...(" .. countdown .. "s)"
-                                                        if hoverTime > csarHoverTime then
-                                                            outText = "Winch Op: Package secured. " .. m.name .. " ready for RTB."
-                                                            table.insert(v.onBoard,m)
-                                                            CSB.cleanupCsarGroup(m)
-                                                            m.status = 1
-                                                            didYouEvenLift = true
-                                                            transporterTable.addedMass = transporterTable.addedMass + csarTroopMass
-                                                            transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed + csarTroopVol
-                                                            trigger.action.setUnitInternalCargo(pUnitName, transporterTable.addedMass)
+                                else
+                                    -- too long
+                                    if (timer.getTime() - m.smokeTime > 300) and not m.radioSilence then
+                                        local smokeColor = smokeColors[m.smokeNum]
+                                        trigger.action.outTextForGroup(v.groupID, "This is " .. m.displayName .. ", popping fresh " .. smokeColor .. " smoke to your " .. clockBearing .. " o'clock.", 30, false)
+                                        if DFS and DFS.smokeGroup then DFS.smokeGroup(m.groupName, m.smokeNum) end
+                                        if cb and cb.flareGroup then cb.flareGroup(m.groupName) end
+                                        m.smokeTime = timer.getTime()
+                                    end
+                                    if dist < csarBreakCoverRange * 0.5 then
+                                        local nicedist = math.floor(dist * 10)/10
+                                        local outText = nil
+                                        if noRoomAtInn then
+                                            outText = "The airframe is at it's volume limit. Extraction not possible."
+                                        else
+                                            if playerTypeName ~= "AV8BNA" and playerTypeName ~= "Yak-52" then
+                                                outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
+                                                -- hover pick-up check
+                                                if dist < csarHoverRadius then
+                                                    if playerAgl <= csarHoverAgl and playerAgl > 3 then
+                                                        if inSafeVeloParams then
+                                                            local hoverTime = m.winchers[pUnitName]
+                                                            if not hoverTime then
+                                                                hoverTime = timer.getTime()
+                                                                m.winchers[pUnitName] = timer.getTime()
+                                                            end
+                                                            hoverTime = timer.getTime() - hoverTime
+                                                            local countdown = math.floor(csarHoverTime - hoverTime)
+                                                            outText = "Winch Op: " .. nicedist .. "m to your " .. clockBearing .. " o'clock. Package inbound...(" .. countdown .. "s)"
+                                                            if hoverTime > csarHoverTime then
+                                                                outText = "Winch Op: Package secured. " .. m.name .. " ready for RTB."
+                                                                table.insert(v.onBoard,m)
+                                                                CSB.cleanupCsarGroup(m)
+                                                                m.status = 1
+                                                                didYouEvenLift = true
+                                                                transporterTable.addedMass = transporterTable.addedMass + csarTroopMass
+                                                                transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed + csarTroopVol
+                                                                trigger.action.setUnitInternalCargo(pUnitName, transporterTable.addedMass)
+                                                            end
+                                                        else
+                                                            outText = "Winch Op: We're drifting, need to lock in...package is " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
                                                         end
                                                     else
-                                                        outText = "Winch Op: We're drifting, need to lock in...package is " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
+                                                        if playerAgl > csarHoverAgl then
+                                                            outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock - land, or descend to below " .. csarHoverAgl .. "m AGL for winching."
+                                                        elseif playerUnit:inAir() == false then -- could be on ground but was too fast when landing event was processed
+                                                            CSB.checkCsarLanding(playerUnit)
+                                                        end
+                                                        m.winchers[pUnitName] = nil
                                                     end
                                                 else
-                                                    if playerAgl > csarHoverAgl then
-                                                        outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock - land, or descend to below " .. csarHoverAgl .. "m AGL for winching."
-                                                    elseif playerUnit:inAir() == false then -- could be on ground but was too fast when landing event was processed
-                                                        CSB.checkCsarLanding(playerUnit)
-                                                    end
                                                     m.winchers[pUnitName] = nil
                                                 end
-                                            else
-                                                m.winchers[pUnitName] = nil
+                                                trigger.action.outTextForGroup(v.groupID, outText, 30 , true)
+                                                outText = nil
                                             end
-                                            trigger.action.outTextForGroup(v.groupID, outText, 30 , true)
-                                            outText = nil
                                         end
+                                        if outText then trigger.action.outTextForGroup(v.groupID, outText, 30 , false) end
+                                    else
+                                        m.winchers[pUnitName] = nil
                                     end
-                                    if outText then trigger.action.outTextForGroup(v.groupID, outText, 30 , false) end
-                                else
-                                    m.winchers[pUnitName] = nil
                                 end
                             end
                         end
-                    end
-                end -- end of csar rescues for loop
+                    end -- end of csar rescues for loop
+                end
             else
                 -- player no longer CSAR-viable, check-out
                 csarCheckIns[c][k] = nil
@@ -895,14 +903,15 @@ function CSB.checkVelocity(pVelo,limit)
     local zInParam = math.abs(pVelo.z) < vLimit
     return xInParam and yInParam and zInParam
 end
-function CSB.buildLavaList()
-    local aybabtu = world.getAirbases()
-    for _,base in pairs(aybabtu) do
+function CSB.buildMissionAirbaseList()
+    local missionAirbases = world.getAirbases()
+    for _,base in pairs(missionAirbases) do
         local baseType = base:getDesc().category
+        local baseName = base:getName()
         if baseType == 0 or baseType == 1 then
-            floorIsLava[base:getName()] = {}
-            floorIsLava[base:getName()].pos = base:getPoint()
-            floorIsLava[base:getName()].side = base:getCoalition()
+            activeAirbases[baseName] = {}
+            activeAirbases[baseName].pos = base:getPoint()
+            activeAirbases[baseName].side = base:getCoalition()
         end
     end
 end
