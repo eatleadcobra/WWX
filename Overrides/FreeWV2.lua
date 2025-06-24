@@ -147,6 +147,73 @@ PlatoonUnitCarrierTypeNames = {
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
 }
+PltStrengths = {
+    [1] = 8,
+    [2] = 3 + #Platoons[1]["DeployedInf"],
+    [3] = 2 + #Platoons[1]["DeployedInf"],
+    [7] = 1
+}
+PltCosts = {
+    [1] = {
+        [1] = 5, --fuel
+        [2] = 9, --ammo
+        [3] = 3, --equipment
+    },
+    [2] = {
+        [1] = 3, --fuel
+        [2] = 4, --ammo
+        [3] = 2, --equipment
+    },
+    [3] = {
+        [1] = 1, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
+    },
+    [7] = {
+        [1] = 4, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
+    },
+}
+CompanyCompTiers = {
+    [0] = {composition = nil},
+    [1] = {
+        --tank, apc, ifv, AD
+        composition = {1,2,3,7},
+    },
+    [2] = {
+        --tank, ifv, AD
+        composition = {1,3,7},
+    },
+    [3] = {
+        --ifv, apc, apc, AD
+        composition = {2,3,3,7},
+    },
+    [4] = {
+        --apc, apc, apc, AD
+        composition = {3,3,3,7},
+    },
+    [5] = {
+        --ifv, ifv, apc
+        composition = {2,2,3},
+    },
+    [6] = {
+        --ifv, apc, apc
+        composition = {2,3,3},
+    },
+    [7] = {
+        -- ifv, apc
+        composition = {2,3},
+    },
+    [8] = {
+        -- apc, apc
+        composition = {3,3},
+    },
+    [9] = {
+        -- apc
+        composition = {3},
+    },
+}
 CSARFreqs = {
     [1] = {
         ["NDB"] = {20,69},
