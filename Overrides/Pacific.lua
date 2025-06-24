@@ -46,10 +46,9 @@ Platoons = {
         ["DeployedInf"] = {
             [1] = "Paratrooper RPG-16",
             [2] = "Infantry AK ver2",
-            [3] = "Infantry AK ver2",
-            [4] = "Paratrooper RPG-16",
+            [3] = "Paratrooper RPG-16",
+            [4] = "Infantry AK ver2",
             [5] = "Infantry AK ver2",
-            [6] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
             [1] = "ATZ-5",
@@ -94,12 +93,11 @@ Platoons = {
             [1] = "Bedford_MWD",
         },
         ["DeployedInf"] = {
-            [1] = "Infantry AK ver2",
+            [1] = "Paratrooper RPG-16",
             [2] = "Infantry AK ver2",
-            [3] = "Infantry AK ver2",
-            [4] = "Paratrooper RPG-16",
+            [3] = "Paratrooper RPG-16",
+            [4] = "Infantry AK ver2",
             [5] = "Infantry AK ver2",
-            [6] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
             [1] = "Dry-cargo ship-2"
