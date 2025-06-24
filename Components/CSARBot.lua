@@ -473,7 +473,7 @@ function CSB.wellnessCheck(coalitionId)
                 trigger.action.outTextForCoalition(coalitionId, "!!! " .. m.displayName .. "'s transponder is no longer active...",20,false)
                 -- placeholder for possible recon integration
                 if math.random() < 0.5 then
-                    if DFS then DFS.IncreaseFrontSupply({{coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT}}) end
+                    if DFS then DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
                 end
                 CSB.cleanupCsarGroup(m)
             end
