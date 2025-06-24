@@ -1120,8 +1120,9 @@ function dfc.checkDeployedGroups()
     end
 end
 function dfc.isItSunset()
-    local elapsedTime = timer:getAbsTime()
-    if sunsetNotified == false and elapsedTime >= 65700 then
+    local missionTime = timer:getAbsTime()
+    if sunsetNotified == false and missionTime >= SUNSET then
+        trigger.action.outText("it is sunset my dudes", 10, false)
         WWEvents.sunsetDetected()
         sunsetNotified = true
     else

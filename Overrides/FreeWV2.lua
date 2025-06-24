@@ -1,4 +1,4 @@
-trigger.action.setUserFlag("MISSION_ID", 1)
+trigger.action.setUserFlag("MISSION_ID", 4)
 -- enabled features
 SUBS = false
 CAP = true
@@ -12,6 +12,8 @@ NAVALCONVOY = {
     [1] = false,
     [2] = false,
 }
+SUNSET = 65130 -- 18:05:30 local time
+RUNTIME = 46800 -- 13 hours runtime
 -- counts
 FDCount = 2
 AACount = 0
