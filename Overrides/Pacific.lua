@@ -100,16 +100,13 @@ Platoons = {
             [6] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "HarborTug",
-            [2] = "HarborTug",
+            [1] = "Dry-cargo ship-2"
         },
         ["AmmoConvoy"] = {
-            [1] = "HarborTug",
-            [2] = "HarborTug",
+            [1] = "Dry-cargo ship-2"
         },
         ["EquipmentConvoy"] = {
-            [1] = "HarborTug",
-            [2] = "HarborTug",
+            [1] = "Dry-cargo ship-2"
         },
         ["EmbeddedAD"] = {
             [1] = "tt_DSHK"
