@@ -88,6 +88,27 @@ function fbEvents:onEvent(event)
                 playerName = event.initiator:getPlayerName()
             end
         end
+        if event.pos then
+            local markPoint = event.pos
+            local nfzNames = {
+                [1] = "No Fly Zone Red",
+                [2] = "No Fly Zone Blue"
+            }
+            for i = 1, #nfzNames do
+               local nfz = trigger.misc.getZone(nfzNames[i])
+                if nfz then
+                    local nfzpoint = nfz.point
+                    local nfzradius = nfz.radius
+                    if nfzpoint and nfzradius then
+                        if Utils.PointDistance(markPoint, nfzpoint) <= nfzradius then
+                            env.info("Blocking fire mission mark from within NFZ-"..i, false)
+                            trigger.action.removeMark(event.idx)
+                            return
+                        end
+                    end
+                end
+            end
+        end
         if (string.upper(event.text) == 'I') then
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "STARSHELL", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
