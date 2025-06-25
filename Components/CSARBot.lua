@@ -225,8 +225,23 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
     if isCloseToBase and airbaseSide ~= 0 then
         if enemyBase then
             trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to enemy airbase at " .. airbaseName .. " and was captured.",20,false)
-            -- placeholder: maybe use a recon function to reveal some targets due to interrogation
-            if DFS then DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
+            if Recon and math.random() < 0.02 then
+                local msns = Recon.getCurrentMissionsByCoalition(opposition)
+                local locmsns = {}
+                if msns then
+                    for k,v in pairs(msns) do
+                        if v.type == 2 then table.insert(locmsns,k) end
+                    end
+                    if locmsns then
+                        local msnId = locmsns[math.random(#locmsns)]
+                        Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
+                        local nearestBase, dist, dir = CSB.closestBaseTo(msns[msnId].point)
+                        trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed enemy positions " .. dist .. "km " .. dir .. " of " .. nearestBase, 10, false)
+                    end
+                end
+            elseif DFS and math.random() < 0.33 then
+                DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT})
+            end
         else
             trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to friendly airbase at " .. airbaseName .. " and was picked up.",20,false)
         end
@@ -471,9 +486,22 @@ function CSB.wellnessCheck(coalitionId)
                 table.insert(safeAsHouses,m)
             else
                 trigger.action.outTextForCoalition(coalitionId, "!!! " .. m.displayName .. "'s transponder is no longer active...",20,false)
-                -- placeholder for possible recon integration
-                if math.random() < 0.5 then
-                    if DFS then DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT}) end
+                if Recon and math.random() < 0.02 then
+                    local msns = Recon.getCurrentMissionsByCoalition(opposition)
+                    local locmsns = {}
+                    if msns then
+                        for k,v in pairs(msns) do
+                            if v.type == 2 then table.insert(locmsns,k) end
+                        end
+                        if #locmsns > 0 then
+                            local msnId = locmsns[math.random(#locmsns)]
+                            local nearestBase, dist, dir = CSB.closestBaseTo(msns[msnId].point)
+                            Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
+                            trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed enemy positions " .. dist .. "km " .. dir .. " of " .. nearestBase, 10, false)
+                        end
+                    end
+                elseif DFS and math.random() < 0.33 then
+                    DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT})
                 end
                 CSB.cleanupCsarGroup(m)
             end
@@ -923,7 +951,7 @@ function CSB.debugCsarGeneration()
     timer.scheduleFunction(CSB.debugCsarGeneration,nil,timer.getTime()+10)
     for i=1,2 do
         if #csarMissions[i] < 2 then
-            CSB.generateCsar(nil,i,nil,nil,nil,nil,nil,nil,false)
+            CSB.generateCsar(nil,i,nil,nil,nil,nil,{480,720},nil,false)
         end
     end
 end

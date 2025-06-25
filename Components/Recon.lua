@@ -166,6 +166,22 @@ function Recon.removeRadioCommandsForGroup(groupID)
     missionCommands.removeItemForGroup(groupID, {[1] = "Check Recon Parameters"})
     missionCommands.removeItemForGroup(groupID, {[1] = "Unload Recon Equipment"})
 end
+function Recon.getCurrentMissionsByCoalition(coalitionId)
+    if coalitionId then
+        return currentMissions[coalitionId]
+    end
+end
+function Recon.processCompletedMission(coalitionId, missionId, playerGroupID, capturedBy)
+    if not playerGroupID then
+        local mission = currentMissions[coalitionId][missionId]
+        if mission and capturedBy then
+            mission.capturedBy = capturedBy
+            captures[capturedBy] = {}
+            captures[capturedBy][missionId] = {}
+        end
+    end
+    recon.processCompletedMission(coalitionId, missionId, playerGroupID)
+end
 function recon.registerReconGroup(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup ~= nil then
@@ -340,7 +356,7 @@ function recon.processLocation(mission, playerGroupId)
             end
         end
     end
-    trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
+    if playerGroupId then trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false) end
 end
 function recon.processBP(mission, playerGroupId)
     local reconnedUnits = {}
