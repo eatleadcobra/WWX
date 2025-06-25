@@ -205,17 +205,17 @@ function DrawingTools.drawCamera(coalitionId, point)
     --return the circle midpoint for fill location
     local rectangleId = DrawingTools.newMarkId()
     local rectEndPoint = {x = point.x + 250, y= 0, z = point.z + 400}
-    trigger.action.rectToAll(coalitionId, rectangleId, point, rectEndPoint, {0,0,0,1}, {1,1,1,1}, 1, true, nil)
+    trigger.action.rectToAll(coalitionId, rectangleId, point, rectEndPoint, {0,0,0,1}, {1,1,1,0.8}, 1, true, nil)
     local rectMidPoint = {x = point.x + 125, y=0, z = point.z + 200}
-    trigger.action.circleToAll(coalitionId, DrawingTools.newMarkId(), rectMidPoint, 80, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    trigger.action.circleToAll(coalitionId, DrawingTools.newMarkId(), rectMidPoint, 80, {0,0,0,1}, {0,0,0,0.8}, 1, true, nil)
     local shutterButtonStartPoint = {x = point.x + 250, y = 0, z = point.z + 25}
     local shutterButtonEndPoint = {x = shutterButtonStartPoint.x + 25, y = 0, z = shutterButtonStartPoint.z + 40}
-    trigger.action.rectToAll(coalitionId, DrawingTools.newMarkId(), shutterButtonStartPoint, shutterButtonEndPoint, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    trigger.action.rectToAll(coalitionId, DrawingTools.newMarkId(), shutterButtonStartPoint, shutterButtonEndPoint, {0,0,0,1}, {0,0,0,0.8}, 1, true, nil)
     local viewFinderBottomLeft = {x = shutterButtonStartPoint.x, y=0, z = rectMidPoint.z - 60}
     local viewFinderTopLeft = {x = viewFinderBottomLeft.x + 40, y=0, z = rectMidPoint.z - 40}
     local viewFinderTopRight = {x = viewFinderBottomLeft.x + 40, y=0, z = rectMidPoint.z + 40}
     local viewFinderBottomRight = {x = shutterButtonStartPoint.x, y=0, z = rectMidPoint.z + 60}
-    trigger.action.quadToAll(coalitionId, DrawingTools.newMarkId(), viewFinderBottomLeft, viewFinderTopLeft, viewFinderTopRight, viewFinderBottomRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
+    trigger.action.quadToAll(coalitionId, DrawingTools.newMarkId(), viewFinderBottomLeft, viewFinderTopLeft, viewFinderTopRight, viewFinderBottomRight, {0,0,0,1}, {0,0,0,0.8}, 1, true, nil)
     return rectMidPoint
 end
 function DrawingTools.drawTriangle(coalitionId, centerPoint, length)
