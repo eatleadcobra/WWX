@@ -16,7 +16,7 @@ function dfrecon.depotLoop()
                         if missionUnit then
                             local missionPoint = missionUnit:getPoint()
                             if missionPoint then
-                                Recon.createEnemyLocationMission(c, missionPoint, missionGroupName)
+                                Recon.createEnemyLocationMissionNoMarker(c, missionPoint, missionGroupName)
                             end
                         end
                     end
