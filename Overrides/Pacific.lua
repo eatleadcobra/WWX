@@ -122,6 +122,7 @@ PlatoonUnitCarrierTypeNames = {
     ["M2A1_halftrack"] = "APC",
     ["Bedford_MWD"] = "APC",
     ["Type_98_So_Da"] =  "APC",
+    ["Sd_Kfz_251"] = "APC",
 }
 
 PlatoonFlakCarrierTypeNames = {
