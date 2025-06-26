@@ -20,7 +20,7 @@ local maxKHzTable = {
 }
 local startKHzTable = {
     [1] = 150,
-    [2] = 125
+    [2] = 200
 }
 local buoyCreatedCount = {
     [1] = {
@@ -77,7 +77,8 @@ local planeRadioTypes = {
         ["Mi-24P"] = 3,
         ["C-101CC"] = 4,
         ["SA342L"] = 5,
-        ["SA342Minigun"] = 6
+        ["SA342Minigun"] = 6,
+        ["UH-1H"] = 7,
     },
     mhz = {
         ["MosquitoFBMkVI"] = 1,
@@ -90,6 +91,7 @@ local mpra = {
     ["MosquitoFBMkVI"] = 1,
     ["C-101CC"] = 1,
     ["Mi-8MT"] = 1,
+    ["UH-1H"] = 1,
     ["P-47D-30bl1"] = 1,
     ["P-47D-40"] = 1,
 }
