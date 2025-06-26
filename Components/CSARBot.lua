@@ -234,9 +234,11 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
                     end
                     if locmsns then
                         local msnId = locmsns[math.random(#locmsns)]
-                        Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
-                        local nearestBase, dist, dir = CSB.closestBaseTo(msns[msnId].point)
-                        trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed enemy positions " .. dist .. "km " .. dir .. " of " .. nearestBase, 10, false)
+                        if msnId then
+                            local nearestBase, dist, dir = CSB.closestBaseTo(msns[msnId].point)
+                            Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
+                            trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed enemy positions " .. dist .. "km " .. dir .. " of " .. nearestBase, 10, false)
+                        end
                     end
                 end
             elseif DFS and math.random() < 0.33 then
