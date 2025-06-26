@@ -192,15 +192,13 @@ function cpyctl.cpyStatusLoop()
                             break
                         end
                     end
-                    local lastUnit = cpyGroup:getUnit(cpyGroup:getSize())
                     local firstUnit = cpyGroup:getUnit(1)
-                    if lastUnit and firstUnit then
-                        local lastUnitVelocity = lastUnit:getVelocity()
+                    if firstUnit then
                         local firstUnitVelocity = firstUnit:getVelocity()
-                        if lastUnitVelocity and firstUnitVelocity then
-                            if Utils.getSpeed(firstUnitVelocity) <= 0.3 and Utils.getSpeed(lastUnitVelocity) <= 0.3 and cpy.isDeployed == false then
+                        if firstUnitVelocity then
+                            if Utils.getSpeed(firstUnitVelocity) <= 0.3 and cpy.isDeployed == false then
                                 cpy:deploy()
-                            elseif (Utils.getSpeed(firstUnitVelocity) > 0.3 or Utils.getSpeed(lastUnitVelocity) > 0.3) and cpy.isDeployed then
+                            elseif Utils.getSpeed(firstUnitVelocity) > 0.3 and cpy.isDeployed then
                                 cpy:undeploy()
                             end
                         end
