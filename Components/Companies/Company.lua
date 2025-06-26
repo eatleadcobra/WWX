@@ -48,6 +48,7 @@ Company = {
     casTracked = false,
     convoyParam = {},
     groupType = 2,
+    spawnTime = 0,
 }
 function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, convoyParam, navalUnit)
     local newCpy = Company:deepcopy()
@@ -106,6 +107,7 @@ function Company.newFromTable(cpyData)
     newCpy.isShip = cpyData.isShip
     newCpy.convoyParam = cpyData.convoyParam
     newCpy.groupType = cpyData.groupType
+    newCpy.spawnTime = 0
     return newCpy
 end
 function Company.setWaypoints(self, waypoints, bp, speed)
@@ -120,6 +122,7 @@ function Company.setWaypoints(self, waypoints, bp, speed)
     if speed then self.speed = speed end
 end
 function Company.spawn(self)
+    self.spawnTime = timer.getTime()+1
     local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
     if self.isShip then
         points = self.waypoints
@@ -186,6 +189,7 @@ function Company.updateMission(self, listOfPoints, bp)
             local newWaypoints = SpawnFuncs.createWPListFromPoints(points)
             local newMission = SpawnFuncs.createMission(newWaypoints)
             cpyController:setTask(newMission)
+            self.spawnTime = timer.getTime()
         end
     end
 end

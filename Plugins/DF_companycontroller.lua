@@ -7,6 +7,7 @@ local cpyctl = {}
 local tankFuelConsumption = math.floor(PltCosts[1][1]/2)
 local ifvFuelConsumption = 1
 local apcFuelConsumption = 0.3
+local cpyTimeLimit = 2700
 
 local fuelConsumptionInterval = 900
 CpyControl = {}
@@ -176,13 +177,21 @@ function cpyctl.cpyStatusLoop()
                 end
                 local cpyGroup = Group.getByName(cpy.groupName)
                 if cpyGroup then
+                    cpy:updateUnits(cpyGroup:getUnits())
                     if cpy.casTracked and designated[c][cpy.groupName] == nil then
                         CAS.checkGroup(cpy.groupName)
                         CAS.designateGroup(cpy.groupName)
                         designated[c][cpy.groupName] = true
                         timer.scheduleFunction(cpyctl.cleanDesGroup, {coalitionId = c, groupName = cpy.groupName}, timer:getTime() + 30)
                     end
-                    cpy:updateUnits(cpyGroup:getUnits())
+                    if cpy.isShip == false and cpy.isConvoy == false and cpy.spawnTime and cpy.spawnTime ~= 0 then
+                        if timer:getTime() - cpy.spawnTime > cpyTimeLimit then
+                            cpy:savePosition()
+                            cpy:despawn()
+                            cpy:spawn()
+                            break
+                        end
+                    end
                     local lastUnit = cpyGroup:getUnit(cpyGroup:getSize())
                     local firstUnit = cpyGroup:getUnit(1)
                     if lastUnit and firstUnit then
@@ -226,7 +235,7 @@ function cpyctl.teamFuelConsumptionLoop()
     for i = 1, #CompanyIDs[c] do
         local company = Companies[CompanyIDs[c][i]]
         if company then
-            if company.isConvoy == false and company.status ~= companyStatuses["Defeated"] then
+            if company.isShip == false and company.isConvoy == false and company.status ~= companyStatuses["Defeated"] then
                 teamFuelConsumption = teamFuelConsumption + cpyctl.getCompanyFuelCost(company)
             end
         end
