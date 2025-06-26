@@ -446,7 +446,7 @@ DFS.status = {
     subLifeTime = 7199,
     --resupply amts
     convoyResupplyAmts = {
-        [1] = 38,
+        [1] = 57,
         [2] = 100,
         [3] = 18,
     },
