@@ -6,7 +6,7 @@
 local cpyctl = {}
 local tankFuelConsumption = math.floor(PltCosts[1][1]/2)
 local ifvFuelConsumption = 1
-local apcFuelConsumption = 0.3
+local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
 
 local fuelConsumptionInterval = 900
