@@ -438,7 +438,7 @@ DFS.status = {
     convoyBaseTime = 3299,
     convoySeparationTime = 89,
     newConvoySeparationTime = 359,
-    shipConvoyInterval = 3599,
+    shipConvoyInterval = 1799,
     submarineInterval = 2399,
     submarineMaxDelayLim = 900,
     submarinePlayerCountReduction = 540,
@@ -451,9 +451,9 @@ DFS.status = {
         [3] = 18,
     },
     shippingResupplyAmts = {
-        [1] = 240,
-        [2] = 600,
-        [3] = 96,
+        [1] = 120,
+        [2] = 300,
+        [3] = 48,
     },
     playerResupplyAmts = {
         [1] = {
@@ -1034,6 +1034,22 @@ function dfc.checkFDHealth()
                 groupDead = true
             elseif depotGroup:getSize()/depotGroup:getInitialSize() <= 0.2 then
                 groupDead = true
+            else
+                local groupSize = depotGroup:getSize()
+                local aaCount = 0
+                if groupSize then
+                    for j = 1, groupSize do
+                        local unit = depotGroup:getUnit(j)
+                        if unit then
+                            if unit:hasAttribute("AAA") then
+                                aaCount = aaCount + 1
+                            end
+                        end
+                    end
+                end
+                if groupSize - aaCount <= 0 then
+                    groupDead = true
+                end
             end
             if groupDead then
                 if depotGroup then
@@ -1072,6 +1088,22 @@ function dfc.checkRDHealth()
                 groupDead = true
             elseif depotGroup:getSize()/depotGroup:getInitialSize() < 0.2 then
                 groupDead = true
+            else
+                local groupSize = depotGroup:getSize()
+                local aaCount = 0
+                if groupSize then
+                    for j = 1, groupSize do
+                        local unit = depotGroup:getUnit(j)
+                        if unit then
+                            if unit:hasAttribute("AAA") then
+                                aaCount = aaCount + 1
+                            end
+                        end
+                    end
+                end
+                if groupSize - aaCount <= 0 then
+                    groupDead = true
+                end
             end
             if groupDead then
                 if depotGroup then

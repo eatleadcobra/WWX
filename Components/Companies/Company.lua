@@ -126,7 +126,7 @@ function Company.spawn(self)
     end
     if self.onRoad == false and self.arrived == false and self.isShip == false then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
-        local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 500))
+        local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 300))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
         local roadPoint = {x = roadPointx, y = 0, z = roadPointy}
         --create waypoint table from waypoints list
@@ -303,6 +303,9 @@ function Company.updateMarks(self)
             end
         end
     end
+end
+function Company.setStatus(self, status)
+    self.status = status
 end
 function Company.deepcopy(orig)
     local orig_type = type(orig)

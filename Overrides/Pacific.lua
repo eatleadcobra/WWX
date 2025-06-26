@@ -88,7 +88,7 @@ Platoons = {
         },
         ["Mech"] = {
             [1] = "M2A1_halftrack",
-            [3] = "Bedford_MWD"
+            [2] = "Bedford_MWD"
         },
         ["Inf"] = {
             [1] = "Bedford_MWD",

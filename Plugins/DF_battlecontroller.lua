@@ -575,17 +575,23 @@ function bc.assessBpStrength(coalitionId, bpId)
     return positionAssessedStrength
 end
 function bc.getAvailableStrengthTableTier(coalitionId)
-    local availableEquipmentPct =  bc.availableEquipmentPct(coalitionId)
+    local availableEquipmentPct =  bc.availableSupplyPct(coalitionId, DFS.supplyType.EQUIPMENT)
+    local availableFuelPct = bc.availableSupplyPct(coalitionId, DFS.supplyType.FUEL)
     local cpyTier = math.ceil((100-availableEquipmentPct)/10)
     if cpyTier == 0 then cpyTier = 1 end
     if cpyTier < 10 then
+        if cpyTier == 1 or cpyTier == 2 then
+            if availableFuelPct < 33 then
+                cpyTier = 3
+            end
+        end
         return cpyTier
     else
         return 0
     end
 end
-function bc.availableEquipmentPct(coalitionId)
-    return math.floor(DFS.status[coalitionId].supply.front[DFS.supplyType.EQUIPMENT] / DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT] * 100)
+function bc.availableSupplyPct(coalitionId, supplyType)
+    return math.floor(DFS.status[coalitionId].supply.front[supplyType] / DFS.status.maxSuppliesFront[supplyType] * 100)
 end
 function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
     local bpIdString = tostring(bpId)

@@ -4,11 +4,23 @@
 --remove lost units from available: DONE
 --persist and have provisions to respawn companies on mission load: DONE
 local cpyctl = {}
+local tankFuelConsumption = math.floor(PltCosts[1][1]/2)
+local ifvFuelConsumption = 1
+local apcFuelConsumption = 0.3
+
+local fuelConsumptionInterval = 900
 CpyControl = {}
 local convoyPltTypes = {
     [1] = 4,
     [2] = 5,
     [3] = 6,
+}
+local companyStatuses = {
+    ["Inactive"] = 1,
+    ["Moving"] = 2,
+    ["Defending"] = 3,
+    ["Under Attack"] = 4,
+    ["Defeated"] = 5,
 }
 function cpyctl.fileExists(file)
     local f = io.open(file, 'rb')
@@ -144,6 +156,12 @@ function cpyctl.cpyStatusLoop()
                 local currentPoint = cpy.point
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
+                    if cpy.status == companyStatuses["Defeated"] then
+                        cpy:despawn()
+                        cpyctl.reclaimCompany(cpy)
+                        cpy = nil
+                        break
+                    end
                 end
                 if cpy.isShip then
                     if #cpy.waypoints > 2 then
@@ -196,7 +214,64 @@ function cpyctl.cpyStatusLoop()
     end
     timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 10)
 end
-
+local fuelConsumptionTeam = math.random(1,2)
+function cpyctl.teamFuelConsumptionLoop()
+    local c = fuelConsumptionTeam
+    if fuelConsumptionTeam == 2 then
+        fuelConsumptionTeam = 1
+    else
+        fuelConsumptionTeam = 2
+    end
+    local teamFuelConsumption = 0
+    for i = 1, #CompanyIDs[c] do
+        local company = Companies[CompanyIDs[c][i]]
+        if company then
+            if company.isConvoy == false and company.status ~= companyStatuses["Defeated"] then
+                teamFuelConsumption = teamFuelConsumption + cpyctl.getCompanyFuelCost(company)
+            end
+        end
+    end
+    DFS.decreaseFrontSupply({coalitionId = c, type = DFS.supplyType.FUEL, amount = teamFuelConsumption})
+    if DFS.status[c].supply.front[DFS.supplyType.FUEL] <= 0 then
+        cpyctl.sendHomeArmoredGroup(c)
+    end
+    timer.scheduleFunction(cpyctl.teamFuelConsumptionLoop, nil, timer:getTime() + fuelConsumptionInterval/2)
+end
+function cpyctl.sendHomeArmoredGroup(coalitionId)
+    local cpyToReturn = nil
+    for i = 1, #CompanyIDs[coalitionId] do
+        local company = Companies[CompanyIDs[coalitionId][i]]
+        if company then
+            if company.isConvoy == false and company.status ~= companyStatuses["Defeated"] then
+                if company.groupName then
+                    local cpyGroup = Group.getByName(company.groupName)
+                    if cpyGroup then
+                        local cpyUnits = cpyGroup:getUnits()
+                        if cpyUnits then
+                            for j = 1, #cpyUnits do
+                                local evalUnit = cpyUnits[j]
+                                if evalUnit then
+                                    if evalUnit:hasAttribute("Tanks") then
+                                        cpyToReturn = company
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    if cpyToReturn then
+        local returnDepot = math.random(1,2)
+        cpyToReturn:setStatus(companyStatuses["Defeated"])
+        cpyToReturn.arrived = false
+        local startPoint = cpyToReturn.point
+        local destination = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..returnDepot).point
+        cpyToReturn:updateMission({startPoint, destination}, -1)
+    end
+end
 function cpyctl.getCompanyStrength(cpy)
     local tankCount = 0
     local carrierCount = 0
@@ -218,6 +293,40 @@ function cpyctl.getCompanyStrength(cpy)
     end
     local strengthscore = math.floor(tankCount * 16.6) + math.floor(carrierCount * 8.3)
     return strengthscore
+end
+function cpyctl.reclaimCompany(company)
+    if company then
+        local cpyCoaltion = company.coalitionId
+        DFS.IncreaseFrontSupply({coalitionId = cpyCoaltion, amount = PltCosts[1][3], type = DFS.supplyType.EQUIPMENT})
+    end
+end
+function cpyctl.getCompanyFuelCost(cpy)
+    local fuelCost = 0
+    if cpy.groupName then
+        local tankCount = 0
+        local ifvCount = 0
+        local apcCount = 0
+        local cpyGroup = Group.getByName(cpy.groupName)
+        if cpyGroup then
+            local cpyUnits = cpyGroup:getUnits()
+            if cpyUnits then
+                for i = 1, #cpyUnits do
+                    local evalUnit = cpyUnits[i]
+                    if evalUnit then
+                        if evalUnit:getTypeName() == Platoons[cpy.coalitionId]["Armor"][1] then
+                            tankCount = tankCount + 1
+                        elseif evalUnit:getTypeName() == Platoons[cpy.coalitionId]["Mech"][1] then
+                            ifvCount = ifvCount+1
+                        elseif evalUnit:getTypeName() == Platoons[cpy.coalitionId]["Inf"][1] then
+                            apcCount = apcCount+1
+                        end
+                    end
+                end
+            end
+        end
+        fuelCost = (tankCount * tankFuelConsumption) + (ifvCount * ifvFuelConsumption) + math.floor(apcCount * apcFuelConsumption)
+    end
+    return fuelCost
 end
 
 function cpyctl.getShipPoints(coalitionId)
@@ -243,3 +352,4 @@ cpyctl.spawnCompanies()
 
 cpyctl.saveLoop()
 cpyctl.cpyStatusLoop()
+cpyctl.teamFuelConsumptionLoop()
