@@ -4,8 +4,8 @@
 --remove lost units from available: DONE
 --persist and have provisions to respawn companies on mission load: DONE
 local cpyctl = {}
-local tankFuelConsumption = math.floor(PltCosts[1][1]/2)
-local ifvFuelConsumption = 1
+local tankFuelConsumption = (PltCosts[1][1]/4)
+local ifvFuelConsumption = 0.5
 local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
 
@@ -238,7 +238,7 @@ function cpyctl.teamFuelConsumptionLoop()
             end
         end
     end
-    DFS.decreaseFrontSupply({coalitionId = c, type = DFS.supplyType.FUEL, amount = teamFuelConsumption})
+    DFS.decreaseFrontSupply({coalitionId = c, type = DFS.supplyType.FUEL, amount = math.floor(teamFuelConsumption)})
     if DFS.status[c].supply.front[DFS.supplyType.FUEL] <= 0 then
         cpyctl.sendHomeArmoredGroup(c)
     end
