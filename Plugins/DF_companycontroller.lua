@@ -313,7 +313,7 @@ function cpyctl.reclaimCompany(company)
         for i = 1, #CompanyCompTiers[1].composition do
             pltEquipment = pltEquipment + PltCosts[CompanyCompTiers[1].composition[i]][DFS.supplyType.EQUIPMENT]
         end
-        DFS.IncreaseFrontSupply({coalitionId = cpyCoaltion, amount = PltCosts[1][3], type = DFS.supplyType.EQUIPMENT})
+        DFS.IncreaseFrontSupply({coalitionId = cpyCoaltion, amount = pltEquipment, type = DFS.supplyType.EQUIPMENT})
     end
 end
 function cpyctl.getCompanyFuelCost(cpy)
