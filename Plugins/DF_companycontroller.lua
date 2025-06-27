@@ -279,6 +279,8 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         cpyToReturn:updateMission({startPoint, destination}, -1)
         if cpyToReturn.callsign ~= nil then
             trigger.action.outTextForCoalition(coalitionId, "Company " .. cpyToReturn.callsign .. " does not have enough fuel to remain on the front and is returning to base.", 30, false)
+        else
+            trigger.action.outTextForCoalition(coalitionId, "One of our tank companies does not have enough fuel to remain on the front and is returning to base.", 30, false)
         end
     end
 end

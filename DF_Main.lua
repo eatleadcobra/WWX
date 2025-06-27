@@ -1056,6 +1056,9 @@ function dfc.checkFDHealth()
                     depotGroup:destroy()
                 end
                 local spawnZone = DFS.status[a].spawns.fd[i].spawnZone
+                local ownerString = "Red"
+                if a == 2 then ownerString = "Blue" end
+                trigger.action.outTextForAll(ownerString .. " front depot " .. spawnZone .. " has been destroyed!".. ownerString.." team has lost 1/"..DFS.status.fdSpawnTotal .. " of their front supplies.", 30, false)
                 table.remove(DFS.status[a].spawns.fd, i)
                 timer.scheduleFunction(dfc.respawnFrontDepot, {coalitionId = a, spawnZone = spawnZone}, timer.getTime() + DFS.status.fdSpawnDelay)
                 if #DFS.status[a].spawns.fd > 0  then
@@ -1113,6 +1116,9 @@ function dfc.checkRDHealth()
                 local subDepot = DFS.status[a].spawns.rd[i].subDepot
                 table.remove(DFS.status[a].spawns.rd, i)
                 timer.scheduleFunction(dfc.respawnRearDepot, {coalitionId = a, spawnZone = spawnZone, subDepot = subDepot}, timer.getTime() + DFS.status.rdSpawnDelay)
+                local ownerString = "Red"
+                if a == 2 then ownerString = "Blue" end
+                trigger.action.outTextForAll(ownerString .. " rear depot " .. spawnZone .."-"..subDepot.. " has been destroyed!".. ownerString.." team has lost 1/"..DFS.status.rdSpawnTotal*DFS.status.rdSpawnSubDepots .. " of their rear supplies.", 30, false)
 
                 if #DFS.status[a].spawns.rd > 0  then
                     local decreaseFuelAmt = math.floor((DFS.status[a].supply.rear[DFS.supplyType.FUEL]/2)/ (DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))
