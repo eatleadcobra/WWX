@@ -309,6 +309,10 @@ end
 function cpyctl.reclaimCompany(company)
     if company then
         local cpyCoaltion = company.coalitionId
+        local pltEquipment = 0
+        for i = 1, #CompanyCompTiers[1].composition do
+            pltEquipment = pltEquipment + PltCosts[CompanyCompTiers[1].composition[i]][DFS.supplyType.EQUIPMENT]
+        end
         DFS.IncreaseFrontSupply({coalitionId = cpyCoaltion, amount = PltCosts[1][3], type = DFS.supplyType.EQUIPMENT})
     end
 end

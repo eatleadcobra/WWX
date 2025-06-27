@@ -378,7 +378,8 @@ function bc.main()
                     radius = junkRadius
                 }
             }
-            world.removeJunk(junkSphere)
+            ---world.removeJunk(junkSphere)
+            timer.scheduleFunction(world.removeJunk, junkSphere, timer:getTime() + 300)
         end
     end
     DFS.status[1].health = redPositions

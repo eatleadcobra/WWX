@@ -976,7 +976,8 @@ function dfc.respawnRearDepot(param)
             radius = 1200
         }
     }
-    world.removeJunk(junkSphere)
+    --world.removeJunk(junkSphere)
+    timer.scheduleFunction(world.removeJunk, junkSphere, timer:getTime() + 300)
     table.insert(DFS.status[param.coalitionId].spawns.rd, {groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].depot, spawnPoint, 'clone'), spawnZone = param.spawnZone, subDepot = param.subDepot})
 end
 -- HEALTH CHECK FUNCS
