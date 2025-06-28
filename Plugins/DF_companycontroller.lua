@@ -140,7 +140,7 @@ local designated = {
 function cpyctl.cleanDesGroup(param)
     designated[param.coalitionId][param.groupName] = nil
 end
-local cpysPerLoop = 6
+local cpysPerLoop = 12
 function cpyctl.cpyStatusLoop()
     for c = 1,2 do
         local startIndex = cpyIndices[c]
@@ -219,7 +219,7 @@ function cpyctl.cpyStatusLoop()
             end
         end
     end
-    timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 10)
+    timer.scheduleFunction(cpyctl.cpyStatusLoop, nil, timer:getTime() + 5)
 end
 local fuelConsumptionTeam = math.random(1,2)
 function cpyctl.teamFuelConsumptionLoop()
