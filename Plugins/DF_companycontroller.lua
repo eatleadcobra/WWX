@@ -206,9 +206,8 @@ function cpyctl.cpyStatusLoop()
                 else
                     trigger.action.removeMark(cpy.markUps.destination)
                     trigger.action.removeMark(cpy.markUps.marker)
-                    if cpy.casTracked then
-                        CAS.cleanGroupMarkups(cpy.groupName)
-                    end
+                    env.info("Clean group markups for dead group: " .. cpy.groupName, false)
+                    CAS.cleanGroupMarkups(cpy.groupName)
                     Companies[CompanyIDs[c][i]] = nil
                     table.remove(CompanyIDs[c], i)
                     break

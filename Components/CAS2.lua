@@ -39,7 +39,7 @@ local targetKillers = {}
 
 cas.loopInterval = 5
 cas.battleLoopInterval = 9
-cas.engagementDistance = 3000
+cas.engagementDistance = 2500
 cas.dangerClose = 1200
 cas.casHeight = 1000
 cas.casRadius = 4000
@@ -283,6 +283,7 @@ function CAS.designateGroup(groupName)
             end
         else
             if groupName then
+                env.info("Clean markups for out of contact group: " .. groupName, false)
                 trigger.action.effectSmokeStop(groupName)
                 CAS.cleanGroupMarkups(groupName)
             end
@@ -315,16 +316,19 @@ function cas.groupMarkups(point, groupName, inContact, smokeColor)
             if groups[groupName].markups.radio and groups[groupName].markups.radioPoint and #groups[groupName].markups.radio > 0 then
                 local screenMarkupId = groups[groupName].markups.radio[3]
                 local groupMovedDist = Utils.PointDistance(point, groups[groupName].markups.radioPoint)
-                if groupMovedDist < 500 then
+                if groupMovedDist < 200 then
+                    env.info("Update radio color for group: " .. groupName, false)
                     DrawingTools.updateRadioColor(screenMarkupId, smokeColor)
                 else
                     for i = 1, #groups[groupName].markups.radio do
                         trigger.action.removeMark(groups[groupName].markups.radio[i])
                     end
+                    env.info("Move radio drawing for group: " .. groupName, false)
                     groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
                     groups[groupName].markups.radioPoint = point
                 end
             else
+                env.info("Drawing new radio for group: " .. groupName, false)
                 groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
                 groups[groupName].markups.radioPoint = point
             end
@@ -332,6 +336,7 @@ function cas.groupMarkups(point, groupName, inContact, smokeColor)
     else
         if groups[groupName].markups then
             if groups[groupName].markups.radio then
+                env.info("Remove radio color for out of contract group: " .. groupName, false)
                 for i = 1, #groups[groupName].markups.radio do
                     trigger.action.removeMark(groups[groupName].markups.radio[i])
                 end
