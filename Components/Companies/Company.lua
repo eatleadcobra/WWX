@@ -271,7 +271,6 @@ function Company.despawn(self)
     if cpyGroup then
         self:savePosition()
         cpyGroup:destroy()
-        self.status = 0
     end
 end
 function Company.savePosition(self)

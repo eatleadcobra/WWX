@@ -182,7 +182,7 @@ function CAS.cleanGroupMarkupsDelay(groupName)
     if casGroup then
         if casGroup.markups.radio then
             for i = 1, #casGroup.markups.radio do
-                timer.scheduleFunction(trigger.action.removeMark, groups[groupName].markups.radio[i], timer:getTime() + 1200)
+                timer.scheduleFunction(trigger.action.removeMark, groups[groupName].markups.radio[i], timer:getTime() + 1800)
             end
         end
     end
@@ -326,11 +326,13 @@ function cas.groupMarkups(point, groupName, inContact, smokeColor)
                     env.info("Move radio drawing for group: " .. groupName, false)
                     groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
                     groups[groupName].markups.radioPoint = point
+                    CAS.cleanGroupMarkupsDelay(groupName)
                 end
             else
                 env.info("Drawing new radio for group: " .. groupName, false)
                 groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
                 groups[groupName].markups.radioPoint = point
+                CAS.cleanGroupMarkupsDelay(groupName)
             end
         end
     else
