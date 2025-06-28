@@ -192,8 +192,8 @@ function CAS.cleanGroupMarkupsDelay(groupName)
     if casGroup then
         if casGroup.markups.radio then
             for i = 1, #casGroup.markups.radio do
-                timer.scheduleFunction(trigger.action.removeMark, groups[groupName].markups.radio[i], timer:getTime() + 900)
-                timer.scheduleFunction(CAS.cleanGroupMarkupTable, groupName, timer:getTime() + 900)
+                timer.scheduleFunction(trigger.action.removeMark, groups[groupName].markups.radio[i], timer:getTime() + 1800)
+                timer.scheduleFunction(CAS.cleanGroupMarkupTable, groupName, timer:getTime() + 1800)
             end
         end
     end
@@ -265,7 +265,7 @@ function CAS.designateGroup(groupName)
             if groupCount < 1 then desGroup.inContact = false end
             local casGroup = Group.getByName(groupName)
             if casGroup then
-                cas.groupMarkups(desGroup.currentPoint, groupName, desGroup.inContact, desGroup.smokeColor)
+                cas.groupMarkups(desGroup.currentPoint, groupName, desGroup.smokeColor)
                 local casController = casGroup:getController()
                 if casController then
                     local msg = {
@@ -321,40 +321,31 @@ function cas.startGroup(groupName)
         end
     end
 end
-function cas.groupMarkups(point, groupName, inContact, smokeColor)
-    if inContact then
-        if groups[groupName].markups then
-            if groups[groupName].markups.radio and groups[groupName].markups.radioPoint and #groups[groupName].markups.radio > 0 then
-                local screenMarkupId = groups[groupName].markups.radio[3]
-                local groupMovedDist = Utils.PointDistance(point, groups[groupName].markups.radioPoint)
-                if groupMovedDist < 200 then
-                    env.info("Update radio color for group: " .. groupName, false)
-                    DrawingTools.updateRadioColor(screenMarkupId, smokeColor)
-                else
-                    for i = 1, #groups[groupName].markups.radio do
-                        trigger.action.removeMark(groups[groupName].markups.radio[i])
-                    end
-                    env.info("Move radio drawing for group: " .. groupName, false)
-                    groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
-                    groups[groupName].markups.radioPoint = point
-                    CAS.cleanGroupMarkupsDelay(groupName)
-                end
+function cas.groupMarkups(point, groupName, smokeColor)
+    if groups[groupName].markups then
+        if groups[groupName].markups.radio and groups[groupName].markups.radioPoint and #groups[groupName].markups.radio > 0 then
+            local screenMarkupId = groups[groupName].markups.radio[3]
+            local groupMovedDist = Utils.PointDistance(point, groups[groupName].markups.radioPoint)
+            if groupMovedDist < 200 then
+                env.info("Update radio color for group: " .. groupName, false)
+                DrawingTools.updateRadioColor(screenMarkupId, smokeColor)
             else
-                env.info("Drawing new radio for group: " .. groupName, false)
+                for i = 1, #groups[groupName].markups.radio do
+                    trigger.action.removeMark(groups[groupName].markups.radio[i])
+                end
+                env.info("Move radio drawing for group: " .. groupName, false)
                 groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
                 groups[groupName].markups.radioPoint = point
                 CAS.cleanGroupMarkupsDelay(groupName)
             end
-        end
-    else
-        if groups[groupName].markups then
-            if groups[groupName].markups.radio then
-                env.info("Remove radio color for out of contract group: " .. groupName, false)
-                for i = 1, #groups[groupName].markups.radio do
+        else
+            for i = 1, #groups[groupName].markups.radio do
                     trigger.action.removeMark(groups[groupName].markups.radio[i])
-                end
-                groups[groupName].markups.radio = {}
             end
+            env.info("Drawing new radio for group: " .. groupName, false)
+            groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
+            groups[groupName].markups.radioPoint = point
+            CAS.cleanGroupMarkupsDelay(groupName)
         end
     end
 end
