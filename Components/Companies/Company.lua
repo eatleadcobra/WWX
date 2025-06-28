@@ -307,6 +307,7 @@ function Company.updateMarks(self)
         end
     end
 end
+
 function Company.setStatus(self, status)
     self.status = status
 end

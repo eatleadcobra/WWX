@@ -177,12 +177,23 @@ function CAS.cleanGroupMarkups(groupName)
         end
     end
 end
+function CAS.cleanGroupMarkupTable(groupName)
+    local casGroup = groups[groupName]
+    if casGroup then
+        if casGroup.markups then
+            if casGroup.markups.radio then
+                casGroup.markups.radio = {}
+            end
+        end
+    end
+end
 function CAS.cleanGroupMarkupsDelay(groupName)
     local casGroup = groups[groupName]
     if casGroup then
         if casGroup.markups.radio then
             for i = 1, #casGroup.markups.radio do
-                timer.scheduleFunction(trigger.action.removeMark, groups[groupName].markups.radio[i], timer:getTime() + 1800)
+                timer.scheduleFunction(trigger.action.removeMark, groups[groupName].markups.radio[i], timer:getTime() + 900)
+                timer.scheduleFunction(CAS.cleanGroupMarkupTable, groupName, timer:getTime() + 900)
             end
         end
     end
