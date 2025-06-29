@@ -4,7 +4,7 @@
 --remove lost units from available: DONE
 --persist and have provisions to respawn companies on mission load: DONE
 local cpyctl = {}
-local tankFuelConsumption = (PltCosts[1][1]/2)
+local tankFuelConsumption = 0.5--(PltCosts[1][1]/2)
 local ifvFuelConsumption = 0
 local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
