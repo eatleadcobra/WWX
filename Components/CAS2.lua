@@ -174,6 +174,7 @@ function CAS.cleanGroupMarkups(groupName)
             for i = 1, #casGroup.markups.radio do
                 trigger.action.removeMark(groups[groupName].markups.radio[i])
             end
+            casGroup.markups.radio = {}
         end
     end
 end
@@ -340,7 +341,7 @@ function cas.groupMarkups(point, groupName, smokeColor)
             end
         else
             for i = 1, #groups[groupName].markups.radio do
-                    trigger.action.removeMark(groups[groupName].markups.radio[i])
+                trigger.action.removeMark(groups[groupName].markups.radio[i])
             end
             env.info("Drawing new radio for group: " .. groupName, false)
             groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
