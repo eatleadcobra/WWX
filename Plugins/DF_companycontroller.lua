@@ -9,7 +9,7 @@ local ifvFuelConsumption = 0
 local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
 
-local fuelConsumptionInterval = 900
+local fuelConsumptionInterval = 1800
 CpyControl = {}
 local convoyPltTypes = {
     [1] = 4,
@@ -229,15 +229,15 @@ function cpyctl.teamFuelConsumptionLoop()
         fuelConsumptionTeam = 2
     end
     local teamFuelConsumption = 0
-    for i = 1, #CompanyIDs[c] do
-        local company = Companies[CompanyIDs[c][i]]
-        if company then
-            if company.isShip == false and company.isConvoy == false and company.status ~= companyStatuses["Defeated"] then
-                teamFuelConsumption = teamFuelConsumption + cpyctl.getCompanyFuelCost(company)
-            end
-        end
-    end
-    DFS.decreaseFrontSupply({coalitionId = c, type = DFS.supplyType.FUEL, amount = math.floor(teamFuelConsumption)})
+    -- for i = 1, #CompanyIDs[c] do
+    --     local company = Companies[CompanyIDs[c][i]]
+    --     if company then
+    --         if company.isShip == false and company.isConvoy == false and company.status ~= companyStatuses["Defeated"] then
+    --             teamFuelConsumption = teamFuelConsumption + cpyctl.getCompanyFuelCost(company)
+    --         end
+    --     end
+    -- end
+    -- DFS.decreaseFrontSupply({coalitionId = c, type = DFS.supplyType.FUEL, amount = math.floor(teamFuelConsumption)})
     if DFS.status[c].supply.front[DFS.supplyType.FUEL] <= 0 then
         cpyctl.sendHomeArmoredGroup(c)
     end
