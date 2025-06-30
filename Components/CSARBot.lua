@@ -832,6 +832,8 @@ function CSB.checkCsarLanding(eUnit)
         if csarCheckIns[pSide][pName] then
             local zonePoint = nil
             local csci = csarCheckIns[pSide][pName]
+            if csci.checking then return end
+            csci.checking = true
             local transporterTable = DFS.helos[csci.groupName]
             for j = 1, #CSARBases[pSide] do
                 zonePoint = trigger.misc.getZone(CSARBases[pSide][j])
@@ -861,32 +863,36 @@ function CSB.checkCsarLanding(eUnit)
                 end
             else -- check for pickup
                 for _,m in pairs(csarMissions[pSide]) do
-                    if Utils.PointDistance(pPosn, m.point) < csarPickupRadius then
-                        if inSafeVeloParams then
-                            if transporterTable and transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[pType].volume then
-                                trigger.action.outTextForGroup(csci.groupID, "The airframe is at it's volume limit. Extraction of " .. m.displayName .. "not possible.", 30, false)
-                                break
+                    if not m.extracting then
+                        if Utils.PointDistance(pPosn, m.point) < csarPickupRadius then
+                            if inSafeVeloParams then
+                                if transporterTable and transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[pType].volume then
+                                    trigger.action.outTextForGroup(csci.groupID, "The airframe is at it's volume limit. Extraction of " .. m.displayName .. "not possible.", 30, false)
+                                    break
+                                else
+                                    trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 30, false)
+                                    m.extracting = true
+                                    local args = {}
+                                    args.pName = pName
+                                    args.pSide = pSide
+                                    args.groupName = m.groupName
+                                    args.fName = m.name
+                                    args.equipment = m.equipment
+                                    args.pGrId = csci.groupID
+                                    args.pGrNm = csci.groupName
+                                    args.pUnit = eUnit
+                                    args.mission = m
+                                    args.displayName = m.displayName
+                                    timer.scheduleFunction(CSB.fakeExtractionTime, args, timer.getTime() + math.random(3,6))
+                                end
                             else
-                                trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 30, false)
-                                local args = {}
-                                args.pName = pName
-                                args.pSide = pSide
-                                args.groupName = m.groupName
-                                args.fName = m.name
-                                args.equipment = m.equipment
-                                args.pGrId = csci.groupID
-                                args.pGrNm = csci.groupName
-                                args.pUnit = eUnit
-                                args.mission = m
-                                args.displayName = m.displayName
-                                timer.scheduleFunction(CSB.fakeExtractionTime, args, timer.getTime() + math.random(3,6))
+                                trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe pickup.", 30, false)
                             end
-                        else
-                            trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe pickup.", 30, false)
                         end
                     end
                 end
             end
+            csci.checking = nil
         end
     end
 end
@@ -916,6 +922,11 @@ function CSB.fakeExtractionTime(args)
             trigger.action.outTextForCoalition(args.pSide, args.pName .. " has taken " .. args.displayName .. " on board.", 30, true)
         else
             trigger.action.outTextForGroup(playerGroupID, "Travelling too fast for safe pickup.", 30, false)
+            for _,m in pairs(csarMissions[args.pSide]) do
+                if m == args.mission then
+                    m.extracting = nil
+                end
+            end
         end
     end
 end
