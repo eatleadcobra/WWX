@@ -412,6 +412,3 @@ function cas.trackCas()
         end
     end
 end
-
-cas.loadZones()
-cas.stackLoop()

@@ -5,10 +5,7 @@ local casHeight = 1000
 local casTimeLimit = 1799
 local casReassignTime = 299
 local smokeColors = {
-    [0] = "green",
     [1] = "red",
-    [2] = "white",
-    [3] = "orange",
     [4] = "blue"
 }
 local previousLists = {
@@ -37,10 +34,10 @@ function cb.load()
     if redZone and blueZone then
         stackPoints[1] = {x=redZone.point.x, y = land.getHeight({x = redZone.point.x, y = redZone.point.z})+casHeight, z = redZone.point.z}
         trigger.action.circleToAll(1, DrawingTools.newMarkId(), stackPoints[1], casRadius, {1,0,0,0.6}, {0,0,0,0}, 4, true, nil)
-        trigger.action.textToAll(1, DrawingTools.newMarkId(), stackPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "CAS Stack")
+        trigger.action.textToAll(1, DrawingTools.newMarkId(), stackPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "Cab Rank")
         stackPoints[2] = {x=blueZone.point.x, y = land.getHeight({x = blueZone.point.x, y = blueZone.point.z})+casHeight, z = blueZone.point.z}
         trigger.action.circleToAll(2, DrawingTools.newMarkId(), stackPoints[2], casRadius, {0,0,1,0.6}, {0,0,0,0}, 4, true, nil)
-        trigger.action.textToAll(2, DrawingTools.newMarkId(), stackPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CAS Stack")
+        trigger.action.textToAll(2, DrawingTools.newMarkId(), stackPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "Cab Rank")
         cb.main()
     end
 end
@@ -88,15 +85,18 @@ function cb.searchCasZones()
     end
 end
 function cb.assignCas(playerName, coalitionId, playerGroupID)
-    local smokeNum = math.random(0,4)
-    local smokeColor = smokeColors[smokeNum]
-    local enemyCoalition = 2
-    if coalitionId == 2 then
-        enemyCoalition = 1
+    local smokeNum = 1
+    local enemyCoalition = 1
+    if coalitionId == 1 then
+        smokeNum = 4
+        enemyCoalition = 2
     end
-    local missionGroupSpawn = DFS.status[enemyCoalition].spawns.front[math.random(#DFS.status[enemyCoalition].spawns.front)]
-    if missionGroupSpawn then
-    local missionGroupName = missionGroupSpawn.groupName
+    local smokeColor = smokeColors[smokeNum]
+
+    --local missionGroupSpawn = DFS.status[enemyCoalition].spawns.front[math.random(#DFS.status[enemyCoalition].spawns.front)]
+    local missionCompany = CpyControl.getUnarmoredFrontlineCpy(enemyCoalition)
+    if missionCompany then
+        local missionGroupName = missionCompany.groupName
         if missionGroupName then
             local missionGroup = Group.getByName(missionGroupName)
             if missionGroup then
@@ -105,7 +105,11 @@ function cb.assignCas(playerName, coalitionId, playerGroupID)
 				DFS.smokeGroup(missionGroupName, smokeNum)
 				cb.flareGroup(missionGroupName)
             end
+        else
+            env.info("Error, company group name not found for CAS assignment", false)
         end
+    else
+        trigger.action.outTextForGroup(playerGroupID, "No valid enemy groups available at this time", 15, false)
     end
 end
 function cb.flareGroup(groupName)
@@ -140,7 +144,7 @@ function cb.trackCas()
                     isDead = true
                 end
                 if isDead then
-                    trigger.action.outTextForGroup(v.groupID, "Mission accomplished! Return to CAS stack for further assignment.", 30, false)
+                    trigger.action.outTextForGroup(v.groupID, "Mission accomplished! Return to Cab Rank for further assignment.", 30, false)
                     if Recon and v.missionPoint then
                         Recon.createBDAMission(c, v.missionPoint)
                     end
@@ -150,7 +154,7 @@ function cb.trackCas()
                     assignments[c][v.name] = nil
                 elseif timer:getTime() - v.startTime > casTimeLimit then
                     assignments[c][v.name] = nil
-                    trigger.action.outTextForGroup(v.groupID, "Mission not completed! Return to CAS stack for further assignment.", 30, false)
+                    trigger.action.outTextForGroup(v.groupID, "Mission not completed! Return to Cab Rank for further assignment.", 30, false)
                 elseif  timer:getTime() - v.smokeTime > 300 then
                     DFS.smokeGroup(v.target, v.smokeNum)
 					cb.flareGroup(v.target)
