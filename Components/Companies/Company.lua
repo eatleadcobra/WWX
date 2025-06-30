@@ -63,6 +63,7 @@ function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, co
     elseif ship then
         newCpy.isShip = true
         newCpy.convoyParam = convoyParam
+        newCpy.convoyParam.cpyId = newCpy.id
     end
     if onRoad == nil or onRoad == false then
         newCpy.onRoad = false
@@ -150,6 +151,13 @@ function Company.spawn(self)
     elseif self.isShip == false and self.groupType == 2 then
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "On Road"
+    elseif self.isShip then
+        for j = 1, #cpyGroupTable["units"] do
+            local deployPoint = self.waypoints[1]
+            cpyGroupTable["units"][j].x = deployPoint.x + (math.random(-1,1)*math.random(200,400))
+            cpyGroupTable["units"][j].y = deployPoint.z + (math.random(-1,1)*math.random(200,400))
+            cpyGroupTable["units"][j].heading = self.heading
+        end
     end
     self.groupName = cpyGroupTable["name"]
     --spawn group
@@ -167,7 +175,7 @@ function Company.spawn(self)
         end
     end
 end
-function Company.updateMission(self, listOfPoints, bp)
+function Company.updateMission(self, listOfPoints, bp, speed)
     local cpyGroup = Group.getByName(self.groupName)
     if cpyGroup then
         self.bp = bp
@@ -179,14 +187,14 @@ function Company.updateMission(self, listOfPoints, bp)
             local formPoint = Utils.VectorAdd(listOfPoints[pointsLength], Utils.ScalarMult(vector, 200))
             local points = {}
             for i = 1, pointsLength do
-                if i == pointsLength then
+                if i == pointsLength and bp ~= -1 then
                     points[pointsLength] = formPoint
                     points[pointsLength+1] = listOfPoints[pointsLength]
                 else
                     points[i] = listOfPoints[i]
                 end
             end
-            local newWaypoints = SpawnFuncs.createWPListFromPoints(points)
+            local newWaypoints = SpawnFuncs.createWPListFromPoints(points, speed)
             local newMission = SpawnFuncs.createMission(newWaypoints)
             cpyController:setTask(newMission)
             self.spawnTime = timer.getTime()

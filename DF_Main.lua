@@ -1580,34 +1580,39 @@ function dfc.checkShipping(param)
     local convoyGroup = Group.getByName(param.convoyName)
     if convoyGroup ~= nil then
         local convoyLead = convoyGroup:getUnit(1)
-        if convoyLead ~= nil  then
+        if convoyLead ~= nil then
             local convoyLeadPos = convoyGroup:getUnit(1):getPoint()
             if convoyLeadPos ~= nil then
+                local convoyCoalition = convoyGroup:getCoalition()
+                local destinationZoneString = "Red-Rear-Deliver"
+                if convoyCoalition == 2 then destinationZoneString = "Blue-Rear-Deliver" end
+                local convoyDestinationZone = trigger.misc.getZone(destinationZoneString)
+                local distanceToDestination = Utils.PointDistance(convoyLeadPos, convoyDestinationZone.point)
                 local healthPct = math.floor((convoyLead:getLife()/convoyLead:getLife0()) * 100)
                 if healthPct < 30 then
                     trigger.action.explosion(convoyLeadPos, 600)
                     return
                 elseif healthPct < 80 then
                     convoyGroup:getController():setOnOff(false)
+                elseif distanceToDestination > 7500 then
+                    CpyControl.checkEvasion(param.cpyId, convoyLead)
                 end
-                local convoyCoalition = convoyGroup:getCoalition()
-                local destinationZoneString = "Red-Rear-Deliver"
-                if convoyCoalition == 2 then destinationZoneString = "Blue-Rear-Deliver" end
-                local convoyDestinationZone = trigger.misc.getZone(destinationZoneString)
-                local distanceToDestination = Utils.PointDistance(convoyLeadPos, convoyDestinationZone.point)
                 if distanceToDestination < convoyDestinationZone.radius then
-                    dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.FUEL})
-                    dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.AMMO})
-                    dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (convoyGroup:getSize() / convoyGroup:getInitialSize())), type = DFS.supplyType.EQUIPMENT})
-                    trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
-                    convoyGroup:destroy()
-                    if param.escortName then
-                        local escortGroup = Group.getByName(param.escortName)
-                        if escortGroup then
-                            escortGroup:destroy()
+                    if convoyLead:hasAttribute("Unarmed ships") then
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]), type = DFS.supplyType.FUEL})
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
+                        trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
+                        env.info(convoyCoalition.."- Ship Cargo Delivered!", false)
+                        convoyGroup:destroy()
+                        if param.escortName then
+                            local escortGroup = Group.getByName(param.escortName)
+                            if escortGroup then
+                                escortGroup:destroy()
+                            end
                         end
+                        return
                     end
-                    return
                 end
             end
         else
@@ -1618,7 +1623,7 @@ function dfc.checkShipping(param)
             convoyGroup:destroy()
             return
         end
-        timer.scheduleFunction(dfc.checkShipping, param, timer.getTime() + 60)
+        timer.scheduleFunction(dfc.checkShipping, param, timer.getTime() + 40)
     else
         if param.escortName then
             local escortGroup = Group.getByName(param.escortName)

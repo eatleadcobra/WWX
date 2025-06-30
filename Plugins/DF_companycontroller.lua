@@ -76,6 +76,9 @@ function cpyctl.getCompanies()
         local cpyData = dofile(companyState)
         for k,v in pairs(cpyData) do
             local newCpy = Company.newFromTable(v)
+            if newCpy.isShip then
+                newCpy:setWaypoints((cpyctl.getShipPoints(newCpy.coalitionId, newCpy.point)), -1, 12)
+            end
             Companies[newCpy.id] = newCpy
             table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
         end
@@ -105,7 +108,7 @@ function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, 
     return newCpy.groupName
 end
 function CpyControl.newShip(coalitionId, escort)
-    local convoyParam = {convoyName = "", escortName = nil}
+    local convoyParam = {convoyName = "", escortName = nil,}
     local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam, true)
     newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
     newCpy:spawn()
@@ -137,6 +140,78 @@ function cpyctl.updateMission(coalitionId, companyId, newPoints)
     if cpy then
         cpy:savePosition()
         cpy:updateMission(newPoints)
+    end
+end
+local evaded = {}
+function CpyControl.checkEvasion(companyId, shipunit)
+    if cpyctl.underAirAttack(shipunit) and evaded[companyId] == nil then
+        cpyctl.zigzag(Companies[companyId])
+        evaded[companyId] = true
+        timer.scheduleFunction(cpyctl.clearEvasion, companyId, timer:getTime() + 360)
+    end
+end
+function cpyctl.clearEvasion(companyId)
+    evaded[companyId] = nil
+end
+local attackrange = 12000
+function cpyctl.underAirAttack(shipunit)
+    local isUnderAttack = false
+    if shipunit then
+        local shipCtrl = shipunit:getController()
+        if shipCtrl then
+            local targets = shipCtrl:getDetectedTargets(Controller.Detection.VISUAL,Controller.Detection.OPTIC)
+            local checkNum = #targets
+            if checkNum > 5 then checkNum = 5 end
+            for i = 1, checkNum do
+                local tgt = targets[i].object
+                if tgt then
+                    local tgtPoint = tgt:getPoint()
+                    local shipPoint = shipunit:getPoint()
+                    if tgtPoint and shipPoint then
+                        local distantToTgt = Utils.PointDistance(shipPoint, tgtPoint)
+                        if distantToTgt < attackrange then
+                            isUnderAttack = true
+                            env.info("Ship " .. shipunit:getName() .. " is under attack", false)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return isUnderAttack
+end
+local evadeLegLength = 400
+function cpyctl.zigzag(company)
+    if company then
+        local cpyGroup = Group.getByName(company.groupName)
+        if cpyGroup then
+            local leadUnit = cpyGroup:getUnit(1)
+            if leadUnit then
+                local leadUnitPoint = leadUnit:getPoint()
+                local leadUnitPos = leadUnit:getPosition()
+                if leadUnitPoint and leadUnitPos then
+                    company:savePosition()
+                    local currentWaypoints = company.waypoints
+                    local evasionPoints = {}
+                    for i = 1, 6 do
+                        local flipflop = -1
+                        if i%2 == 0 then flipflop = 1 end
+                        local evadePoint = Utils.VectorAdd(leadUnitPoint, Utils.ScalarMult(Utils.RotateVector(leadUnitPos.x, (0.15 * flipflop)), evadeLegLength*(i*1.5)))
+                        table.insert(evasionPoints, evadePoint)
+                    end
+                    local newWaypoints = {}
+                    table.insert(newWaypoints, currentWaypoints[1])
+                    for i = 1, #evasionPoints do
+                        table.insert(newWaypoints, evasionPoints[i])
+                    end
+                    table.remove(currentWaypoints, 1)
+                    for i = 1, #currentWaypoints do
+                        table.insert(newWaypoints, currentWaypoints[i])
+                    end
+                    company:updateMission(newWaypoints, -1, 12)
+                end
+            end
+        end
     end
 end
 function cpyctl.saveLoop()
@@ -365,12 +440,15 @@ function cpyctl.getCompanyFuelCost(cpy)
     return fuelCost
 end
 
-function cpyctl.getShipPoints(coalitionId)
+function cpyctl.getShipPoints(coalitionId, overrideStartPoint)
     local lowerLeftBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-SW").point
     local upperRightBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-NE").point
     local xDiff = upperRightBoundPoint.x - lowerLeftBoundPoint.x
     local zDiff = upperRightBoundPoint.z - lowerLeftBoundPoint.z
     local shipStartPoint = {x = lowerLeftBoundPoint.x + math.random(0, xDiff), y=0, z = lowerLeftBoundPoint.z + math.random(0, zDiff)}
+    if overrideStartPoint then
+        shipStartPoint = overrideStartPoint
+    end
     local shipPoints = {}
     table.insert(shipPoints, shipStartPoint)
     for i = 1, 20 do
