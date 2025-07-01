@@ -493,7 +493,7 @@ DFS.status = {
     maxSuppliesFront = {
         [1] = 60,
         [2] = 160,
-        [3] = 24,
+        [3] = 18,
     },
     maxSuppliesRear = {
         [1] = 540,
