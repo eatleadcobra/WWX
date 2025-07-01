@@ -601,7 +601,7 @@ function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
     if gained then
         local teamString = "Red"
         if coalitionId == 2 then teamString = "Blue" end
-        if WWEvents then WWEvents.battlePositionCapture(bpId, " captured by " .. teamString) end
+        if WWEvents then WWEvents.battlePositionCapture(bpId, " captured by " .. teamString, DFS.status[1].health, DFS.status[2].health) end
         message = "We have captured battle position " .. bpIdString .. "!"
         audioMessage = radioObjectiveMessages["complete"]
     else

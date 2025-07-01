@@ -240,12 +240,14 @@ function WWEvents.raceEntrantResult(raceId, categoryId, playerName, finishTime, 
     world.onEvent(Event)
 end
 
-function WWEvents.battlePositionCapture(bpId, message)
+function WWEvents.battlePositionCapture(bpId, message, redBps, blueBps)
     local Event = {
         id = world.event.S_EVENT_WWX_BATTLE_POSITION_CAPTURE,
         time = timer:getTime(),
         bpId = bpId,
-        text = "Battle Position #"..bpId..message
+        text = "Battle Position #"..bpId..message,
+        redBps = redBps,
+        blueBps = blueBps
     }
     world.onEvent(Event)
 end
