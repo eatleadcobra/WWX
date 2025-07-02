@@ -1612,6 +1612,8 @@ function dfc.checkShipping(param)
                             end
                         end
                         return
+                    else
+                        convoyGroup:destroy()
                     end
                 end
             end
