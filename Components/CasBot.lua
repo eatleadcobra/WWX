@@ -1,7 +1,7 @@
 local cb = {}
 local interval = 30
 local casRadius = 4000
-local casHeight = 1000
+local casHeight = 1828
 local casTimeLimit = 1799
 local casReassignTime = 299
 local smokeColors = {
@@ -34,10 +34,10 @@ function cb.load()
     if redZone and blueZone then
         stackPoints[1] = {x=redZone.point.x, y = land.getHeight({x = redZone.point.x, y = redZone.point.z})+casHeight, z = redZone.point.z}
         trigger.action.circleToAll(1, DrawingTools.newMarkId(), stackPoints[1], casRadius, {1,0,0,0.6}, {0,0,0,0}, 4, true, nil)
-        trigger.action.textToAll(1, DrawingTools.newMarkId(), stackPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "Cab Rank")
+        trigger.action.textToAll(1, DrawingTools.newMarkId(), stackPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "Cab Rank. 6,000ft/2,000m")
         stackPoints[2] = {x=blueZone.point.x, y = land.getHeight({x = blueZone.point.x, y = blueZone.point.z})+casHeight, z = blueZone.point.z}
         trigger.action.circleToAll(2, DrawingTools.newMarkId(), stackPoints[2], casRadius, {0,0,1,0.6}, {0,0,0,0}, 4, true, nil)
-        trigger.action.textToAll(2, DrawingTools.newMarkId(), stackPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "Cab Rank")
+        trigger.action.textToAll(2, DrawingTools.newMarkId(), stackPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "Cab Rank. 6,000ft/2,000m")
         cb.main()
     end
 end
@@ -63,8 +63,11 @@ function cb.searchCasZones()
                 if playerGroup then
                     local playerGroupID = playerGroup:getID()
                     if foundPlayerName and playerCoalition and playerGroupID then
-                        if assignments[c][foundPlayerName] == nil then
-                            currentLists[c][foundPlayerName] = {name = foundPlayerName, coalition = playerCoalition, groupID = playerGroupID}
+                        local playerPoint = foundItem:getPoint()
+                        if playerPoint then
+                            if assignments[c][foundPlayerName] == nil and playerPoint.y > casHeight then
+                                currentLists[c][foundPlayerName] = {name = foundPlayerName, coalition = playerCoalition, groupID = playerGroupID}
+                            end
                         end
                     end
                 end
