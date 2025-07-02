@@ -97,9 +97,11 @@ function MADLoop(param)
                     trigger.action.outTextForGroup(searchingGroup:getID(), madString, madloopTime+15, false)
                     if markDeflection and smokeInterval then
                         trigger.action.outSoundForGroup(searchingGroup:getID(), madSoundPath)
-                        trigger.action.smoke({x = searchPoint.x, y = 0, z = searchPoint.z}, 0)
+                        local smokeName = searchingUnit:getName() .. tostring(timer:getTime())
+                        trigger.action.smoke({x = searchPoint.x, y = 0, z = searchPoint.z}, 0, smokeName)
                         local plotterMarkId = DrawingTools.drawCircle(searchingGroup:getCoalition(), searchPoint)
                         timer.scheduleFunction(trigger.action.removeMark, plotterMarkId, timer:getTime()+300)
+                        timer.scheduleFunction(trigger.action.effectSmokeStop, smokeName, timer:getTime()+300)
                         param.smokeTime = timer:getTime()
                     end
                     param.runs = param.runs + 1
@@ -112,6 +114,7 @@ function MADLoop(param)
         end
     end
 end
+
 function MAD.addCommand(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup then
