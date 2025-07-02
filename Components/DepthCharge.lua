@@ -1,7 +1,7 @@
 local depthCharge = {}
 local dcEvents = {}
 local chargeDepths = {}
-local dcDamageRange = 150
+local dcDamageRange = 200
 local dcKillRange = 50
 local subTypes = {["santafe"] = 1, ["Type_093"] = 2}
 function dcEvents:onEvent(event)
@@ -74,6 +74,7 @@ function depthCharge.explodeCharge(param)
     trigger.action.explosion(param.explodePoint, param.power)
     if closestSub.distance ~= nil then
         if closestSub.distance < dcDamageRange then
+            env.info("Depth charge hit", false)
             DFSubs.subDamaged(closestSub.coalition)
         end
     end

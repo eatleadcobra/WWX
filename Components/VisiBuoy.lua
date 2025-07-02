@@ -128,6 +128,8 @@ function VB.createBuoy(point, coalitionId)
         local box = vb.spawnStatic("box", point, coalitionId)
         table.insert(removeList, box)
     end
+    local extraflag = vb.spawnStatic("flag", point, coalitionId)
+    table.insert(removeList, extraflag)
     local flagName = vb.spawnStatic("flag", point, coalitionId)
     for i = 1, #removeList do
         VB.destroyStatic(removeList[i])
