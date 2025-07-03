@@ -618,6 +618,7 @@ function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
         else
             message = "Our units in battle position " .. bpIdString .. " have been destroyed!"
             audioMessage = radioObjectiveMessages["failed"]
+            if WWEvents then WWEvents.battlePositionCapture(bpId, " has been lost. No team holds it.", DFS.status[1].health, DFS.status[2].health) end
         end
     end
     trigger.action.outTextForCoalition(coalitionId, message, 30, false)
