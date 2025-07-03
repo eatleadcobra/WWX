@@ -309,6 +309,7 @@ end
 function bc.main()
     local redPositions = 0
     local bluePositions = 0
+    local positionNotifications = {}
     for k,v in pairs(battlePositions) do
         local redUnits = 0
         local blueUnits = 0
@@ -361,10 +362,10 @@ function bc.main()
                 local reconCoalitionId = 1
                 if ownedBy == 1 then reconCoalitionId = 2 end
                 v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id, true)
-                bc.notifyTeamofBPChange(ownedBy, ownedBy, v.id, true)
-                bc.notifyTeamofBPChange(v.ownedBy, ownedBy, v.id, false)
+                table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true})
+                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false})
             else
-                bc.notifyTeamofBPChange(v.ownedBy, ownedBy, v.id, false)
+                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false})
             end
             v.ownedBy = ownedBy
         end
@@ -384,6 +385,12 @@ function bc.main()
     end
     DFS.status[1].health = redPositions
     DFS.status[2].health = bluePositions
+    for i = 1, #positionNotifications do
+        local notification = positionNotifications[i]
+        if notification then
+            bc.notifyTeamofBPChange(notification.coalitionId, notification.newCoalitionId, notification.bpId, notification.gained)
+        end
+    end
     if redPositions == #battlePositions then
         DFS.endMission(1)
     elseif bluePositions == #battlePositions then
