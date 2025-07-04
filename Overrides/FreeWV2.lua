@@ -13,7 +13,7 @@ NAVALCONVOY = {
     [2] = false,
 }
 SUNSET = 65130 -- 18:05:30 local time
-RUNTIME = 46800 -- 13 hours runtime
+RUNTIME = 28800 -- 8 hours runtime
 -- counts
 FDCount = 2
 AACount = 0
@@ -74,7 +74,7 @@ Platoons = {
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
-            [1] = "Ural-375 ZU-23",
+            [1] = "Type_94_25mm_AA_Truck",
             [2] = "KAMAZ Truck"
         },
         ["Shipping"] = {
@@ -133,7 +133,7 @@ Platoons = {
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
-            [1] = "Ural-375 ZU-23",
+            [1] = "Type_94_25mm_AA_Truck",
             [2] = "GAZ-66"
         },
         ["Shipping"] = {
