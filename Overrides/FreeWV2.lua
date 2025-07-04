@@ -78,7 +78,8 @@ Platoons = {
             [2] = "KAMAZ Truck"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply"
+            [1] = "Ship_Tilde_Supply",
+            [2] = "CastleClass_01"
         }
     },
     [2] = {
@@ -137,7 +138,8 @@ Platoons = {
             [2] = "GAZ-66"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply"
+            [1] = "Ship_Tilde_Supply",
+            [2] = "CastleClass_01"
         }
     }
 }
