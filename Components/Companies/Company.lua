@@ -167,7 +167,10 @@ function Company.spawn(self)
         DFS.checkConvoy(self.convoyParam)
     elseif self.isShip then
         self.convoyParam.convoyName = self.groupName
-        local loading = self.convoyParam.loading
+        local loading = nil
+        if self.convoyParam.loading then
+            loading = self.convoyParam.loading
+        end
         if loading == nil and (self.initUnits[1] == "HandyWind" or self.initUnits[1] == "SeawiseGiant") then
             loading = math.random(60, 140)
         end
