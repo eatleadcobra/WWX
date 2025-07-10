@@ -1599,9 +1599,15 @@ function dfc.checkShipping(param)
                 end
                 if distanceToDestination < convoyDestinationZone.radius then
                     if convoyLead:hasAttribute("Unarmed ships") then
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * (param.loading/100)), type = DFS.supplyType.FUEL})
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] * (param.loading/100)), type = DFS.supplyType.AMMO})
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (param.loading/100)), type = DFS.supplyType.EQUIPMENT})
+                        if param.loading then
+                            dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * (param.loading/100)), type = DFS.supplyType.FUEL})
+                            dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] * (param.loading/100)), type = DFS.supplyType.AMMO})
+                            dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (param.loading/100)), type = DFS.supplyType.EQUIPMENT})
+                        else
+                            dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]), type = DFS.supplyType.FUEL})
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
+                        end
                         trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
                         env.info(convoyCoalition.."- Ship Cargo Delivered!", false)
                         convoyGroup:destroy()
