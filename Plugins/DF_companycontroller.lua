@@ -90,7 +90,27 @@ function cpyctl.spawnCompanies()
         v:spawn()
     end
 end
-
+function CpyControl.setShipCargo(shipGroupName, cargoLoad)
+    local boatGroup = Group.getByName(shipGroupName)
+    if boatGroup then
+        local boatCtrl = boatGroup:getController()
+        local leadUnit = boatGroup:getUnit(1)
+        if boatCtrl and leadUnit then
+            local leadUnitId = leadUnit:getID()
+            if leadUnitId then
+                local command = {
+                    ["id"] = "LoadingShip",
+                    ["params"] =
+                    {
+                        ["cargo"] = cargoLoad,
+                        ["unitId"] = leadUnitId,
+                    },
+                }
+                boatCtrl:setCommand(command)
+            end
+        end
+    end
+end
 function CpyControl.wipeCompanies()
     local cpyFile = companyState
     local f = io.open(cpyFile, 'w')

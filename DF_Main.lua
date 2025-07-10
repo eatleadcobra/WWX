@@ -1599,9 +1599,9 @@ function dfc.checkShipping(param)
                 end
                 if distanceToDestination < convoyDestinationZone.radius then
                     if convoyLead:hasAttribute("Unarmed ships") then
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]), type = DFS.supplyType.FUEL})
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * (param.loading/100)), type = DFS.supplyType.FUEL})
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] * (param.loading/100)), type = DFS.supplyType.AMMO})
+                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (param.loading/100)), type = DFS.supplyType.EQUIPMENT})
                         trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
                         env.info(convoyCoalition.."- Ship Cargo Delivered!", false)
                         convoyGroup:destroy()
@@ -2148,7 +2148,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                         Firebases.deploy(droppingGroupName, "MORTAR", ammo)
                     elseif troopType == DFS.supplyType.SF then
                         local isWater = land.getSurfaceType({x = droppingPoint.x, y = droppingPoint.z})
-                        if (isWater == 2 or isWater == 3) and PIRACY then
+                        if (isWater == 2 or isWater == 3) then
                             local spawnPoints = {}
                             spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.9), 11))
                             spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.7), 10))
@@ -2285,7 +2285,9 @@ function dfc.hvbss(boardingGroupName, dropPoint, boardingCoalition, droppingGrou
                     timer.scheduleFunction(dfc.startBoat, closestShip.groupName, timer:getTime()+305)
                     trigger.action.outTextForGroup(droppingGroupID, "Marines are securing ship and cargo!\nShip will be rigged to explode in 5 minutes", 30, false)
                     timer.scheduleFunction(dfc.destroyGroup, boardingGroupName, timer:getTime()+125)
-                    timer.scheduleFunction(dfc.cargoBoat, {shipName = closestShip.groupName, boardingCoalition = boardingCoalition, boardingGroupName = boardingGroupName, boardingPlayerName = droppingPlayerName}, timer:getTime()+120)
+                    if PIRACY then
+                        timer.scheduleFunction(dfc.cargoBoat, {shipName = closestShip.groupName, boardingCoalition = boardingCoalition, boardingGroupName = boardingGroupName, boardingPlayerName = droppingPlayerName}, timer:getTime()+120)
+                    end
                 end
             end
         end

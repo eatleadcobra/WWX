@@ -77,7 +77,7 @@ Platoons = {
             [2] = "Type_94_Truck"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply",
+            [1] = "HandyWind",
             [2] = "CastleClass_01"
         }
     },
@@ -114,7 +114,7 @@ Platoons = {
             [1] = "tt_DSHK"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply",
+            [1] = "HandyWind",
             [2] = "CastleClass_01"
         }
     }

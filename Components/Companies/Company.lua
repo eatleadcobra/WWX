@@ -167,6 +167,12 @@ function Company.spawn(self)
         DFS.checkConvoy(self.convoyParam)
     elseif self.isShip then
         self.convoyParam.convoyName = self.groupName
+        local loading = self.convoyParam.loading
+        if loading == nil and (self.initUnits[1] == "HandyWind" or self.initUnits[1] == "SeawiseGiant") then
+            loading = math.random(60, 140)
+        end
+        self.convoyParam.loading = loading
+        CpyControl.setShipCargo(self.groupName, loading)
         DFS.checkShip(self.convoyParam)
     else
         if CAS then
