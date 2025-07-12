@@ -91,6 +91,9 @@ function bc.getPositions()
             bc.drawCamera(newBP.id)
         end
     end
+    local bpCount = #battlePositions
+    env.info("Loaded " .. bpCount .. " battle positions.", false)
+    trigger.action.setUserFlag("TOTAL_BPS", bpCount)
 end
 --set markups
 function bc.setBPMarkups()
@@ -362,10 +365,10 @@ function bc.main()
                 local reconCoalitionId = 1
                 if ownedBy == 1 then reconCoalitionId = 2 end
                 v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id, true)
-                table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true})
-                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false})
+                table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true, prevCoalition = v.ownedBy})
+                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
             else
-                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false})
+                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = 0})
             end
             v.ownedBy = ownedBy
         end
@@ -388,7 +391,7 @@ function bc.main()
     for i = 1, #positionNotifications do
         local notification = positionNotifications[i]
         if notification then
-            bc.notifyTeamofBPChange(notification.coalitionId, notification.newCoalitionId, notification.bpId, notification.gained)
+            bc.notifyTeamofBPChange(notification.coalitionId, notification.newCoalitionId, notification.bpId, notification.gained, notification.prevCoalition)
         end
     end
     if redPositions == #battlePositions then
@@ -601,14 +604,14 @@ end
 function bc.availableSupplyPct(coalitionId, supplyType)
     return math.floor(DFS.status[coalitionId].supply.front[supplyType] / DFS.status.maxSuppliesFront[supplyType] * 100)
 end
-function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
+function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained, prevCoalition)
     local bpIdString = tostring(bpId)
     local message = ""
     local audioMessage = nil
     if gained then
         local teamString = "Red"
         if coalitionId == 2 then teamString = "Blue" end
-        if WWEvents then WWEvents.battlePositionCapture(bpId, " captured by " .. teamString, DFS.status[1].health, DFS.status[2].health) end
+        if WWEvents then WWEvents.battlePositionCapture(bpId, " captured by " .. teamString, prevCoalition, newOwnerCoalition) end
         message = "We have captured battle position " .. bpIdString .. "!"
         audioMessage = radioObjectiveMessages["complete"]
     else
@@ -619,8 +622,8 @@ function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained)
             message = "Our units in battle position " .. bpIdString .. " have been destroyed!"
             audioMessage = radioObjectiveMessages["failed"]
             local teamString = "Red"
-        if coalitionId == 2 then teamString = "Blue" end
-            if WWEvents then WWEvents.battlePositionCapture(bpId, " has been lost by " .. teamString, DFS.status[1].health, DFS.status[2].health) end
+            if coalitionId == 2 then teamString = "Blue" end
+            if WWEvents then WWEvents.battlePositionCapture(bpId, " has been lost by " .. teamString, prevCoalition, newOwnerCoalition) end
         end
     end
     trigger.action.outTextForCoalition(coalitionId, message, 30, false)

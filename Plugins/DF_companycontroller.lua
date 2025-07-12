@@ -128,7 +128,7 @@ function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, 
     return newCpy.groupName
 end
 function CpyControl.newShip(coalitionId, escort)
-    local convoyParam = {convoyName = "", escortName = nil,}
+    local convoyParam = {convoyName = "", escortName = nil, coalitionId = coalitionId}
     local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam, true)
     newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
     newCpy:spawn()
@@ -397,6 +397,10 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         else
             trigger.action.outTextForCoalition(coalitionId, "One of our tank companies does not have enough fuel to remain on the front and is returning to base.", 30, false)
         end
+        local enemyCoalition = 2
+        if coalitionId == 2 then enemyCoalition = 1 end
+        if WWEvents then WWEvents.tankCpyStalled(enemyCoalition) end
+        if STATS then STATS.addStat(enemyCoalition, STATS.statID["TANK_CPY_STALLED"]) end
     end
 end
 function cpyctl.getCompanyStrength(cpy)
