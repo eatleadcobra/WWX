@@ -1652,14 +1652,6 @@ function dfc.checkShipping(param)
                 if escortGroup then escortGroup:destroy() end
             end
             convoyGroup:destroy()
-            if param.coalitionId then
-                local enemyCoalition = 2
-                if param.coalitionId == 2 then enemyCoalition = 1 end
-                if WWEvents then WWEvents.convoyDestroyed(enemyCoalition) end
-                if STATS then
-                    STATS.addStat(enemyCoalition, STATS.statID["SHIP_SUNK"])
-                end
-            end
             return
         end
         timer.scheduleFunction(dfc.checkShipping, param, timer.getTime() + 40)
@@ -1667,6 +1659,14 @@ function dfc.checkShipping(param)
         if param.escortName then
             local escortGroup = Group.getByName(param.escortName)
             if escortGroup then escortGroup:destroy() end
+        end
+        if param.coalitionId then
+            local enemyCoalition = 2
+            if param.coalitionId == 2 then enemyCoalition = 1 end
+            if WWEvents then WWEvents.convoyDestroyed(enemyCoalition) end
+            if STATS then
+                STATS.addStat(enemyCoalition, STATS.statID["SHIP_SUNK"])
+            end
         end
     end
 end

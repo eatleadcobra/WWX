@@ -3,10 +3,11 @@ local statsFile = ""
 local missionName = env.mission["date"]["Year"]
 local validLoad = false
 if missionName ~= nil then
-    statsFile = lfs.writedir() .. [[Logs/]] .. 'stats_'..missionName..'.txt'
+    statsFile = lfs.writedir() .. [[Logs/]] .. 'stats'..missionName..'.txt'
     validLoad = true
 end
 if validLoad then
+    env.info("Valid stats load", false)
     STATS = {}
     STATS.statID = {
         ["FRONT_DEPOT_DESTROYED"] = 1,
@@ -46,10 +47,8 @@ if validLoad then
 
     function stats.save()
         local f = io.open(statsFile, 'w')
-        if f then
-            f:write("return " .. Utils.saveToString(stats.teamStats))
-            f:close()
-        end
+        f:write("return " .. Utils.saveToString(stats.teamStats))
+        f:close()
     end
     function STATS.addStat(coalitionId, statId)
         if coalitionId and statId then
@@ -58,4 +57,9 @@ if validLoad then
             env.info("Add stat called with invalid parameters", false)
         end
     end
+    function stats.saveLoop()
+        stats.save()
+        timer.scheduleFunction(stats.saveLoop, nil, timer:getTime() + 30)
+    end
+    stats.saveLoop()
 end
