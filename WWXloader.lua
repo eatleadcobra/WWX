@@ -54,7 +54,9 @@ env.info("Loading Plugins", false)
 -- "plugins" here are like wrappers or translation layers between the component and the specific mission requirements of WWX
 assert(loadfile(pathToWWX.."Plugins\\DF_firebases.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_submarines.lua"))()
-
+if CARGO then
+   assert(loadfile(pathToWWX.."Plugins\\DF_slingbabysitter.lua"))()
+end
 env.info("Loading main", false)
 assert(loadfile(pathToWWX.."DF_Main.lua"))()
 --Things that need to load after DF_Main because they access global vars defined in that file
