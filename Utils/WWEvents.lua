@@ -17,6 +17,11 @@ world.event.S_EVENT_WWX_RACE_PING = 8417
 world.event.S_EVENT_WWX_RACE_COMPLETED = 8418
 world.event.S_EVENT_WWX_RACE_ENTRANT_RESULT = 8419
 world.event.S_EVENT_WWX_BATTLE_POSITION_CAPTURE = 8420
+world.event.S_EVENT_WWX_FRONT_DEPOT_DESTROYED = 8421
+world.event.S_EVENT_WWX_REAR_DEPOT_DESTROYED = 8422
+world.event.S_EVENT_WWX_TANKCPY_STALLED = 8423
+world.event.S_EVENT_WWX_CONVOY_DESTROYED = 8424
+world.event.S_EVENT_WWX_SHIP_SUNK = 8425
 
 WWEvents = {}
 WWEvents.latches = {
@@ -240,14 +245,59 @@ function WWEvents.raceEntrantResult(raceId, categoryId, playerName, finishTime, 
     world.onEvent(Event)
 end
 
-function WWEvents.battlePositionCapture(bpId, message, redBps, blueBps)
+function WWEvents.battlePositionCapture(bpId, message, fromCoa, toCoa)
     local Event = {
         id = world.event.S_EVENT_WWX_BATTLE_POSITION_CAPTURE,
         time = timer:getTime(),
         bpId = bpId,
-        text = "Battle Position #"..bpId..message,
-        redBps = redBps,
-        blueBps = blueBps
+        text = "BP#"..bpId..message,
+        fromCoa = fromCoa,
+        toCoa = toCoa
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.frontDepotDestroyed(coalitionId)
+    local Event = {
+        id = world.event.S_EVENT_WWX_FRONT_DEPOT_DESTROYED,
+        time = timer.getTime(),
+        coalition = coalitionId
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.rearDepotDestroyed(coalitionId)
+    local Event = {
+        id = world.event.S_EVENT_WWX_REAR_DEPOT_DESTROYED,
+        time = timer.getTime(),
+        coalition = coalitionId
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.tankCpyStalled(coalitionId)
+    local Event = {
+        id = world.event.S_EVENT_WWX_TANKCPY_STALLED,
+        time = timer.getTime(),
+        coalition = coalitionId
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.convoyDestroyed(coalitionId)
+    local Event = {
+        id = world.event.S_EVENT_WWX_CONVOY_DESTROYED,
+        time = timer.getTime(),
+        coalition = coalitionId
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.shipSunk(coalitionId)
+    local Event = {
+        id = world.event.S_EVENT_WWX_SHIP_SUNK,
+        time = timer.getTime(),
+        coalition = coalitionId
     }
     world.onEvent(Event)
 end

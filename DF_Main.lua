@@ -1058,7 +1058,15 @@ function dfc.checkFDHealth()
                 end
                 local spawnZone = DFS.status[a].spawns.fd[i].spawnZone
                 local ownerString = "Red"
-                if a == 2 then ownerString = "Blue" end
+                local enemyCoalition = 2
+                if a == 2 then
+                    ownerString = "Blue"
+                    enemyCoalition = 1
+                end
+                if WWEvents then WWEvents.frontDepotDestroyed(enemyCoalition) end
+                if STATS then
+                    STATS.addStat(enemyCoalition, STATS.statID["FRONT_DEPOT_DESTROYED"])
+                end
                 trigger.action.outText(ownerString .. " front depot " .. spawnZone .. " has been destroyed! ".. ownerString.." team has lost 1/"..DFS.status.fdSpawnTotal .. " of their front supplies.", 30, false)
                 table.remove(DFS.status[a].spawns.fd, i)
                 timer.scheduleFunction(dfc.respawnFrontDepot, {coalitionId = a, spawnZone = spawnZone}, timer.getTime() + DFS.status.fdSpawnDelay)
@@ -1118,7 +1126,15 @@ function dfc.checkRDHealth()
                 table.remove(DFS.status[a].spawns.rd, i)
                 timer.scheduleFunction(dfc.respawnRearDepot, {coalitionId = a, spawnZone = spawnZone, subDepot = subDepot}, timer.getTime() + DFS.status.rdSpawnDelay)
                 local ownerString = "Red"
-                if a == 2 then ownerString = "Blue" end
+                local enemyCoalition = 2
+                if a == 2 then
+                    ownerString = "Blue"
+                    enemyCoalition = 1
+                end
+                if STATS then
+                    STATS.addStat(enemyCoalition, STATS.statID["REAR_DEPOT_DESTROYED"])
+                end
+                if WWEvents then WWEvents.rearDepotDestroyed(enemyCoalition) end
                 trigger.action.outText(ownerString .. " rear depot " .. spawnZone .."-"..subDepot.. " has been destroyed! ".. ownerString.." team has lost 1/"..DFS.status.rdSpawnTotal*DFS.status.rdSpawnSubDepots .. " of their rear supplies.", 30, false)
 
                 if #DFS.status[a].spawns.rd > 0  then
@@ -1542,7 +1558,7 @@ end
 function dfc.startConvoy(param)
     local startPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].convoyStart).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].deliver..param.deliverZone).point
-    local checkConvoyParam = {convoyName = "", deliverZone = param.deliverZone, type = param.type}
+    local checkConvoyParam = {convoyName = "", deliverZone = param.deliverZone, type = param.type, coalitionId = param.coalitionId}
     CpyControl.newConvoy(param.coalitionId, param.type, startPoint, endPoint, checkConvoyParam, NAVALCONVOY[param.coalitionId])
     DFS.status[param.coalitionId].lastConvoyTimes[1][param.type] = timer.getTime()
     DFS.status[param.coalitionId].anyConvoyTime = timer.getTime()
@@ -1571,6 +1587,13 @@ function dfc.checkConvoy(param)
             return
         end
         timer.scheduleFunction(dfc.checkConvoy, param, timer.getTime() + 10)
+    else
+        if param.coalitionId then
+            local enemyCoalition = 2
+            if param.coalitionId == 2 then enemyCoalition = 1 end
+            if WWEvents then WWEvents.convoyDestroyed(enemyCoalition) end
+            if STATS then STATS.addStat(enemyCoalition, STATS.statID["CONVOY_DESTROYED"]) end
+        end
     end
 end
 function DFS.checkShip(param)
@@ -1636,6 +1659,14 @@ function dfc.checkShipping(param)
         if param.escortName then
             local escortGroup = Group.getByName(param.escortName)
             if escortGroup then escortGroup:destroy() end
+        end
+        if param.coalitionId then
+            local enemyCoalition = 2
+            if param.coalitionId == 2 then enemyCoalition = 1 end
+            if WWEvents then WWEvents.convoyDestroyed(enemyCoalition) end
+            if STATS then
+                STATS.addStat(enemyCoalition, STATS.statID["SHIP_SUNK"])
+            end
         end
     end
 end
