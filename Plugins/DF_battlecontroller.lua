@@ -368,7 +368,7 @@ function bc.main()
                 table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true, prevCoalition = v.ownedBy})
                 table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
             else
-                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = 0})
+                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
             end
             v.ownedBy = ownedBy
         end

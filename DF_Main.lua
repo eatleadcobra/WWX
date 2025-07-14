@@ -2325,6 +2325,7 @@ function dfc.hvbss(boardingGroupName, dropPoint, boardingCoalition, droppingGrou
                     timer.scheduleFunction(dfc.startBoat, closestShip.groupName, timer:getTime()+305)
                     trigger.action.outTextForGroup(droppingGroupID, "Marines are securing ship and cargo!\nShip will be rigged to explode in 5 minutes", 30, false)
                     timer.scheduleFunction(dfc.destroyGroup, boardingGroupName, timer:getTime()+125)
+                    timer.scheduleFunction(dfc.destroyShip, closestShip.groupName, timer:getTime() + 300)
                     if PIRACY then
                         timer.scheduleFunction(dfc.cargoBoat, {shipName = closestShip.groupName, boardingCoalition = boardingCoalition, boardingGroupName = boardingGroupName, boardingPlayerName = droppingPlayerName}, timer:getTime()+120)
                     end
@@ -2361,7 +2362,6 @@ function dfc.cargoBoat(param)
                     if WWEvents then
                         WWEvents.playerCapturedShip(param.boardingPlayerName, param.boardingCoalition, " captured a cargo ship!")
                     end
-                    timer.scheduleFunction(dfc.destroyShip, param.shipName, timer:getTime() + 180)
                     dfc.checkPirate({convoyName = pirateBoatName, playerName = param.boardingPlayerName, boardingCoalition = param.boardingCoalition })
                 end
             end
