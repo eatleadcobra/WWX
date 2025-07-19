@@ -500,50 +500,53 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
     if strengthTableTier > 0 or overrideTable then
         local strengthTable = CompanyCompTiers[strengthTableTier].composition
         if strengthTable or overrideTable then
-            local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot).point
-            startPoint.x = startPoint.x + 50
-            startPoint.z = startPoint.z + 50
-            local destination = trigger.misc.getZone(battlePositions[targetBP].zoneName).point
-            local coalitionOffset = 15
-            if coalitionId == 2 then coalitionOffset = -15 end
-            destination.x = destination.x + coalitionOffset
-            destination.z = destination.z + coalitionOffset
-            local companyCost = bc.companyToCost(strengthTable)
-            local canAfford = true
-            for i = 1, 3 do
-                if DFS.status[coalitionId].supply.front[i] < companyCost[i] then
-                    canAfford = false
-                end
-            end
-            if overrideTable then
-                local overrideCost = bc.companyToCost(overrideTable)
+            local startZone = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot)
+            if startZone then
+                local startPoint = startZone.point
+                startPoint.x = startPoint.x + 50
+                startPoint.z = startPoint.z + 50
+                local destination = trigger.misc.getZone(battlePositions[targetBP].zoneName).point
+                local coalitionOffset = 15
+                if coalitionId == 2 then coalitionOffset = -15 end
+                destination.x = destination.x + coalitionOffset
+                destination.z = destination.z + coalitionOffset
+                local companyCost = bc.companyToCost(strengthTable)
+                local canAfford = true
                 for i = 1, 3 do
-                    if DFS.status[coalitionId].supply.front[i] < overrideCost[i] then
+                    if DFS.status[coalitionId].supply.front[i] < companyCost[i] then
                         canAfford = false
                     end
                 end
-            end
-            if (strengthTable or overrideTable) and canAfford then
-                local newCpy = {}
                 if overrideTable then
-                    newCpy = Company.new(coalitionId, true, overrideTable, false)
-                else
-                    newCpy = Company.new(coalitionId, true, strengthTable, false)
+                    local overrideCost = bc.companyToCost(overrideTable)
+                    for i = 1, 3 do
+                        if DFS.status[coalitionId].supply.front[i] < overrideCost[i] then
+                            canAfford = false
+                        end
+                    end
                 end
-                Companies[newCpy.id] = newCpy
-                table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
-                newCpy:setWaypoints({startPoint, destination}, targetBP, 999)
-                newCpy:spawn()
-                DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.EQUIPMENT, amount = companyCost[DFS.supplyType.EQUIPMENT]})
-                DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.FUEL, amount = companyCost[DFS.supplyType.FUEL]})
-                DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.AMMO, amount = companyCost[DFS.supplyType.AMMO]})
-            elseif overrideTable == nil then
-                env.info(coalitionId .. " - Cannot send company this company, not enough supply.", false)
-                if desperate then
-                    env.info(coalitionId .. " - Cannot send company this company. Trying lower tier.", false)
-                    strengthTableTier = strengthTableTier + 1
-                    if strengthTableTier < 10 then
-                        bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate)
+                if (strengthTable or overrideTable) and canAfford then
+                    local newCpy = {}
+                    if overrideTable then
+                        newCpy = Company.new(coalitionId, true, overrideTable, false)
+                    else
+                        newCpy = Company.new(coalitionId, true, strengthTable, false)
+                    end
+                    Companies[newCpy.id] = newCpy
+                    table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
+                    newCpy:setWaypoints({startPoint, destination}, targetBP, 999)
+                    newCpy:spawn()
+                    DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.EQUIPMENT, amount = companyCost[DFS.supplyType.EQUIPMENT]})
+                    DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.FUEL, amount = companyCost[DFS.supplyType.FUEL]})
+                    DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.AMMO, amount = companyCost[DFS.supplyType.AMMO]})
+                elseif overrideTable == nil then
+                    env.info(coalitionId .. " - Cannot send company this company, not enough supply.", false)
+                    if desperate then
+                        env.info(coalitionId .. " - Cannot send company this company. Trying lower tier.", false)
+                        strengthTableTier = strengthTableTier + 1
+                        if strengthTableTier < 10 then
+                            bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate)
+                        end
                     end
                 end
             end
