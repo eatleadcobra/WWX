@@ -43,6 +43,7 @@ Airframes = {
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
             ["A-10A"] = true,
+            ["A-10C_2"] = true,
             ["A-4E-C"] = true,
             ["F-4E-45MC"] = true,
             ["F-86F Sabre"] = true,
