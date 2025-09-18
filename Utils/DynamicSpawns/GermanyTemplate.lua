@@ -53,6 +53,7 @@ Airframes = {
             ["MB-339A"] = true,
             ["Mirage-F1CE"] = true,
             ["Mirage-F1EE"] = true,
+            ["F-16C_50"] = true
         },
         forward = {
             ["UH-1H"] = true,
@@ -84,5 +85,6 @@ ForwardAirbases = {
 }
 IgnoreAirbases = {
     ["Peenemunde"] = true,
+    ["Bremen"] = true,
     ["CV59"] = true,
 }
