@@ -339,6 +339,7 @@ DFS.groupNames = {
         },
         artillery = "Red-Art",
         depot = "Red-Depot",
+        reardepot = "Red-Depot",
         strike = "Red-Strike",
         convoy = {
             [1] = "Red-Fuel-Convoy-",
@@ -355,6 +356,7 @@ DFS.groupNames = {
         },
         artillery = "Blue-Art",
         depot = "Blue-Depot",
+        reardepot = "Blue-Depot",
         strike = "Blue-Strike",
         convoy = {
             [1] = "Blue-Fuel-Convoy-",
@@ -893,6 +895,12 @@ function dfc.initSupply()
     end
 end
 function dfc.initSpawns()
+    local testBlueRearDepotTemplate = Group.getByName("Blue-RearDepot")
+    local testRedRearDepotTemplate = Group.getByName("Red-RearDepot")
+    if testBlueRearDepotTemplate and testRedRearDepotTemplate then
+        DFS.groupNames[1].reardepot ="Red-RearDepot"
+        DFS.groupNames[2].reardepot ="Blue-RearDepot"
+    end
     if SUBS then
         DFSubs.initSub({coalitionId = 1, subType = "santafe"})
         DFSubs.initSub({coalitionId = 2, subType = "santafe"})
@@ -978,7 +986,7 @@ function dfc.respawnRearDepot(param)
     }
     --world.removeJunk(junkSphere)
     timer.scheduleFunction(world.removeJunk, junkSphere, timer:getTime() + 300)
-    table.insert(DFS.status[param.coalitionId].spawns.rd, {groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].depot, spawnPoint, 'clone'), spawnZone = param.spawnZone, subDepot = param.subDepot})
+    table.insert(DFS.status[param.coalitionId].spawns.rd, {groupName = DF_UTILS.spawnGroupExact(DFS.groupNames[param.coalitionId].reardepot, spawnPoint, 'clone'), spawnZone = param.spawnZone, subDepot = param.subDepot})
 end
 -- HEALTH CHECK FUNCS
 
