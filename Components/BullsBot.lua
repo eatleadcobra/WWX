@@ -25,6 +25,10 @@ local groupsList = {
     [1] = {},
     [2] = {},
 }
+local friendliesList = {
+    [1] = {},
+    [2] = {},
+}
 local radioUnits = {
     [1] = {},
     [2] = {},
@@ -126,7 +130,7 @@ function bulls.getEWRs()
 end
 function bulls.getTargets(coalitionId, targetGroupName)
     local foundGroups = {}
-
+    local foundFriendlies = {}
     for e = 1, #ewrPoints[coalitionId] do
         local ewrPoint = ewrPoints[coalitionId][e]
         local volS = {
@@ -155,8 +159,10 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                         contactCallsigns[foundGroupName] = groupCallsign
                                         trigger.action.outTextForGroup(foundGroup:getID(), "Your callsign is " .. groupCallsign, 60, false)
                                     end
+                                    foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
+                                else
+                                    foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly, callsign = groupCallsign}
                                 end
-                                foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly, callsign = groupCallsign}
                             else
                                 local alreadyFound = false
                                 for i = 1, #foundGroups do
@@ -172,8 +178,10 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                             contactCallsigns[foundGroupName] = groupCallsign
                                             trigger.action.outTextForGroup(foundGroup:getID(), "Your callsign is " .. groupCallsign, 60, false)
                                         end
+                                        foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
+                                    else
+                                        foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = false, callsign = groupCallsign}
                                     end
-                                    foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = isFriendly, callsign = groupCallsign}
                                 end
                             end
                         end
@@ -183,6 +191,7 @@ function bulls.getTargets(coalitionId, targetGroupName)
         end
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
         groupsList[coalitionId] = foundGroups
+        friendliesList[coalitionId] = foundFriendlies
     end
 end
 function bulls.cleanCallsignsLoop()
@@ -199,7 +208,41 @@ function bulls.vectorTargets(coalitionId)
         for j = 1, #radioUnits[coalitionId] do
             local vectorString = bulls.pointsVector(bullsPoints[coalitionId], groupsList[coalitionId][i].groupName, radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]], groupsList[coalitionId][i].isFriendly, 1, groupsList[coalitionId][i].callsign)
             if vectorString then
-                --trigger.action.outText("radio group: " .. radioUnits[coalitionId][j], 5)
+                local radioGroup = Group.getByName(radioUnits[coalitionId][j])
+                if radioGroup then
+                    local msg = {
+                        id = 'TransmitMessage',
+                        params = {
+                        duration = 10,
+                        subtitle = vectorString,
+                        loop = false,
+                        file ="l10n/DEFAULT/Alert.ogg",
+                        }
+                    }
+                    radioGroup:getController():setCommand(msg)
+                end
+            end
+        end
+    end
+    for j = 1, #radioUnits[coalitionId] do
+        local radioGroup = Group.getByName(radioUnits[coalitionId][j])
+        if radioGroup then
+            local msg = {
+                id = 'TransmitMessage',
+                params = {
+                duration = 10,
+                subtitle = "\n---------------------------------------------------------------------------------------------\n",
+                loop = false,
+                file ="l10n/DEFAULT/Alert.ogg",
+                }
+            }
+            radioGroup:getController():setCommand(msg)
+        end
+    end
+    for i = 1, #friendliesList[coalitionId] do
+        for j = 1, #radioUnits[coalitionId] do
+            local vectorString = bulls.pointsVector(bullsPoints[coalitionId], friendliesList[coalitionId][i].groupName, radioDistanceUnits[coalitionId][radioUnits[coalitionId][j]], friendliesList[coalitionId][i].isFriendly, 1, friendliesList[coalitionId][i].callsign)
+            if vectorString then
                 local radioGroup = Group.getByName(radioUnits[coalitionId][j])
                 if radioGroup then
                     local msg = {
