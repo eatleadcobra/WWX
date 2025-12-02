@@ -79,6 +79,7 @@ local planeRadioTypes = {
         ["SA342L"] = 5,
         ["SA342Minigun"] = 6,
         ["UH-1H"] = 7,
+        ["C-130J-30"] = 8,
     },
     mhz = {
         ["MosquitoFBMkVI"] = 1,
@@ -94,6 +95,7 @@ local mpra = {
     ["UH-1H"] = 1,
     ["P-47D-30bl1"] = 1,
     ["P-47D-40"] = 1,
+    ["C-130J-30"] = 1,
 }
 local coalitions = {1, 2}
 local playerCount = {

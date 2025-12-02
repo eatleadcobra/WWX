@@ -42,6 +42,8 @@ Airframes = {
     },
     [2] = {
         main = {
+            --garbage
+            ["C-130J-30"] = true,
             --warbirds
             ["MosquitoFBMkVI"] = true,
             ["Bf-109K-4"] = true,
