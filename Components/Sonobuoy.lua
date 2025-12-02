@@ -79,6 +79,7 @@ local planeRadioTypes = {
         ["SA342L"] = 5,
         ["SA342Minigun"] = 6,
         ["UH-1H"] = 7,
+        ["C-130J-30"] = 8,
     },
     mhz = {
         ["MosquitoFBMkVI"] = 1,
