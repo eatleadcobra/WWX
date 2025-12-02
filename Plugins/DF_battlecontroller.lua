@@ -1,6 +1,7 @@
 --check BPs for ownership
 BattleControl = {}
 local positionsCountLimit = 20
+local bpRequiredStrength = 10
 local junkRemoval = true
 local bc = {}
 local bcmarkups = {
@@ -336,9 +337,17 @@ function bc.main()
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
         local ownedBy = 0
         if blueUnits > redUnits then
-            ownedBy = 2
+            local bpStrength = bc.getRealBpStrength(2, v.id)
+            env.info("Blue units ("..blueUnits ..") outnumber red (" .. redUnits .. ")\nBP Stregnth: " .. bpStrength, false)
+            if bpStrength > bpRequiredStrength then
+                ownedBy = 2
+            end
         elseif redUnits > blueUnits then
-            ownedBy = 1
+            local bpStrength = bc.getRealBpStrength(1, v.id)
+            env.info("Red units ("..redUnits ..") outnumber blue (" .. blueUnits .. ")\nBP Stregnth: " .. bpStrength, false)
+            if bpStrength > bpRequiredStrength then
+                ownedBy = 1
+            end
         end
         if ownedBy == 1 then redPositions = redPositions + 1 end
         if ownedBy == 2 then bluePositions = bluePositions + 1 end
@@ -554,6 +563,34 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
     else
         env.info(coalitionId .. " - Cannot send company this company, not enough supply", false)
     end
+end
+
+function bc.getRealBpStrength(coalitionId, bpId)
+    local battlePosition = battlePositions[bpId]
+    local positionRealStrength = 0
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = battlePosition.point,
+            radius = battlePosition.radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() == coalitionId then
+            if foundItem:hasAttribute("Tanks") then
+                positionRealStrength = positionRealStrength + 6
+            elseif foundItem:hasAttribute("IFV") then
+                positionRealStrength = positionRealStrength + 4
+            elseif foundItem:hasAttribute("APC") then
+                positionRealStrength = positionRealStrength + 3
+            else
+                positionRealStrength = positionRealStrength + 1
+            end
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    return positionRealStrength
 end
 function bc.assessBpStrength(coalitionId, bpId)
     local battlePosition = battlePositions[bpId]
