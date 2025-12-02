@@ -88,6 +88,7 @@ local planeRadioTypes = {
     }
 }
 local mpra = {
+    ["C-130J-30"] = 1,
     ["MosquitoFBMkVI"] = 1,
     ["C-101CC"] = 1,
     ["Mi-8MT"] = 1,
