@@ -1,6 +1,8 @@
 Airframes = {
     [1] = {
         main = {
+            --garbage: soulful
+            ["C-130J-30"] = true,
             --warbirds
             ["P-47D-30bl1"] = true,
             ["P-47D-40"] = true,
@@ -42,7 +44,7 @@ Airframes = {
     },
     [2] = {
         main = {
-            --garbage
+            --garbage: soulful
             ["C-130J-30"] = true,
             --warbirds
             ["MosquitoFBMkVI"] = true,
