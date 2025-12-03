@@ -79,10 +79,10 @@ local planeRadioTypes = {
         ["SA342L"] = 5,
         ["SA342Minigun"] = 6,
         ["UH-1H"] = 7,
-        ["C-130J-30"] = 8,
     },
     mhz = {
         ["MosquitoFBMkVI"] = 1,
+        ["C-130J-30"] = 2,
     },
     yak = {
         ["Yak-52"] = 1
@@ -207,7 +207,7 @@ function sb.createBuoy(param)
                     if unit:getTypeName() == "Yak-52" and buoyKhzMsg ~= 0 then
                         buoyKhzFreq = tostring(buoyKhzMsg)
                     end
-                    local markMsg = "Buoy: " .. buoyId .. "\nFrequency KHz: " .. buoyKhzFreq .."\nDetrola: " .. buoyDetFreq .. "\nMCs: " .. buoyMhzFreq
+                    local markMsg = "Buoy: " .. buoyId .. "\nFrequency KHz: " .. buoyKhzFreq .."\nDetrola: " .. buoyDetFreq .. "\nMCs(MHz): " .. buoyMhzFreq
                     if CODAR then
                         CODAR.newBuoy(param.coalition, location, buoyId)
                     end
