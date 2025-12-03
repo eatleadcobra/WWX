@@ -72,6 +72,7 @@ DFS.madAircraft = {
     ["P-47D-30bl1"] = 7,
     ["P-47D-40"] = 8,
     ["Yak-52"] = 9,
+    ["C-130J-30"] = 10,
 }
 DFS.heloCapacities = {
     ["AV8BNA"] = {
@@ -122,6 +123,19 @@ DFS.heloCapacities = {
         },
         volume = 15,
         seats = 14
+    },
+    ["C-130J-30"] = {
+        types = {
+            ["Fuel"] = 1,
+            ["Ammo"] = 2,
+            ["Equipment"] = 3,
+            ["Mortar Squad"] = 5,
+            ["Special Forces"] = 6,
+            ["Combat Engineers (Landmines)"] = 7,
+            ["Small Mortar Squad"] = 8,
+        },
+        volume = 45,
+        seats = 30
     },
     ["UH-60L"] = {
         types = {
