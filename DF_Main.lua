@@ -2485,7 +2485,7 @@ function dfc.trackCargo(param)
                     end
                 end
                 local cargoPoint = cargo:getPoint()
-                if cargoPoint then env.info("cargo location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z, false) end
+                if cargoPoint then env.info("cargo (".. param.cargo .. ") location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z, false) end
                 if (velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) and (altitude < 1) then
                    param.successfulDeployChecks = param.successfulDeployChecks + 1
                     if param.successfulDeployChecks > 1 then
