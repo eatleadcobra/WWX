@@ -126,9 +126,6 @@ DFS.heloCapacities = {
     },
     ["C-130J-30"] = {
         types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
             ["Combat Engineers (Landmines)"] = 7,
@@ -2733,8 +2730,8 @@ end
 function dfc.addRadioCommandsForCargoGroup(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup then
-        local cargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Cargo/Troop Transport", nil)
-        local slingMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Sling Loading", cargoMenu)
+        local cargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Virtual Cargo/Troop Transport", nil)
+        local slingMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Physical Cargo", cargoMenu)
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].big, slingMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "big"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), slingMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].big, slingMenu, dfc.spawnSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "big"})
