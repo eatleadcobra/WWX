@@ -55,7 +55,7 @@ env.info("Loading Plugins", false)
 assert(loadfile(pathToWWX.."Plugins\\DF_firebases.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_submarines.lua"))()
 if CARGO then
-   assert(loadfile(pathToWWX.."Plugins\\DF_slingbabysitter.lua"))()
+   --assert(loadfile(pathToWWX.."Plugins\\DF_slingbabysitter.lua"))()
 end
 env.info("Loading main", false)
 assert(loadfile(pathToWWX.."DF_Main.lua"))()
