@@ -15,22 +15,21 @@ local subTypes = {
 function torpEvents:onEvent(event)
     --on hit
     if event.id == 1 and event.weapon and event.weapon.getTypeName then
-        if event.weapon:getTypeName() == "LTF_5B" or event.weapon:getTypeName() == "Mark_46" then
+        if event.weapon:getTypeName() == "LTF_5B" then
             local torpedoPlayerName = ""
             if event.initiator and event.initiator.getPlayerName then
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
             torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
+        elseif event.weapon:getTypeName() == "Mark_46" then
+            local torpedoPlayerName = ""
+            local torpedoPlayerGroupID = 0
+            if event.initiator and event.initiator.getPlayerName and event.initiator:getGroup() then
+                torpedoPlayerGroupID = event.initiator:getGroup():getID()
+                torpedoPlayerName = event.initiator:getPlayerName()
+            end
+            torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerGroupId = torpedoPlayerGroupID, playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
         end
-        -- elseif event.weapon:getTypeName() == "Mark_46" then
-        --     local torpedoPlayerName = ""
-        --     local torpedoPlayerGroupID = 0
-        --     if event.initiator and event.initiator.getPlayerName and event.initiator:getGroup() then
-        --         torpedoPlayerGroupID = event.initiator:getGroup():getID()
-        --         torpedoPlayerName = event.initiator:getPlayerName()
-        --     end
-        --     torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerGroupId = torpedoPlayerGroupID, playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
-        -- end
     end
 end
 function torp.trackActiveTorpedo(param)

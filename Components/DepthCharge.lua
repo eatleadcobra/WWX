@@ -1,7 +1,7 @@
 local depthCharge = {}
 local dcEvents = {}
 local chargeDepths = {}
-local dcDamageRange = 200
+local dcDamageRange = 350
 local dcKillRange = 50
 local subTypes = {["santafe"] = 1, ["Type_093"] = 2}
 function dcEvents:onEvent(event)
@@ -25,6 +25,7 @@ function depthCharge.trackBomb(param)
                 local weaponSpeed = (vec.x^2 + vec.y^2 + vec.z^2)^0.5
                 local impactPoint = land.getIP(weaponPos.p, weaponPos.x, weaponSpeed * 0.3)
                 if impactPoint then
+                    env.info("Bomb water impact point found", false)
                     local isWater = land.getSurfaceType({x = impactPoint.x, y = impactPoint.z})
                     if isWater == 2 or isWater == 3 then
                         --local depth = (depthCharge.getDepthForInitiator(param.initiator)) * 0.3048 -- this will be the location to look up the depth charge depth set by the event initiator
@@ -47,6 +48,7 @@ function depthCharge.trackBomb(param)
 end
 --explodePoint, depth
 function depthCharge.explodeCharge(param)
+    env.info("DC explode triggered", false)
     param.explodePoint.y = param.explodePoint.y - 25
     local volS = {
         id = world.VolumeType.SPHERE,
@@ -75,6 +77,7 @@ function depthCharge.explodeCharge(param)
     --local dcTarget = VB.createDCpoint(param.explodePoint, param.coalition)
     trigger.action.explosion(param.explodePoint, param.power)
     if closestSub.distance ~= nil then
+        env.info("close sub found, distance: " .. closestSub.distance, false)
         if closestSub.distance < dcDamageRange then
             env.info("Depth charge hit", false)
             DFSubs.subDamaged(closestSub.coalition)
