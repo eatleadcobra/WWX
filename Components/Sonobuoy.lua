@@ -114,6 +114,10 @@ local detrolaFreqs = {
     [10] = {det = 360, mhz = 190},
     [11] = {det = 400, mhz = 200},
 }
+local coalitionSmokeColors = {
+    [1] = 1,
+    [2] = 4
+}
 local sbEvents = {}
 function sbEvents:onEvent(event)
     --on takeoff 
@@ -388,6 +392,23 @@ function sb.dropFlare(groupName)
         end
     end
 end
+function sb.dropMarker(groupName)
+    local flareGroup = Group.getByName(groupName)
+    if flareGroup ~= nil then
+        local flareUnit = flareGroup:getUnit(1)
+        if flareUnit ~= nil then
+            local flarePoint = flareUnit:getPoint()
+            if flarePoint ~= nil then
+                local flarePointTerrainType = land.getSurfaceType({x = flarePoint.x, y = flarePoint.z})
+                if (flarePointTerrainType == 2 or flarePointTerrainType == 3) then
+                    trigger.action.smoke(flarePoint, coalitionSmokeColors[flareGroup:getCoalition()])
+                else
+                    trigger.action.outTextForGroup(flareGroup:getID(), "These markers can only be dropped over water", 10, false)
+                end
+            end
+        end
+    end
+end
 -- groupId, sound
 function sb.testSound(param)
     trigger.action.outSoundForGroup(param.groupId, beaconSounds[param.sound])
@@ -423,6 +444,7 @@ function Sonobuoys.addRadioCommandsForFixedWingGroup(groupName)
                 local sbMenu = missionCommands.addSubMenuForGroup(addID, "Sonobuoys", nil)
                 missionCommands.addCommandForGroup(addID, "Drop Sonobuoy", sbMenu, sb.createBuoy, {groupName = groupName, coalition = addGroup:getCoalition()})
                 missionCommands.addCommandForGroup(addID, "Drop Illumination Flare", sbMenu, sb.dropFlare, groupName)
+                missionCommands.addCommandForGroup(addID, "Drop Smoke Marker", sbMenu, sb.dropMarker, groupName)
                 missionCommands.addCommandForGroup(addID, "Check Buoys", sbMenu, sb.checkBuoys, groupName)
                 local sbTestSubMenu = missionCommands.addSubMenuForGroup(addID, "Training Sounds and Instructions", sbMenu)
                 missionCommands.addCommandForGroup(addID, "How to use", sbTestSubMenu, sb.faq, addID)
