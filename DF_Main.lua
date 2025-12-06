@@ -1967,6 +1967,51 @@ function dfc.spawnSupply(param)
         end
     end
 end
+--vehicleType, groupName
+function dfc.spawnVehicle(param)
+    local transporterGroup = Group.getByName(param.groupName)
+    if transporterGroup then
+        local transporterUnit = transporterGroup:getUnit(1)
+        local transporterCoalition = transporterUnit:getCoalition()
+        if transporterUnit then
+            local pickupLocation = transporterUnit:getPoint()
+            local pickUpZone = dfc.findPickupZone(pickupLocation, transporterCoalition)
+            if pickUpZone then
+                local frontPickup = string.find(pickUpZone, "FrontDepot")
+                local piratePickup = string.find(pickUpZone, 'Pirate')
+                local canSpawnCargo = dfc.canSpawnCargo(DFS.supplyType.EQUIPMENT, transporterCoalition, frontPickup, param.modifier, piratePickup)
+                local seaPickup = string.find(pickUpZone, 'Sea')
+                if seaPickup or canSpawnCargo then
+                    local pickupPoint = trigger.misc.getZone(pickUpZone).point
+                    if frontPickup then
+                        pickupPoint.x = pickupPoint.x + 20
+                        pickupPoint.z = pickupPoint.z + 20
+                    end
+                    local spawnPoints = {}
+                    spawnPoints[1] = pickupPoint
+                    local groups = {
+                        [1] = {type = param.vehicleType, point = spawnPoints[1]}
+                    }
+                    FirebaseGroups.spawnCustomGroup(pickupPoint, groups, transporterCoalition, 0)
+                    if piratePickup then
+                        dfc.decreasePirateSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT][param.modifier]), type = DFS.supplyType.EQUIPMENT})
+                    elseif not seaPickup and not frontPickup then
+                        dfc.decreaseRearSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT][param.modifier]), type = DFS.supplyType.EQUIPMENT})
+                    elseif frontPickup then
+                        dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT][param.modifier]), type = DFS.supplyType.EQUIPMENT})
+                    end
+                else
+                    trigger.action.outTextForGroup(transporterGroup:getID(), "This depot does not have enough " .. DFS.supplyNames[DFS.supplyType.EQUIPMENT].. " to create a vehicle!", 5, false)
+                    if frontPickup then
+                        trigger.action.outTextForGroup(transporterGroup:getID(), "Front depots only allow pickup for ammo and artillery.", 10, false)
+                    end
+                end
+            else
+                trigger.action.outTextForGroup(transporterGroup:getID(), "You are not close enough to a supply pickup location!", 5, false)
+            end
+        end
+    end
+end
 --type, groupName
 function dfc.loadInternalCargo(param)
     local transporterGroup = Group.getByName(param.groupName)
@@ -2730,7 +2775,7 @@ end
 function dfc.addRadioCommandsForCargoGroup(groupName)
     local addGroup = Group.getByName(groupName)
     if addGroup then
-        local cargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Virtual Cargo/Troop Transport", nil)
+        local cargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Cargo and Troop Transport", nil)
         local slingMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Physical Cargo", cargoMenu)
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].big, slingMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "big"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), slingMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small"})
@@ -2739,7 +2784,11 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].big, slingMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "big"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), slingMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Gun - 3 Equipment", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "big"})
-        local internalCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Internal Cargo", cargoMenu)
+        if addGroup:getUnit(1):getTypeName() == "C-130J-30" then
+            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Anti Tank", slingMenu, dfc.spawnVehicle, {vehicleType = "TOW", groupName = groupName, modifier = "big"})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", slingMenu, dfc.spawnVehicle, {vehicleType = "Technical", groupName = groupName, modifier = "big"})
+        end
+        local internalCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Virtual Cargo", cargoMenu)
         if addGroup:getUnit(1):getTypeName() ~= "CH-47Fbl1" then
             missionCommands.addCommandForGroup(addGroup:getID(), "Internal Cargo Status", internalCargoMenu, dfc.internalCargoStatus, groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel " .. DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small, internalCargoMenu, dfc.loadInternalCargo, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small"})
@@ -2748,7 +2797,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
         else
             missionCommands.addCommandForGroup(addGroup:getID(), "Chinooks Load Slinging Cargo Through Re-arm Menu", internalCargoMenu, dfc.doNothing, nil)
         end
-        local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation", cargoMenu)
+        local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Virtual)", cargoMenu)
         missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
         missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
         missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase) - 5 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
