@@ -2046,7 +2046,7 @@ function dfc.loadInternalCargo(param)
                         if transporterTable.cargo.carrying == false then
                             missionCommands.addCommandForGroup(transporterGroup:getID(), "Unload All", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = "ALL", country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Unload All"})
                         else
-                            missionCommands.removeItemForGroup(transporterGroup:getID(), {[1] = "Cargo/Troop Transport", [2] = "Internal Cargo", [3] = "Unload All"})
+                            missionCommands.removeItemForGroup(transporterGroup:getID(), {[1] = "Cargo and Troop Transport", [2] = "Virtual Cargo", [3] = "Unload All"})
                             missionCommands.addCommandForGroup(transporterGroup:getID(), "Unload All", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = "ALL", country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Unload All"})
                         end
                         transporterTable.cargo.carrying = true
@@ -2110,7 +2110,7 @@ function dfc.unloadInternalCargo(param)
                         dfc.unloadInternalCargo({groupName = param.groupName, type = manifestCopy[i], country = transporterUnit:getCountry(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = transporterGroup:getID(), coalition = param.coalition, removeCommand = "Drop " ..  DFS.supplyNames[manifestCopy[i]]})
                     end
                 end
-                missionCommands.removeItemForGroup(param.groupId, {[1] = "Cargo/Troop Transport", [2] = "Internal Cargo", [3] = param.removeCommand})
+                missionCommands.removeItemForGroup(param.groupId, {[1] = "Cargo and Troop Transport", [2] = "Virtual Cargo", [3] = param.removeCommand})
             else
                 transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed - DFS.cargoVolumes[param.type]
                 for i = 1, #transporterTable.cargo.manifest do
@@ -2129,11 +2129,11 @@ function dfc.unloadInternalCargo(param)
                     local cargo = dfc.spawnStatic(param.type, unloadPoint, param.country, "small")
                     dfc.trackCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
                 end
-                local secondLevel = "Internal Cargo"
+                local secondLevel = "Virtual Cargo"
                 if dfc.isTroops(param.type) then
-                    secondLevel = "Troop Transportation"
+                    secondLevel = "Troop Transportation (Virtual)"
                 end
-                missionCommands.removeItemForGroup(param.groupId, {[1] = "Cargo/Troop Transport", [2] = secondLevel, [3] = param.removeCommand})
+                missionCommands.removeItemForGroup(param.groupId, {[1] = "Cargo and Troop Transport", [2] = secondLevel, [3] = param.removeCommand})
                 if param.type == DFS.supplyType.SF then
                     missionCommands.removeItemForGroup(param.groupId, {[1] = "Begin Fast Rope (60s)"})
                 end
@@ -2187,7 +2187,7 @@ function dfc.loadNearestTroops(param)
                                 if transporterTable.cargo.carrying == false then
                                     missionCommands.addCommandForGroup(pickupGroup:getID(), "Unload All", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = "ALL", country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Unload All"})
                                 else
-                                    missionCommands.removeItemForGroup(pickupGroup:getID(), {[1] = "Cargo/Troop Transport", [2] = "Internal Cargo", [3] = "Unload All"})
+                                    missionCommands.removeItemForGroup(pickupGroup:getID(), {[1] = "Cargo and Troop Transport", [2] = "Virtual Cargo", [3] = "Unload All"})
                                     missionCommands.addCommandForGroup(pickupGroup:getID(), "Unload All", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = "ALL", country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Unload All"})
                                 end
                                 transporterTable.cargo.carrying = true

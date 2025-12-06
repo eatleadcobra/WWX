@@ -93,7 +93,7 @@ function FR.ropeLoop(param)
                 local zInParam = math.abs(relativeZ) < velocityThreshold
                 if xInParam and yInParam and zInParam and inBounds then
                     missionCommands.removeItemForGroup(ropingGroup:getID(), {[1] = "Begin Fast Rope (60s)"})
-                    missionCommands.removeItemForGroup(ropingGroup:getID(), {[1] = "Cargo/Troop Transport", [2] = "Troop Transportation", [3] = "Drop " .. DFS.supplyNames[DFS.supplyType.SF]})
+                    missionCommands.removeItemForGroup(ropingGroup:getID(), {[1] = "Cargo and Troop Transport", [2] = "Troop Transportation (Virtual)", [3] = "Drop " .. DFS.supplyNames[DFS.supplyType.SF]})
                     trigger.action.outTextForGroup(ropingGroup:getID(), "Deploying Troops!", 5, false)
                     param.startTime = 0
                     DFS.troopUnloadExternal(param.groupName, DFS.supplyType.SF, nil)
