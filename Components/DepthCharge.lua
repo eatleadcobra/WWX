@@ -7,7 +7,7 @@ local subTypes = {["santafe"] = 1, ["Type_093"] = 2}
 function dcEvents:onEvent(event)
 	--on weapon release
 	if event.id == 1 then
-        if event.weapon and event.initiator and event.weapon:getDesc().category == 3 and event.weapon.getPlayerName then
+        if event.weapon and event.initiator and event.weapon:getDesc().category == 3 and event.initiator.getPlayerName then
             local playerName = event.initiator:getPlayerName()
             if playerName then
                 depthCharge.trackBomb({weapon = event.weapon, initiator = event.initiator, playerName = playerName, coalition = event.initiator:getCoalition()})
