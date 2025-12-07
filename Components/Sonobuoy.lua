@@ -401,6 +401,7 @@ function sb.dropMarker(groupName)
             if flarePoint ~= nil then
                 local flarePointTerrainType = land.getSurfaceType({x = flarePoint.x, y = flarePoint.z})
                 if (flarePointTerrainType == 2 or flarePointTerrainType == 3) then
+                    flarePoint.y = 0
                     trigger.action.smoke(flarePoint, coalitionSmokeColors[flareGroup:getCoalition()])
                 else
                     trigger.action.outTextForGroup(flareGroup:getID(), "These markers can only be dropped over water", 10, false)
