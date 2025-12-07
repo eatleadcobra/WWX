@@ -7,10 +7,10 @@ function DrawingTools.newMarkId()
 end
 local package = {
     [1] = {
-        size = 800
+        size = 200
     },
     [2] = {
-        size = 2400
+        size = 300
     },
     [3] = {
         size = 2500
