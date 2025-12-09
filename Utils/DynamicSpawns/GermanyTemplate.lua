@@ -88,4 +88,6 @@ IgnoreAirbases = {
     ["Peenemunde"] = true,
     ["Bremen"] = true,
     ["CV59"] = true,
+    ["Damgarten"] = true,
+    ["Kiel"] = true,
 }
