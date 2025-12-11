@@ -22,6 +22,7 @@ function dsm.loop()
             --removing planes that should not be present
             if airbaseCoalition == 1 or airbaseCoalition == 2 then
                 if IgnoreAirbases[airbaseName] == nil then
+                    env.info("Managing airfield: " .. airbaseName, false)
                     for k,v in pairs(airframeslist) do
                         if v > 0 then
                             if airbaseCategory == 0 and Airframes[airbaseCoalition].main[k] == nil then
@@ -55,6 +56,8 @@ function dsm.loop()
                             end
                         end
                     end
+                else
+                    env.info("Ignoring airfield: " .. airbaseName, false)
                 end
             end
         end

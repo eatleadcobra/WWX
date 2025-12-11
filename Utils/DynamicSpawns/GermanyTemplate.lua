@@ -1,6 +1,7 @@
 Airframes = {
     [1] = {
         main = {
+            ["C-130J-30"] = true,
             ["Mi-24P"] = true,
             ["Mi-8MT"] = true,
             ["Ka-50"] = true,
@@ -37,6 +38,7 @@ Airframes = {
     },
     [2] = {
         main = {
+            ["C-130J-30"] = true,
             ["UH-1H"] = true,
             ["SA342L"] = true,
             ["SA342M"] = true,
