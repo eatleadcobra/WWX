@@ -56,6 +56,7 @@ Airframes = {
             ["MB-339A"] = true,
             ["Mirage-F1CE"] = true,
             ["Mirage-F1EE"] = true,
+            ["Mirage-F1BE"] = true,
             ["F-16C_50"] = true
         },
         forward = {
