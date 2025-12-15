@@ -11,6 +11,8 @@ local torpEvents = {}
 local subTypes = {
     ["santafe"] = 1,
     ["Type_093"] = 1,
+    ["KILO"] = 1,
+    ["IMPROVED_KILO"] = 1
 }
 function torpEvents:onEvent(event)
     --on hit

@@ -3,7 +3,7 @@ local dcEvents = {}
 local chargeDepths = {}
 local dcDamageRange = 350
 local dcKillRange = 50
-local subTypes = {["santafe"] = 1, ["Type_093"] = 2}
+local subTypes = {["santafe"] = 1, ["Type_093"] = 2, ["KILO"] = 3, ["IMPROVED_KILO"] = 4}
 function dcEvents:onEvent(event)
 	--on weapon release
 	if event.id == 1 then

@@ -1,18 +1,23 @@
 SubControl = {}
 SubControl.subValues = {
     ["Type_093"] = {
-        maxSpeed = 4.16,
-        maxDepth = -38,
+        maxSpeed = 5,
+        maxDepth = -14,
         periscopeDepth = -12,
     },
     ["KILO"] = {
-        maxSpeed = 4.16,
-        maxDepth = -38,
+        maxSpeed = 5,
+        maxDepth = -14,
+        periscopeDepth = -9,
+    },
+    ["IMPROVED_KILO"] = {
+        maxSpeed = 5,
+        maxDepth = -14,
         periscopeDepth = -9,
     },
     ["santafe"] = {
         maxSpeed = 4.16,
-        maxDepth = -38,
+        maxDepth = -15,
         periscopeDepth = -9,
     }
 }
@@ -22,12 +27,12 @@ function SubControl.createSubWithIntercept(coalitionId, point, subType, depth, c
         if closestRunIn then
             local wpList = SpawnFuncs.createWPListFromPoints({point, closestRunIn, attackRunEndPoint, point})
             local groupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, 3, {subType}, wpList)
-            local point1depth = SubControl.subValues[subType].maxDepth/2
+            local point1depth = SubControl.subValues[subType].maxDepth
             if depth then point1depth = depth end
             groupTable["units"][1]["heading"] = bearing
             groupTable["route"]["points"][1].alt = point1depth
             groupTable["route"]["points"][1].speed = speedToRunIn
-            groupTable["route"]["points"][2].alt = SubControl.subValues[subType].maxDepth/2
+            groupTable["route"]["points"][2].alt = SubControl.subValues[subType].maxDepth
             groupTable["route"]["points"][2].speed = speedToRunIn
             groupTable["route"]["points"][3].alt = SubControl.subValues[subType].periscopeDepth
             groupTable["route"]["points"][3].speed = SubControl.subValues[subType].maxSpeed
@@ -46,11 +51,11 @@ function SubControl.updateSubMissionWithIntercept(groupName, point, subType, dep
         if closestRunIn then
             local wpList = SpawnFuncs.createWPListFromPoints({point, closestRunIn, attackRunEndPoint, point})
             local missionTable = SpawnFuncs.createMission(wpList)
-            local point1depth = SubControl.subValues[subType].maxDepth/2
+            local point1depth = SubControl.subValues[subType].maxDepth
             if depth then point1depth = depth end
             missionTable["params"]["route"]["points"][1].alt = point1depth
             missionTable["params"]["route"]["points"][1].speed = speedToRunIn
-            missionTable["params"]["route"]["points"][2].alt = SubControl.subValues[subType].maxDepth/2
+            missionTable["params"]["route"]["points"][2].alt = SubControl.subValues[subType].maxDepth
             missionTable["params"]["route"]["points"][2].speed = speedToRunIn
             missionTable["params"]["route"]["points"][3].alt = SubControl.subValues[subType].periscopeDepth
             missionTable["params"]["route"]["points"][4].speed = SubControl.subValues[subType].maxSpeed
@@ -71,8 +76,8 @@ end
 function SubControl.createSubWithNoIntercept(coalitionId, startPoint, endPoint, subType, startDepth, endDepth)
     local wpList = SpawnFuncs.createWPListFromPoints({startPoint, endPoint})
     local groupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, 3, {subType}, wpList)
-    local point1depth = (SubControl.subValues[subType].maxDepth)/2
-    local point2depth = (SubControl.subValues[subType].maxDepth)/2
+    local point1depth = (SubControl.subValues[subType].maxDepth)
+    local point2depth = (SubControl.subValues[subType].maxDepth)
     if startDepth then point1depth = startDepth end
     if endDepth then point2depth = endDepth end
     local vector = Utils.VecNormalize({x = endPoint.x - startPoint.x, y = endPoint.y - startPoint.y, z = endPoint.z - startPoint.z})
@@ -88,8 +93,8 @@ end
 function SubControl.updateSubMissionWithNoIntercept(groupName, startPoint, endPoint, subType, startDepth, endDepth)
     local wpList = SpawnFuncs.createWPListFromPoints({startPoint, endPoint})
     local missionTable = SpawnFuncs.createMission(wpList)
-    local point1depth = (SubControl.subValues[subType].maxDepth)/2
-    local point2depth = (SubControl.subValues[subType].maxDepth)/2
+    local point1depth = (SubControl.subValues[subType].maxDepth)
+    local point2depth = (SubControl.subValues[subType].maxDepth)
     if startDepth then point1depth = startDepth end
     if endDepth then point2depth = endDepth end
     local vector = Utils.VecNormalize({x = endPoint.x - startPoint.x, y = endPoint.y - startPoint.y, z = endPoint.z - startPoint.z})

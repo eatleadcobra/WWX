@@ -4,6 +4,9 @@ SpawnValues.units = {
     ["kilo"] = {
         type = "KILO"
     },
+    ["improved_kilo"] = {
+        type = "IMPROVED_KILO"
+    },
     ["santafe"] = {
         type = "santafe",
     },

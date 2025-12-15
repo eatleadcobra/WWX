@@ -309,7 +309,7 @@ function sb.searchForSubs(location)
         }
     }
     local ifFound = function(foundItem, val)
-        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and (SUBTYPE and foundItem:getTypeName() == SUBTYPE) then
+        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and (SUBTYPE and (foundItem:getTypeName() == SUBTYPE[1] or foundItem:getTypeName() == SUBTYPE[2])) then
             local subPoint = foundItem:getPoint()
             if subPoint ~= nil then
                 env.info("Found sub at point X: " .. subPoint.x .. " Y: " .. subPoint.z, false)
