@@ -137,7 +137,7 @@ function CODAR.searchFromPoint(point, range)
         }
     }
     local ifFound = function(foundItem, val)
-        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and (foundItem:getTypeName() == "santafe" or foundItem:getTypeName() == "Type_093") then
+        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and (SUBTYPE and foundItem:getTypeName() == SUBTYPE) then
             local subPoint = foundItem:getPoint()
             if subPoint ~= nil then
                 local distance = Utils.PointDistance(point, subPoint)

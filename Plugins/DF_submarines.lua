@@ -4,7 +4,7 @@ DFSubs.subs = {
     [2] = {}
 }
 local subRespawnTime = 600
-local maxSubRuninDistance = 4500
+local maxSubRuninDistance = 10000
 --coalitionId subtype
 function DFSubs.initSub(param)
     if param.subType == nil then param.subType = "santafe" end
@@ -80,12 +80,10 @@ function DFSubs.subLoop(coalitionId)
                     taskComplete = true
                 end
                 local onAttackRun = false
-                if subUnit:getPoint().y <= SubControl.subValues[sub.subType].periscopeDepth then
+                if subUnit:getPoint().y >= SubControl.subValues[sub.subType].periscopeDepth-1 then
                     onAttackRun = true
                 end
-                if onAttackRun then
-                    sub.kills = sub.kills + SubControl.engage(coalitionId, groupName)
-                end
+                    sub.kills = sub.kills + SubControl.engage(coalitionId, groupName, onAttackRun)
                 local distanceFromRunIn = 0
                 if onAttackRun then
                     local subPoint = subUnit:getPoint()

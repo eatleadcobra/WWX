@@ -1,13 +1,18 @@
 SubControl = {}
 SubControl.subValues = {
-    ["type93"] = {
+    ["Type_093"] = {
         maxSpeed = 4.16,
-        maxDepth = -100,
+        maxDepth = -38,
         periscopeDepth = -12,
+    },
+    ["KILO"] = {
+        maxSpeed = 4.16,
+        maxDepth = -38,
+        periscopeDepth = -9,
     },
     ["santafe"] = {
         maxSpeed = 4.16,
-        maxDepth = -56,
+        maxDepth = -38,
         periscopeDepth = -9,
     }
 }
@@ -100,7 +105,7 @@ function SubControl.updateSubMissionWithNoIntercept(groupName, startPoint, endPo
         end
     end
 end
-function SubControl.engage(coalitionId, groupName)
+function SubControl.engage(coalitionId, groupName, onAttackRun)
     env.info("Sub engage start", false)
     local subGroup = Group.getByName(groupName)
     if subGroup ~= nil then
@@ -138,11 +143,13 @@ function SubControl.engage(coalitionId, groupName)
             end
             world.searchObjects(Object.Category.UNIT, volP, ifFound)
             if closestShip.distance ~= nil and closestShip.point ~= nil then
-                local explosionPower = 1200
-                trigger.action.explosion(closestShip.point, explosionPower)
-                env.info("Ship killed by sub: " .. coalitionId, false)
-                trigger.action.outTextForCoalition(closestShip.coalition, "Ship destroyed by enemy sub!!", 30, false)
-                return 1
+                if (onAttackRun and closestShip.distance < 5000) or (closestShip.distance < 1000) then
+                    local explosionPower = 1200
+                    trigger.action.explosion(closestShip.point, explosionPower)
+                    env.info("Ship killed by sub: " .. coalitionId, false)
+                    trigger.action.outTextForCoalition(closestShip.coalition, "Ship destroyed by enemy sub!!", 30, false)
+                    return 1
+                end
             end
             return 0
         end

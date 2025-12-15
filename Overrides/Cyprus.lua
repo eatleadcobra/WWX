@@ -1,6 +1,7 @@
 trigger.action.setUserFlag("MISSION_ID", 2)
 -- enabled features
 SUBS = true
+SUBTYPE = "santafe"
 CAP = false
 BOMBERS = true
 PIRACY = false

@@ -7,7 +7,7 @@ SpawnValues.units = {
     ["santafe"] = {
         type = "santafe",
     },
-    ["type93"] = {
+    ["Type_093"] = {
         type = "Type_093"
     },
     ["howitzer"] = {

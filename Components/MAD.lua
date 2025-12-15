@@ -11,6 +11,7 @@ local madSoundPath = "l10n/DEFAULT/MAD.ogg"
 local subTypes = {
     ["santafe"] = 1,
     ["Type_093"] = 1,
+    ["KILO"] = 1
 }
 function MAD.searchPointForSubs(point)
     local foundSubs = {}

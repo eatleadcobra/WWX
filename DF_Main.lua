@@ -671,7 +671,7 @@ function dfcEvents:onEvent(event)
     --on kill
     if (event.id == world.event.S_EVENT_KILL) then
         if event and event.initiator and event.target then
-            if event.target:getTypeName() == "santafe" and event.initiator.getPlayerName then
+            if SUBTYPE and event.target:getTypeName() == SUBTYPE and event.initiator.getPlayerName then
                 local playerName = event.initiator:getPlayerName()
                 if playerName and WWEvents then
                     WWEvents.playerDestroyedSubmarine(playerName, event.initiator:getCoalition(), "killed a submarine!")
@@ -912,9 +912,12 @@ function dfc.initSpawns()
         DFS.groupNames[1].reardepot ="Red-RearDepot"
         DFS.groupNames[2].reardepot ="Blue-RearDepot"
     end
-    if SUBS then
-        DFSubs.initSub({coalitionId = 1, subType = "santafe"})
-        DFSubs.initSub({coalitionId = 2, subType = "santafe"})
+    if SUBS and SUBTYPE then
+        DFSubs.initSub({coalitionId = 1, subType = SUBTYPE})
+        DFSubs.initSub({coalitionId = 2, subType = SUBTYPE})
+    elseif SUBS then
+        trigger.action.outText("MISSION CONFIG ERROR: NO SUBMARINE TYPE SPECIFIED IN OVERRIDES FILE", 180, false)
+        env.info("MISSION CONFIG ERROR: NO SUBMARINE TYPE SPECIFIED IN OVERRIDES FILE", false)
     end
     if dfc.fileExists(redFbs) and dfc.fileExists(blueFbs) then
         for c = 1,2 do
