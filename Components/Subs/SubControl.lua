@@ -17,7 +17,7 @@ SubControl.subValues = {
     },
     ["santafe"] = {
         maxSpeed = 4.16,
-        maxDepth = -15,
+        maxDepth = -13,
         periscopeDepth = -9,
     }
 }
