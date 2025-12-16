@@ -161,7 +161,7 @@ Platoons = {
             [2] = "M 818"
         },
         ["Shipping"] = {
-            [1] = "Dry-cargo ship-2"
+            [1] = "Ship_Tilde_Supply"
         }
     }
 }
