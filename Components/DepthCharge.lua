@@ -75,7 +75,7 @@ function depthCharge.explodeCharge(param)
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
     --local dcTarget = VB.createDCpoint(param.explodePoint, param.coalition)
-    trigger.action.explosion(param.explodePoint, param.power)
+    trigger.action.explosion(param.explodePoint, 5)
     if closestSub.distance ~= nil then
         env.info("close sub found, distance: " .. closestSub.distance, false)
         if closestSub.distance < dcDamageRange then
