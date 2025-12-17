@@ -1,6 +1,7 @@
 trigger.action.setUserFlag("MISSION_ID", 3)
 -- enabled features
-SUBS = true
+SUBS = false
+ACTIVETORP = false
 SUBTYPE =
 {
     [1] = "santafe",
@@ -161,7 +162,7 @@ Platoons = {
             [2] = "M 818"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply"
+            [1] = "Dry-cargo ship-2"
         }
     }
 }

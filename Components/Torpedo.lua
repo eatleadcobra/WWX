@@ -15,15 +15,14 @@ local subTypes = {
     ["IMPROVED_KILO"] = 1
 }
 function torpEvents:onEvent(event)
-    --on hit
     if event.id == 1 and event.weapon and event.weapon.getTypeName then
-        if event.weapon:getTypeName() == "LTF_5B" then
+        if event.weapon:getTypeName() == "LTF_5B" or (not ACTIVETORP and event.weapon:getTypeName() == "Mark_46") then
             local torpedoPlayerName = ""
             if event.initiator and event.initiator.getPlayerName then
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
             torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
-        elseif event.weapon:getTypeName() == "Mark_46" then
+        elseif (ACTIVETORP and event.weapon:getTypeName() == "Mark_46") then
             local torpedoPlayerName = ""
             local torpedoPlayerGroupID = 0
             if event.initiator and event.initiator.getPlayerName and event.initiator:getGroup() then

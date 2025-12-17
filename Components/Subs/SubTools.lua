@@ -43,8 +43,8 @@ function SubTools.calculateIntercept(shipPoint, subPoint, shipPosition, shipVelo
         end
     end
     if interceptFound then
-        local runInOne = Utils.VectorAdd(shipIntPoint, Utils.ScalarMult(Utils.RotateVector(shipPosition.x, 1.5708), 1500))
-        local runInTwo = Utils.VectorAdd(shipIntPoint, Utils.ScalarMult(Utils.RotateVector(shipPosition.x, -1.5708), 1500))
+        local runInOne = Utils.VectorAdd(shipIntPoint, Utils.ScalarMult(Utils.RotateVector(shipPosition.x, 1.5708), 1300))
+        local runInTwo = Utils.VectorAdd(shipIntPoint, Utils.ScalarMult(Utils.RotateVector(shipPosition.x, -1.5708), 1300))
         local closestRunIn = runInOne
         if Utils.PointDistance(subPoint, runInTwo) < Utils.PointDistance(subPoint, runInOne) then closestRunIn = runInTwo end
         local speedToRunIn = interceptSpeed
@@ -53,7 +53,7 @@ function SubTools.calculateIntercept(shipPoint, subPoint, shipPosition, shipVelo
         local vector = Utils.VecNormalize({x = closestRunIn.x - subPoint.x, y = closestRunIn.y - subPoint.y, z = closestRunIn.z - subPoint.z})
         local bearing = math.atan2(vector.z, vector.x)
         local attackRunVector = Utils.VecNormalize({x = shipIntPoint.x - closestRunIn.x, y = shipIntPoint.y - closestRunIn.y, z = shipIntPoint.z - closestRunIn.z})
-        local attackRunEndPoint = Utils.VectorAdd(closestRunIn, Utils.ScalarMult(attackRunVector, subSpeed*(1000)))
+        local attackRunEndPoint = Utils.VectorAdd(closestRunIn, Utils.ScalarMult(attackRunVector, subSpeed*(800)))
         return closestRunIn, attackRunEndPoint, bearing, speedToRunIn
     else
         return nil
