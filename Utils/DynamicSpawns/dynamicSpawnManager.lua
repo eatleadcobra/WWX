@@ -23,6 +23,7 @@ function dsm.loop()
             if airbaseCoalition == 1 or airbaseCoalition == 2 then
                 if IgnoreAirbases[airbaseName] == nil then
                     env.info("Managing airfield: " .. airbaseName, false)
+                    env.info("Airfield category: " .. tostring(airbaseCategory), false)
                     for k,v in pairs(airframeslist) do
                         if v > 0 then
                             if airbaseCategory == 0 and Airframes[airbaseCoalition].main[k] == nil then

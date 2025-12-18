@@ -5,7 +5,7 @@ ACTIVETORP = true
 SUBTYPE =
 {
     [1] = "Type_093",
-    [2] = "Type_093",
+    [2] = "santafe",
 }
 CAP = false
 PIRACY = false
@@ -29,7 +29,7 @@ AACount = 6
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
 BLUECASFREQ = 225
-REDCASFREQ = 139
+REDCASFREQ = 45
 BLUECASMOD = 0
 REDCASMOD = 1
 
@@ -97,7 +97,8 @@ Platoons = {
             [2] = "GAZ-66"
         },
         ["Shipping"] = {
-            [1] = "Dry-cargo ship-2"
+            [1] = "HandyWind",
+            [2] = "CastleClass_01"
         }
     },
     [2] = {
@@ -107,8 +108,9 @@ Platoons = {
             [3] = "M 818"
         },
         ["Mech"] = {
-            [1] = "M-2 Bradley",
-            [3] = "M-2 Bradley",
+            [1] = "M1045 HMMWV TOW",
+            [2] = "Marder",
+            [3] = "Marder",
             [4] = "M 818"
         },
         ["Inf"] = {
@@ -160,7 +162,8 @@ Platoons = {
             [2] = "M 818"
         },
         ["Shipping"] = {
-            [1] = "Dry-cargo ship-2"
+            [1] = "Ship_Tilde_Supply",
+            [2] = "CastleClass_01"
         }
     }
 }
@@ -251,10 +254,10 @@ CSARFreqs = {
 }
 CSARBases = {
     [1] = {
-        [1] = "National Rehabilitation Center"
+        [1] = "Red Forward Field Hospital"
     },
     [2] = {
-        [1] = "Larnaca Teaching Hospital"
+        [1] = "Blue Forward Field Hospital"
     }
 }
 CSARFreqCollisions = {
@@ -280,7 +283,8 @@ RandomNames.firstNames = {
         [1] = {"Ahmed","Mohamed","Mahmoud","Omar","Amr","Muhammad","Mohammed","Youssef","Ahmad","Mostafa","Abdelrahman","Mido","Mustafa","Karim","Abdo","Eslam","Michael","Tarek","Aly","Nour","Medo","Yahya","Daniel","Kareem","Sherif","Miro","Hamada","Abdallah","Khaled","Osama"}
     },
     [2] = {
-        [1] = {"Abram","Chaim","Jankel","David","Moshe","Leib","Aron","Yosef","Abraham","Israel","Jacob","Hersch","Moses","Mendel","Wolf","Samuel","Leiser","Jossel","Benjamin","Schmul","Daniel","Ariel","Levi","Noam","Ori"}
+        [1] = {"David","Paul","Andrew","Mark","John","Michael","Stephen","Ian","Robert","Richard","Christopher","Peter","Simon","Anthony","Kevin","Gary","Steven","Martin","James","Philip","Alan","Neil","Nigel","Timothy","Colin","Graham","Jonathan","Nicholas","William","Adrian","Brian","Stuart","Keith","Thomas","Patrick","Sean","Carl","Trevor","Wayne","Shaun","Kenneth","Barry","Derek","Dean","Raymond","Antony","Jeremy","Joseph","Edward","Lee"},
+        [2] = {"Abram","Chaim","Jankel","David","Moshe","Leib","Aron","Yosef","Abraham","Israel","Jacob","Hersch","Moses","Mendel","Wolf","Samuel","Leiser","Jossel","Benjamin","Schmul","Daniel","Ariel","Levi","Noam","Ori"}
     }
 }
 RandomNames.lastNames = {
@@ -288,12 +292,12 @@ RandomNames.lastNames = {
         [1] = {"Mohamed","Ahmed","Hassan","Ali","Mahmoud","Ibrahim","Gamal","Abdel","Mostafa","Salah","Adel","Hussein","Samir","Saad","Soliman","Kamal","Hamdy","Saleh","Salem","Nabil","Youssef","Samy","Said","Fathy","Sayed","Elsayed","Khalil","Aly","Mohammed","Kamel"}
     },
     [2] = {
-        [1] = {"Cohen","Levi","Rosenberg","Goldstein","Friedman","Schwartz","Katz","Stein","Weiss","Adler","Rosen","Klein","Shapiro","Berman","Levy","Kaplan","Hirsch","Ben-David","Bernstein","Singer","Rubin","Steinberg","Shulman","Mandel","Mandelbaum"}
+        [1] = {"Smith","Jones","Williams","Taylor","Davies","Brown","Evans","Thomas","Roberts","Wilson","Johnson","Robinson","Wright","Thompson","White","Walker","Wood","Hall","Edwards","Green","Hughes","Lewis","Jackson","Harris","Turner","Drew","Hill","Clarke","Cooper","Morris","Martin","Baker","Ward","Harrison","Clark","Moore","King","Morgan","Phillips","Allen","James","Parker","Watson","Scott","Davis","Bennett","Griffiths","Price","Cook","Carter","Lee","Richardson","Bailey","Shaw","Young","Bell","Cox","Mitchell","Richards","Wilkinson","Collins","Marshall","Ellis","Chapman","Miller","Webb","Simpson","Adams","Foster","Rogers","Hunt","Owen","Powell","Mason","Holmes","Barker","Lloyd","Barnes","Mills","Palmer","Matthews","Knight","Jenkins","Gray","Pearson","Fisher","Dixon","Butler","Fletcher","Stevens","Anderson","Harvey","Russell","Kelly","Howard","Pearce","Elliott","Payne","Andrews","Atkinson"},
+        [2] = {"Cohen","Levi","Rosenberg","Goldstein","Friedman","Schwartz","Katz","Stein","Weiss","Adler","Rosen","Klein","Shapiro","Berman","Levy","Kaplan","Hirsch","Ben-David","Bernstein","Singer","Rubin","Steinberg","Shulman","Mandel","Mandelbaum"}
     }
 }
 
 CASCALLSIGNS = {
-    --TODO move these to overrides
     alphanumerics = {
         [1] = {
             [1] = "Granit",

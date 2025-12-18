@@ -5,13 +5,16 @@ Airframes = {
             ["Mi-8MT"] = true,
             ["SA342L"] = true,
             ["SA342M"] = true,
+            ["Ka-50"] = true,
             ["Ka-50_3"] = true,
+            ["C-130J-30"] = true,
             ["MiG-19P"] = true,
             ["MiG-21Bis"] = true,
-            ["F-14A-135-GR"] = true,
             ["MiG-29A"] = true,
+            ["MiG-29A Fulcrum"] = true,
             ["Mirage-F1EE"] = true,
             ["AJS37"] = true,
+            ["JF-17"] = true,
             ["Su-25"] = true,
             ["Su-25T"] = true,
             ["Yak-52"] = true,
@@ -41,9 +44,15 @@ Airframes = {
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
             ["A-10A"] = true,
-            ["A-4E-C"] = true,
+            ["A-10C"] = true,
+            ["A-10C_2"] = true,
+            ["AV8BNA"] = true,
+            ["C-130J-30"] = true,
+            ["C-101CC"] = true,
             ["F-4E-45MC"] = true,
-            ["MB-339A"] = true,
+            ["F-5E-3"] = true,
+            ["F-5E-3_FC"] = true,
+            ["F-15C"] = true,
             ["F-15ESE"] = true,
             ["F-16C_50"] = true,
         },
@@ -66,6 +75,9 @@ ForwardAirbases = {
     },
     [2] = {
         ["Rosh Pina"] = true,
+        ["LHA-1"] = true
     }
 }
-IgnoreAirbases = { }
+IgnoreAirbases = {
+    ["CV59"] = true
+}

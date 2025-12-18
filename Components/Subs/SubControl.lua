@@ -2,22 +2,22 @@ SubControl = {}
 SubControl.subValues = {
     ["Type_093"] = {
         maxSpeed = 5,
-        maxDepth = -14,
+        maxDepth = -30,
         periscopeDepth = -12,
     },
     ["KILO"] = {
         maxSpeed = 5,
-        maxDepth = -14,
+        maxDepth = -40,
         periscopeDepth = -9,
     },
     ["IMPROVED_KILO"] = {
         maxSpeed = 5,
-        maxDepth = -14,
+        maxDepth = -50,
         periscopeDepth = -9,
     },
     ["santafe"] = {
         maxSpeed = 4.16,
-        maxDepth = -13,
+        maxDepth = -30,
         periscopeDepth = -9,
     }
 }
