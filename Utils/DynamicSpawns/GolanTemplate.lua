@@ -23,6 +23,7 @@ Airframes = {
         forward = {
             ["Mi-24P"] = true,
             ["Mi-8MT"] = true,
+            ["Ka-50"] = true,
             ["Ka-50_3"] = true,
             ["SA342L"] = true,
             ["SA342M"] = true,
@@ -34,6 +35,7 @@ Airframes = {
             ["Mi-8MT"] = true,
             ["SA342L"] = true,
             ["SA342M"] = true,
+            ["Ka-50"] = true,
             ["Ka-50_3"] = true,
         }
     },
@@ -82,5 +84,6 @@ ForwardAirbases = {
 }
 IgnoreAirbases = {
     ["CV59"] = true,
-    ["LHA-1"] = true
+    ["LHA-1"] = true,
+    ["Kuznetsov"] = true
 }
