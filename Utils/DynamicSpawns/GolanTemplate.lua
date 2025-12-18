@@ -75,10 +75,10 @@ ForwardAirbases = {
     [1] = {
     },
     [2] = {
-        ["Rosh Pina"] = true,
-        ["LHA-1"] = true
+        ["Rosh Pina"] = true
     }
 }
 IgnoreAirbases = {
-    ["CV59"] = true
+    ["CV59"] = true,
+    ["LHA-1"] = true
 }
