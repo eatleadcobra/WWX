@@ -59,6 +59,7 @@ Airframes = {
         forward = {
             ["UH-1H"] = true,
             ["OH58D"] = true,
+            ["AV8BNA"] = true,
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
         },
