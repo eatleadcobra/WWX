@@ -30,7 +30,9 @@ function dsm.loop()
                                 airbaseList[i]:getWarehouse():setItem(k, 0)
                             end
                             if airbaseCategory == 0 and ForwardAirbases[airbaseCoalition][airbaseName] then
+                                env.info("Forward airbase", false)
                                 if Airframes[airbaseCoalition].forward[k] == nil then
+                                    env.info("Should not have airframe: " .. k, false)
                                     airbaseList[i]:getWarehouse():setItem(k, 0)
                                 end
                             end
@@ -46,8 +48,9 @@ function dsm.loop()
                                 for name, number in pairs(Airframes[c].main) do
                                     airbaseList[i]:getWarehouse():setItem(name, 200)
                                 end
-                            elseif airbase == 0 then
+                            elseif airbaseCategory == 0 then
                                 for name, number in pairs(Airframes[c].forward) do
+                                    env.info("Should have airframe: " .. name, false)
                                     airbaseList[i]:getWarehouse():setItem(name, 200)
                                 end
                             elseif airbaseCategory == 1 then
