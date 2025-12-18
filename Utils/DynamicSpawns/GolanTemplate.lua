@@ -60,6 +60,7 @@ Airframes = {
             ["UH-1H"] = true,
             ["OH58D"] = true,
             ["AV8BNA"] = true,
+            ["C-130J-30"] = true,
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
         },
@@ -75,7 +76,8 @@ ForwardAirbases = {
     [1] = {
     },
     [2] = {
-        ["Rosh Pina"] = true
+        ["Rosh Pina"] = true,
+        ["Haifa"] = true
     }
 }
 IgnoreAirbases = {
