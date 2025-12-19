@@ -1,7 +1,7 @@
 --check BPs for ownership
 BattleControl = {}
 local positionsCountLimit = 20
-local bpRequiredStrength = 10
+local bpRequiredStrength = 8
 local junkRemoval = true
 local bc = {}
 local bcmarkups = {
