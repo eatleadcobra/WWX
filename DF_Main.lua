@@ -451,7 +451,7 @@ DFS.status = {
     convoyBaseTime = 2099,
     convoySeparationTime = 89,
     newConvoySeparationTime = 359,
-    shipConvoyInterval = 1799,
+    shipConvoyInterval = 3599,
     submarineInterval = 2399,
     submarineMaxDelayLim = 900,
     submarinePlayerCountReduction = 540,
@@ -464,9 +464,9 @@ DFS.status = {
         [3] = 18,
     },
     shippingResupplyAmts = {
-        [1] = 120,
-        [2] = 300,
-        [3] = 48,
+        [1] = 180,
+        [2] = 500,
+        [3] = 68,
     },
     playerResupplyAmts = {
         [1] = {
