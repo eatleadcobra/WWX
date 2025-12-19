@@ -66,11 +66,11 @@ Airframes = {
 }
 ForwardAirbases = {
     [1] = {
-        ["Damascus"] = true,
+        ["Marj Ruhayyil"] = true,
     },
     [2] = {
         ["Rosh Pina"] = true,
-        ["Ben Gurion"] = true
+        ["Tel Nof"] = true
     }
 }
 IgnoreAirbases = {
