@@ -148,7 +148,7 @@ function SubControl.engage(coalitionId, groupName, onAttackRun)
             end
             world.searchObjects(Object.Category.UNIT, volP, ifFound)
             if closestShip.distance ~= nil and closestShip.point ~= nil then
-                if (onAttackRun and closestShip.distance < 5000) or (closestShip.distance < 1000) then
+                if (onAttackRun and closestShip.distance < 6000) or (closestShip.distance < 1000) then
                     local explosionPower = 1200
                     trigger.action.explosion(closestShip.point, explosionPower)
                     env.info("Ship killed by sub: " .. coalitionId, false)
