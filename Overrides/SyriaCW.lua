@@ -4,7 +4,7 @@ SUBS = true
 ACTIVETORP = true
 SUBTYPE =
 {
-    [1] = "Type_093",
+    [1] = "santafe",
     [2] = "santafe",
 }
 CAP = true
