@@ -138,18 +138,20 @@ function CpyControl.getUnarmoredFrontlineCpy(coalitionId)
     local returnCpy = nil
     for i = 1, #CompanyIDs[coalitionId] do
         local evalCpy = Companies[CompanyIDs[coalitionId][i]]
-        if evalCpy.isConvoy == false and evalCpy.isShip == false then
-            local isArmored = false
-            if evalCpy.units then
-                for j = 1, #evalCpy.units do
-                    if evalCpy.units[j] == Platoons[coalitionId]["Armor"][1] then
-                        isArmored = true
+        if evalCpy then
+            if evalCpy.isConvoy == false and evalCpy.isShip == false then
+                local isArmored = false
+                if evalCpy.units then
+                    for j = 1, #evalCpy.units do
+                        if evalCpy.units[j] == Platoons[coalitionId]["Armor"][1] then
+                            isArmored = true
+                        end
                     end
                 end
-            end
-            if isArmored == false then
-                returnCpy = evalCpy
-                break
+                if isArmored == false then
+                    returnCpy = evalCpy
+                    break
+                end
             end
         end
     end
