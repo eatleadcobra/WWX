@@ -7,9 +7,9 @@ SUBTYPE =
     [1] = "Type_093",
     [2] = "santafe",
 }
-CAP = false
+CAP = true
 PIRACY = false
-BOMBERS = false
+BOMBERS = true
 MISSILEBOATS = false
 CARGO = true
 CSAR = true

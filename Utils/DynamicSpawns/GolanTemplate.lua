@@ -49,7 +49,6 @@ Airframes = {
             ["F-4E-45MC"] = true,
             ["F-5E-3"] = true,
             ["F-5E-3_FC"] = true,
-            ["F-15C"] = true,
             ["F-15ESE"] = true,
             ["F-16C_50"] = true,
         },
