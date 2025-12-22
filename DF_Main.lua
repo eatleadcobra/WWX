@@ -1379,9 +1379,6 @@ function dfc.createSupplyDrawings()
         end
         dfc.updateSupplyDrawings("FRONT", c)
         dfc.updateSupplyDrawings("REAR", c)
-        if PIRACY then
-            dfc.updateSupplyDrawings("PIRATE", c)
-        end
     end
 end
 function dfc.updateSupplyDrawings(depot, coalitionId)
@@ -1650,8 +1647,8 @@ function dfc.checkShipping(param)
                             dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * (param.loading/100)), type = DFS.supplyType.EQUIPMENT})
                         else
                             dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]), type = DFS.supplyType.FUEL})
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
-                        dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
+                            dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
+                            dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
                         end
                         trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
                         env.info(convoyCoalition.."- Ship Cargo Delivered!", false)
@@ -1701,15 +1698,15 @@ function dfc.checkPirate(param)
             local convoyLeadPos = convoyGroup:getUnit(1):getPoint()
             if convoyLeadPos ~= nil then
                 local convoyCoalition = convoyGroup:getCoalition()
-                local destinationZoneString = "RedPirateDeliver"
-                if convoyCoalition == 2 then destinationZoneString = "BluePirateDeliver" end
+                local destinationZoneString = "Red-Rear-Deliver"
+                if convoyCoalition == 2 then destinationZoneString = "Blue-Rear-Deliver" end
                 local convoyDestinationZone = trigger.misc.getZone(destinationZoneString)
                 local distanceToDestination = Utils.PointDistance(convoyLeadPos, convoyDestinationZone.point)
                 if distanceToDestination < convoyDestinationZone.radius then
-                    dfc.increasePirateSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]/4), type = DFS.supplyType.FUEL})
-                    dfc.increasePirateSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]/4), type = DFS.supplyType.AMMO})
-                    dfc.increasePirateSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]/4), type = DFS.supplyType.EQUIPMENT})
-                    trigger.action.outTextForCoalition(convoyCoalition, "Stolen Cargo Delivered to hidden base!", 10, false)
+                    dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]/4), type = DFS.supplyType.FUEL})
+                    dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]/4), type = DFS.supplyType.AMMO})
+                    dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]/4), type = DFS.supplyType.EQUIPMENT})
+                    trigger.action.outTextForCoalition(convoyCoalition, "Stolen Cargo Delivered to rear depot!", 10, false)
                     if WWEvents then
                         WWEvents.playerStoleCargo(param.playerName, param.boardingCoalition, param.playerName .. "'s stolen cargo was delivered!")
                     end

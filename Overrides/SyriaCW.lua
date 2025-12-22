@@ -8,7 +8,7 @@ SUBTYPE =
     [2] = "santafe",
 }
 CAP = true
-PIRACY = false
+PIRACY = true
 BOMBERS = true
 MISSILEBOATS = false
 CARGO = true
