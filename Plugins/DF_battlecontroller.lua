@@ -232,7 +232,7 @@ function bc.deployments()
                 env.info("Enemy victory is imminent, send any avilable troops.", false)
             end
             local priority = "REINFORCE"
-            if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(CompanyCompTiers[math.floor(#CompanyCompTiers/2)]) or ourPointsToWin < 3 or ourPointsToWin > math.floor((3*totalBPs)/4) then
+            if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(CompanyCompTiers[math.floor(#CompanyCompTiers/2)]) or ourPointsToWin <= 3 or ourPointsToWin > math.floor((3*totalBPs)/4) then
                 priority = "CAPTURE"
             end
             env.info("Priority: " .. priority, false)
