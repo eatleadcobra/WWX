@@ -47,8 +47,8 @@ Platoons = {
             [4] = "GAZ-66"
         },
         ["Inf"] = {
-            [1] = "BTR-70",
-            [2] = "BTR-70",
+            [1] = "BTR-60",
+            [2] = "BTR-60",
             [3] = "GAZ-66",
         },
         ["DeployedInf"] = {
@@ -61,33 +61,33 @@ Platoons = {
             [7] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "BTR-70",
+            [1] = "BTR-60",
             [2] = "ATZ-5",
             [3] = "ATZ-5",
             [4] = "ATZ-5",
             [5] = "ATZ-5",
             [6] = "ATZ-5",
-            [7] = "BTR-70",
+            [7] = "BTR-60",
             [8] = "ATZ-5",
         },
         ["AmmoConvoy"] = {
-            [1] = "BTR-70",
+            [1] = "BTR-60",
             [2] = "Ural-375",
             [3] = "Ural-375",
             [4] = "Ural-375",
             [5] = "Ural-375",
             [6] = "Ural-375",
-            [7] = "BTR-70",
+            [7] = "BTR-60",
             [8] = "Ural-375",
         },
         ["EquipmentConvoy"] = {
-            [1] = "BTR-70",
+            [1] = "BTR-60",
             [2] = "KAMAZ Truck",
             [3] = "KAMAZ Truck",
             [4] = "KAMAZ Truck",
             [5] = "KAMAZ Truck",
             [6] = "KAMAZ Truck",
-            [7] = "BTR-70",
+            [7] = "BTR-60",
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
@@ -180,7 +180,7 @@ PlatoonUnitCarrierTypeNames = {
     ["Marder"] = "IFV",
     ["BMP-1"] = "IFV",
     ["TPZ"] = "APC",
-    ["BTR-70"] = "APC",
+    ["BTR-60"] = "APC",
 }
 
 
