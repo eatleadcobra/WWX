@@ -508,6 +508,19 @@ end
 function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate, overrideTable)
     if strengthTableTier > 0 or overrideTable then
         local strengthTable = CompanyCompTiers[strengthTableTier].composition
+        if strengthTableTier == 1 or strengthTableTier == 2 then
+            env.info("Rolling for emedded shorad", false)
+            local firstRand = math.random(1,100)
+            env.info("First pick: " .. firstRand, false)
+            local secondRand = math.random(1,100)
+            env.info("Second pick: " .. secondRand, false)
+            local chosenNum = math.random(1,100)
+            env.info("Winning number: " .. chosenNum, false)
+            if chosenNum == firstRand or chosenNum == secondRand then
+                strengthTable[4] = 9
+                env.info("Company table updated", false)
+            end
+        end
         if strengthTable or overrideTable then
             local startZone = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..spawnDepot)
             if startZone then

@@ -7,5 +7,6 @@ PlatoonTypes = {
     [5] = "AmmoConvoy",
     [6] = "EquipmentConvoy",
     [7] = "EmbeddedAD",
-    [8] = "Shipping"
+    [8] = "Shipping",
+    [9] = "EmbeddedADHigh"
 }

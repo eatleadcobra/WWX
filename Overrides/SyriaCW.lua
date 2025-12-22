@@ -36,21 +36,20 @@ REDCASMOD = 1
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "T-72B",
-            [2] = "T-72B",
+            [1] = "T62M",
+            [2] = "T62M",
             [3] = "GAZ-66"
         },
         ["Mech"] = {
-            [1] = "BTR_D",
-            [2] = "BTR_D",
+            [1] = "BRDM-2_malyutka",
+            [2] = "BMP-1",
             [3] = "BMP-1",
             [4] = "GAZ-66"
         },
         ["Inf"] = {
-            [1] = "BTR_D",
-            [2] = "BTR-80",
-            [3] = "BTR-80",
-            [4] = "GAZ-66",
+            [1] = "BTR-70",
+            [2] = "BTR-70",
+            [3] = "GAZ-66",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
@@ -62,39 +61,44 @@ Platoons = {
             [7] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "BTR-80",
+            [1] = "BTR-70",
             [2] = "ATZ-5",
             [3] = "ATZ-5",
             [4] = "ATZ-5",
             [5] = "ATZ-5",
             [6] = "ATZ-5",
-            [7] = "BTR-80",
+            [7] = "BTR-70",
             [8] = "ATZ-5",
         },
         ["AmmoConvoy"] = {
-            [1] = "BTR-80",
+            [1] = "BTR-70",
             [2] = "Ural-375",
             [3] = "Ural-375",
             [4] = "Ural-375",
             [5] = "Ural-375",
             [6] = "Ural-375",
-            [7] = "BTR-80",
+            [7] = "BTR-70",
             [8] = "Ural-375",
         },
         ["EquipmentConvoy"] = {
-            [1] = "BTR-80",
+            [1] = "BTR-70",
             [2] = "KAMAZ Truck",
             [3] = "KAMAZ Truck",
             [4] = "KAMAZ Truck",
             [5] = "KAMAZ Truck",
             [6] = "KAMAZ Truck",
-            [7] = "BTR-80",
+            [7] = "BTR-70",
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
             --[1] = "Strela-1 9P31",
             [1] = "ZSU-23-4 Shilka",
             [2] = "GAZ-66"
+        },
+        ["EmbeddedADHigh"] = {
+            [1] = "Strela-1 9P31",
+            [2] = "ZSU-23-4 Shilka",
+            [3] = "GAZ-66"
         },
         ["Shipping"] = {
             [1] = "HandyWind",
@@ -161,6 +165,11 @@ Platoons = {
             [1] = "Vulcan",
             [2] = "M 818"
         },
+        ["EmbeddedADHigh"] = {
+            [1] = "Strela-1 9P31",
+            [2] = "Vulcan",
+            [3] = "M 818"
+        },
         ["Shipping"] = {
             [1] = "HandyWind",
             [2] = "CastleClass_01"
@@ -171,7 +180,7 @@ PlatoonUnitCarrierTypeNames = {
     ["Marder"] = "IFV",
     ["BMP-1"] = "IFV",
     ["TPZ"] = "APC",
-    ["BTR-80"] = "APC",
+    ["BTR-70"] = "APC",
 }
 
 
