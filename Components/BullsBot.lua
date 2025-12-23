@@ -245,7 +245,7 @@ function bulls.populateInterceptMenus()
             for j = 1, 9 do
                 if groupsList[i][j] and groupsList[i][j].callsign and groupsList[i][j].groupName then
                     missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. groupsList[i][j].callsign })
-                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, values.interceptMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName })
+                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, values.interceptMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName, targetCallsign =  groupsList[i][j].callsign})
                 else
                     break
                 end
@@ -288,6 +288,7 @@ function bulls.BRAALoop(param)
             local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
             if interceptor then
                 trigger.action.outTextForGroup(param.groupId, "Target lost", 10, false)
+                missionCommands.removeItemForGroup(param.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. param.targetCallsign })
                 interceptor.cancelGuidance = false
                 interceptor.target = nil
             end
@@ -296,6 +297,7 @@ function bulls.BRAALoop(param)
        local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
         if interceptor then
             trigger.action.outTextForGroup(param.groupId, "Target lost", 10, false)
+            missionCommands.removeItemForGroup(param.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. param.targetCallsign })
             interceptor.cancelGuidance = false
             interceptor.target = nil
         end
