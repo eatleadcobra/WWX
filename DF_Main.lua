@@ -435,6 +435,8 @@ DFS.status = {
     missileboatCoalition = 2,
     --nfs
     noFlyRadius = 4000,
+    noFlyCeiling = 6000,
+    noFlyPointDist = 2500,
     --artillery
     artilleryRadius = 350,
     artilleryQty = 10,
@@ -1885,10 +1887,19 @@ function dfc.checkNoFlyZone(coalitionId)
         if unit ~= nil then
             local unitPoint = unit:getPoint()
             if unitPoint ~= nil then
-                trigger.action.explosion(unitPoint, 50)
+                if dfc.unitMustDie(unitPoint, zone.point) then
+                    trigger.action.explosion(unitPoint, 120)
+                end
             end
         end
     end
+end
+function dfc.unitMustDie(unitPoint, protectionPoint)
+    local mustDie = false
+    if unitPoint.y < DFS.status.noFlyCeiling and (Utils.PointDistance(unitPoint, protectionPoint) < DFS.status.noFlyPointDist ) then
+        mustDie = true
+    end
+    return mustDie
 end
 function dfc.drawSupplyMarks()
     if DrawingTools then
