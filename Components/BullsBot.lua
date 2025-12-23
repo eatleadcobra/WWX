@@ -37,6 +37,10 @@ local radioDistanceUnits = {
     [1] = {},
     [2] = {}
 }
+local interceptors = {
+    [1] = {},
+    [2] = {}
+}
 local unitTypes = {
     ["C-130J-30"] = "Transport",
     ["MiG-19P"] = "Fighter",
@@ -133,8 +137,6 @@ function bulls.newCallsign(coalitionId)
     end
     return callsign
 end
-
-
 function Bulls.loop()
     bulls.getTargets(1)
     bulls.vectorTargets(1)
@@ -217,6 +219,8 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                     groupCallsign = bulls.newCallsign(foundItem:getCoalition())
                                     contactCallsigns[foundGroupName] = groupCallsign
                                     trigger.action.outTextForGroup(foundGroup:getID(), "Your callsign is " .. groupCallsign, 60, false)
+                                    local interceptMenu = missionCommands.addSubMenuForGroup(foundGroup:getID(), "Intercept Controller", nil)
+                                    interceptors[foundItem:getCoalition()][foundGroupName] = { interceptMenu = interceptMenu, groupName = foundGroupName, groupId = foundGroup:getID(), cancelGuidance = false, target = nil}
                                 end
                                 if isFriendly then
                                     foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
@@ -232,6 +236,69 @@ function bulls.getTargets(coalitionId, targetGroupName)
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
         groupsList[coalitionId] = foundGroups
         friendliesList[coalitionId] = foundFriendlies
+        bulls.populateInterceptMenus()
+    end
+end
+function bulls.populateInterceptMenus()
+    for i = 1, 2 do
+        for groupName, values in pairs(interceptors[i]) do
+            for j = 1, 9 do
+                if groupsList[i][j] and groupsList[i][j].callsign and groupsList[i][j].groupName then
+                    missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. groupsList[i][j].callsign })
+                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, values.interceptMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName })
+                else
+                    break
+                end
+                missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Cancel Guidance" })
+                missionCommands.addCommandForGroup(values.groupId, "Cancel Guidance", values.interceptMenu, bulls.cancelGuidance, {coalitionId = i, groupName = groupName})
+            end
+        end
+    end
+end
+--coalitionId, groupName
+function bulls.cancelGuidance(param)
+    interceptors[param.coalitionId][param.groupName].cancelGuidance = true
+end
+--requestingGroupName, targetGroupName
+function bulls.BRAA(param)
+    DF_UTILS.vector({from = param.requestingGroupName, to = param.targetGroupName, units = param.units})
+end
+--coalitionId, groupId, requestingGroupName, targetGroupName
+function bulls.BRAALoop(param)
+    if Group.getByName(param.targetGroupName) then
+        if contactCallsigns[param.targetGroupName] then
+            local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
+            if interceptor then
+                if interceptor.target == nil then
+                    interceptor.target = param.targetGroupName
+                end
+                if interceptor.cancelGuidance == false then
+                    if interceptor.target == param.targetGroupName then
+                        bulls.BRAA({requestingGroupName = param.requestingGroupName, targetGroupName = param.targetGroupName})
+                        timer.scheduleFunction(bulls.BRAALoop, param, timer:getTime() + 5)
+                    else
+                        trigger.action.outTextForGroup(param.groupId, "Guidance already in progress.\nCancel guidance request before requesting another vector.", 10, false)
+                    end
+                elseif interceptor.cancelGuidance then
+                    interceptors[param.coalitionId][param.requestingGroupName].cancelGuidance = false
+                    interceptors[param.coalitionId][param.requestingGroupName].target = nil
+                end
+            end
+        else
+            local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
+            if interceptor then
+                trigger.action.outTextForGroup(param.groupId, "Target lost", 10, false)
+                interceptor.cancelGuidance = false
+                interceptor.target = nil
+            end
+        end
+    else
+       local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
+        if interceptor then
+            trigger.action.outTextForGroup(param.groupId, "Target lost", 10, false)
+            interceptor.cancelGuidance = false
+            interceptor.target = nil
+        end
     end
 end
 function bulls.cleanCallsignsLoop()
@@ -242,6 +309,17 @@ function bulls.cleanCallsignsLoop()
         end
     end
     timer.scheduleFunction(bulls.cleanCallsignsLoop, nil, timer:getTime() + 63)
+end
+function bulls.cleanInterceptorsLoop()
+    for i = 1, 2 do
+        for groupname, values in pairs(interceptors[i]) do
+            local group = Group.getByName(groupname)
+            if group == nil then
+                interceptors[i][groupname] = nil
+            end
+        end
+    end
+    timer.scheduleFunction(bulls.cleanInterceptorsLoop, nil, timer:getTime() + 63)
 end
 function bulls.vectorTargets(coalitionId)
     for i = 1, #groupsList[coalitionId] do

@@ -112,17 +112,16 @@ function DF_UTILS.vector(param)
 		local yDistance = playerPos.z - targetPos.z
 		local distanceToTarget = tonumber(math.sqrt(xDistance*xDistance + yDistance*yDistance))
 		local distanceToTargetNM = tonumber(string.format("%.0f", distanceToTarget * 0.000539957))
-        local distanceToTargetString = string.format("%.0f",distanceToTarget/1000)
+        local distanceToTargetStringM = string.format("%.0f",distanceToTarget/1000)
 
 		local targetAltInFt = targetPos.y * 3.28084
 		local targetAltAngels = math.floor(targetAltInFt/1000)
-        local altString = string.format("%.0f", targetPos.y) .. 'm'
-        if param.units == 2 then
-            altString = " Angels " .. string.format("%.0f", targetAltAngels)
-            distanceToTargetString = string.format("%.0f",distanceToTargetNM)
-        end
+        local altStringM = string.format("%.0f", targetPos.y) .. 'm'
+        local altStringI = " Angels " .. string.format("%.0f", targetAltAngels)
+        local distanceToTargetStringI = string.format("%.0f",distanceToTargetNM)
 
-		local braString = "BRAA: " .. string.format("%.0f", bearingInDeg) .. "° for " .. distanceToTargetString .. altString .. " " .. aspectString
-		trigger.action.outTextForGroup(playerGroup:getID(), braString, 5)
+		local braString = "BRAA: " .. string.format("%.0f", bearingInDeg) .. "° for " .. distanceToTargetStringM .. "km | " .. altStringM .. " " .. aspectString
+		braString = braString .. "\n                      " .. distanceToTargetStringI .. "nmi |" .. altStringI
+		trigger.action.outTextForGroup(playerGroup:getID(), braString, 5, false)
 	end
 end
