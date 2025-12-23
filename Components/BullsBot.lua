@@ -275,7 +275,7 @@ function bulls.BRAALoop(param)
                 if interceptor.cancelGuidance == false then
                     if interceptor.target == param.targetGroupName then
                         bulls.BRAA({requestingGroupName = param.requestingGroupName, targetGroupName = param.targetGroupName})
-                        timer.scheduleFunction(bulls.BRAALoop, param, timer:getTime() + 5)
+                        timer.scheduleFunction(bulls.BRAALoop, param, timer:getTime() + 6)
                     else
                         trigger.action.outTextForGroup(param.groupId, "Guidance already in progress.\nCancel guidance request before requesting another vector.", 10, false)
                     end
