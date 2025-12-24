@@ -15,6 +15,7 @@ MISSILEBOATS = false
 CARGO = true
 CSAR = true
 CAS = true
+STRIKES = true
 SHIPPING = true
 CAPTURE = false
 NAVALCONVOY = {

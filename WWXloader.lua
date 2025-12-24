@@ -65,4 +65,7 @@ assert(loadfile(pathToWWX.."Plugins\\DF_recon.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_companycontroller.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_battlecontroller.lua"))()
 assert(loadfile(pathToWWX.."Plugins\\DF_stats.lua"))()
+if STRIKES then
+   assert(loadfile(pathToWWX.."Plugins\\DF_airstrikes.lua"))()
+end
 env.info("Finished loading WWX", false)

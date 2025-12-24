@@ -157,6 +157,19 @@ function CpyControl.getUnarmoredFrontlineCpy(coalitionId)
     end
     return returnCpy
 end
+function CpyControl.getFrontlineCpy(coalitionId)
+    local returnCpy = nil
+    for i = 1, #CompanyIDs[coalitionId] do
+        local evalCpy = Companies[CompanyIDs[coalitionId][i]]
+        if evalCpy then
+            if evalCpy.isConvoy == false and evalCpy.isShip == false and evalCpy.arrived == true then
+                returnCpy = evalCpy
+                break
+            end
+        end
+    end
+    return returnCpy
+end
 function cpyctl.updateMission(coalitionId, companyId, newPoints)
     local cpy = Companies[CompanyIDs[coalitionId][companyId]]
     if cpy then
