@@ -122,6 +122,9 @@ function DF_UTILS.vector(param)
 
 		local braString = "BRAA: " .. string.format("%.0f", bearingInDeg) .. "° for " .. distanceToTargetStringM .. "km | " .. altStringM .. " " .. aspectString
 		braString = braString .. "\n                      " .. distanceToTargetStringI .. "nmi |" .. altStringI
+		if param.targetCallsign then
+			braString = param.targetCallsign.."\n"..braString
+		end
 		trigger.action.outTextForGroup(playerGroup:getID(), braString, 5, false)
 	end
 end

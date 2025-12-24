@@ -140,9 +140,10 @@ end
 function Bulls.loop()
     bulls.getTargets(1)
     bulls.vectorTargets(1)
-    groupsList[1] = {}
     bulls.getTargets(2)
     bulls.vectorTargets(2)
+    bulls.populateInterceptMenus()
+    groupsList[1] = {}
     groupsList[2] = {}
     timer.scheduleFunction(Bulls.loop, nil, timer:getTime() + 11)
 end
@@ -219,11 +220,10 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                     groupCallsign = bulls.newCallsign(foundItem:getCoalition())
                                     contactCallsigns[foundGroupName] = groupCallsign
                                     trigger.action.outTextForGroup(foundGroup:getID(), "Your callsign is " .. groupCallsign, 60, false)
-                                    local interceptMenu = missionCommands.addSubMenuForGroup(foundGroup:getID(), "Intercept Controller", nil)
-                                    interceptors[foundItem:getCoalition()][foundGroupName] = { interceptMenu = interceptMenu, groupName = foundGroupName, groupId = foundGroup:getID(), cancelGuidance = false, target = nil}
                                 end
                                 if isFriendly then
                                     foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
+                                    interceptors[foundItem:getCoalition()][foundGroupName] = { groupName = foundGroupName, groupId = foundGroup:getID(), cancelGuidance = false, target = nil}
                                 else
                                     foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = false, callsign = groupCallsign}
                                 end
@@ -234,34 +234,41 @@ function bulls.getTargets(coalitionId, targetGroupName)
             end
         end
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
-        groupsList[coalitionId] = foundGroups
-        friendliesList[coalitionId] = foundFriendlies
-        bulls.populateInterceptMenus()
     end
+    groupsList[coalitionId] = foundGroups
+    friendliesList[coalitionId] = foundFriendlies
 end
 function bulls.populateInterceptMenus()
     for i = 1, 2 do
         for groupName, values in pairs(interceptors[i]) do
+            missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller"})
+            local interceptMenu = missionCommands.addSubMenuForGroup(values.groupId, "Intercept Controller", nil)
             for j = 1, 9 do
                 if groupsList[i][j] and groupsList[i][j].callsign and groupsList[i][j].groupName then
-                    missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. groupsList[i][j].callsign })
-                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, values.interceptMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName, targetCallsign =  groupsList[i][j].callsign})
+                    --missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. groupsList[i][j].callsign })
+                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, interceptMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName, targetCallsign =  groupsList[i][j].callsign})
                 else
                     break
                 end
-                missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Cancel Guidance" })
-                missionCommands.addCommandForGroup(values.groupId, "Cancel Guidance", values.interceptMenu, bulls.cancelGuidance, {coalitionId = i, groupName = groupName})
             end
+            missionCommands.addCommandForGroup(values.groupId, "Cancel Guidance", interceptMenu, bulls.cancelGuidance, {coalitionId = i, groupName = groupName, groupId = values.groupId})
         end
     end
 end
 --coalitionId, groupName
 function bulls.cancelGuidance(param)
+    trigger.action.outTextForGroup(param.groupId, "Standby...", 5, false)
     interceptors[param.coalitionId][param.groupName].cancelGuidance = true
+    interceptors[param.coalitionId][param.groupName].target = nil
+    timer.scheduleFunction(bulls.resumeGuidance, param, timer:getTime() + 7)
+end
+function bulls.resumeGuidance(param)
+    trigger.action.outTextForGroup(param.groupId, "Guidance request cleared.", 5, false)
+    interceptors[param.coalitionId][param.groupName].cancelGuidance = false
 end
 --requestingGroupName, targetGroupName
 function bulls.BRAA(param)
-    DF_UTILS.vector({from = param.requestingGroupName, to = param.targetGroupName, units = param.units})
+    DF_UTILS.vector({from = param.requestingGroupName, to = param.targetGroupName, units = param.units, targetCallsign = param.targetCallsign})
 end
 --coalitionId, groupId, requestingGroupName, targetGroupName
 function bulls.BRAALoop(param)
@@ -269,27 +276,33 @@ function bulls.BRAALoop(param)
         if contactCallsigns[param.targetGroupName] then
             local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
             if interceptor then
-                if interceptor.target == nil then
-                    interceptor.target = param.targetGroupName
+                local onScope = false
+                for i = 1, #friendliesList[param.coalitionId] do
+                    if friendliesList[param.coalitionId][i].groupName == param.requestingGroupName then
+                        onScope = true
+                    end
+                end
+                if onScope == false then
+                    trigger.action.outTextForGroup(param.groupId, "Cannot provide guidance, you are not on scope!", 10, false)
+                    interceptor.target = nil
+                    return
                 end
                 if interceptor.cancelGuidance == false then
+                    if interceptor.target == nil then
+                        interceptor.target = param.targetGroupName
+                    end
                     if interceptor.target == param.targetGroupName then
-                        bulls.BRAA({requestingGroupName = param.requestingGroupName, targetGroupName = param.targetGroupName})
+                        bulls.BRAA({requestingGroupName = param.requestingGroupName, targetGroupName = param.targetGroupName, targetCallsign = param.targetCallsign})
                         timer.scheduleFunction(bulls.BRAALoop, param, timer:getTime() + 6)
                     else
                         trigger.action.outTextForGroup(param.groupId, "Guidance already in progress.\nCancel guidance request before requesting another vector.", 10, false)
                     end
-                elseif interceptor.cancelGuidance then
-                    interceptors[param.coalitionId][param.requestingGroupName].cancelGuidance = false
-                    interceptors[param.coalitionId][param.requestingGroupName].target = nil
                 end
             end
         else
             local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
             if interceptor then
                 trigger.action.outTextForGroup(param.groupId, "Target lost", 10, false)
-                missionCommands.removeItemForGroup(param.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. param.targetCallsign })
-                interceptor.cancelGuidance = false
                 interceptor.target = nil
             end
         end
@@ -297,8 +310,6 @@ function bulls.BRAALoop(param)
        local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
         if interceptor then
             trigger.action.outTextForGroup(param.groupId, "Target lost", 10, false)
-            missionCommands.removeItemForGroup(param.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. param.targetCallsign })
-            interceptor.cancelGuidance = false
             interceptor.target = nil
         end
     end
