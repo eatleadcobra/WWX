@@ -263,7 +263,7 @@ function bulls.cancelGuidance(param)
     timer.scheduleFunction(bulls.resumeGuidance, param, timer:getTime() + 7)
 end
 function bulls.resumeGuidance(param)
-    trigger.action.outTextForGroup(param.groupId, "Guidance request cleared.", 5, false)
+    trigger.action.outTextForGroup(param.groupId, "Guidance request canceled.", 5, false)
     interceptors[param.coalitionId][param.groupName].cancelGuidance = false
 end
 --requestingGroupName, targetGroupName
