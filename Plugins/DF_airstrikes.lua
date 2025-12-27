@@ -1,3 +1,4 @@
+Airstrike = {}
 local airstrikes = {}
 local strikeIntervalBaseTime = 1500
 local strikeIntervalRandomLimit = 420
@@ -71,4 +72,7 @@ function airstrikes.start()
     airstrikes.loop(1)
     airstrikes.loop(2)
 end
-airstrikes.start()
+function Airstrike.strike(coaltionId, point)
+    airstrikes.airstrike(coaltionId, point)
+end
+--airstrikes.start()

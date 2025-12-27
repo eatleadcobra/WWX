@@ -415,6 +415,18 @@ function recon.processBP(mission, playerGroupId)
     if BattleControl then
         BattleControl.reconBP(mission.coalitionId, mission.bp, unitMarkIds)
     end
+    if STRIKES then
+        if #reconnedUnits > 1 then
+            local firstUnit = reconnedUnits[1]
+            if firstUnit then
+                local firstUnitPoint = firstUnit:getPoint()
+                if firstUnitPoint then
+                    Airstrike.strike(mission.coalitionId, firstUnitPoint)
+                    trigger.action.outTextForGroup(playerGroupId, "Airstrike en route to reconned position!", 5, false)
+                end
+            end
+        end
+    end
     trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
 end
 function recon.getNewMissionId()
