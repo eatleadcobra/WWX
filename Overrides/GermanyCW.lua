@@ -25,6 +25,7 @@ RUNTIME = 28800 -- 8 hours runtime
 -- counts
 FDCount = 2
 AACount = 6
+RDSubcount = 2
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false

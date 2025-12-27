@@ -524,11 +524,11 @@ DFS.status = {
     artSpawnTotal = 2,
     fdSpawnTotal = FDCount,
     rdSpawnTotal = 1,
-    rdSpawnSubDepots = 2,
+    rdSpawnSubDepots = RDSubcount,
     pickupDistance = 1000,
     cargoId = 1020,
     cargoExpireTime = 7200,
-    playerDeliverRadius = 499,
+    playerDeliverRadius = 1000,
     --costs
     frontBaseCost = 5,
     artCost = 10,

@@ -27,6 +27,7 @@ RUNTIME = 46800 -- 13 hours runtime
 -- counts
 FDCount = 2
 AACount = 6
+RDSubcount = 4
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
@@ -104,7 +105,7 @@ Platoons = {
         },
         ["Shipping"] = {
             [1] = "HandyWind",
-            [2] = "CastleClass_01"
+            [2] = "leander-gun-ariadne"
         }
     },
     [2] = {
@@ -174,7 +175,7 @@ Platoons = {
         },
         ["Shipping"] = {
             [1] = "HandyWind",
-            [2] = "CastleClass_01"
+            [2] = "leander-gun-ariadne"
         }
     }
 }
