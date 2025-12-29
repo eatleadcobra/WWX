@@ -191,6 +191,7 @@ function recon.registerReconGroup(groupName)
         missionCommands.addCommandForGroup(addID, "Check Recon Parameters", nil, recon.checkReconParams, addID)
         local param = {groupName = groupName, groupID = addID}
         missionCommands.addCommandForGroup(addID, "Unload Recon Equipment", nil, recon.deregisterReconGroup, param)
+        trigger.action.outTextForGroup(addID, "Recon equipment has been loaded.", 10, false)
     end
 end
 function recon.deregisterReconGroup(param)
