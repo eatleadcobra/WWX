@@ -2081,16 +2081,18 @@ function dfc.loadInternalCargo(param)
                 else
                     if param.type == DFS.supplyType.MORTAR_SQUAD then
                         local closestFbIdx = Firebases.getClosestFirebase(pickupLocation, transporterCoalition)
-                        if Firebases[closestFbIdx].fbType == "MORTAR" then
+                        if closestFbIdx ~= -1 then
                             local closestFb = Firebases[closestFbIdx]
-                            if Utils.PointDistance(pickupLocation, closestFb.positions.location) < 200 then
-                                if #closestFb.contents.groups > 0 then
-                                    dfc.reloadMortarBase(transporterGroup:getName(), closestFbIdx, transporterCoalition)
+                            if closestFb and closestFb.fbType == "MORTAR" then
+                                if Utils.PointDistance(pickupLocation, closestFb.positions.location) < 200 then
+                                    if #closestFb.contents.groups > 0 then
+                                        dfc.reloadMortarBase(transporterGroup:getName(), closestFbIdx, transporterCoalition)
+                                    else
+                                        trigger.action.outTextForGroup(transporterGroup:getID(), "This base has no units to load!", 5, false)
+                                    end
                                 else
-                                     trigger.action.outTextForGroup(transporterGroup:getID(), "This base has no units to load!", 5, false)
+                                    trigger.action.outTextForGroup(transporterGroup:getID(), "No mortar team in range to pick up!", 5, false)
                                 end
-                            else
-                                trigger.action.outTextForGroup(transporterGroup:getID(), "No mortar team in range to pick up!", 5, false)
                             end
                         end
                     else

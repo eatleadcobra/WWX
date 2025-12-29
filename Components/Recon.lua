@@ -43,7 +43,7 @@ local currentReconJets = {
 local reconEvents = {}
 function reconEvents:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF then
-        if  event.initiator and event.initiator.getGroup then
+        if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group ~= nil then
                 local groupName = group:getName()
