@@ -2852,6 +2852,11 @@ function dfc.makeAirfieldsNonCapturable()
     local airbases = world.getAirbases()
     for i = 1, #airbases do
         airbases[i]:autoCapture(false)
+        if CAPTUREBASES then
+            if CAPTUREBASES[airbases[i]:getName()] == true then
+                airbases[i]:autoCapture(true)
+            end
+        end
     end
 end
 if debug then missionCommands.addCommand('End Mission', nil, dfc.endMission, 1) end

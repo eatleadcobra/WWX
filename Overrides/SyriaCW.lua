@@ -18,6 +18,9 @@ CAS = true
 STRIKES = true
 SHIPPING = true
 CAPTURE = false
+CAPTUREBASES = {
+    ["Kiryat Shmona"] = true,
+}
 NAVALCONVOY = {
     [1] = false,
     [2] = false,
