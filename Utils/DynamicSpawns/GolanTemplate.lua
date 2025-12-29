@@ -20,6 +20,7 @@ Airframes = {
             ["Su-25"] = true,
             ["Su-25T"] = true,
             ["Yak-52"] = true,
+            ["L-39C"] = true,
             ["L-39ZA"] = true,
         },
         forward = {
