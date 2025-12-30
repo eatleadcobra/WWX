@@ -148,7 +148,7 @@ function Company.spawn(self)
         --cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
-    elseif self.isShip == false and self.groupType == 2 then
+    elseif self.isShip == false and self.isConvoy == true then
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "On Road"
     elseif self.isShip then
