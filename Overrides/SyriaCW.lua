@@ -108,7 +108,7 @@ Platoons = {
         },
         ["Shipping"] = {
             [1] = "HandyWind",
-            [2] = "leander-gun-ariadne"
+            --[2] = "leander-gun-ariadne"
         }
     },
     [2] = {
@@ -178,7 +178,7 @@ Platoons = {
         },
         ["Shipping"] = {
             [1] = "HandyWind",
-            [2] = "leander-gun-ariadne"
+            --[2] = "leander-gun-ariadne"
         }
     }
 }
