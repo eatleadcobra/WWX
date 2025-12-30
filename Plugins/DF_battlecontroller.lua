@@ -179,7 +179,7 @@ function bc.deployments()
             local enemyCoalition = 2
             if coalitionId == 2 then enemyCoalition = 1 end
             local enemyAvailableStr = bc.companyToStrength(CompanyCompTiers[bc.getAvailableStrengthTableTier(enemyCoalition)].composition)
-            enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 2)/10))))
+            enemyAvailableStr = enemyAvailableStr * ((1 + ((math.random(-2, 0)/10))))
 
             for k, v in pairs(battlePositions) do
                 if v.ownedBy == 0 then
