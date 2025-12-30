@@ -24,7 +24,18 @@ Airframes = {
             ["L-39ZA"] = true,
         },
         forward = {
-            ["C-130J-30"] = true,
+            ["Mi-24P"] = true,
+            ["Mi-8MT"] = true,
+            ["SA342L"] = true,
+            ["SA342M"] = true,
+            ["Ka-50"] = true,
+            ["Ka-50_3"] = true,
+            ["MiG-19P"] = true,
+            ["MiG-21Bis"] = true,
+            ["MB-339A"] = true,
+            ["Yak-52"] = true,
+            ["L-39C"] = true,
+            ["L-39ZA"] = true,
         },
         farp = {
             ["Mi-24P"] = true,
@@ -54,8 +65,14 @@ Airframes = {
             ["F-16C_50"] = true,
         },
         forward = {
-            ["C-130J-30"] = true,
+            ["UH-1H"] = true,
+            ["OH58D"] = true,
+            ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
+            ["AV8BNA"] = true,
+            ["C-101CC"] = true,
+            ["F-5E-3"] = true,
+            ["F-5E-3_FC"] = true,
         },
         farp = {
             ["UH-1H"] = true,
@@ -67,8 +84,10 @@ Airframes = {
 }
 ForwardAirbases = {
     [1] = {
+        ["Kiryat Shmona"] = true,
     },
     [2] = {
+        ["Kiryat Shmona"] = true,
     }
 }
 IgnoreAirbases = {
