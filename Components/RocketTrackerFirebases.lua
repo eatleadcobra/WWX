@@ -10,7 +10,7 @@ local artyPoints = {
 --event listener
 local smokeEvents = {}
 function smokeEvents:onEvent(event)
-    if usingSmoke and event and event.id == world.event.S_EVENT_SHOT and event.initiator and event.initiator.getPlayerName then
+    if usingSmoke and event and event.id == world.event.S_EVENT_SHOT and event.initiator and event.initiator.getPlayerName and event.weapon and event.weapon.getCategory then
         local playerName = event.initiator:getPlayerName()
         if playerName and (event.weapon:getCategory() == 2 or event.weapon:getCategory() == 3 )then
             if smokeTracker.isSmokeRocket(event.weapon:getDesc()["displayName"]) then
