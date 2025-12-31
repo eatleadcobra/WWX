@@ -1,6 +1,4 @@
 local dsm = {}
-local airbaseList = world.getAirbases()
-
 
 local dsmEvents = {}
 function dsmEvents:onEvent(event)
@@ -11,9 +9,10 @@ end
 world.addEventHandler(dsmEvents)
 
 function dsm.loop()
+    local airbaseList = world.getAirbases()
     for i = 1, #airbaseList do
         local airbase = airbaseList[i]
-        if airbase then
+        if airbase and airbase:isExist() then
             local airframeslist = airbase:getWarehouse():getInventory().aircraft
             local airbaseCoalition = airbase:getCoalition()
             local airbaseName = airbase:getName()
