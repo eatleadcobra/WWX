@@ -228,7 +228,7 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                         interceptors[coalitionId][foundGroupName] = { groupName = foundGroupName, groupId = foundGroupId, cancelGuidance = false, target = nil}
                                         local interceptPath = missionCommands.addSubMenuForGroup(foundGroupId, "Intercept Controller", nil)
                                         for i = 1, 9 do
-                                            missionCommands.addCommandForGroup(foundGroupId, "Request guidance to target " .. i, interceptPath, bulls.requestGuidance, {coalitionId = foundItem:getCoalition(), targetNum = i, groupId = foundGroupId, groupName = foundGroupName})
+                                            missionCommands.addCommandForGroup(foundGroupId, "Request guidance to target group " .. i, interceptPath, bulls.requestGuidance, {coalitionId = foundItem:getCoalition(), targetNum = i, groupId = foundGroupId, groupName = foundGroupName})
                                         end
                                     missionCommands.addCommandForGroup(foundGroupId, "Cancel Guidance", interceptPath, bulls.cancelGuidance, {coalitionId = foundItem:getCoalition(), groupName = foundGroupName, groupId = foundGroupId})
                                     end
