@@ -257,7 +257,7 @@ function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
     if #captures[playerName] < maxCaptures then
         captures[playerName][missionId] = {coalitionId = coalitionId, missionId = missionId, captureTime = timer:getTime()}
         currentMissions[coalitionId][missionId].capturedBy = playerName
-        trigger.action.outTextForGroup(playerGroupId, "Mission Captured Successfully!", 10, false)
+        trigger.action.outTextForGroup(playerGroupId, "Recon Photo Captured Successfully!", 10, false)
         if #captures[playerName] >= maxCaptures then
             trigger.action.outTextForGroup(playerGroupId, "You are out of film. RTB to deliver your photos and collect more film!", 15, false)
         end
