@@ -1639,7 +1639,10 @@ function dfc.checkShipping(param)
                     trigger.action.explosion(convoyLeadPos, 600)
                     return
                 elseif healthPct < 80 then
-                    convoyGroup:getController():setOnOff(false)
+                    local convoyController = convoyGroup:getController()
+                        if convoyController then
+                            convoyController:setOnOff(false)
+                        end
                 elseif distanceToDestination > 7500 then
                     CpyControl.checkEvasion(param.cpyId, convoyLead)
                 end
@@ -1656,11 +1659,19 @@ function dfc.checkShipping(param)
                         end
                         trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
                         env.info(convoyCoalition.."- Ship Cargo Delivered!", false)
-                        convoyGroup:destroy()
+                        local convoyController = convoyGroup:getController()
+                        if convoyController then
+                            convoyController:setOnOff(false)
+                        end
+                        timer.scheduleFunction(dfc.destroyGroup, param.convoyName, timer:getTime() + 60)
                         if param.escortName then
                             local escortGroup = Group.getByName(param.escortName)
                             if escortGroup then
-                                escortGroup:destroy()
+                                local escortController = escortGroup:getController()
+                                if escortController then
+                                    escortController:setOnOff(false)
+                                end
+                                timer.scheduleFunction(dfc.destroyGroup, param.escortName, timer:getTime() + 60)
                             end
                         end
                         return
