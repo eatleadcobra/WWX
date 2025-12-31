@@ -32,7 +32,7 @@ function dsm.loop()
                                     env.info("Forward airbase should not have airframe: " .. k, false)
                                     airbaseList[i]:getWarehouse():setItem(k, 0)
                                 end
-                            elseif airbaseCategory == 1 and Airframes[airbaseCoalition].farp[k] == nil then
+                            elseif (airbaseCategory == 1 or airbaseCategory == 2)and Airframes[airbaseCoalition].farp[k] == nil then
                                 env.info("FARP should not have airframe: " .. k, false)
                                 airbaseList[i]:getWarehouse():setItem(k, 0)
                             end
@@ -51,7 +51,7 @@ function dsm.loop()
                                     env.info("Forward airbase should have airframe: " .. name, false)
                                     airbaseList[i]:getWarehouse():setItem(name, 200)
                                 end
-                            elseif airbaseCategory == 1 then
+                            elseif (airbaseCategory == 1 or airbaseCategory == 2) then
                                 for name, number in pairs(Airframes[c].farp) do
                                     env.info("FARP should have airframe: " .. name, false)
                                     airbaseList[i]:getWarehouse():setItem(name, 200)

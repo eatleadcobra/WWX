@@ -413,6 +413,7 @@ DFS.pickUpZones = {
         [5] = "Red-FrontDepot-2",
         [6] = "Red-FrontDepot-3",
         [7] = "Red-FrontDepot-4",
+        [8] = "Red-Pickup-Hub",
     },
     [2] = {
         [1] = "Blue-Pickup-RD",
@@ -422,6 +423,7 @@ DFS.pickUpZones = {
         [5] = "Blue-FrontDepot-2",
         [6] = "Blue-FrontDepot-3",
         [7] = "Blue-FrontDepot-4",
+        [8] = "Blue-Pickup-Hub"
     }
 }
 DFS.status = {
@@ -2039,6 +2041,7 @@ function dfc.loadInternalCargo(param)
                     local piratePickup = string.find(pickUpZone, 'Pirate')
                     local canSpawnCargo = dfc.canSpawnCargo(param.type, transporterCoalition, frontPickup, param.modifier, piratePickup)
                     local seaPickup = string.find(pickUpZone, 'Sea')
+                    seaPickup = string.find(pickUpZone, 'Hub')
                     if seaPickup or canSpawnCargo then
                         transporterTable.cargo.cargoType = param.type
                         transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed + DFS.cargoVolumes[param.type] --todo: make table for volume lookup
