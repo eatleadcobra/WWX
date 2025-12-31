@@ -223,7 +223,9 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                 end
                                 if isFriendly then
                                     foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
-                                    interceptors[foundItem:getCoalition()][foundGroupName] = { groupName = foundGroupName, groupId = foundGroup:getID(), cancelGuidance = false, target = nil}
+                                    if interceptors[foundItem:getCoalition()][foundGroupName] == nil then
+                                        interceptors[foundItem:getCoalition()][foundGroupName] = { groupName = foundGroupName, groupId = foundGroup:getID(), cancelGuidance = false, target = nil}
+                                    end
                                 else
                                     foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = false, callsign = groupCallsign}
                                 end
