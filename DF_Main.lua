@@ -1954,7 +1954,10 @@ function dfc.spawnSupply(param)
                 local frontPickup = string.find(pickUpZone, "FrontDepot")
                 local piratePickup = string.find(pickUpZone, 'Pirate')
                 local canSpawnCargo = dfc.canSpawnCargo(param.type, transporterCoalition, frontPickup, param.modifier, piratePickup)
-                local seaPickup = string.find(pickUpZone, 'Sea')
+                local seaPickup = false
+                if string.find(pickUpZone, 'Sea') or string.find(pickUpZone, 'Hub') then
+                    seaPickup = true
+                end
                 if seaPickup or canSpawnCargo then
                     local pickupPoint = trigger.misc.getZone(pickUpZone).point
                     if frontPickup then
@@ -2004,7 +2007,10 @@ function dfc.spawnVehicle(param)
                 local frontPickup = string.find(pickUpZone, "FrontDepot")
                 local piratePickup = string.find(pickUpZone, 'Pirate')
                 local canSpawnCargo = dfc.canSpawnCargo(DFS.supplyType.EQUIPMENT, transporterCoalition, frontPickup, param.modifier, piratePickup)
-                local seaPickup = string.find(pickUpZone, 'Sea')
+                local seaPickup = false
+                    if string.find(pickUpZone, 'Sea') or string.find(pickUpZone, 'Hub') then
+                        seaPickup = true
+                    end
                 if seaPickup or canSpawnCargo then
                     local pickupPoint = trigger.misc.getZone(pickUpZone).point
                     if frontPickup then
@@ -2051,8 +2057,10 @@ function dfc.loadInternalCargo(param)
                     local frontPickup = string.find(pickUpZone, "FrontDepot")
                     local piratePickup = string.find(pickUpZone, 'Pirate')
                     local canSpawnCargo = dfc.canSpawnCargo(param.type, transporterCoalition, frontPickup, param.modifier, piratePickup)
-                    local seaPickup = string.find(pickUpZone, 'Sea')
-                    seaPickup = string.find(pickUpZone, 'Hub')
+                    local seaPickup = false
+                    if string.find(pickUpZone, 'Sea') or string.find(pickUpZone, 'Hub') then
+                        seaPickup = true
+                    end
                     if seaPickup or canSpawnCargo then
                         transporterTable.cargo.cargoType = param.type
                         transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed + DFS.cargoVolumes[param.type] --todo: make table for volume lookup
