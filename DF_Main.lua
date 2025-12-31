@@ -1636,9 +1636,10 @@ function dfc.checkShipping(param)
                 local distanceToDestination = Utils.PointDistance(convoyLeadPos, convoyDestinationZone.point)
                 local healthPct = math.floor((convoyLead:getLife()/convoyLead:getLife0()) * 100)
                 if healthPct < 30 then
+                    env.info("Health for ship below 30pct, triggering explosion on: ".. param.convoyName .. " - " .. convoyLead:getName(), false)
                     trigger.action.explosion(convoyLeadPos, 600)
-                    return
                 elseif healthPct < 80 then
+                    env.info("Health for ship below 80pct, disabling AI controller: ".. param.convoyName .. " - " .. convoyLead:getName(), false)
                     local convoyController = convoyGroup:getController()
                         if convoyController then
                             convoyController:setOnOff(false)
@@ -1646,7 +1647,7 @@ function dfc.checkShipping(param)
                 elseif distanceToDestination > 7500 then
                     CpyControl.checkEvasion(param.cpyId, convoyLead)
                 end
-                if distanceToDestination < convoyDestinationZone.radius then
+                if healthPct > 29 and distanceToDestination < convoyDestinationZone.radius then
                     if convoyLead:hasAttribute("Unarmed ships") then
                         if param.loading then
                             dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * (param.loading/100)), type = DFS.supplyType.FUEL})
@@ -1674,25 +1675,28 @@ function dfc.checkShipping(param)
                                 timer.scheduleFunction(dfc.destroyGroup, param.escortName, timer:getTime() + 60)
                             end
                         end
-                        return
                     else
-                        convoyGroup:destroy()
+                        local convoyController = convoyGroup:getController()
+                        if convoyController then
+                            convoyController:setOnOff(false)
+                        end
+                        timer.scheduleFunction(dfc.destroyGroup, param.convoyName, timer:getTime() + 60)
                     end
+                    return
                 end
             end
-        else
-            if param.escortName then
-                local escortGroup = Group.getByName(param.escortName)
-                if escortGroup then escortGroup:destroy() end
-            end
-            convoyGroup:destroy()
-            return
         end
         timer.scheduleFunction(dfc.checkShipping, param, timer.getTime() + 40)
     else
         if param.escortName then
             local escortGroup = Group.getByName(param.escortName)
-            if escortGroup then escortGroup:destroy() end
+            if escortGroup then
+                local escortController = escortGroup:getController()
+                if escortController then
+                    escortController:setOnOff(false)
+                end
+                timer.scheduleFunction(dfc.destroyGroup, param.escortName, timer:getTime() + 60)
+            end
         end
         if param.coalitionId then
             local enemyCoalition = 2
