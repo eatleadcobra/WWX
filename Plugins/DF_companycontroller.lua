@@ -180,6 +180,7 @@ end
 local evaded = {}
 function CpyControl.checkEvasion(companyId, shipunit)
     if cpyctl.underAirAttack(shipunit) and evaded[companyId] == nil then
+        env.info("Ship engaging in evasive maneuvers: " .. shipunit:getGroup():getName() .. " - " .. shipunit:getName(),false)
         cpyctl.zigzag(Companies[companyId])
         evaded[companyId] = true
         timer.scheduleFunction(cpyctl.clearEvasion, companyId, timer:getTime() + 360)
