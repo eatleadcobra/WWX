@@ -67,6 +67,7 @@ local unitTypes = {
     ["F-5E-3_FC"] = "Fighter",
     ["F-15ESE"] = "Fighter",
     ["F-16C_50"] = "Fighter",
+    ["FA-18C_hornet"] = "Fighter",
     ["C-101EB"] = "Attack",
     ["F4U-1D"] = "Single-engine prop",
     ["MosquitoFBMkVI"] = "Multi-engine prop",
@@ -80,7 +81,7 @@ local unitTypes = {
     ["Tornado IDS"] = "Bomber",
     ["Su-24M"] = "Bomber",
     ["A-20G"] = "Bomber",
-    ["A-6E"] = "Attack"
+    ["A6E"] = "Attack"
 
 }
 local contactCallsigns = {
