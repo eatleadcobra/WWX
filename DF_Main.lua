@@ -328,11 +328,11 @@ DFS.templates = {
             ["x"] = 0,
         },
         ["small"] = {
-            ["mass"] = 1800,
+            ["mass"] = 1600,
             ["heading"] = 0,
-            ["shape_name"] = "l118_cargo",
+            ["shape_name"] = "bw_container_cargo",
             ["canCargo"] = true,
-            ["type"] = "l118",
+            ["type"] = "container_cargo",
             ["name"] = "",
             ["category"] = "Cargos",
             ["y"] = 0,
@@ -2818,7 +2818,8 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), slingMenu, dfc.spawnSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].big, slingMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "big"})
         missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), slingMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small"})
-        missionCommands.addCommandForGroup(addGroup:getID(), "Transport Gun - 3 Equipment", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "big"})
+        missionCommands.addCommandForGroup(addGroup:getID(), "Transport Howitzer", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "big"})
+        missionCommands.addCommandForGroup(addGroup:getID(), "Transport Howitzer (Boxed)", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "small"})
         if addGroup:getUnit(1):getTypeName() == "C-130J-30" then
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Anti Tank", slingMenu, dfc.spawnVehicle, {vehicleType = "TOW", groupName = groupName, modifier = "big"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", slingMenu, dfc.spawnVehicle, {vehicleType = "Technical", groupName = groupName, modifier = "big"})
