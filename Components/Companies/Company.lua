@@ -121,6 +121,7 @@ function Company.setWaypoints(self, waypoints, bp, speed)
     if bearing < 0 then bearing = bearing + (2 * math.pi) end
     self.heading = bearing
     if speed then self.speed = speed end
+    if self.isShip then env.info("set new waypoints for ship: " .. self.groupName, false) end
 end
 function Company.spawn(self)
     self.spawnTime = timer.getTime()+1
@@ -205,6 +206,7 @@ function Company.updateMission(self, listOfPoints, bp, speed)
             end
             local newWaypoints = SpawnFuncs.createWPListFromPoints(points, speed)
             local newMission = SpawnFuncs.createMission(newWaypoints)
+            if self.isShip then env.info("About to set new task on cpy group: " .. self.groupName, false) end
             cpyController:setTask(newMission)
             self.spawnTime = timer.getTime()
         end
