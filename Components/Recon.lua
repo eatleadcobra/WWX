@@ -422,7 +422,7 @@ function recon.processBP(mission, playerGroupId)
             if firstUnit then
                 local firstUnitPoint = firstUnit:getPoint()
                 if firstUnitPoint then
-                    timer.scheduleFunction(recon.sendAirstrike, {coalitionId = mission.coalitionId, point = firstUnitPoint}, timer:getTime() + math.random(10))
+                    timer.scheduleFunction(recon.sendAirstrike, {coalitionId = mission.coalitionId, point = firstUnitPoint}, timer:getTime() + math.random(15))
                     trigger.action.outTextForGroup(playerGroupId, "Airstrike en route to reconned position!", 5, false)
                 end
             end
