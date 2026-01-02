@@ -74,6 +74,9 @@ DFS.madAircraft = {
     ["Yak-52"] = 9,
     ["C-130J-30"] = 10,
 }
+DFS.reapers = {
+    ["OH58D"] = 1
+}
 DFS.heloCapacities = {
     ["AV8BNA"] = {
         types = {
@@ -695,6 +698,9 @@ function dfcEvents:onEvent(event)
                 end
                 if SUBS and DFS.madAircraft[event.initiator:getTypeName()] then
                     dfc.addRadioCommandsForMADGroup(event.initiator:getGroup():getName())
+                end
+                if REAPER and DFS.reapers[event.initiator:getTypeName()] then
+                    Reaper.addRadioCommandsForReaperGroup(event.initiator:getGroup():getName())
                 end
             end
         end
@@ -2862,11 +2868,15 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 1 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
-
-            if addGroup:getUnit(1):getTypeName() == "C-130J-30" then
-                local vehicleMenu = missionCommands.addSubMenuForGroup(addGroupID, "Combined Arms Vehicles", cargoMenu)
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Anti Tank", vehicleMenu, dfc.spawnVehicle, {vehicleType = "TOW", groupName = groupName, modifier = "big"})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Technical", groupName = groupName, modifier = "big"})
+            
+            local addUnit = addGroup:getUnit(1)
+            if addUnit then
+                local addType = addUnit:getTypeName()
+                if addType and addType == "C-130J-30" then
+                    local vehicleMenu = missionCommands.addSubMenuForGroup(addGroupID, "Combined Arms Vehicles", cargoMenu)
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Anti Tank", vehicleMenu, dfc.spawnVehicle, {vehicleType = "TOW", groupName = groupName, modifier = "big"})
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Technical", groupName = groupName, modifier = "big"})
+                end
             end
             local internalCargoMenu = nil
             return internalCargoMenu, troopsMenu

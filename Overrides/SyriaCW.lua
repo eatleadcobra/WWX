@@ -16,6 +16,7 @@ CARGO = true
 CSAR = true
 CAS = true
 STRIKES = true
+REAPER = true
 SHIPPING = true
 CAPTURE = false
 CAPTUREBASES = {

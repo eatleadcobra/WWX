@@ -11,9 +11,9 @@ local bcmarkups = {
         [2] = {0,0,1,1}
     },
     fills = {
-        [0] = {0,0,0,0.2},
-        [1] = {1,0,0,0.2},
-        [2] = {0,0,1,0.2}
+        [0] = {0,0,0,0.5},
+        [1] = {1,0,0,0.5},
+        [2] = {0,0,1,0.5}
     }
 }
 local battlePositions = {}
@@ -80,6 +80,14 @@ function BattleControl.reconBP(coalitionId, bpID, markIds)
 end
 function BattleControl.endMission()
     priorityBPs = {[1] = {}, [2] = {}}
+end
+function BattleControl.getBPPoint(bpId)
+    local returnPoint = nil
+    local position = battlePositions[bpIds[bpId]]
+    if position then
+        returnPoint = position.point
+    end
+    return returnPoint
 end
 function bc.getPositions()
     for i = 1, positionsCountLimit do

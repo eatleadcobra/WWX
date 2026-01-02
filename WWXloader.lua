@@ -49,6 +49,9 @@ if CSAR then
    assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()
    assert(loadfile(pathToWWX.."Components\\RandomNames.lua"))()
 end
+if REAPER then
+   assert(loadfile(pathToWWX.."Components\\Reaper.lua"))()
+end
 assert(loadfile(pathToWWX.."Components\\Recon.lua"))()
 env.info("Loading Plugins", false)
 -- "plugins" here are like wrappers or translation layers between the component and the specific mission requirements of WWX
