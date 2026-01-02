@@ -1998,6 +1998,14 @@ function dfc.spawnSupply(param)
         end
     end
 end
+-- spawn multiple of the same cargo
+function dfc.spawnMultipleSupply(param)
+    local count = param.count or 3 -- this should NOT be called without a count but just in case some crazy fella gets a little too wild this should help them not RUIN my afternoon (i hope, lol)
+    if count < 1 then return end
+    for i = 1, count do
+        dfc.spawnSupply({type = param.type, groupName = param.groupName, modifier = param.modifier})
+    end
+end
 --vehicleType, groupName
 function dfc.spawnVehicle(param)
     local transporterGroup = Group.getByName(param.groupName)
@@ -2828,6 +2836,15 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Anti Tank", slingMenu, dfc.spawnVehicle, {vehicleType = "TOW", groupName = groupName, modifier = "big"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", slingMenu, dfc.spawnVehicle, {vehicleType = "Technical", groupName = groupName, modifier = "big"})
         end
+        -- Spawn Multiple submenu: choose quantity (multiples of 3) then type
+        local multipleMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Physical Cargo Multiples", cargoMenu)
+        local quantities = {2, 3, 4, 6, 10, 12}
+        for _, q in ipairs(quantities) do
+            local qtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " crates", multipleMenu)
+            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), qtyMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small", count = q})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), qtyMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small", count = q})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})        end
+
         local internalCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Virtual Cargo", cargoMenu)
         if addGroup:getUnit(1):getTypeName() ~= "CH-47Fbl1" then
             missionCommands.addCommandForGroup(addGroup:getID(), "Internal Cargo Status", internalCargoMenu, dfc.internalCargoStatus, groupName)
