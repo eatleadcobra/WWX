@@ -533,7 +533,7 @@ DFS.status = {
     pickupDistance = 1000,
     cargoId = 1020,
     cargoExpireTime = 7200,
-    playerDeliverRadius = 1000,
+    playerDeliverRadius = 3000,
     --costs
     frontBaseCost = 5,
     artCost = 10,
