@@ -2147,6 +2147,13 @@ function dfc.loadInternalCargo(param)
         end
     end
 end
+function dfc.loadInternalCargoMultiples(param)
+    local count = param.count or 3 -- this should NOT be called without a count but just in case some crazy fella gets a little too wild this should help them not RUIN my afternoon (i hope, lol)
+    if count < 1 then return end
+    for i = 1, count do
+        dfc.loadInternalCargo({type = param.type, groupName = param.groupName, modifier = param.modifier})
+    end
+end
 function dfc.unloadInternalCargo(param)
     local transporterGroup = Group.getByName(param.groupName)
     if transporterGroup then
@@ -2843,14 +2850,14 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), equipmentMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Howitzer", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "big"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Howitzer (Boxed)", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "small"})
-            -- Spawn Multiple submenu: choose quantity (multiples of 3) then type
-            local multipleMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Cargo (Multiples)", cargoMenu)
-            local quantities = {2, 3, 4, 6, 10, 12}
-            for _, q in ipairs(quantities) do
-                local qtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " crates", multipleMenu)
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), qtyMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small", count = q})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), qtyMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small", count = q})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})        end
+            -- Spawn Multiple submenu: choose quantity then type
+            local multipleCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Cargo (Multiples)", cargoMenu)
+            local cargoQuantities = {2, 3, 4, 6, 10, 12, 20}
+            for _, q in ipairs(cargoQuantities) do
+                local qtyCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " crates", multipleCargoMenu)
+                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small", count = q})
+                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small", count = q})
+                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})        end
 
             -- local internalCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Virtual Cargo", cargoMenu)
             -- if addGroup:getUnit(1):getTypeName() ~= "CH-47Fbl1" then
@@ -2868,7 +2875,16 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 1 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
-            
+            -- Spawn Multiple Troops submenu: choose quantity then type
+            local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiple virtual)", cargoMenu)
+            local troopQuantities = {2, 3, 6}
+            for _, q in ipairs(troopQuantities) do
+                local troopQtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " squads", multipleTroopMenu)
+                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 1 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small", count = q})
+                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small", count = q})
+                --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
+            end
+
             local addUnit = addGroup:getUnit(1)
             if addUnit then
                 local addType = addUnit:getTypeName()
