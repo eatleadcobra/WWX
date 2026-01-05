@@ -70,6 +70,7 @@ local unitTypes = {
     ["FA-18C_hornet"] = "Fighter",
     ["C-101EB"] = "Attack",
     ["F4U-1D"] = "Single-engine prop",
+    ["P-47D-40"] = "Single-engine prop",
     ["MosquitoFBMkVI"] = "Multi-engine prop",
     ["F-86F Sabre"] = "Fighter",
     ["F-86F_FC"] = "Fighter",
