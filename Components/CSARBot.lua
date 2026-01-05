@@ -249,7 +249,7 @@ function CSB.wrappedGenerateCsar(inUnit,coalitionId,overWater,playerName)
         end
         return
     end
-    local bpCount = trigger.action.getUserFlag("TOTAL_BPS")
+    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
     bpCount = bpCount or 20
     local closestEnemyBPDist = math.huge
     local closestEnemyBPId = nil
