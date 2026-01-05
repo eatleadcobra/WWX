@@ -3,28 +3,54 @@ local airstrikes = {}
 local strikeIntervalBaseTime = 1500
 local strikeIntervalRandomLimit = 420
 local strikeIntervalRandomLimitNeg = -420
+local coaltionAttacks = {
+    [1] = "rocketStrafe",
+    [2] = "bombing"
+}
+local attackParamters = {
+    bombing = {
+        id = "Bombing",
+        params = {
+            ["attackType"] = "Dive",
+            ["direction"] = 0,
+            ["attackQtyLimit"] = false,
+            ["attackQty"] = 1,
+            ["expend"] = "All",
+            ["y"] = 0,
+            ["directionEnabled"] = false,
+            ["groupAttack"] = true,
+            ["altitude"] = 2000,
+            ["altitudeEnabled"] = false,
+            ["weaponType"] = 2147485694,
+            ["x"] = 0,
+        }
+    },
+    rocketStrafe = {
+        id = "Strafing",
+        params = {
+            ["groupAttack"] = true,
+            ["attackQtyLimit"] = false,
+            ["attackQty"] = 1,
+            ["expend"] = "All",
+            ["y"] = 0,
+            ["x"] = 0,
+            ["directionEnabled"] = false,
+            ["direction"] = 90,
+            ["length"] = 50,
+            ["weaponType"] = 30720,
+        }
+    },
+}
 local strikeGroupNames = {
     [1] = "Red-Strike",
     [2] = "Blue-Strike"
 }
 function airstrikes.airstrike(coaltionId, point)
-    local bombParams = {
-        ["attackType"] = "Dive",
-        ["direction"] = 0,
-        ["attackQtyLimit"] = false,
-        ["attackQty"] = 1,
-        ["expend"] = "All",
-        ["y"] = point.z,
-        ["directionEnabled"] = false,
-        ["groupAttack"] = true,
-        ["altitude"] = 2000,
-        ["altitudeEnabled"] = false,
-        ["weaponType"] = 2147485694,
-        ["x"] = point.x,
-    }
-    local bombing = {id = 'Bombing', params = bombParams}
+    local strike = attackParamters[coaltionAttacks[coaltionId]]
+    strike.params.x = point.x
+    strike.params.y = point.z
     local groupName = mist.cloneGroup(strikeGroupNames[coaltionId], false).name
-    timer.scheduleFunction(airstrikes.tasking, {groupName = groupName, bombingMission = bombing}, timer:getTime() + 5)
+    timer.scheduleFunction(airstrikes.tasking, {groupName = groupName, mission = strike}, timer:getTime() + 5)
 end
 --groupName, bombingMission
 function airstrikes.tasking(param)
@@ -32,7 +58,7 @@ function airstrikes.tasking(param)
     if strikeGroup then
         local strikeController = strikeGroup:getController()
         if strikeController then
-            strikeController:setTask(param.bombingMission)
+            strikeController:setTask(param.mission)
         end
     end
 end
