@@ -89,6 +89,14 @@ function BattleControl.getBPPoint(bpId)
     end
     return returnPoint
 end
+function BattleControl.getBPOwner(bpId)
+    local ownedBy = nil
+    local position = battlePositions[bpIds[bpId]]
+    if position then
+        ownedBy = position.ownedBy
+    end
+    return ownedBy
+end
 function bc.getPositions()
     for i = 1, positionsCountLimit do
         local bpZone = trigger.misc.getZone("BP-"..i)
