@@ -453,8 +453,8 @@ DFS.status = {
     shellsInterval = 2699,
     frontSpawnDelay = 180,
     artSpawnDelay = 1200,
-    fdSpawnDelay = 1499,
-    rdSpawnDelay = 2499,
+    fdSpawnDelay = 2699,
+    rdSpawnDelay = 3599,
     convoyBaseTime = 2099,
     convoySeparationTime = 89,
     newConvoySeparationTime = 359,
@@ -466,9 +466,9 @@ DFS.status = {
     subLifeTime = 7199,
     --resupply amts
     convoyResupplyAmts = {
-        [1] = 57,
-        [2] = 100,
-        [3] = 18,
+        [1] = 40,
+        [2] = 75,
+        [3] = 12,
     },
     shippingResupplyAmts = {
         [1] = 180,
@@ -477,8 +477,8 @@ DFS.status = {
     },
     playerResupplyAmts = {
         [1] = {
-            big = 20,
-            small = 6
+            big = 25,
+            small = 8
         },
         [2] = {
             big = 60,
