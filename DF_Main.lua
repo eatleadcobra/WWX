@@ -441,7 +441,7 @@ DFS.status = {
     --nfs
     noFlyRadius = 4000,
     noFlyCeiling = 6000,
-    noFlyPointDist = 2500,
+    noFlyPointDist = 3500,
     --artillery
     artilleryRadius = 350,
     artilleryQty = 10,
