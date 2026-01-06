@@ -288,46 +288,46 @@ CSARFreqCollisions = {
             26,27,29,30,31,32,33,34,35,36,37,39,40,41,42,43,44,45
         },
         ["TACAN"] = {
-            21
+            54,59,75
         }
     },
     [2] = {
         ["NDB"] = {
         },
         ["TACAN"] = {
-            79,84,85,106,107
+            54,59,75
         }
     }
 }
 RandomNames = {}
 RandomNames.firstNames = {
     [1] = {
-        [1] = {"Ahmed","Mohamed","Mahmoud","Omar","Amr","Muhammad","Mohammed","Youssef","Ahmad","Mostafa","Abdelrahman","Mido","Mustafa","Karim","Abdo","Eslam","Michael","Tarek","Aly","Nour","Medo","Yahya","Daniel","Kareem","Sherif","Miro","Hamada","Abdallah","Khaled","Osama"}
+        [1] = {"Jose","Luis","Carlos","Juan","Jesus","Pedro","Rafael","Angel","Francisco","Miguel","Jorge","Ramon","Victor","Manuel","Antonio","Julio","Hector","Daniel","Edgar","Cesar","Oscar","Nelson","Eduardo","Freddy","Alexander","Javier","Richard","Felix","Pablo","Alexis"}
     },
     [2] = {
         [1] = {"David","Paul","Andrew","Mark","John","Michael","Stephen","Ian","Robert","Richard","Christopher","Peter","Simon","Anthony","Kevin","Gary","Steven","Martin","James","Philip","Alan","Neil","Nigel","Timothy","Colin","Graham","Jonathan","Nicholas","William","Adrian","Brian","Stuart","Keith","Thomas","Patrick","Sean","Carl","Trevor","Wayne","Shaun","Kenneth","Barry","Derek","Dean","Raymond","Antony","Jeremy","Joseph","Edward","Lee"},
-        [2] = {"Abram","Chaim","Jankel","David","Moshe","Leib","Aron","Yosef","Abraham","Israel","Jacob","Hersch","Moses","Mendel","Wolf","Samuel","Leiser","Jossel","Benjamin","Schmul","Daniel","Ariel","Levi","Noam","Ori"}
+        --[2] = {"Abram","Chaim","Jankel","David","Moshe","Leib","Aron","Yosef","Abraham","Israel","Jacob","Hersch","Moses","Mendel","Wolf","Samuel","Leiser","Jossel","Benjamin","Schmul","Daniel","Ariel","Levi","Noam","Ori"}
     }
 }
 RandomNames.lastNames = {
     [1] = {
-        [1] = {"Mohamed","Ahmed","Hassan","Ali","Mahmoud","Ibrahim","Gamal","Abdel","Mostafa","Salah","Adel","Hussein","Samir","Saad","Soliman","Kamal","Hamdy","Saleh","Salem","Nabil","Youssef","Samy","Said","Fathy","Sayed","Elsayed","Khalil","Aly","Mohammed","Kamel"}
+        [1] = {"Gonzalez","Rodriguez","Perez","Hernandez","Garcia","Martinez","Sanchez","Lopez","Diaz","Rojas","Ramirez","Gomez","Romero","Fernandez","Torres","Mendoza","Medina","Moreno","Gutierrez","Jimenez","Rivas","Alvarez","Salazar","Suarez","Flores","Silva","Contreras","Morales","Herrera","Vargas"}
     },
     [2] = {
         [1] = {"Smith","Jones","Williams","Taylor","Davies","Brown","Evans","Thomas","Roberts","Wilson","Johnson","Robinson","Wright","Thompson","White","Walker","Wood","Hall","Edwards","Green","Hughes","Lewis","Jackson","Harris","Turner","Drew","Hill","Clarke","Cooper","Morris","Martin","Baker","Ward","Harrison","Clark","Moore","King","Morgan","Phillips","Allen","James","Parker","Watson","Scott","Davis","Bennett","Griffiths","Price","Cook","Carter","Lee","Richardson","Bailey","Shaw","Young","Bell","Cox","Mitchell","Richards","Wilkinson","Collins","Marshall","Ellis","Chapman","Miller","Webb","Simpson","Adams","Foster","Rogers","Hunt","Owen","Powell","Mason","Holmes","Barker","Lloyd","Barnes","Mills","Palmer","Matthews","Knight","Jenkins","Gray","Pearson","Fisher","Dixon","Butler","Fletcher","Stevens","Anderson","Harvey","Russell","Kelly","Howard","Pearce","Elliott","Payne","Andrews","Atkinson"},
-        [2] = {"Cohen","Levi","Rosenberg","Goldstein","Friedman","Schwartz","Katz","Stein","Weiss","Adler","Rosen","Klein","Shapiro","Berman","Levy","Kaplan","Hirsch","Ben-David","Bernstein","Singer","Rubin","Steinberg","Shulman","Mandel","Mandelbaum"}
+        --[2] = {"Cohen","Levi","Rosenberg","Goldstein","Friedman","Schwartz","Katz","Stein","Weiss","Adler","Rosen","Klein","Shapiro","Berman","Levy","Kaplan","Hirsch","Ben-David","Bernstein","Singer","Rubin","Steinberg","Shulman","Mandel","Mandelbaum"}
     }
 }
 
 CASCALLSIGNS = {
     alphanumerics = {
         [1] = {
-            [1] = "Granit",
-            [2] = "Akatsia",
-            [3] = "Aurora",
-            [4] = "Shapka",
-            [5] = "Empire",
-            [6] = "Sirena",
+            [1] = "Aragua",
+            [2] = "Bolívar",
+            [3] = "Carabobo",
+            [4] = "Delta",
+            [5] = "Esparta",
+            [6] = "Falcón",
         },
         [2] = {
             [1] = "ALPHA",
