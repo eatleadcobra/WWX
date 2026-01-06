@@ -2614,7 +2614,7 @@ function dfc.trackCargo(param)
                     dfc.deliverToDepot(closestDepotToCargo, param.coalition, param.supplyType, param.modifier)
                 end
                 if cargo and cargo:isExist() then
-                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 600)
+                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                 end
             elseif timer:getTime() - param.spawnTime > 1800 and Utils.PointDistance(cargo:getPoint(),trigger.misc.getZone(pickupZone).point) < 30 then
                 if not param.seaPickup then
@@ -2623,7 +2623,7 @@ function dfc.trackCargo(param)
                     dfc.increaseRearSupply({coalitionId = param.coalition, amount = DFS.status.playerResupplyAmts[param.supplyType][param.modifier], type = reclaimType})
                 end
                 if cargo and cargo:isExist() then
-                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 600)
+                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                 end
             else
                 local velocity = cargo:getVelocity()
@@ -2655,7 +2655,7 @@ function dfc.trackCargo(param)
                             trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
                             dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 600)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["AMMO"] then
@@ -2667,7 +2667,7 @@ function dfc.trackCargo(param)
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
                             trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 600)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["GUN"] then
@@ -2679,7 +2679,7 @@ function dfc.trackCargo(param)
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
                             trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 600)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
                             return
                         elseif timer:getTime() - param.spawnTime > 29 and closestFirebaseToCargo == -1 and dfc.findPickupZone(cargo:getPoint(), param.coalition) == nil and param.supplyType == DFS.supplyType["GUN"] then
@@ -2690,7 +2690,7 @@ function dfc.trackCargo(param)
                             trigger.action.outTextForGroup(param.groupId, "You have deployed a firebase", 10, false)
                             Firebases.deployStatic(cargo:getName(), "HOWITZER")
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 600)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
                         else
                             timer.scheduleFunction(dfc.trackCargo, param, timer:getTime() + 10)
