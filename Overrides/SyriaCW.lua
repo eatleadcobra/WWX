@@ -120,8 +120,8 @@ Platoons = {
         },
         ["Mech"] = {
             [1] = "M1045 HMMWV TOW",
-            [2] = "Marder",
-            [3] = "Marder",
+            [2] = "MCV-80",
+            [3] = "MCV-80",
             [4] = "M 818"
         },
         ["Inf"] = {
