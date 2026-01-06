@@ -457,6 +457,7 @@ DFS.status = {
     rdSpawnDelay = 3599,
     convoyBaseTime = 2099,
     convoySeparationTime = 89,
+    convoyTimeout = 480,
     newConvoySeparationTime = 359,
     shipConvoyInterval = 3599,
     submarineInterval = 2399,
@@ -542,6 +543,20 @@ DFS.status = {
     targetMarks = {},
     bombardmentMarks = {},
     bombingMarks = {},
+    stalledConvoys = {
+        [1] = {
+            [1] = 0,
+            [2] = 0,
+            [3] = 0,
+            [4] = 0
+        },
+        [2] = {
+            [1] = 0,
+            [2] = 0,
+            [3] = 0,
+            [4] = 0
+        },
+    },
     [1] = {
         health = 0,
         front = {},
@@ -1616,6 +1631,28 @@ function dfc.checkConvoy(param)
                     trigger.action.outTextForCoalition(coalitionId, "Convoy Supplies Delivered!", 10, false)
                     convoyGroup:destroy()
                     return
+                elseif distanceToDestination > convoyDestinationZone.radius then
+                    local firstCheck = false
+                    if param.previousPoint == nil then
+                        param.previousPoint = convoyLeadPos
+                        param.stalledCount = 0
+                        param.stalledTime = 0
+                        firstCheck = true
+                    end
+                    if not firstCheck then
+                        if Utils.PointDistance(param.previousPoint, convoyLeadPos) < 1 then
+                            env.info("Convoy " .. param.convoyName .. " is outside of delivery radius and not moving", false)
+                            param.stalledCount = param.stalledCount + 1
+                            param.stalledTime = param.stalledTime + 10
+                        end
+                    end
+                    if param.stalledTime > DFS.status.convoyTimeout then
+                        env.info("Convoy " .. param.convoyName .. " has not moved for " .. DFS.status.convoyTimeout .. " seconds. Destroying.", false)
+                        convoyGroup:destroy()
+                        DFS.status.stalledConvoys[coalitionId][param.deliverZone] = DFS.status.stalledConvoys[coalitionId][param.deliverZone] + 1
+                        env.info("Convoy stall info dump: " .. Utils.dump(DFS.status.stalledConvoys), false)
+                    end
+                    param.previousPoint = convoyLeadPos
                 end
             end
         else

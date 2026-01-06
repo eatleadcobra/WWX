@@ -153,7 +153,7 @@ function sb.createBuoy(param)
     local group = Group.getByName(param.groupName)
     if group ~= nil then
         local buoyCount = playerCount[param.groupName]
-        if buoyCount > 0 then
+        if buoyCount and buoyCount > 0 then
             local unit = group:getUnit(1)
             if unit ~= nil then
                 local location = unit:getPoint()

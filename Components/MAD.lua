@@ -35,19 +35,20 @@ end
 function MADLoop(param)
     local searchingGroup = Group.getByName(param.groupName)
     if searchingGroup then
-        missionCommands.removeItemForGroup(searchingGroup:getID(), {[1] = commandName})
-        local runTime = param.runs * madloopTime
-        if runTime > madLoopTimeLimit then
-            trigger.action.outTextForGroup(searchingGroup:getID(), "MAD search time limit expired!", 5, false)
-            MAD.addCommand(param.groupName)
-            return
-        end
         local searchingUnit = searchingGroup:getUnit(1)
         if searchingUnit then
             local searchPoint = searchingUnit:getPoint()
             local searchPos = searchingUnit:getPosition()
             if searchPoint and searchPos then
-                if searchPoint.y <= madAltLimit then
+                local isWater = land.getSurfaceType({x = searchPoint.x, y = searchPoint.z})
+                if (isWater == 2 or isWater == 3) and searchPoint.y <= madAltLimit then
+                    missionCommands.removeItemForGroup(searchingGroup:getID(), {[1] = commandName})
+                    local runTime = param.runs * madloopTime
+                    if runTime > madLoopTimeLimit then
+                        trigger.action.outTextForGroup(searchingGroup:getID(), "MAD search time limit expired!", 5, false)
+                        MAD.addCommand(param.groupName)
+                        return
+                    end
                     local subPoints = MAD.searchPointForSubs(searchPoint)
                     local madAmplitude = 0
                     local markDeflection = false
@@ -109,7 +110,7 @@ function MADLoop(param)
                     param.runs = param.runs + 1
                     timer.scheduleFunction(MADLoop, param, timer:getTime() + madloopTime)
                 else
-                    trigger.action.outTextForGroup(searchingGroup:getID(), "You are too high to use your MAD!", 10, false)
+                    trigger.action.outTextForGroup(searchingGroup:getID(), "You must be over water and below " .. madAltLimit .. " meters to use your MAD.", 10, false)
                     MAD.addCommand(param.groupName)
                 end
             end
