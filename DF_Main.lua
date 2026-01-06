@@ -2947,9 +2947,9 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                     local vehicleMenu = missionCommands.addSubMenuForGroup(addGroupID, "Combined Arms Vehicles", cargoMenu)
                     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Anti Tank", vehicleMenu, dfc.spawnVehicle, {vehicleType = "TOW", groupName = groupName, modifier = "big"})
                     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Technical", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Nona", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Scorpion", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Technical", vehicleMenu, dfc.spawnVehicle, {vehicleType = "BMD", groupName = groupName, modifier = "big"})
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Nona", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Nona", groupName = groupName, modifier = "big"})
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - Scorpion", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Scorpion", groupName = groupName, modifier = "big"})
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehcile - BMD", vehicleMenu, dfc.spawnVehicle, {vehicleType = "BMD", groupName = groupName, modifier = "big"})
                 end
             end
             local internalCargoMenu = nil
