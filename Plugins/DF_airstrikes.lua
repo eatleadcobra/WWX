@@ -46,7 +46,7 @@ local strikeGroupNames = {
     [2] = "Blue-Strike"
 }
 function airstrikes.airstrike(coaltionId, point)
-    local strike = attackParamters[coaltionAttacks[coaltionId]]
+    local strike = Utils.deepcopy(attackParamters[coaltionAttacks[coaltionId]])
     strike.params.x = point.x
     strike.params.y = point.z
     local groupName = mist.cloneGroup(strikeGroupNames[coaltionId], false).name

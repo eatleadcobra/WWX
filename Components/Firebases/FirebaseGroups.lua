@@ -292,6 +292,16 @@ local unitTemplates = {
         ["heading"] = 0,
         ["playerCanDrive"] = true,
     },
+    ["Grad"] = {
+        ["skill"] = "Average",
+        ["coldAtStart"] = false,
+        ["type"] = "Grad-URAL",
+        ["y"] = 0,
+        ["x"] = 0,
+        ["name"] = "bmd",
+        ["heading"] = 0,
+        ["playerCanDrive"] = true,
+    },
     ["rpg"] = {
         ["skill"] = "Average",
         ["coldAtStart"] = false,

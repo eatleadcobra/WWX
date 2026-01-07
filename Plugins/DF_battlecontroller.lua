@@ -248,14 +248,23 @@ function bc.deployments()
                 env.info("Enemy victory is imminent, send any avilable troops.", false)
             end
             local priority = "REINFORCE"
-            if enemyPointsToWin < 3 or enemyAvailableStr <= bc.companyToStrength(CompanyCompTiers[math.floor(#CompanyCompTiers/2)]) or ourPointsToWin <= 3 or ourPointsToWin > math.floor((3*totalBPs)/4) then
+            if ourPointsToWin < 3 or enemyPointsToWin < 3 or #listOfFriendlyBPsNeedingReinforcementByDistance < 3 then
                 priority = "CAPTURE"
             end
             env.info("Priority: " .. priority, false)
-            table.sort(listOfNeutralBPsByDistance, function(a, b) return a.distance < b.distance end)
-            table.sort(listOfEnemyBPsByDistance, function(a, b) return a.distance < b.distance end)
-            table.sort(listOfFriendlyBPsNeedingReinforcementByDistance, function(a, b) return a.distance < b.distance end)
-
+            env.info("neutral BPs: " .. #listOfNeutralBPsByDistance, false)
+            if #listOfNeutralBPsByDistance > 1 then
+                table.sort(listOfNeutralBPsByDistance, function(a, b) return a.distance < b.distance end)
+            end
+            env.info("enemy BPs: " .. #listOfEnemyBPsByDistance, false)
+            if #listOfEnemyBPsByDistance > 1 then
+                table.sort(listOfEnemyBPsByDistance, function(a, b) return a.distance < b.distance end)
+            end
+            env.info("friendly BPs needing reinforce: " .. #listOfFriendlyBPsNeedingReinforcementByDistance, false)
+            if #listOfFriendlyBPsNeedingReinforcementByDistance > 1 then
+                table.sort(listOfFriendlyBPsNeedingReinforcementByDistance, function(a, b) return a.distance < b.distance end)
+            end
+            env.info("Priority tables sorted", false)
             local priorityTargetsTables = {}
             if priority == "REINFORCE" then
                 priorityTargetsTables = {
@@ -270,9 +279,11 @@ function bc.deployments()
                     [3] = listOfFriendlyBPsNeedingReinforcementByDistance,
                 }
             end
+            env.info("Priority tables ordered", false)
             local sentCount = 0
             for i = 1, #priorityTargetsTables do
                 local targetTable = priorityTargetsTables[i]
+                env.info("Checking table: " .. i, false)
                 for j = 1, #targetTable do
                     local availableCpyTier = bc.getAvailableStrengthTableTier(coalitionId)
                     local availableStr = bc.companyToStrength(CompanyCompTiers[availableCpyTier].composition)
