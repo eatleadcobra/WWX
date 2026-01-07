@@ -295,11 +295,13 @@ function bc.deployments()
                         sendCpy = bc.getReinforcementNeeded(targetTable[j].strength, strengthToHold)
                     end
                     env.info("Sufficient company possible, sending", false)
-                    bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpyTier, desperate, sendCpy)
-                    env.info("SentCount: " .. sentCount, false)
-                    sentCount = sentCount + 1
-                    if sentCount == 1 then
-                        bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
+                    local sent = bc.sendCompany(coalitionId, targetTable[j].bpId, targetTable[j].fromDepot, availableCpyTier, desperate, sendCpy)
+                    if sent then
+                        sentCount = sentCount + 1
+                        env.info("SentCount: " .. sentCount, false)
+                        if sentCount == 1 then
+                            bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
+                        end
                     end
                 else
                     env.info("No Sufficient company possible, waiting", false)
@@ -532,6 +534,7 @@ function bc.companyToCost(companyTable)
     return cpyCost
 end
 function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate, overrideTable)
+    local companySent = false
     if strengthTableTier > 0 or overrideTable then
         local strengthTable = CompanyCompTiers[strengthTableTier].composition
         if strengthTableTier == 1 or strengthTableTier == 2 then
@@ -597,6 +600,7 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                         strengthTableTier = strengthTableTier + 1
                         if strengthTableTier < 10 then
                             bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, desperate)
+                            companySent = true
                         end
                     end
                 end
@@ -605,6 +609,7 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
     else
         env.info(coalitionId .. " - Cannot send company this company, not enough equipment", false)
     end
+    return companySent
 end
 
 function bc.getRealBpStrength(coalitionId, bpId)
