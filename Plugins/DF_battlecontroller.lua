@@ -568,6 +568,9 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                     if DFS.status[coalitionId].supply.front[i] < companyCost[i] then
                         canAfford = false
                         missingSupplies = missingSupplies .. DFS.supplyNames[i] .. " "
+                    elseif i == DFS.supplyType.FUEL and DFS.status[coalitionId].supply.front[i] == companyCost[i] then
+                        canAfford = false
+                        missingSupplies = missingSupplies .. DFS.supplyNames[i] .. " "
                     end
                 end
                 if overrideTable then
