@@ -560,12 +560,13 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                 destination.z = destination.z + coalitionOffset
                 local companyCost = bc.companyToCost(strengthTable)
                 local canAfford = true
+                local missingSupplies = ""
                 for i = 1, 3 do
                     if DFS.status[coalitionId].supply.front[i] < companyCost[i] then
                         canAfford = false
+                        missingSupplies = missingSupplies .. DFS.supplyNames[i] .. " "
                     end
                 end
-                local missingSupplies = ""
                 if overrideTable then
                     local overrideCost = bc.companyToCost(overrideTable)
                     for i = 1, 3 do
