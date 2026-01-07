@@ -567,11 +567,13 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                         canAfford = false
                     end
                 end
+                local missingSupplies = ""
                 if overrideTable then
                     local overrideCost = bc.companyToCost(overrideTable)
                     for i = 1, 3 do
                         if DFS.status[coalitionId].supply.front[i] < overrideCost[i] then
                             canAfford = false
+                            missingSupplies = missingSupplies .. DFS.supplyNames[i] .. " "
                         end
                     end
                 end
@@ -590,7 +592,7 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                     DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.FUEL, amount = companyCost[DFS.supplyType.FUEL]})
                     DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.AMMO, amount = companyCost[DFS.supplyType.AMMO]})
                 elseif overrideTable == nil then
-                    env.info(coalitionId .. " - Cannot send company this company, not enough supply.", false)
+                    env.info(coalitionId .. " - Cannot send company this company, not enough " .. missingSupplies, false)
                     if desperate then
                         env.info(coalitionId .. " - Cannot send company this company. Trying lower tier.", false)
                         strengthTableTier = strengthTableTier + 1
