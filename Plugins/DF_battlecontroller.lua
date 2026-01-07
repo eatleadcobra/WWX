@@ -603,7 +603,7 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
             end
         end
     else
-        env.info(coalitionId .. " - Cannot send company this company, not enough supply", false)
+        env.info(coalitionId .. " - Cannot send company this company, not enough equipment", false)
     end
 end
 
