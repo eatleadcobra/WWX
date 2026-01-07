@@ -591,7 +591,6 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                     DFS.decreaseFrontSupply({coalitionId = coalitionId, type = DFS.supplyType.AMMO, amount = companyCost[DFS.supplyType.AMMO]})
                 elseif overrideTable == nil then
                     env.info(coalitionId .. " - Cannot send company this company, not enough " .. missingSupplies, false)
-                    trigger.action.outTextForCoalition(coalitionId, "The front depots need " .. missingSupplies .. " urgently to create more companies!", 30, false)
                     if desperate then
                         env.info(coalitionId .. " - Cannot send company this company. Trying lower tier.", false)
                         strengthTableTier = strengthTableTier + 1
