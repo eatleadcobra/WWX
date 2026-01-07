@@ -224,7 +224,7 @@ function bc.deployments()
                 end
             elseif v.ownedBy == coalitionId then
                 local bpStrength = bc.assessBpStrength(coalitionId, k)
-                if bpStrength < (enemyAvailableStr*(3/4)) then
+                if bpStrength < (enemyAvailableStr*(1/2)) and bc.companyAssignedToBp(coalitionId, k) == false then
                     table.insert(listOfFriendlyBPsNeedingReinforcementByDistance, {bpId = k, distance = closerDistance, fromDepot = closerDepot, strength = bpStrength, ownedBy = v.ownedBy})
                 end
             end
