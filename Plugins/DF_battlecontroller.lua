@@ -333,7 +333,7 @@ function bc.priortyAchieved(coalitionId)
     end
     if clearPriority then
         env.info("clearing priority", false)
-        priorityBP[coalitionId] = 0
+        priorityBPs[coalitionId].bpId = 0
         priorityAchieved = true
     end
     return priorityAchieved
