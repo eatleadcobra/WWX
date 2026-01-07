@@ -569,6 +569,7 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                         canAfford = false
                         missingSupplies = missingSupplies .. DFS.supplyNames[i] .. " "
                     elseif i == DFS.supplyType.FUEL and DFS.status[coalitionId].supply.front[i] == companyCost[i] then
+                        env.info("Creating this company would use all remaining fuel", false)
                         canAfford = false
                         missingSupplies = missingSupplies .. DFS.supplyNames[i] .. " "
                     end
