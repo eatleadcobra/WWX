@@ -299,9 +299,7 @@ function bc.deployments()
                     env.info("SentCount: " .. sentCount, false)
                     sentCount = sentCount + 1
                     if sentCount == 1 then
-                        if priorityBPs[coalitionId].bpId and priorityBPs[coalitionId].bpId == 0 or bc.priortyAchieved(coalitionId) then
-                            bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
-                        end
+                        bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
                     end
                 else
                     env.info("No Sufficient company possible, waiting", false)
@@ -469,7 +467,7 @@ function bc.companyAssignedToBp(coalitionId, targetbp)
     for i = 1, #CompanyIDs[coalitionId] do
         local company = Companies[CompanyIDs[coalitionId][i]]
         if company then
-            if company.bp == targetbp then
+            if company.bp == targetbp and company.arrived == false then
                 cpyAlreadyAssignedToBP = true
             end
         end
