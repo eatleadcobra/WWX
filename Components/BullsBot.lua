@@ -226,7 +226,10 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                 if isFriendly then
                                     foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
                                     if interceptors[foundItem:getCoalition()][foundGroupName] == nil then
-                                        interceptors[foundItem:getCoalition()][foundGroupName] = { groupName = foundGroupName, groupId = foundGroup:getID(), cancelGuidance = false, target = nil}
+                                        local foundGroupId = foundGroup:getID()
+                                        local interceptMenu = missionCommands.addSubMenuForGroup(foundGroupId, "Intercept Controller", nil)
+                                        missionCommands.addCommandForGroup(foundGroupId, "Cancel Guidance", interceptMenu, bulls.cancelGuidance, {coalitionId = foundItem:getCoalition(), groupName = foundGroupName, groupId = foundGroupId})
+                                        interceptors[foundItem:getCoalition()][foundGroupName] = { groupName = foundGroupName, groupId = foundGroupId, cancelGuidance = false, target = nil, interceptMenu = interceptMenu}
                                     end
                                 else
                                     foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = false, callsign = groupCallsign}
@@ -245,17 +248,15 @@ end
 function bulls.populateInterceptMenus()
     for i = 1, 2 do
         for groupName, values in pairs(interceptors[i]) do
-            missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller"})
-            local interceptMenu = missionCommands.addSubMenuForGroup(values.groupId, "Intercept Controller", nil)
+            missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Targets"})
+            local targetMenu = missionCommands.addSubMenuForGroup(values.groupId, "Targets", values.interceptMenu)
             for j = 1, 9 do
                 if groupsList[i][j] and groupsList[i][j].callsign and groupsList[i][j].groupName then
-                    --missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Request vectors to " .. groupsList[i][j].callsign })
-                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, interceptMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName, targetCallsign =  groupsList[i][j].callsign})
+                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, targetMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName, targetCallsign =  groupsList[i][j].callsign})
                 else
                     break
                 end
             end
-            missionCommands.addCommandForGroup(values.groupId, "Cancel Guidance", interceptMenu, bulls.cancelGuidance, {coalitionId = i, groupName = groupName, groupId = values.groupId})
         end
     end
 end
