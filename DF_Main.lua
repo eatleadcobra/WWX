@@ -2950,7 +2950,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Grad", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Grad", groupName = groupName, modifier = "big"})
                     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Scorpion", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Scorpion", groupName = groupName, modifier = "big"})
                     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - BMD", vehicleMenu, dfc.spawnVehicle, {vehicleType = "BMD", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Ammo Truck", vehicleMenu, dfc.spawnVehicle, {vehicleType = "TRUCK", groupName = groupName, modifier = "big"})
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Ammo Truck", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Bedford", groupName = groupName, modifier = "big"})
                 end
             end
             local internalCargoMenu = nil

@@ -302,6 +302,21 @@ local unitTemplates = {
         ["heading"] = 0,
         ["playerCanDrive"] = true,
     },
+    ["Bedford"] = {
+        ["livery_id"] = "spring",
+        ["skill"] = "Average",
+        ["AddPropVehicle"] =
+        {
+            ["Tent"] = 3,
+        }, -- end of ["AddPropVehicle"]
+        ["coldAtStart"] = false,
+        ["type"] = "Bedford_MWD",
+        ["y"] = 0,
+        ["x"] = 0,
+        ["name"] = "truck",
+        ["heading"] = 0,
+        ["playerCanDrive"] = true,
+    },
     ["rpg"] = {
         ["skill"] = "Average",
         ["coldAtStart"] = false,
