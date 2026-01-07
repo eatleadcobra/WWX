@@ -299,7 +299,7 @@ function bc.deployments()
                     if sent then
                         sentCount = sentCount + 1
                         env.info("SentCount: " .. sentCount, false)
-                        if sentCount == 1 then
+                        if sentCount == 1 and bc.priortyAchieved(coalitionId) then
                             bc.assignPriorityBp(coalitionId, targetTable[j].bpId, priority)
                         end
                     end
@@ -328,7 +328,7 @@ function bc.priortyAchieved(coalitionId)
             end
         else
             env.info("priority company doesn't exist", false)
-            clearPriority = false
+            clearPriority = true
         end
     end
     if clearPriority then
