@@ -131,7 +131,7 @@ function Company.spawn(self)
     end
     if self.onRoad == false and self.arrived == false and self.isShip == false then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
-        local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 500))
+        local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 1000))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
         local roadPoint = {x = roadPointx, y = 0, z = roadPointy}
         --create waypoint table from waypoints list
@@ -146,7 +146,6 @@ function Company.spawn(self)
             cpyGroupTable["units"][j].y = deployPoint.z + (12*(j-1))
             cpyGroupTable["units"][j].heading = self.heading
         end
-        --cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
     elseif self.isShip == false and self.isConvoy == true then
