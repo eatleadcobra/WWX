@@ -2636,7 +2636,7 @@ function dfc.trackCargo(param)
                 end
                 local cargoPoint = cargo:getPoint()
                 if cargoPoint then env.info("cargo (".. param.cargo .. ") location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z .. " AGL: " .. altitude, false) end
-                if (velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) and (altitude < 0.5) then
+                if (velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) and (altitude < 0.5 and altitude > -5) then
                    param.successfulDeployChecks = param.successfulDeployChecks + 1
                     if param.successfulDeployChecks > 1 then
                         if distanceToClosestFb then
