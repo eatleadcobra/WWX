@@ -140,13 +140,12 @@ function bulls.newCallsign(coalitionId)
     return callsign
 end
 function Bulls.loop()
+    groupsList[1] = {}
+    groupsList[2] = {}
     bulls.getTargets(1)
     bulls.vectorTargets(1)
     bulls.getTargets(2)
     bulls.vectorTargets(2)
-    bulls.populateInterceptMenus()
-    groupsList[1] = {}
-    groupsList[2] = {}
     timer.scheduleFunction(Bulls.loop, nil, timer:getTime() + 11)
 end
 function bulls.getBulls()
@@ -225,11 +224,15 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                 end
                                 if isFriendly then
                                     foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
-                                    if interceptors[foundItem:getCoalition()][foundGroupName] == nil then
-                                        local foundGroupId = foundGroup:getID()
-                                        local interceptMenu = missionCommands.addSubMenuForGroup(foundGroupId, "Intercept Controller", nil)
-                                        missionCommands.addCommandForGroup(foundGroupId, "Cancel Guidance", interceptMenu, bulls.cancelGuidance, {coalitionId = foundItem:getCoalition(), groupName = foundGroupName, groupId = foundGroupId})
-                                        interceptors[foundItem:getCoalition()][foundGroupName] = { groupName = foundGroupName, groupId = foundGroupId, cancelGuidance = false, target = nil, interceptMenu = interceptMenu}
+                                    local foundGroupId = foundGroup:getID()
+                                    if interceptors[coalitionId][foundGroupName] == nil then
+                                        interceptors[coalitionId][foundGroupName] = { groupName = foundGroupName, groupId = foundGroupId, cancelGuidance = false, target = nil}
+                                        local interceptPath = missionCommands.addSubMenuForGroup(foundGroupId, "Intercept Controller", nil)
+                                        missionCommands.addCommandForGroup(foundGroupId, "Cancel Guidance", interceptPath, bulls.cancelGuidance, {coalitionId = foundItem:getCoalition(), groupName = foundGroupName, groupId = foundGroupId})
+                                        local targetPath = missionCommands.addSubMenuForGroup(foundGroupId, "Targets", interceptPath)
+                                        for i = 1, 9 do
+                                            missionCommands.addCommandForGroup(foundGroupId, "Target group " .. i, targetPath, bulls.requestGuidance, {coalitionId = foundItem:getCoalition(), targetNum = i, groupId = foundGroupId, groupName = foundGroupName})
+                                        end
                                     end
                                 else
                                     foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = false, callsign = groupCallsign}
@@ -244,21 +247,6 @@ function bulls.getTargets(coalitionId, targetGroupName)
     end
     groupsList[coalitionId] = foundGroups
     friendliesList[coalitionId] = foundFriendlies
-end
-function bulls.populateInterceptMenus()
-    for i = 1, 2 do
-        for groupName, values in pairs(interceptors[i]) do
-            missionCommands.removeItemForGroup(values.groupId, {[1] = "Intercept Controller", [2] = "Targets"})
-            local targetMenu = missionCommands.addSubMenuForGroup(values.groupId, "Targets", values.interceptMenu)
-            for j = 1, 9 do
-                if groupsList[i][j] and groupsList[i][j].callsign and groupsList[i][j].groupName then
-                    missionCommands.addCommandForGroup(values.groupId, "Request vectors to " .. groupsList[i][j].callsign, targetMenu, bulls.BRAALoop, {coalitionId = i, groupId = values.groupId, requestingGroupName = groupName, targetGroupName = groupsList[i][j].groupName, targetCallsign =  groupsList[i][j].callsign})
-                else
-                    break
-                end
-            end
-        end
-    end
 end
 --coalitionId, groupName
 function bulls.cancelGuidance(param)
@@ -275,9 +263,21 @@ end
 function bulls.BRAA(param)
     DF_UTILS.vector({from = param.requestingGroupName, to = param.targetGroupName, units = param.units, targetCallsign = param.targetCallsign})
 end
---coalitionId, groupId, requestingGroupName, targetGroupName
+--coalitionId, targetNum, groupId, groupName
+function bulls.requestGuidance(param)
+    local targetGroup = groupsList[param.coalitionId][param.targetNum]
+    if targetGroup then
+       bulls.BRAALoop({coalitionId = param.coalitionId, groupId = param.groupId, requestingGroupName = param.groupName, targetGroupName = targetGroup.groupName, targetCallsign = targetGroup.callsign})
+    else
+        trigger.action.outTextForGroup(param.groupId, "Not a valid group selection", 10, false)
+    end
+end
+
+
+--coalitionId, groupId, requestingGroupName, requestingGroupId, targetGroupName, targetCallsign
 function bulls.BRAALoop(param)
-    if Group.getByName(param.targetGroupName) then
+    local targetGroup = Group.getByName(param.targetGroupName)
+    if targetGroup then
         if contactCallsigns[param.targetGroupName] then
             local interceptor = interceptors[param.coalitionId][param.requestingGroupName]
             if interceptor then
@@ -330,10 +330,10 @@ function bulls.cleanCallsignsLoop()
 end
 function bulls.cleanInterceptorsLoop()
     for i = 1, 2 do
-        for groupname, values in pairs(interceptors[i]) do
-            local group = Group.getByName(groupname)
+        for groupName, values in pairs(interceptors[i]) do
+            local group = Group.getByName(groupName)
             if group == nil then
-                interceptors[i][groupname] = nil
+                interceptors[i][groupName] = nil
             end
         end
     end
