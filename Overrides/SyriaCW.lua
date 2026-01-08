@@ -19,6 +19,23 @@ STRIKES = true
 REAPER = true
 SHIPPING = true
 CAPTURE = false
+CAVICS = {
+    [1] = {
+        [1] = {text = "AT - BRDM", typename = "BRDM-2_malyutka"},
+        [2] = {text = "IFV - BMD-1", typename = "BMD"},
+        [3] = {text = "FireSupport - Grad MLRS", typename = "Grad"},
+        [4] = {text = "Scout - BRDM", typename = "BRDM"},
+        [5] = {text = "Ammo Truck", typename = "Bedford"},
+
+    },
+    [2] = {
+        [1] = {text = "AT - HMMWV", typename = "TOW"},
+        [2] = {text = "IFV - Scorpion", typename = "Scorpion"},
+        [3] = {text = "FireSupport - M270", typename = "M270"},
+        [4] = {text = "Scout - Scimitar", typename = "Scimitar"},
+        [5] = {text = "Ammo Truck", typename = "Bedford"},
+    }
+}
 CAPTUREBASES = {
     ["Kiryat Shmona"] = true,
 }

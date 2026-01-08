@@ -2083,7 +2083,7 @@ function dfc.spawnVehicle(param)
                     local groups = {
                         [1] = {type = param.vehicleType, point = spawnPoints[1]}
                     }
-                    FirebaseGroups.spawnCustomGroup(pickupPoint, groups, transporterCoalition, 0)
+                    FirebaseGroups.spawnCustomGroupDisperse(pickupPoint, groups, transporterCoalition, 0)
                     if piratePickup then
                         dfc.decreasePirateSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT][param.modifier]), type = DFS.supplyType.EQUIPMENT})
                     elseif not seaPickup and not frontPickup then
@@ -2939,18 +2939,20 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                 missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small", count = q})
                 --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
             end
-
-            local addUnit = addGroup:getUnit(1)
-            if addUnit then
-                local addType = addUnit:getTypeName()
-                if addType and addType == "C-130J-30" then
-                    local vehicleMenu = missionCommands.addSubMenuForGroup(addGroupID, "Combined Arms Vehicles", cargoMenu)
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Anti Tank", vehicleMenu, dfc.spawnVehicle, {vehicleType = "TOW", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Technical", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Technical", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Grad", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Grad", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Scorpion", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Scorpion", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - BMD", vehicleMenu, dfc.spawnVehicle, {vehicleType = "BMD", groupName = groupName, modifier = "big"})
-                    missionCommands.addCommandForGroup(addGroup:getID(), "Transport Vehicle - Ammo Truck", vehicleMenu, dfc.spawnVehicle, {vehicleType = "Bedford", groupName = groupName, modifier = "big"})
+            if CAVICS then
+                local addUnit = addGroup:getUnit(1)
+                if addUnit then
+                    local addType = addUnit:getTypeName()
+                    if addType and addType == "C-130J-30" then
+                        local addCoaltion = addUnit:getCoalition()
+                        local vehicleMenu = missionCommands.addSubMenuForGroup(addGroupID, "Combined Arms Vehicles", cargoMenu)
+                        if addCoaltion == 1 or addCoaltion == 2 then
+                            for i = 1, #CAVICS[addCoaltion] do
+                                local vic = CAVICS[addCoaltion][i]
+                                missionCommands.addCommandForGroup(addGroup:getID(), "Transport - " .. vic.text, vehicleMenu, dfc.spawnVehicle, {vehicleType = vic.typename, groupName = groupName, modifier = "big"})
+                            end
+                        end
+                    end
                 end
             end
             local internalCargoMenu = nil

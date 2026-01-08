@@ -262,6 +262,16 @@ local unitTemplates = {
         ["heading"] = 0,
         ["playerCanDrive"] = true,
     },
+    ["M113"] = {
+[       "skill"] = "Average",
+        ["coldAtStart"] = false,
+        ["type"] = "M-113",
+        ["y"] = 0,
+        ["x"] = 0,
+        ["name"] = "m113",
+        ["heading"] = 0,
+        ["playerCanDrive"] = true,
+    },
     ["Nona"] = {
         ["skill"] = "Average",
         ["coldAtStart"] = false,
@@ -273,12 +283,24 @@ local unitTemplates = {
         ["playerCanDrive"] = true,
     },
     ["Scorpion"] = {
+        ["livery_id"] = "desert",
         ["skill"] = "Average",
         ["coldAtStart"] = false,
         ["type"] = "CHAP_FV101",
         ["y"] = 0,
         ["x"] = 0,
         ["name"] = "Scorpion",
+        ["heading"] = 0,
+        ["playerCanDrive"] = true,
+    },
+    ["Scimitar"] = {
+        ["livery_id"] = "desert",
+        ["skill"] = "Average",
+        ["coldAtStart"] = false,
+        ["type"] = "CHAP_FV107",
+        ["y"] = 0,
+        ["x"] = 0,
+        ["name"] = "Scimitar",
         ["heading"] = 0,
         ["playerCanDrive"] = true,
     },
@@ -292,13 +314,45 @@ local unitTemplates = {
         ["heading"] = 0,
         ["playerCanDrive"] = true,
     },
+    ["BRDM-2_malyutka"] = {
+        ["skill"] = "Average",
+        ["coldAtStart"] = false,
+        ["type"] = "BRDM-2_malyutka",
+        ["y"] = 0,
+        ["x"] = 0,
+        ["name"] = "brdm-at",
+        ["heading"] = 0,
+        ["playerCanDrive"] = true,
+    },
+    ["BRDM"] = {
+        ["livery_id"] = "summer",
+        ["skill"] = "Average",
+        ["coldAtStart"] = false,
+        ["type"] = "BRDM-2",
+        ["y"] = 0,
+        ["x"] = 0,
+        ["name"] = "brdm",
+        ["heading"] = 0,
+        ["playerCanDrive"] = true,
+    },
     ["Grad"] = {
         ["skill"] = "Average",
         ["coldAtStart"] = false,
         ["type"] = "Grad-URAL",
         ["y"] = 0,
         ["x"] = 0,
-        ["name"] = "bmd",
+        ["name"] = "grad",
+        ["heading"] = 0,
+        ["playerCanDrive"] = true,
+    },
+    ["M270"] = {
+        ["livery_id"] = "desert",
+        ["skill"] = "Average",
+        ["coldAtStart"] = false,
+        ["type"] = "MLRS",
+        ["y"] = 0,
+        ["x"] = 0,
+        ["name"] = "m270",
         ["heading"] = 0,
         ["playerCanDrive"] = true,
     },
@@ -408,6 +462,30 @@ function FirebaseGroups.spawnCustomGroup(basePoint, groups, unitCoalition, headi
         local addUnitTable = fbg.copyTemplate(unitTemplates[groups[i].type])
         addUnitTable["x"] = groups[i].point.x
         addUnitTable["y"] = groups[i].point.z
+        addUnitTable["heading"] = heading
+        addUnitTable["name"] = addUnitTable["name"] .. newGroupId .. i
+        unitsTable[#unitsTable+1] = addUnitTable
+        addUnitTable = {}
+    end
+    groupTable["units"] = unitsTable
+    local groupName = coalition.addGroup(countryId, type, groupTable):getName()
+    return groupName
+end
+function FirebaseGroups.spawnCustomGroupDisperse(basePoint, groups, unitCoalition, heading)
+    local newGroupId = fbg.newGroupId()
+    local countryId = country.id.CJTF_BLUE
+    if unitCoalition == 1 then countryId = country.id.CJTF_RED end
+    local type = 2
+    local groupTable = fbg.copyTemplate(groupTemplate)
+    groupTable["name"] = country.name[countryId] .. newGroupId
+    groupTable["y"] = basePoint.z
+    groupTable["x"] = basePoint.x
+    groupTable["groupId"] = newGroupId
+    local unitsTable = {}
+    for i = 1, #groups do
+        local addUnitTable = fbg.copyTemplate(unitTemplates[groups[i].type])
+        addUnitTable["x"] = groups[i].point.x + math.random(-5, 5)
+        addUnitTable["y"] = groups[i].point.z + math.random(-5, 5)
         addUnitTable["heading"] = heading
         addUnitTable["name"] = addUnitTable["name"] .. newGroupId .. i
         unitsTable[#unitsTable+1] = addUnitTable
