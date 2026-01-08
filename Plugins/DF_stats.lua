@@ -10,11 +10,12 @@ if validLoad then
     env.info("Valid stats load", false)
     STATS = {}
     STATS.statID = {
-        ["FRONT_DEPOT_DESTROYED"] = 1,
-        ["REAR_DEPOT_DESTROYED"] = 2,
-        ["TANK_CPY_STALLED"] = 3,
-        ["CONVOY_DESTROYED"] = 4,
-        ["SHIP_SUNK"] = 5,
+        ["FRONT_DEPOTS_DESTROYED"] = 1,
+        ["REAR_DEPOTS_DESTROYED"] = 2,
+        ["TANK_CPYS_STALLED"] = 3,
+        ["CONVOYS_DESTROYED"] = 4,
+        ["SHIPS_SUNK"] = 5,
+        ["RECON_MISSIONS_COMPLETED"] = 6,
     }
     local stats = {}
     stats.teamStats = {
@@ -24,6 +25,7 @@ if validLoad then
             [3] = 0,
             [4] = 0,
             [5] = 0,
+            [6] = 0,
         },
         [2] = {
             [1] = 0,
@@ -31,6 +33,7 @@ if validLoad then
             [3] = 0,
             [4] = 0,
             [5] = 0,
+            [6] = 0,
         }
     }
 

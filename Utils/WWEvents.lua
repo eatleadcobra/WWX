@@ -22,6 +22,7 @@ world.event.S_EVENT_WWX_REAR_DEPOT_DESTROYED = 8422
 world.event.S_EVENT_WWX_TANKCPY_STALLED = 8423
 world.event.S_EVENT_WWX_CONVOY_DESTROYED = 8424
 world.event.S_EVENT_WWX_SHIP_SUNK = 8425
+world.event.S_EVENT_WWX_RECONMISSION_COMPLETED = 8426
 
 WWEvents = {}
 WWEvents.latches = {
@@ -204,6 +205,17 @@ function WWEvents.fireMissionCompleted(coalitionId, playerName, kills)
         playerName = playerName,
         kills = kills,
         text = "'s fire mission achieved " .. kills .. " kill(s)!"
+    }
+    world.onEvent(Event)
+end
+function WWEvents.reconMissionCompleted(coalitionId, playerName)
+    env.info("recon mission completed event fired", false)
+    local Event = {
+        id = world.event.S_EVENT_WWX_RECONMISSION_COMPLETED,
+        time = timer:getTime(),
+        coalition = coalitionId,
+        playerName = playerName,
+        text = " completed a recon mission"
     }
     world.onEvent(Event)
 end
