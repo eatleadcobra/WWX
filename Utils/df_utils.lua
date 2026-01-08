@@ -62,69 +62,74 @@ function DF_UTILS.vector(param)
 	local playerGroup = Group.getByName(param.from)
 
 	if targetGroup ~= nil and playerGroup ~= nil then
-        local targetPos = targetGroup:getUnit(1):getPoint()
-        local playerPos = playerGroup:getUnit(1):getPoint()
+		local targetUnit = targetGroup:getUnit(1)
+		local playerUnit = playerGroup:getUnit(1)
+		if targetUnit and playerUnit then
+			local targetPos = targetUnit:getPoint()
+			local playerPos = playerUnit:getPoint()
+			if targetPos and playerPos then
+				local vector = {x = targetPos.x - playerPos.x, y = targetPos.y - playerPos.y, z = targetPos.z - playerPos.z}
+				---@diagnostic disable-next-line: deprecated
+				local bearing = math.atan2(vector.z, vector.x)
+				if bearing < 0 then bearing = bearing + (2 * math.pi) end
+				local bearingInDeg = bearing * (180/math.pi)
+				local reverseBearingInDeg = bearingInDeg + 180
+				if reverseBearingInDeg > 360 then reverseBearingInDeg = reverseBearingInDeg - 360 end
+				--trigger.action.outText("Bearing from Tgt to Interceptor: " .. reverseBearingInDeg, 1)
+				local targetPosition = targetGroup:getUnit(1):getPosition()
+				---@diagnostic disable-next-line: deprecated
+				local targetHeadingRad = math.atan2(targetPosition.x.z, targetPosition.x.x)
+				if targetHeadingRad < 0 then targetHeadingRad = targetHeadingRad + (2 * math.pi) end
+				local targetHeadingDeg = targetHeadingRad * (180/math.pi)
+				--trigger.action.outText("Target Heading: " .. targetHeadingDeg, 1)
+				local aspectDegrees = math.abs(reverseBearingInDeg - targetHeadingDeg)
+				if aspectDegrees > 180 then aspectDegrees = 360 - aspectDegrees end
+				--trigger.action.outText("Degrees off: " .. aspectDegrees, 1)
+				local targetHeadingCardinal = "North"
+				if targetHeadingDeg >= 22.5 and targetHeadingDeg < 67.5 then
+					targetHeadingCardinal = "Northeast"
+				elseif targetHeadingDeg >= 67.5 and targetHeadingDeg < 112.5 then
+					targetHeadingCardinal = "East"
+				elseif targetHeadingDeg >= 112.5 and targetHeadingDeg < 157.5 then
+					targetHeadingCardinal = "Southeast"
+				elseif targetHeadingDeg >= 157.5 and targetHeadingDeg < 202.5 then
+					targetHeadingCardinal = "South"
+				elseif targetHeadingDeg >= 202.5 and targetHeadingDeg < 247.5 then
+					targetHeadingCardinal = "Southwest"
+				elseif targetHeadingDeg >= 247.5 and targetHeadingDeg < 292.5 then
+					targetHeadingCardinal = "West"
+				elseif targetHeadingDeg >= 292.5 and targetHeadingDeg < 337.5 then
+					targetHeadingCardinal = "Northwest"
+				end
+				local aspectString = ""
+				if aspectDegrees < 30 then
+					aspectString = "Hot"
+				elseif aspectDegrees < 75 then
+					aspectString = "Flanking " .. targetHeadingCardinal
+				elseif aspectDegrees < 110 then
+					aspectString = "Beam " .. targetHeadingCardinal
+				else
+					aspectString = "Drag " .. targetHeadingCardinal
+				end
+				local xDistance = playerPos.x - targetPos.x
+				local yDistance = playerPos.z - targetPos.z
+				local distanceToTarget = tonumber(math.sqrt(xDistance*xDistance + yDistance*yDistance))
+				local distanceToTargetNM = tonumber(string.format("%.0f", distanceToTarget * 0.000539957))
+				local distanceToTargetStringM = string.format("%.0f",distanceToTarget/1000)
 
-		local vector = {x = targetPos.x - playerPos.x, y = targetPos.y - playerPos.y, z = targetPos.z - playerPos.z}
-		---@diagnostic disable-next-line: deprecated
-		local bearing = math.atan2(vector.z, vector.x)
-		if bearing < 0 then bearing = bearing + (2 * math.pi) end
-		local bearingInDeg = bearing * (180/math.pi)
-		local reverseBearingInDeg = bearingInDeg + 180
-		if reverseBearingInDeg > 360 then reverseBearingInDeg = reverseBearingInDeg - 360 end
-		--trigger.action.outText("Bearing from Tgt to Interceptor: " .. reverseBearingInDeg, 1)
-		local targetPosition = targetGroup:getUnit(1):getPosition()
-		---@diagnostic disable-next-line: deprecated
-		local targetHeadingRad = math.atan2(targetPosition.x.z, targetPosition.x.x)
-		if targetHeadingRad < 0 then targetHeadingRad = targetHeadingRad + (2 * math.pi) end
-		local targetHeadingDeg = targetHeadingRad * (180/math.pi)
-		--trigger.action.outText("Target Heading: " .. targetHeadingDeg, 1)
-		local aspectDegrees = math.abs(reverseBearingInDeg - targetHeadingDeg)
-		if aspectDegrees > 180 then aspectDegrees = 360 - aspectDegrees end
-		--trigger.action.outText("Degrees off: " .. aspectDegrees, 1)
-		local targetHeadingCardinal = "North"
-		if targetHeadingDeg >= 22.5 and targetHeadingDeg < 67.5 then
-			targetHeadingCardinal = "Northeast"
-		elseif targetHeadingDeg >= 67.5 and targetHeadingDeg < 112.5 then
-			targetHeadingCardinal = "East"
-		elseif targetHeadingDeg >= 112.5 and targetHeadingDeg < 157.5 then
-			targetHeadingCardinal = "Southeast"
-		elseif targetHeadingDeg >= 157.5 and targetHeadingDeg < 202.5 then
-			targetHeadingCardinal = "South"
-		elseif targetHeadingDeg >= 202.5 and targetHeadingDeg < 247.5 then
-			targetHeadingCardinal = "Southwest"
-		elseif targetHeadingDeg >= 247.5 and targetHeadingDeg < 292.5 then
-			targetHeadingCardinal = "West"
-		elseif targetHeadingDeg >= 292.5 and targetHeadingDeg < 337.5 then
-			targetHeadingCardinal = "Northwest"
-		end
-		local aspectString = ""
-		if aspectDegrees < 30 then
-			aspectString = "Hot"
-		elseif aspectDegrees < 75 then
-			aspectString = "Flanking " .. targetHeadingCardinal
-		elseif aspectDegrees < 110 then
-			aspectString = "Beam " .. targetHeadingCardinal
-		else
-			aspectString = "Drag " .. targetHeadingCardinal
-		end
-		local xDistance = playerPos.x - targetPos.x
-		local yDistance = playerPos.z - targetPos.z
-		local distanceToTarget = tonumber(math.sqrt(xDistance*xDistance + yDistance*yDistance))
-		local distanceToTargetNM = tonumber(string.format("%.0f", distanceToTarget * 0.000539957))
-        local distanceToTargetStringM = string.format("%.0f",distanceToTarget/1000)
+				local targetAltInFt = targetPos.y * 3.28084
+				local targetAltAngels = math.floor(targetAltInFt/1000)
+				local altStringM = string.format("%.0f", targetPos.y) .. 'm'
+				local altStringI = " Angels " .. string.format("%.0f", targetAltAngels)
+				local distanceToTargetStringI = string.format("%.0f",distanceToTargetNM)
 
-		local targetAltInFt = targetPos.y * 3.28084
-		local targetAltAngels = math.floor(targetAltInFt/1000)
-        local altStringM = string.format("%.0f", targetPos.y) .. 'm'
-        local altStringI = " Angels " .. string.format("%.0f", targetAltAngels)
-        local distanceToTargetStringI = string.format("%.0f",distanceToTargetNM)
-
-		local braString = "BRAA: " .. string.format("%.0f", bearingInDeg) .. "° for " .. distanceToTargetStringM .. "km | " .. altStringM .. " " .. aspectString
-		braString = braString .. "\n                      " .. distanceToTargetStringI .. "nmi |" .. altStringI
-		if param.targetCallsign then
-			braString = param.targetCallsign.."\n"..braString
+				local braString = "BRAA: " .. string.format("%.0f", bearingInDeg) .. "° for " .. distanceToTargetStringM .. "km | " .. altStringM .. " " .. aspectString
+				braString = braString .. "\n                      " .. distanceToTargetStringI .. "nmi |" .. altStringI
+				if param.targetCallsign then
+					braString = param.targetCallsign.."\n"..braString
+				end
+				trigger.action.outTextForGroup(playerGroup:getID(), braString, 5, false)
+			end
 		end
-		trigger.action.outTextForGroup(playerGroup:getID(), braString, 5, false)
 	end
 end
