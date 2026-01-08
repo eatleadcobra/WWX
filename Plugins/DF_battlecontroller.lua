@@ -81,6 +81,18 @@ end
 function BattleControl.endMission()
     priorityBPs = {[1] = {}, [2] = {}}
 end
+function BattleControl.getClosestBp(location)
+    local distance = -1
+    local closestBp = -1
+    for bpId, values in pairs(battlePositions) do
+        local distanceToBp = Utils.PointDistance(location, values.point)
+        if distance == -1 or distanceToBp < distance then
+            closestBp = values.id
+            distance = distanceToBp
+        end
+    end
+    return closestBp, distance
+end
 function BattleControl.getBPPoint(bpId)
     local returnPoint = nil
     local position = battlePositions[bpIds[bpId]]

@@ -2052,7 +2052,7 @@ function dfc.spawnMultipleSupply(param)
     local count = param.count or 3 -- this should NOT be called without a count but just in case some crazy fella gets a little too wild this should help them not RUIN my afternoon (i hope, lol)
     if count < 1 then return end
     for i = 1, count do
-        dfc.spawnSupply({type = param.type, groupName = param.groupName, modifier = param.modifier})
+        timer.scheduleFunction(dfc.spawnSupply, {type = param.type, groupName = param.groupName, modifier = param.modifier}, timer:getTime() + (i * 0.2))
     end
 end
 --vehicleType, groupName
@@ -2923,7 +2923,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             -- else
             --     missionCommands.addCommandForGroup(addGroup:getID(), "Chinooks Load Slinging Cargo Through Re-arm Menu", internalCargoMenu, dfc.doNothing, nil)
             -- end
-            local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Virtual)", cargoMenu)
+            local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation", cargoMenu)
             missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase) - 5 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
@@ -2931,7 +2931,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
             -- Spawn Multiple Troops submenu: choose quantity then type
-            local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiple virtual)", cargoMenu)
+            local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiples)", cargoMenu)
             local troopQuantities = {2, 3, 6}
             for _, q in ipairs(troopQuantities) do
                 local troopQtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " squads", multipleTroopMenu)
