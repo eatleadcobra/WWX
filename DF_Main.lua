@@ -1953,9 +1953,7 @@ function dfc.checkNoFlyZone(coalitionId)
         if unit ~= nil then
             local unitPoint = unit:getPoint()
             if unitPoint ~= nil then
-                if dfc.unitMustDie(unitPoint, zone.point) then
-                    trigger.action.explosion(unitPoint, 120)
-                end
+                trigger.action.explosion(unitPoint, 50)
             end
         end
     end
