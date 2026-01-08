@@ -304,6 +304,8 @@ function recon.processCompletedMission(coalitionId, missionId, playerGroupId)
         elseif missionType == 4 then
             recon.processBP(mission, playerGroupId)
         end
+        if WWEvents then WWEvents.reconMissionCompleted(coalitionId, completedBy) end
+        if STATS then STATS.addStat(coalitionId, STATS.statID["RECON_MISSIONS_COMPLETED"]) end
         recon.cleanMission(coalitionId, missionId)
     end
 end

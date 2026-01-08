@@ -1112,7 +1112,7 @@ function dfc.checkFDHealth()
                 end
                 if WWEvents then WWEvents.frontDepotDestroyed(enemyCoalition) end
                 if STATS then
-                    STATS.addStat(enemyCoalition, STATS.statID["FRONT_DEPOT_DESTROYED"])
+                    STATS.addStat(enemyCoalition, STATS.statID["FRONT_DEPOTS_DESTROYED"])
                 end
                 trigger.action.outText(ownerString .. " front depot " .. spawnZone .. " has been destroyed! ".. ownerString.." team has lost 1/"..DFS.status.fdSpawnTotal .. " of their front supplies.", 30, false)
                 table.remove(DFS.status[a].spawns.fd, i)
@@ -1179,7 +1179,7 @@ function dfc.checkRDHealth()
                     enemyCoalition = 1
                 end
                 if STATS then
-                    STATS.addStat(enemyCoalition, STATS.statID["REAR_DEPOT_DESTROYED"])
+                    STATS.addStat(enemyCoalition, STATS.statID["REAR_DEPOTS_DESTROYED"])
                 end
                 if WWEvents then WWEvents.rearDepotDestroyed(enemyCoalition) end
                 trigger.action.outText(ownerString .. " rear depot " .. spawnZone .."-"..subDepot.. " has been destroyed! ".. ownerString.." team has lost 1/"..DFS.status.rdSpawnTotal*DFS.status.rdSpawnSubDepots .. " of their rear supplies.", 30, false)
@@ -1664,7 +1664,7 @@ function dfc.checkConvoy(param)
             local enemyCoalition = 2
             if param.coalitionId == 2 then enemyCoalition = 1 end
             if WWEvents then WWEvents.convoyDestroyed(enemyCoalition) end
-            if STATS then STATS.addStat(enemyCoalition, STATS.statID["CONVOY_DESTROYED"]) end
+            if STATS then STATS.addStat(enemyCoalition, STATS.statID["CONVOYS_DESTROYED"]) end
         end
     end
 end
@@ -1752,7 +1752,7 @@ function dfc.checkShipping(param)
             if param.coalitionId == 2 then enemyCoalition = 1 end
             if WWEvents then WWEvents.convoyDestroyed(enemyCoalition) end
             if STATS then
-                STATS.addStat(enemyCoalition, STATS.statID["SHIP_SUNK"])
+                STATS.addStat(enemyCoalition, STATS.statID["SHIPS_SUNK"])
             end
         end
     end

@@ -416,7 +416,7 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         local enemyCoalition = 2
         if coalitionId == 2 then enemyCoalition = 1 end
         if WWEvents then WWEvents.tankCpyStalled(enemyCoalition) end
-        if STATS then STATS.addStat(enemyCoalition, STATS.statID["TANK_CPY_STALLED"]) end
+        if STATS then STATS.addStat(enemyCoalition, STATS.statID["TANK_CPYS_STALLED"]) end
     end
 end
 function cpyctl.getCompanyStrength(cpy)
