@@ -838,6 +838,12 @@ function dfc.saveData()
     trigger.action.setUserFlag("BLUE_STOLEN_AMMO", DFS.status[2].supply.pirate[DFS.supplyType.AMMO])
     trigger.action.setUserFlag("BLUE_STOLEN_EQUIPMENT", DFS.status[2].supply.pirate[DFS.supplyType.EQUIPMENT])
     trigger.action.setUserFlag("WWX_SIDE_MAXHEALTH", DFS.status.maxHealth)
+    trigger.action.setUserFlag("FRONT_AMMO_MAX", DFS.status.maxSuppliesFront[DFS.supplyType.AMMO])
+    trigger.action.setUserFlag("REAR_AMMO_MAX", DFS.status.maxSuppliesRear[DFS.supplyType.AMMO])
+    trigger.action.setUserFlag("FRONT_FUEL_MAX", DFS.status.maxSuppliesFront[DFS.supplyType.FUEL])
+    trigger.action.setUserFlag("REAR_FUEL_MAX", DFS.status.maxSuppliesRear[DFS.supplyType.FUEL])
+    trigger.action.setUserFlag("FRONT_EQUIPMENT_MAX", DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT])
+    trigger.action.setUserFlag("REAR_EQUIPMENT_MAX", DFS.status.maxSuppliesRear[DFS.supplyType.EQUIPMENT])
 
     local f = io.open(redState, 'w')
     f:write(DFS.status[1].health..'\n'..
