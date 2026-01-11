@@ -111,7 +111,9 @@ function MADLoop(param)
                     timer.scheduleFunction(MADLoop, param, timer:getTime() + madloopTime)
                 else
                     trigger.action.outTextForGroup(searchingGroup:getID(), "You must be over water and below " .. madAltLimit .. " meters to use your MAD.", 10, false)
-                    MAD.addCommand(param.groupName)
+                    if param.runs and param.runs > 0 then
+                        MAD.addCommand(param.groupName)
+                    end
                 end
             end
         end
