@@ -205,6 +205,8 @@ PlatoonUnitCarrierTypeNames = {
     ["BMP-1"] = "IFV",
     ["TPZ"] = "APC",
     ["BTR-60"] = "APC",
+    ["MCV-80"] = "IFV",
+    ["M-113"] = "APC"
 }
 
 
