@@ -119,7 +119,7 @@ function DF_UTILS.vector(param)
 
 				local targetAltInFt = targetPos.y * 3.28084
 				local targetAltAngels = math.floor(targetAltInFt/1000)
-				local altStringM = string.format("%.0f", targetPos.y) .. 'm'
+				local altStringM = string.format("%.0f", math.floor(targetPos.y/100)*100) .. 'm'
 				local altStringI = " Angels " .. string.format("%.0f", targetAltAngels)
 				local distanceToTargetStringI = string.format("%.0f",distanceToTargetNM)
 

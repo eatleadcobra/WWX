@@ -252,6 +252,7 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                         for i = 1, 9 do
                                             missionCommands.addCommandForGroup(foundGroupId, "Target group " .. i, targetPath, bulls.requestGuidance, {coalitionId = foundItem:getCoalition(), targetNum = i, groupId = foundGroupId, groupName = foundGroupName})
                                         end
+                                        trigger.action.outTextForGroup(foundGroupId, "GCI guidance is available in the radio F10 menu.", 15, false)
                                     end
                                 else
                                     foundGroups[#foundGroups+1] = {groupName = foundGroupName, isFriendly = false, callsign = groupCallsign}
