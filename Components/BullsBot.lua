@@ -124,6 +124,25 @@ bulls.callsigns = {
         },
     }
 }
+local bullsEvents = {}
+function bullsEvents:onEvent(event)
+    --on death or slot out 
+    if event.id == world.event.S_EVENT_PILOT_DEAD or event.id == world.event.S_EVENT_EJECTION  or event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            if group ~= nil then
+                local groupName = group:getName()
+                local groupCoalition = group:getCoalition()
+                if groupName and groupCoalition then
+                    interceptors[groupCoalition][groupName] = nil
+                end
+            end
+        end
+    end
+end
+if INTERCEPT then
+    world.addEventHandler(bullsEvents)
+end
 function bulls.newCallsign(coalitionId)
     local callsign = bulls.callsigns.alphanumerics[coalitionId][bulls.callsigns.counts[coalitionId].alpha] .. bulls.callsigns.counts[coalitionId].number
     if coalitionId == 2 then
