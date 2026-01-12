@@ -11,6 +11,7 @@ Airframes = {
             ['MiG-15bis_FC'] = true,
             ["MiG-19P"] = true,
             ["MiG-21Bis"] = true,
+            ["MiG-29 Fulcrum"] = true,
             ["AJS37"] = true,
             ["AV8BNA"] = true,
             ["Su-25"] = true,

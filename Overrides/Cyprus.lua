@@ -14,6 +14,9 @@ MISSILEBOATS = false
 CARGO = true
 CSAR = true
 CAS = true
+STRIKES = true
+REAPER = false
+INTERCEPT = false
 SHIPPING = true
 CAPTURE = false
 NAVALCONVOY = {
@@ -36,16 +39,17 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "MTLB",
-            [2] = "M1045 HMMWV TOW",
+            [1] = "M4_Sherman",
+            [2] = "M2A1_halftrack",
             [3] = "Bedford_MWD"
         },
         ["Mech"] = {
-            [1] = "M2A1_halftrack",
-            [3] = "Bedford_MWD"
+            [1] = "M-113",
+            [2] = "Bedford_MWD"
         },
         ["Inf"] = {
-            [1] = "Bedford_MWD",
+            [1] = "M2A1_halftrack",
+            [2] = "Bedford_MWD",
         },
         ["DeployedInf"] = {
             [1] = "Paratrooper RPG-16",
@@ -86,7 +90,11 @@ Platoons = {
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
-            [1] = "HL_DSHK",
+            [1] = "Type_94_25mm_AA_Truck",
+            [2] = "KAMAZ Truck"
+        },
+        ["EmbeddedADHigh"] = {
+            [1] = "HL_ZU-23",
             [2] = "KAMAZ Truck"
         },
         ["Shipping"] = {
@@ -95,16 +103,17 @@ Platoons = {
     },
     [2] = {
         ["Armor"] = {
-            [1] = "M-113",
-            [2] = "M1045 HMMWV TOW",
-            [3] = "Blitz_36-6700A"
+            [1] = "T-34-85",
+            [2] = "Sd_Kfz_251",
+            [3] = "Blitz_36-6700A",
         },
         ["Mech"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "Blitz_36-6700A",
+            [1] = "BTR-60",
+            [2] = "Blitz_36-6700A"
         },
         ["Inf"] = {
-            [1] = "Blitz_36-6700A",
+            [1] = "Sd_Kfz_251",
+            [2] = "Blitz_36-6700A",
         },
         ["DeployedInf"] = {
             [1] = "Paratrooper RPG-16",
@@ -145,7 +154,11 @@ Platoons = {
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
-            [1] = "tt_DSHK",
+            [1] = "Type_94_25mm_AA_Truck",
+            [3] = "GAZ-66"
+        },
+        ["EmbeddedADHigh"] = {
+            [1] = "HL_ZU-23",
             [3] = "GAZ-66"
         },
         ["Shipping"] = {
@@ -158,6 +171,9 @@ PlatoonUnitCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "APC",
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
+    ["Land_Rover_101_FCSd_Kfz_251"] = "IFV",
+    ["M2A1_halftrack"] =  "IFV",
+    ["BTR-60"] = "IFV",
 }
 
 PlatoonFlakCarrierTypeNames = {
@@ -175,12 +191,12 @@ PltCosts = {
     [1] = {
         [1] = 5, --fuel
         [2] = 9, --ammo
-        [3] = 3, --equipment
+        [3] = 6, --equipment
     },
     [2] = {
         [1] = 3, --fuel
         [2] = 4, --ammo
-        [3] = 2, --equipment
+        [3] = 3, --equipment
     },
     [3] = {
         [1] = 1, --fuel
@@ -190,7 +206,7 @@ PltCosts = {
     [7] = {
         [1] = 4, --fuel
         [2] = 2, --ammo
-        [3] = 1, --equipment
+        [3] = 2, --equipment
     },
 }
 CompanyCompTiers = {

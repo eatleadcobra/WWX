@@ -17,6 +17,7 @@ Airframes = {
             ["F-4E-45MC"] = true,
             ["Mirage-F1CE"] = true,
             ["Mirage-F1EE"] = true,
+            ["M-2000C"] = true,
             ["AJS37"] = true,
             ["JF-17"] = true,
             ["Su-25"] = true,

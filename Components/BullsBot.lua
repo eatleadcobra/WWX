@@ -225,7 +225,7 @@ function bulls.getTargets(coalitionId, targetGroupName)
                                 if isFriendly then
                                     foundFriendlies[#foundFriendlies+1] = {groupName = foundGroupName, isFriendly = true, callsign = groupCallsign}
                                     local foundGroupId = foundGroup:getID()
-                                    if interceptors[coalitionId][foundGroupName] == nil then
+                                    if INTERCEPT and interceptors[coalitionId][foundGroupName] == nil then
                                         interceptors[coalitionId][foundGroupName] = { groupName = foundGroupName, groupId = foundGroupId, cancelGuidance = false, target = nil}
                                         local interceptPath = missionCommands.addSubMenuForGroup(foundGroupId, "Intercept Controller", nil)
                                         missionCommands.addCommandForGroup(foundGroupId, "Cancel Guidance", interceptPath, bulls.cancelGuidance, {coalitionId = foundItem:getCoalition(), groupName = foundGroupName, groupId = foundGroupId})
