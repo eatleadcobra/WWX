@@ -2748,8 +2748,6 @@ function dfc.supplyEvent(deliverGroupName, supplyType, deliveryLocation)
                     deliveryLocationMsg = "firebase"
                 end
                 dfc.updateSupplyMission({playerName = deliverPlayer, deliverGroup = deliverGroup, supplyType = supplyType, deliveryLocationMsg = deliveryLocationMsg})
-                local deliveryMessage = deliverPlayer .. " delivered " .. supplyTypeName .. " to a " .. deliveryLocationMsg
-                WWEvents.playerCargoDelivered(deliverPlayer, deliverGroup:getCoalition(), supplyType, deliveryLocation, deliveryMessage)
             end
         end
     end
@@ -2799,11 +2797,20 @@ function dfc.completeSupplyMission(params)
         trigger.action.outTextForCoalition(coalitionId, "Supply Mission Complete for " .. playerName .. "!", 15, false)
         for location, locTable in pairs(delivery) do
             local formatedCargoTotals = "Delivered Cargo Summary:\n"
+            local allCargoTotal = 0
+            local wweventMessage = playerName .. " has delivered: "
             for supplyType, count in pairs(locTable) do
                 formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. ", "
+                allCargoTotal = allCargoTotal + count
+                wweventMessage = wweventMessage .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. ", "
             end
             if formatedCargoTotals ~= "" then
                 formatedCargoTotals = formatedCargoTotals:sub(1, -3)
+            end
+            if allCargoTotal > 0 then
+                wweventMessage = wweventMessage:sub(1, -3)
+                wweventMessage = wweventMessage .. " to a " .. location
+                if WWEvents then WWEvents.playerCargoDelivered(playerName, coalitionId, allCargoTotal, location, wweventMessage) end
             end
             formatedCargoTotals = formatedCargoTotals .. " to a " .. location
             trigger.action.outTextForCoalition(coalitionId, formatedCargoTotals, 10, false)
