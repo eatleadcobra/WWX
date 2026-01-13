@@ -22,14 +22,14 @@ CAPTURE = false
 CAVICS = {
     [1] = {
         [1] = {text = "AT - BRDM", typename = "BRDM-2_malyutka"},
-        [3] = {text = "FireSupport - Grad MLRS", typename = "Grad"},
-        [5] = {text = "Ammo Truck", typename = "Bedford"},
+        [2] = {text = "FireSupport - Grad MLRS", typename = "Grad"},
+        [3] = {text = "Ammo Truck", typename = "Bedford"},
 
     },
     [2] = {
         [1] = {text = "AT - HMMWV", typename = "TOW"},
-        [3] = {text = "FireSupport - M270", typename = "M270"},
-        [5] = {text = "Ammo Truck", typename = "Bedford"},
+        [2] = {text = "FireSupport - M270", typename = "M270"},
+        [3] = {text = "Ammo Truck", typename = "Bedford"},
     }
 }
 NAVALCONVOY = {
