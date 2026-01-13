@@ -1,4 +1,6 @@
 local sunsetNotified = false
+local deliveredCargos = {
+}
 DFS = {}
 DFS.supplyType = {
     FUEL = 1,
@@ -465,6 +467,7 @@ DFS.status = {
     submarinePlayerCountReduction = 540,
     submarineMinTime = 600,
     subLifeTime = 7199,
+    supplyMissionTimeout = 30,
     --resupply amts
     convoyResupplyAmts = {
         [1] = 40,
@@ -2744,10 +2747,69 @@ function dfc.supplyEvent(deliverGroupName, supplyType, deliveryLocation)
                 elseif deliveryLocation == "FIREBASE" then
                     deliveryLocationMsg = "firebase"
                 end
+                dfc.updateSupplyMission({playerName = deliverPlayer, deliverGroup = deliverGroup, supplyType = supplyType, deliveryLocationMsg = deliveryLocationMsg})
                 local deliveryMessage = deliverPlayer .. " delivered " .. supplyTypeName .. " to a " .. deliveryLocationMsg
                 WWEvents.playerCargoDelivered(deliverPlayer, deliverGroup:getCoalition(), supplyType, deliveryLocation, deliveryMessage)
             end
         end
+    end
+end
+function dfc.updateSupplyMission(params)
+    local deliverPlayer = params.playerName
+    local deliverGroup = params.deliverGroup
+    local supplyType = params.supplyType
+    local deliveryLocation = params.deliveryLocationMsg
+
+    local deliveryEventTime = timer:getTime()
+    if deliveredCargos[deliverPlayer] == nil then
+        env.info("Starting supply mission for player " .. deliverPlayer, false)
+        deliveredCargos[deliverPlayer] = {}
+        deliveredCargos[deliverPlayer]["deliveries"] = {}
+        timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition()}, timer:getTime()+1)
+    end
+    if deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation] == nil then
+        deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation] = {}
+    end
+    local currentCargos = deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation][supplyType]
+    if currentCargos == nil then currentCargos = 0 end
+
+    deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation][supplyType] = currentCargos + 1
+    deliveredCargos[deliverPlayer].lastDeliveryEvent = deliveryEventTime
+
+    env.info("Player " .. deliverPlayer .. " delivered " .. DFS.supplyNames[supplyType] .. " to " .. deliveryLocation .. " at " .. deliveryEventTime, false)
+end
+function dfc.trackSupplyMission(params)
+    env.info("Tracking supply mission for player " .. params.playerName, false)
+    local playerName = params.playerName
+    local coalitionId = params.coalitionId
+    if deliveredCargos[playerName] then
+        if timer:getTime() - deliveredCargos[playerName].lastDeliveryEvent < DFS.status.supplyMissionTimeout then
+            timer.scheduleFunction(dfc.trackSupplyMission, {playerName = playerName, coalitionId = coalitionId}, timer:getTime() + DFS.status.supplyMissionTimeout)
+        else
+            dfc.completeSupplyMission({playerName = playerName, coalitionId = coalitionId})
+        end
+    end
+end
+function dfc.completeSupplyMission(params)
+    env.info("Completing supply mission for player " .. params.playerName, false)
+    local playerName = params.playerName
+    local coalitionId = params.coalitionId
+    local delivery = deliveredCargos[playerName]["deliveries"]
+    if delivery then
+        trigger.action.outTextForCoalition(coalitionId, "Supply Mission Complete for " .. playerName .. "!", 15, false)
+        for location, locTable in pairs(delivery) do
+            local formatedCargoTotals = "Delivered Cargo Summary:\n"
+            for supplyType, count in pairs(locTable) do
+                formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. ", "
+            end
+            if formatedCargoTotals ~= "" then
+                formatedCargoTotals = formatedCargoTotals:sub(1, -3)
+            end
+            formatedCargoTotals = formatedCargoTotals .. " to a " .. location
+            trigger.action.outTextForCoalition(coalitionId, formatedCargoTotals, 10, false)
+        end
+        trigger.action.outTextForCoalition(coalitionId, "Thank you " .. playerName .. " for your passion and support!", 15, false)
+        deliveredCargos[playerName] = nil
     end
 end
 function dfc.findClosestDepot(location, coalition)
