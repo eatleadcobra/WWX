@@ -2820,7 +2820,7 @@ function dfc.completeSupplyMission(params)
             formatedCargoTotals = ..formatedCargoTotals .. " to a " .. location .. "\n"
         end
         trigger.action.outTextForCoalition(coalitionId, "Delivered Cargo Summary:\n" ..formatedCargoTotals, 15, false)
-        trigger.action.outTextForCoalition(coalitionId, "Thank you " .. playerName .. " for your passion and support!", 15, false)
+        trigger.action.outTextForCoalition(coalitionId, DF_UTILS.randomThanks({playerName = playerName}), 15, false)
         deliveredCargos[playerName] = nil
     end
 end
