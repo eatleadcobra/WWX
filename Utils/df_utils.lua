@@ -133,3 +133,25 @@ function DF_UTILS.vector(param)
 		end
 	end
 end
+function DF_UTILS.randomThanks(param)
+	local playerName = param.playerName
+	local thanksMessages = {
+		"Thank you " .. playerName .. " for your passion and support!",
+		"The logistics war that rages as you sleep",
+		"Thank you " .. playerName .. ", this delivery will save us many man hours!",
+		"Cracking open those crates took some leverage...",
+		"Cargo on station; Thank you " .. playerName .. "!",
+		"Delivery complete; sustainment operations continue.",
+		"Cargo secured; the war continues one crate at a time",
+		"Delivery confirmed; morale improved by approximately one pallet.",
+		"Logistics win wars",
+	}
+	local randomIndex = math.random(1, #thanksMessages)
+	-- Override with extremely rare messages, I think these will get pretty dry if they're too common.
+	local randomVal = math.random(1000)
+	if randomVal == 1 then
+		return "Based CargoPilledLogisticsmaxxer"
+	end
+	local selectedMessage = thanksMessages[randomIndex]
+	return selectedMessage
+end

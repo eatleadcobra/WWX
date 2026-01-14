@@ -2658,12 +2658,12 @@ function dfc.trackCargo(param)
                             env.info("Group: " .. param.groupId .. "-" .. param.groupName .. " delivered " .. param.cargo .. " to " .. closestDepotToCargo.depotName, false)
                             local deliverType = "FRONT"
                             if closestDepotToCargo.isRear then deliverType = "REAR" end
-                            trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
+                            --trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
                             dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
-                            dfc.supplyEvent(param.groupName, param.supplyType, deliverType)
+                            dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, deliverType)
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["AMMO"] then
                             if SBS then
@@ -2671,11 +2671,11 @@ function dfc.trackCargo(param)
                             end
                             Firebases.resupplyFirebase(Firebases[closestFirebaseToCargo], DFS.status.playerResupplyAmts[param.supplyType][param.modifier])
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                            trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
+                            --trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
-                            dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
+                            dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, "FIREBASE")
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["GUN"] then
                             if SBS then
@@ -2683,11 +2683,11 @@ function dfc.trackCargo(param)
                             end
                             Firebases.addGroupToFirebase(Firebases[closestFirebaseToCargo], Firebases[closestFirebaseToCargo].fbType)
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                            trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
+                            --trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
-                            dfc.supplyEvent(param.groupName, param.supplyType, "FIREBASE")
+                            dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, "FIREBASE")
                             return
                         elseif timer:getTime() - param.spawnTime > 29 and closestFirebaseToCargo == -1 and dfc.findPickupZone(cargo:getPoint(), param.coalition) == nil and param.supplyType == DFS.supplyType["GUN"] then
                             if SBS then
@@ -2730,7 +2730,7 @@ function dfc.deliverToDepot(isRear, coalition, supplyType, modifier, piratePicku
         env.info("Error delivering to depot. coalition nil: "..tostring(coalition==nil).." supplyType nil: "..tostring(supplyType==nil)" modifier nil: "..tostring(modifier==nil), false)
     end
 end
-function dfc.supplyEvent(deliverGroupName, supplyType, deliveryLocation)
+function dfc.supplyEvent(deliverGroupName, supplyType, modifier, deliveryLocation)
     local deliverGroup = Group.getByName(deliverGroupName)
     if deliverGroup then
         local deliverUnit = deliverGroup:getUnit(1)
@@ -2747,7 +2747,7 @@ function dfc.supplyEvent(deliverGroupName, supplyType, deliveryLocation)
                 elseif deliveryLocation == "FIREBASE" then
                     deliveryLocationMsg = "firebase"
                 end
-                dfc.updateSupplyMission({playerName = deliverPlayer, deliverGroup = deliverGroup, supplyType = supplyType, deliveryLocationMsg = deliveryLocationMsg})
+                dfc.updateSupplyMission({playerName = deliverPlayer, deliverGroup = deliverGroup, supplyType = supplyType, modifier = modifier, deliveryLocationMsg = deliveryLocationMsg})
             end
         end
     end
@@ -2756,22 +2756,24 @@ function dfc.updateSupplyMission(params)
     local deliverPlayer = params.playerName
     local deliverGroup = params.deliverGroup
     local supplyType = params.supplyType
+    local modifier = params.modifier
     local deliveryLocation = params.deliveryLocationMsg
-
+    
     local deliveryEventTime = timer:getTime()
     if deliveredCargos[deliverPlayer] == nil then
         env.info("Starting supply mission for player " .. deliverPlayer, false)
-        deliveredCargos[deliverPlayer] = {}
-        deliveredCargos[deliverPlayer]["deliveries"] = {}
-        timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition()}, timer:getTime()+1)
+        trigger.action.outTextForGroup(deliverGroup:getID(), "We have received your cargo at the " .. deliveryLocation .. "!\nLogistics units are processing your delivery...", 15, false)
+        deliveredCargos[deliverPlayer] = {deliveries = {}}
+        timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition(), groupId = deliverGroup:getID()}, timer:getTime()+1)
     end
-    if deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation] == nil then
-        deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation] = {}
+    if deliveredCargos[deliverPlayer].deliveries[deliveryLocation] == nil then
+        deliveredCargos[deliverPlayer].deliveries[deliveryLocation] = {}
     end
-    local currentCargos = deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation][supplyType]
-    if currentCargos == nil then currentCargos = 0 end
-
-    deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation][supplyType] = currentCargos + 1
+    local currentCargos = deliveredCargos[deliverPlayer].deliveries[deliveryLocation][supplyType]
+    if currentCargos == nil then currentCargos = {crates = 0, value = 0} end
+    currentCargos.crates = currentCargos.crates + 1
+    currentCargos.value = currentCargos.value + DFS.status.playerResupplyAmts[supplyType][modifier]
+    deliveredCargos[deliverPlayer].deliveries[deliveryLocation][supplyType] = currentCargos
     deliveredCargos[deliverPlayer].lastDeliveryEvent = deliveryEventTime
 
     env.info("Player " .. deliverPlayer .. " delivered " .. DFS.supplyNames[supplyType] .. " to " .. deliveryLocation .. " at " .. deliveryEventTime, false)
@@ -2780,9 +2782,13 @@ function dfc.trackSupplyMission(params)
     env.info("Tracking supply mission for player " .. params.playerName, false)
     local playerName = params.playerName
     local coalitionId = params.coalitionId
+    local groupId = params.groupId
     if deliveredCargos[playerName] then
         if timer:getTime() - deliveredCargos[playerName].lastDeliveryEvent < DFS.status.supplyMissionTimeout then
-            timer.scheduleFunction(dfc.trackSupplyMission, {playerName = playerName, coalitionId = coalitionId}, timer:getTime() + DFS.status.supplyMissionTimeout)
+            local heartbeat = (DFS.status.supplyMissionTimeout / 2) - 2
+            dfc.cargoHeartbeat({groupId = groupId, heartbeat = heartbeat})
+            timer.scheduleFunction(dfc.cargoHeartbeat, {groupId = groupId, heartbeat = heartbeat}, timer:getTime() + DFS.status.supplyMissionTimeout /2 ) -- supply mission timeout is pretty long, this makes it feel like stuff hasn't failed
+            timer.scheduleFunction(dfc.trackSupplyMission, {playerName = playerName, coalitionId = coalitionId, groupId = groupId}, timer:getTime() + DFS.status.supplyMissionTimeout)
         else
             dfc.completeSupplyMission({playerName = playerName, coalitionId = coalitionId})
         end
@@ -2792,17 +2798,19 @@ function dfc.completeSupplyMission(params)
     env.info("Completing supply mission for player " .. params.playerName, false)
     local playerName = params.playerName
     local coalitionId = params.coalitionId
-    local delivery = deliveredCargos[playerName]["deliveries"]
+    local delivery = deliveredCargos[playerName].deliveries
     if delivery then
         trigger.action.outTextForCoalition(coalitionId, "Supply Mission Complete for " .. playerName .. "!", 15, false)
+        local formatedCargoTotals = ""
         for location, locTable in pairs(delivery) do
-            local formatedCargoTotals = "Delivered Cargo Summary:\n"
             local allCargoTotal = 0
             local wweventMessage = playerName .. " has delivered: "
-            for supplyType, count in pairs(locTable) do
-                formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. ", "
+            for supplyType, cargoData in pairs(locTable) do
+                local count = cargoData.crates
+                local cargoValue = cargoData.value
+                formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. " crates " .. "(" .. cargoValue .. " supply)" .. ", "
                 allCargoTotal = allCargoTotal + count
-                wweventMessage = wweventMessage .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. ", "
+                wweventMessage = wweventMessage .. formatedCargoTotals
             end
             if formatedCargoTotals ~= "" then
                 formatedCargoTotals = formatedCargoTotals:sub(1, -3)
@@ -2812,12 +2820,16 @@ function dfc.completeSupplyMission(params)
                 wweventMessage = wweventMessage .. " to a " .. location
                 if WWEvents then WWEvents.playerCargoDelivered(playerName, coalitionId, allCargoTotal, location, wweventMessage) end
             end
-            formatedCargoTotals = formatedCargoTotals .. " to a " .. location
-            trigger.action.outTextForCoalition(coalitionId, formatedCargoTotals, 10, false)
+            formatedCargoTotals = formatedCargoTotals .. " to a " .. location .. "\n"
         end
-        trigger.action.outTextForCoalition(coalitionId, "Thank you " .. playerName .. " for your passion and support!", 15, false)
+        formatedCargoTotals = formatedCargoTotals:sub(1, -2)
+        trigger.action.outTextForCoalition(coalitionId, "Delivered Cargo Summary:\n" ..formatedCargoTotals, 15, false)
+        trigger.action.outTextForCoalition(coalitionId, DF_UTILS.randomThanks({playerName = playerName}), 15, false)
         deliveredCargos[playerName] = nil
     end
+end
+function dfc.cargoHeartbeat(params)
+    trigger.action.outTextForGroup(params.groupId, "Unpacking cargo...", params.heartbeat, false)
 end
 function dfc.findClosestDepot(location, coalition)
     local closestDepotZone = nil
@@ -2986,7 +2998,6 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                 missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small", count = q})
                 missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small", count = q})
                 missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})        end
-
             -- local internalCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Virtual Cargo", cargoMenu)
             -- if addGroup:getUnit(1):getTypeName() ~= "CH-47Fbl1" then
             --     missionCommands.addCommandForGroup(addGroup:getID(), "Internal Cargo Status", internalCargoMenu, dfc.internalCargoStatus, groupName)
