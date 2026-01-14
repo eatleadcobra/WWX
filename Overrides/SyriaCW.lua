@@ -63,7 +63,8 @@ Platoons = {
         ["Armor"] = {
             [1] = "T-72B3",
             [2] = "T-72B3",
-            [3] = "GAZ-66"
+            [3] = "T-72B3",
+            [4] = "GAZ-66"
         },
         ["Mech"] = {
             [1] = "VAB_Mephisto",
@@ -133,7 +134,9 @@ Platoons = {
         ["Armor"] = {
             [1] = "M-60",
             [2] = "M-60",
-            [3] = "M 818"
+            [3] = "M-60",
+            [4] = "M1134 Stryker ATGM",
+            [5] = "M 818"
         },
         ["Mech"] = {
             [1] = "M1134 Stryker ATGM",
@@ -142,8 +145,8 @@ Platoons = {
             [4] = "M 818"
         },
         ["Inf"] = {
-            [1] = "AAV7",
-            [2] = "AAV7",
+            [1] = "CHAP_M1130",
+            [2] = "CHAP_M1130",
             [3] = "M 818"
         },
         ["DeployedInf"] = {
@@ -206,7 +209,9 @@ PlatoonUnitCarrierTypeNames = {
     ["TPZ"] = "APC",
     ["BTR-80"] = "APC",
     ["MCV-80"] = "IFV",
-    ["M-113"] = "APC"
+    ["M-113"] = "APC",
+    ["AAV7"] = "APC",
+    ["CHAP_M1130"] = "APC",
 }
 
 

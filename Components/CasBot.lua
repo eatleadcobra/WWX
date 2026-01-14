@@ -148,9 +148,6 @@ function cb.trackCas()
                 end
                 if isDead then
                     trigger.action.outTextForGroup(v.groupID, "Mission accomplished! Return to Cab Rank for further assignment.", 30, false)
-                    if Recon and v.missionPoint then
-                        Recon.createBDAMission(c, v.missionPoint)
-                    end
                     if WWEvents then
                         WWEvents.playerCasMissionCompleted(v.name, c, "completed a CAS mission!")
                     end
