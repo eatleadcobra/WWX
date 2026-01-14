@@ -221,6 +221,7 @@ DFS.raidedShips = {
 DFS.supplyDrawing = {
     counterWidth = 1800,
     counterHeight = 7200,
+    rearCounterHeight = 9600,
     counterOffeset = 2400,
     colors = {
         fill = {
@@ -468,6 +469,7 @@ DFS.status = {
     submarineMinTime = 600,
     subLifeTime = 7199,
     supplyMissionTimeout = 30,
+    cargoTickerInterval = 20,
     --resupply amts
     convoyResupplyAmts = {
         [1] = 40,
@@ -497,20 +499,20 @@ DFS.status = {
             small = 3
         },
         [5] = {
-            big = 5,
-            small = 5
+            big = 0,
+            small = 0
         },
         [6] = {
-            big = 1,
-            small = 1
+            big = 0,
+            small = 0
         },
         [7] = {
             big = 0,
             small = 0
         },
         [8] = {
-            big = 2,
-            small = 2
+            big = 0,
+            small = 0
         },
     },
     --totals
@@ -608,6 +610,16 @@ DFS.status = {
                 [2] = 0,
                 [3] = 0
             },
+            frontsurplus = {
+                [1] = 0,
+                [2] = 0,
+                [3] = 0,
+            },
+            rearsurplus = {
+                [1] = 0,
+                [2] = 0,
+                [3] = 0,
+            },
         },
         spawns = {
             -- groupname + zone number 
@@ -664,6 +676,16 @@ DFS.status = {
                 [1] = 0,
                 [2] = 0,
                 [3] = 0
+            },
+            frontsurplus = {
+                [1] = 0,
+                [2] = 0,
+                [3] = 0,
+            },
+            rearsurplus = {
+                [1] = 0,
+                [2] = 0,
+                [3] = 0,
             },
         },
         spawns = {
@@ -1250,6 +1272,13 @@ function dfc.increaseFrontSupply(param)
     if frontSupply == "-nan(ind)" then
         DFS.status[param.coalitionId].supply.front[param.type] = 0
     end
+
+    local headRoom = DFS.status.maxSuppliesFront[param.type] - DFS.status[param.coalitionId].supply.front[param.type]
+    local surplus = 0
+    if param.amount > headRoom then
+        surplus = param.amount - headRoom
+        param.amount = headRoom
+    end
     DFS.status[param.coalitionId].supply.front[param.type] = DFS.status[param.coalitionId].supply.front[param.type] + param.amount
     if DFS.status[param.coalitionId].supply.front[param.type] > math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)) then
         local surplusAmt = DFS.status[param.coalitionId].supply.front[param.type] - (math.floor(DFS.status.maxSuppliesFront[param.type] * (#DFS.status[param.coalitionId].spawns.fd / DFS.status.fdSpawnTotal)))
@@ -1258,6 +1287,9 @@ function dfc.increaseFrontSupply(param)
     end
     if DFS.status[param.coalitionId].supply.front[param.type] > (DFS.status.maxSuppliesFront[param.type] * 0.15) then
         WWEvents.latches[param.coalitionId].front[param.type] = false
+    end
+    if surplus > 0 then
+        DFS.status[param.coalitionId].supply.frontsurplus[param.type] = DFS.status[param.coalitionId].supply.frontsurplus[param.type] + surplus
     end
     dfc.updateSupplyDrawings("FRONT", param.coalitionId)
     --trigger.action.outTextForCoalition(param.coalitionId, 'Front ' ..supplyString..': ' .. DFS.status[param.coalitionId].supply.front[param.type], 5)
@@ -1275,16 +1307,29 @@ function dfc.decreaseFrontSupply(param)
         WWEvents.criticalSupplyLevel(param.coalitionId, param.type, DFS.supplyNames[param.type], "front depots")
         WWEvents.latches[param.coalitionId].front[param.type] = true
     end
+    if DFS.status[param.coalitionId].supply.frontsurplus[param.type]  > 0 then
+        dfc.increaseFrontSupply{coalitionId = param.coalitionId, type = param.type, amount = DFS.status[param.coalitionId].supply.frontsurplus[param.type]}
+        DFS.status[param.coalitionId].supply.frontsurplus[param.type] = 0
+    end
     dfc.updateSupplyDrawings("FRONT", param.coalitionId)
 end
 function dfc.increaseRearSupply(param)
     --params coalitionId, amount
+    local headRoom = DFS.status.maxSuppliesRear[param.type] - DFS.status[param.coalitionId].supply.rear[param.type]
+    local surplus = 0
+    if param.amount > headRoom then
+        surplus = param.amount - headRoom
+        param.amount = headRoom
+    end
     DFS.status[param.coalitionId].supply.rear[param.type] = DFS.status[param.coalitionId].supply.rear[param.type] + param.amount
     if DFS.status[param.coalitionId].supply.rear[param.type] > math.floor((DFS.status.maxSuppliesRear[param.type])*(#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))) then
         DFS.status[param.coalitionId].supply.rear[param.type] = math.floor(((DFS.status.maxSuppliesRear[param.type])*(#DFS.status[param.coalitionId].spawns.rd/(DFS.status.rdSpawnSubDepots*DFS.status.rdSpawnTotal))))
     end
     if DFS.status[param.coalitionId].supply.rear[param.type] > (DFS.status.convoyResupplyAmts[param.type]*1.05) then
         WWEvents.latches[param.coalitionId].rear[param.type] = false
+    end
+    if surplus > 0 then
+        DFS.status[param.coalitionId].supply.rearsurplus[param.type] = DFS.status[param.coalitionId].supply.rearsurplus[param.type] + surplus
     end
     dfc.updateSupplyDrawings("REAR", param.coalitionId)
 end
@@ -1300,6 +1345,10 @@ function dfc.decreaseRearSupply(param)
     if WWEvents and WWEvents.latches[param.coalitionId].rear[param.type] == false and DFS.status[param.coalitionId].supply.rear[param.type] <= (DFS.status.convoyResupplyAmts[param.type]) then
         WWEvents.criticalSupplyLevel(param.coalitionId, param.type, DFS.supplyNames[param.type], "rear depot")
         WWEvents.latches[param.coalitionId].rear[param.type] = true
+    end
+    if DFS.status[param.coalitionId].supply.rearsurplus[param.type]  > 0 then
+        dfc.increaseRearSupply{coalitionId = param.coalitionId, type = param.type, amount = DFS.status[param.coalitionId].supply.rearsurplus[param.type]}
+        DFS.status[param.coalitionId].supply.rearsurplus[param.type] = 0
     end
     dfc.updateSupplyDrawings("REAR", param.coalitionId)
 end
@@ -1357,14 +1406,14 @@ function dfc.createSupplyDrawings()
             local drawingOriginRear = drawingOriginRearZone.point
             for i = 1, 3 do
                 local boxOrigin = {x = drawingOriginRear.x, y = drawingOriginRear.y, z = drawingOriginRear.z - (DFS.supplyDrawing.counterOffeset*i)}
-                local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.rearCounterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
                 trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
-                for j = 1, 3 do
-                    local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
+                for j = 1, 5 do
+                    local xOffset = (j*(DFS.supplyDrawing.rearCounterHeight/6))/DFS.supplyDrawing.rearCounterHeight * DFS.supplyDrawing.rearCounterHeight
                     local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
                     local dashLength = DFS.supplyDrawing.counterWidth/3
-                    if (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight == 0.5 then
+                    if (j*(DFS.supplyDrawing.rearCounterHeight/6))/DFS.supplyDrawing.rearCounterHeight == 0.5 then
                         dashLength = DFS.supplyDrawing.counterWidth/2
                     end
                     local lineEnd = {x = lineStart.x, y = lineStart.y, z = lineStart.z + dashLength}
@@ -1423,11 +1472,11 @@ function dfc.updateSupplyDrawings(depot, coalitionId)
             for i = 1, 3 do
                 local boxOrigin = {x = drawingOriginRear.x, y = drawingOriginRear.y, z = drawingOriginRear.z - (DFS.supplyDrawing.counterOffeset*i)}
                 if DFS.supplyDrawing.fillIds.rear[coalitionId][i] and DFS.supplyDrawing.fillIds.rear[coalitionId][i] > 0 then
-                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z})
-                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
+                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.rearCounterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z})
+                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.rearCounterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
                 else
                     --local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterWidth/4, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
-                    local xOffset = (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i]))
+                    local xOffset = (DFS.supplyDrawing.rearCounterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i]))
                     local supplyCounterLineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z}
                     local supplyCounterLineEnd = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                     local fillId = DrawingTools.newMarkId()
@@ -2621,7 +2670,7 @@ function dfc.trackCargo(param)
                     dfc.deliverToDepot(closestDepotToCargo, param.coalition, param.supplyType, param.modifier)
                 end
                 if cargo and cargo:isExist() then
-                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
+                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                 end
             elseif timer:getTime() - param.spawnTime > 1800 and Utils.PointDistance(cargo:getPoint(),trigger.misc.getZone(pickupZone).point) < 30 then
                 if not param.seaPickup then
@@ -2630,7 +2679,7 @@ function dfc.trackCargo(param)
                     dfc.increaseRearSupply({coalitionId = param.coalition, amount = DFS.status.playerResupplyAmts[param.supplyType][param.modifier], type = reclaimType})
                 end
                 if cargo and cargo:isExist() then
-                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
+                    timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                 end
             else
                 local velocity = cargo:getVelocity()
@@ -2651,7 +2700,7 @@ function dfc.trackCargo(param)
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
                         end
-                        if (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= 2000)) then
+                        if (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and DFS.status.playerDeliverRadius)) then
                             if SBS then
                                 SBS.endWatch(cargo)
                             end
@@ -2661,7 +2710,7 @@ function dfc.trackCargo(param)
                             --trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
                             dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
                             dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, deliverType)
                             return
@@ -2673,7 +2722,7 @@ function dfc.trackCargo(param)
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
                             --trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
                             dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, "FIREBASE")
                             return
@@ -2685,7 +2734,7 @@ function dfc.trackCargo(param)
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
                             --trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
                             dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, "FIREBASE")
                             return
@@ -2697,7 +2746,7 @@ function dfc.trackCargo(param)
                             trigger.action.outTextForGroup(param.groupId, "You have deployed a firebase", 10, false)
                             Firebases.deployStatic(cargo:getName(), "HOWITZER")
                             if cargo and cargo:isExist() then
-                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
+                                timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
                         else
                             timer.scheduleFunction(dfc.trackCargo, param, timer:getTime() + 10)
@@ -2997,32 +3046,25 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                 local qtyCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " crates", multipleCargoMenu)
                 missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small", count = q})
                 missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small", count = q})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})        end
-            -- local internalCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Virtual Cargo", cargoMenu)
-            -- if addGroup:getUnit(1):getTypeName() ~= "CH-47Fbl1" then
-            --     missionCommands.addCommandForGroup(addGroup:getID(), "Internal Cargo Status", internalCargoMenu, dfc.internalCargoStatus, groupName)
-            --     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel " .. DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small, internalCargoMenu, dfc.loadInternalCargo, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small"})
-            --     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo " .. DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small, internalCargoMenu, dfc.loadInternalCargo, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small"})
-            --     missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment " .. DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small, internalCargoMenu, dfc.loadInternalCargo, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small"})
-            -- else
-            --     missionCommands.addCommandForGroup(addGroup:getID(), "Chinooks Load Slinging Cargo Through Re-arm Menu", internalCargoMenu, dfc.doNothing, nil)
-            -- end
+                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})
+            end
             local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation", cargoMenu)
             missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase) - 5 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 1 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
             -- Spawn Multiple Troops submenu: choose quantity then type
             local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiples)", cargoMenu)
             local troopQuantities = {2, 3, 6}
             for _, q in ipairs(troopQuantities) do
                 local troopQtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " squads", multipleTroopMenu)
-                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad - 1 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small", count = q})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing) - 2 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small", count = q})
+                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small", count = q})
+                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing)", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small", count = q})
                 --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
             end
+            dfc.radioCargoTickerManager({group = addGroup, parentMenu = cargoMenu, prevRear = nil, prevFront = nil})
             if CAVICS then
                 local addUnit = addGroup:getUnit(1)
                 if addUnit then
@@ -3046,6 +3088,26 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
 end
 function dfc.doNothing()
     return
+end
+function dfc.radioCargoTickerManager(params)
+    local group = params.group
+    local parentMenu = params.parentMenu
+    local prevRear = params.prevRear
+    local prevFront = params.prevFront
+    local supplyCurr = DFS.status[group:getCoalition()].supply
+    supplyCurr = {front = {fuel = supplyCurr.front[1], ammo = supplyCurr.front[2], equipment = supplyCurr.front[3]},
+                        rear = {fuel = supplyCurr.rear[1], ammo = supplyCurr.rear[2], equipment = supplyCurr.rear[3]}}
+    local supplyTot = {front = {fuel = DFS.status.maxSuppliesFront[1], ammo = DFS.status.maxSuppliesFront[2], equipment = DFS.status.maxSuppliesFront[3]},
+                        rear = {fuel = DFS.status.maxSuppliesRear[1], ammo = DFS.status.maxSuppliesRear[2], equipment = DFS.status.maxSuppliesRear[3]}}
+    if prevFront then
+        missionCommands.removeItemForGroup(group:getID(), prevFront)
+    end
+    if prevRear then
+        missionCommands.removeItemForGroup(group:getID(), prevRear)
+    end
+    local front = missionCommands.addSubMenuForGroup(group:getID(), "\n    Forward depot supply state:\n      Equip: " .. supplyCurr.front.equipment .. "/" .. supplyTot.front.equipment .. "\n      Ammo:  " .. supplyCurr.front.ammo .. "/" .. supplyTot.front.ammo .. "\n      Fuel:  " .. supplyCurr.front.fuel .. "/" .. supplyTot.front.fuel .. "\n    ", parentMenu)
+    local rear = missionCommands.addSubMenuForGroup(group:getID(), "\n    Rear depot supply state:\n      Equip: " .. supplyCurr.rear.equipment .. "/" .. supplyTot.rear.equipment .. "\n      Ammo:  " .. supplyCurr.rear.ammo .. "/" .. supplyTot.rear.ammo .. "\n      Fuel:  " .. supplyCurr.rear.fuel .. "/" .. supplyTot.rear.fuel .. "\n    ", parentMenu)
+    timer.scheduleFunction(dfc.radioCargoTickerManager, {group = group, parentMenu = parentMenu, prevRear = rear, prevFront = front}, timer:getTime() + DFS.status.cargoTickerInterval)
 end
 function dfc.addGroupToCargoList(groupName, dropMenu, troopsMenu)
     local addGroup = Group.getByName(groupName)
