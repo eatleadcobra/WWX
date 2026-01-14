@@ -2798,7 +2798,7 @@ function dfc.completeSupplyMission(params)
     if delivery then
         trigger.action.outTextForCoalition(coalitionId, "Supply Mission Complete for " .. playerName .. "!", 15, false)
         for location, locTable in pairs(delivery) do
-            local formatedCargoTotals = "Delivered Cargo Summary:\n"
+            local formatedCargoTotals = ""
             local allCargoTotal = 0
             local wweventMessage = playerName .. " has delivered: "
             for supplyType, cargoData in pairs(locTable) do
@@ -2806,7 +2806,7 @@ function dfc.completeSupplyMission(params)
                 local cargoValue = cargoData["value"]
                 formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. " crates " .. "(" .. cargoValue .. " supply)" .. ", "
                 allCargoTotal = allCargoTotal + count
-                wweventMessage = wweventMessage .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. ", "
+                wweventMessage = wweventMessage .. formatedCargoTotals
             end
             if formatedCargoTotals ~= "" then
                 formatedCargoTotals = formatedCargoTotals:sub(1, -3)
@@ -2816,9 +2816,9 @@ function dfc.completeSupplyMission(params)
                 wweventMessage = wweventMessage .. " to a " .. location
                 if WWEvents then WWEvents.playerCargoDelivered(playerName, coalitionId, allCargoTotal, location, wweventMessage) end
             end
-            formatedCargoTotals = formatedCargoTotals .. " to a " .. location
-            trigger.action.outTextForCoalition(coalitionId, formatedCargoTotals, 10, false)
+            formatedCargoTotals = ..formatedCargoTotals .. " to a " .. location .. "\n"
         end
+        trigger.action.outTextForCoalition(coalitionId, "Delivered Cargo Summary:\n" ..formatedCargoTotals, 15, false)
         trigger.action.outTextForCoalition(coalitionId, "Thank you " .. playerName .. " for your passion and support!", 15, false)
         deliveredCargos[playerName] = nil
     end
