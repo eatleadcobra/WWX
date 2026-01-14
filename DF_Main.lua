@@ -2762,19 +2762,18 @@ function dfc.updateSupplyMission(params)
     local deliveryEventTime = timer:getTime()
     if deliveredCargos[deliverPlayer] == nil then
         env.info("Starting supply mission for player " .. deliverPlayer, false)
-        trigger.action.outTextForGroup(deliverGroup:getID(), deliveryLocation .. " has received your cargo!\nLogistics have begun processing your delivery...", 15, false)
-        deliveredCargos[deliverPlayer] = {}
-        deliveredCargos[deliverPlayer]["deliveries"] = {}
-        timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition()}, timer:getTime()+1)
+        trigger.action.outTextForGroup(deliverGroup:getID(), "We have received your cargo at the " .. deliveryLocation .. "!\nLogistics units are processing your delivery...", 15, false)
+        deliveredCargos[deliverPlayer] = {deliveries = {}}
+        timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition(), groupId = deliverGroup:getID()}, timer:getTime()+1)
     end
-    if deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation] == nil then
-        deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation] = {}
+    if deliveredCargos[deliverPlayer].deliveries[deliveryLocation] == nil then
+        deliveredCargos[deliverPlayer].deliveries[deliveryLocation] = {}
     end
-    local currentCargos = deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation][supplyType]
-    if currentCargos == nil then currentCargos = {"crates" = 0, "value" = 0} end
-    currentCargos["crates"] = currentCargos["crates"] + 1
-    currentCargos["value"] = currentCargos["value"] + DFS.status.playerResupplyAmts[supplyType][modifier]
-    deliveredCargos[deliverPlayer]["deliveries"][deliveryLocation][supplyType] = currentCargos
+    local currentCargos = deliveredCargos[deliverPlayer].deliveries[deliveryLocation][supplyType]
+    if currentCargos == nil then currentCargos = {crates = 0, value = 0} end
+    currentCargos.crates = currentCargos.crates + 1
+    currentCargos.value = currentCargos.value + DFS.status.playerResupplyAmts[supplyType][modifier]
+    deliveredCargos[deliverPlayer].deliveries[deliveryLocation][supplyType] = currentCargos
     deliveredCargos[deliverPlayer].lastDeliveryEvent = deliveryEventTime
 
     env.info("Player " .. deliverPlayer .. " delivered " .. DFS.supplyNames[supplyType] .. " to " .. deliveryLocation .. " at " .. deliveryEventTime, false)
@@ -2783,9 +2782,13 @@ function dfc.trackSupplyMission(params)
     env.info("Tracking supply mission for player " .. params.playerName, false)
     local playerName = params.playerName
     local coalitionId = params.coalitionId
+    local groupId = params.groupId
     if deliveredCargos[playerName] then
         if timer:getTime() - deliveredCargos[playerName].lastDeliveryEvent < DFS.status.supplyMissionTimeout then
-            timer.scheduleFunction(dfc.trackSupplyMission, {playerName = playerName, coalitionId = coalitionId}, timer:getTime() + DFS.status.supplyMissionTimeout)
+            local heartbeat = (DFS.status.supplyMissionTimeout / 2) - 2
+            dfc.cargoHeartbeat({groupId = groupId, heartbeat = heartbeat})
+            timer.scheduleFunction(dfc.cargoHeartbeat, {groupId = groupId, heartbeat = heartbeat}, timer:getTime() + DFS.status.supplyMissionTimeout /2 ) -- supply mission timeout is pretty long, this makes it feel like stuff hasn't failed
+            timer.scheduleFunction(dfc.trackSupplyMission, {playerName = playerName, coalitionId = coalitionId, groupId = groupId}, timer:getTime() + DFS.status.supplyMissionTimeout)
         else
             dfc.completeSupplyMission({playerName = playerName, coalitionId = coalitionId})
         end
@@ -2795,16 +2798,16 @@ function dfc.completeSupplyMission(params)
     env.info("Completing supply mission for player " .. params.playerName, false)
     local playerName = params.playerName
     local coalitionId = params.coalitionId
-    local delivery = deliveredCargos[playerName]["deliveries"]
+    local delivery = deliveredCargos[playerName].deliveries
     if delivery then
         trigger.action.outTextForCoalition(coalitionId, "Supply Mission Complete for " .. playerName .. "!", 15, false)
+        local formatedCargoTotals = ""
         for location, locTable in pairs(delivery) do
-            local formatedCargoTotals = ""
             local allCargoTotal = 0
             local wweventMessage = playerName .. " has delivered: "
             for supplyType, cargoData in pairs(locTable) do
-                local count = cargoData["crates"]
-                local cargoValue = cargoData["value"]
+                local count = cargoData.crates
+                local cargoValue = cargoData.value
                 formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. " crates " .. "(" .. cargoValue .. " supply)" .. ", "
                 allCargoTotal = allCargoTotal + count
                 wweventMessage = wweventMessage .. formatedCargoTotals
@@ -2817,12 +2820,16 @@ function dfc.completeSupplyMission(params)
                 wweventMessage = wweventMessage .. " to a " .. location
                 if WWEvents then WWEvents.playerCargoDelivered(playerName, coalitionId, allCargoTotal, location, wweventMessage) end
             end
-            formatedCargoTotals = ..formatedCargoTotals .. " to a " .. location .. "\n"
+            formatedCargoTotals = formatedCargoTotals .. " to a " .. location .. "\n"
         end
+        formatedCargoTotals = formatedCargoTotals:sub(1, -2)
         trigger.action.outTextForCoalition(coalitionId, "Delivered Cargo Summary:\n" ..formatedCargoTotals, 15, false)
         trigger.action.outTextForCoalition(coalitionId, DF_UTILS.randomThanks({playerName = playerName}), 15, false)
         deliveredCargos[playerName] = nil
     end
+end
+function dfc.cargoHeartbeat(params)
+    trigger.action.outTextForGroup(params.groupId, "Unpacking cargo...", params.heartbeat, false)
 end
 function dfc.findClosestDepot(location, coalition)
     local closestDepotZone = nil
