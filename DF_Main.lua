@@ -2658,7 +2658,7 @@ function dfc.trackCargo(param)
                             env.info("Group: " .. param.groupId .. "-" .. param.groupName .. " delivered " .. param.cargo .. " to " .. closestDepotToCargo.depotName, false)
                             local deliverType = "FRONT"
                             if closestDepotToCargo.isRear then deliverType = "REAR" end
-                            trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
+                            --trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
                             dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
@@ -2671,7 +2671,7 @@ function dfc.trackCargo(param)
                             end
                             Firebases.resupplyFirebase(Firebases[closestFirebaseToCargo], DFS.status.playerResupplyAmts[param.supplyType][param.modifier])
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                            trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
+                            --trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
@@ -2683,7 +2683,7 @@ function dfc.trackCargo(param)
                             end
                             Firebases.addGroupToFirebase(Firebases[closestFirebaseToCargo], Firebases[closestFirebaseToCargo].fbType)
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                            trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
+                            --trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 180)
                             end
@@ -2762,6 +2762,7 @@ function dfc.updateSupplyMission(params)
     local deliveryEventTime = timer:getTime()
     if deliveredCargos[deliverPlayer] == nil then
         env.info("Starting supply mission for player " .. deliverPlayer, false)
+        trigger.action.outTextForGroup(deliverGroup:getID(), deliveryLocation .. " has received your cargo!\nLogistics have begun processing your delivery...", 15, false)
         deliveredCargos[deliverPlayer] = {}
         deliveredCargos[deliverPlayer]["deliveries"] = {}
         timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition()}, timer:getTime()+1)
