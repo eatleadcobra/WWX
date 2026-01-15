@@ -1,3 +1,4 @@
+CB = {}
 local cb = {}
 local interval = 30
 local casRadius = 4000
@@ -28,6 +29,9 @@ local stackPoints = {
     [1] = {},
     [2] = {}
 }
+function CB.flareGroup(groupName)
+    cb.flareGroup(groupName)
+end
 function cb.load()
     local redZone = trigger.misc.getZone(stackZones[1])
     local blueZone = trigger.misc.getZone(stackZones[2])
