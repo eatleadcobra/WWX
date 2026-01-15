@@ -3073,7 +3073,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                 missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing)", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small", count = q})
                 --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
             end
-            dfc.radioCargoTickerManager({group = addGroup, parentMenu = cargoMenu, prevRear = nil, prevFront = nil})
+            dfc.radioCargoTickerManager({groupName = groupName, parentMenu = cargoMenu, prevRear = nil, prevFront = nil})
             if CAVICS then
                 local addUnit = addGroup:getUnit(1)
                 if addUnit then
@@ -3099,7 +3099,7 @@ function dfc.doNothing()
     return
 end
 function dfc.radioCargoTickerManager(params)
-    local group = params.group
+    local group = Group.getByName(params.groupName)
     local parentMenu = params.parentMenu
     local prevRear = params.prevRear
     local prevFront = params.prevFront
@@ -3139,7 +3139,7 @@ function dfc.radioCargoTickerManager(params)
             end
             local front = missionCommands.addSubMenuForGroup(groupId, "\n    Forward depot supply state:\n      Equip: " .. supplyCurr.front.equipment .. "/" .. supplyTot.front.equipment .. "\n      Ammo:  " .. supplyCurr.front.ammo .. "/" .. supplyTot.front.ammo .. "\n      Fuel:  " .. supplyCurr.front.fuel .. "/" .. supplyTot.front.fuel .. "\n    ", parentMenu)
             local rear = missionCommands.addSubMenuForGroup(groupId, "\n    Rear depot supply state:\n      Equip: " .. supplyCurr.rear.equipment .. "/" .. supplyTot.rear.equipment .. "\n      Ammo:  " .. supplyCurr.rear.ammo .. "/" .. supplyTot.rear.ammo .. "\n      Fuel:  " .. supplyCurr.rear.fuel .. "/" .. supplyTot.rear.fuel .. "\n    ", parentMenu)
-            timer.scheduleFunction(dfc.radioCargoTickerManager, {group = group, parentMenu = parentMenu, prevRear = rear, prevFront = front}, timer:getTime() + DFS.status.cargoTickerInterval)
+            timer.scheduleFunction(dfc.radioCargoTickerManager, {groupName = params.groupName, parentMenu = parentMenu, prevRear = rear, prevFront = front}, timer:getTime() + DFS.status.cargoTickerInterval)
         end
     end
 end
