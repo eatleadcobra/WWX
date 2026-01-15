@@ -2700,7 +2700,7 @@ function dfc.trackCargo(param)
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
                         end
-                        if (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and DFS.status.playerDeliverRadius)) then
+                        if (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius)) then
                             if SBS then
                                 SBS.endWatch(cargo)
                             end
@@ -2780,6 +2780,7 @@ function dfc.deliverToDepot(isRear, coalition, supplyType, modifier, piratePicku
     end
 end
 function dfc.supplyEvent(deliverGroupName, supplyType, modifier, deliveryLocation)
+    env.info("Supply event fired for " .. deliverGroupName, false)
     local deliverGroup = Group.getByName(deliverGroupName)
     if deliverGroup then
         local deliverUnit = deliverGroup:getUnit(1)
@@ -2797,17 +2798,23 @@ function dfc.supplyEvent(deliverGroupName, supplyType, modifier, deliveryLocatio
                     deliveryLocationMsg = "firebase"
                 end
                 dfc.updateSupplyMission({playerName = deliverPlayer, deliverGroup = deliverGroup, supplyType = supplyType, modifier = modifier, deliveryLocationMsg = deliveryLocationMsg})
+            else
+                env.info("No player found", false)
             end
+        else
+            env.info("No unit found", false)
         end
+    else
+        env.info("No group found", false)
     end
 end
 function dfc.updateSupplyMission(params)
+    env.info("Updating supply mission", false)
     local deliverPlayer = params.playerName
     local deliverGroup = params.deliverGroup
     local supplyType = params.supplyType
     local modifier = params.modifier
     local deliveryLocation = params.deliveryLocationMsg
-    
     local deliveryEventTime = timer:getTime()
     if deliveredCargos[deliverPlayer] == nil then
         env.info("Starting supply mission for player " .. deliverPlayer, false)
@@ -2816,8 +2823,10 @@ function dfc.updateSupplyMission(params)
         timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition(), groupId = deliverGroup:getID()}, timer:getTime()+1)
     end
     if deliveredCargos[deliverPlayer].deliveries[deliveryLocation] == nil then
+        env.info("Updating delivery location", false)
         deliveredCargos[deliverPlayer].deliveries[deliveryLocation] = {}
     end
+    env.info("Checking deliveries", false)
     local currentCargos = deliveredCargos[deliverPlayer].deliveries[deliveryLocation][supplyType]
     if currentCargos == nil then currentCargos = {crates = 0, value = 0} end
     currentCargos.crates = currentCargos.crates + 1
@@ -3094,20 +3103,45 @@ function dfc.radioCargoTickerManager(params)
     local parentMenu = params.parentMenu
     local prevRear = params.prevRear
     local prevFront = params.prevFront
-    local supplyCurr = DFS.status[group:getCoalition()].supply
-    supplyCurr = {front = {fuel = supplyCurr.front[1], ammo = supplyCurr.front[2], equipment = supplyCurr.front[3]},
-                        rear = {fuel = supplyCurr.rear[1], ammo = supplyCurr.rear[2], equipment = supplyCurr.rear[3]}}
-    local supplyTot = {front = {fuel = DFS.status.maxSuppliesFront[1], ammo = DFS.status.maxSuppliesFront[2], equipment = DFS.status.maxSuppliesFront[3]},
-                        rear = {fuel = DFS.status.maxSuppliesRear[1], ammo = DFS.status.maxSuppliesRear[2], equipment = DFS.status.maxSuppliesRear[3]}}
-    if prevFront then
-        missionCommands.removeItemForGroup(group:getID(), prevFront)
+    if group and parentMenu then
+        local coalitionId = group:getCoalition()
+        local groupId = group:getID()
+        if coalitionId and groupId then
+            local supplyCurr = {
+                front = {
+                    fuel = DFS.status[group:getCoalition()].supply.front[DFS.supplyType.FUEL],
+                    ammo = DFS.status[group:getCoalition()].supply.front[DFS.supplyType.AMMO],
+                    equipment = DFS.status[group:getCoalition()].supply.front[DFS.supplyType.EQUIPMENT],
+                },
+                rear = {
+                   fuel = DFS.status[group:getCoalition()].supply.rear[DFS.supplyType.FUEL],
+                    ammo = DFS.status[group:getCoalition()].supply.rear[DFS.supplyType.AMMO],
+                    equipment = DFS.status[group:getCoalition()].supply.rear[DFS.supplyType.EQUIPMENT],
+                }
+            }
+            local supplyTot = {
+                front = {
+                    fuel = DFS.status.maxSuppliesFront[DFS.supplyType.FUEL],
+                    ammo = DFS.status.maxSuppliesFront[DFS.supplyType.AMMO],
+                    equipment = DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
+                },
+                rear = {
+                    fuel = DFS.status.maxSuppliesRear[DFS.supplyType.FUEL],
+                    ammo = DFS.status.maxSuppliesRear[DFS.supplyType.AMMO],
+                    equipment = DFS.status.maxSuppliesRear[DFS.supplyType.EQUIPMENT]
+                }
+            }
+            if prevFront then
+                missionCommands.removeItemForGroup(groupId, prevFront)
+            end
+            if prevRear then
+                missionCommands.removeItemForGroup(groupId, prevRear)
+            end
+            local front = missionCommands.addSubMenuForGroup(groupId, "\n    Forward depot supply state:\n      Equip: " .. supplyCurr.front.equipment .. "/" .. supplyTot.front.equipment .. "\n      Ammo:  " .. supplyCurr.front.ammo .. "/" .. supplyTot.front.ammo .. "\n      Fuel:  " .. supplyCurr.front.fuel .. "/" .. supplyTot.front.fuel .. "\n    ", parentMenu)
+            local rear = missionCommands.addSubMenuForGroup(groupId, "\n    Rear depot supply state:\n      Equip: " .. supplyCurr.rear.equipment .. "/" .. supplyTot.rear.equipment .. "\n      Ammo:  " .. supplyCurr.rear.ammo .. "/" .. supplyTot.rear.ammo .. "\n      Fuel:  " .. supplyCurr.rear.fuel .. "/" .. supplyTot.rear.fuel .. "\n    ", parentMenu)
+            timer.scheduleFunction(dfc.radioCargoTickerManager, {group = group, parentMenu = parentMenu, prevRear = rear, prevFront = front}, timer:getTime() + DFS.status.cargoTickerInterval)
+        end
     end
-    if prevRear then
-        missionCommands.removeItemForGroup(group:getID(), prevRear)
-    end
-    local front = missionCommands.addSubMenuForGroup(group:getID(), "\n    Forward depot supply state:\n      Equip: " .. supplyCurr.front.equipment .. "/" .. supplyTot.front.equipment .. "\n      Ammo:  " .. supplyCurr.front.ammo .. "/" .. supplyTot.front.ammo .. "\n      Fuel:  " .. supplyCurr.front.fuel .. "/" .. supplyTot.front.fuel .. "\n    ", parentMenu)
-    local rear = missionCommands.addSubMenuForGroup(group:getID(), "\n    Rear depot supply state:\n      Equip: " .. supplyCurr.rear.equipment .. "/" .. supplyTot.rear.equipment .. "\n      Ammo:  " .. supplyCurr.rear.ammo .. "/" .. supplyTot.rear.ammo .. "\n      Fuel:  " .. supplyCurr.rear.fuel .. "/" .. supplyTot.rear.fuel .. "\n    ", parentMenu)
-    timer.scheduleFunction(dfc.radioCargoTickerManager, {group = group, parentMenu = parentMenu, prevRear = rear, prevFront = front}, timer:getTime() + DFS.status.cargoTickerInterval)
 end
 function dfc.addGroupToCargoList(groupName, dropMenu, troopsMenu)
     local addGroup = Group.getByName(groupName)
