@@ -469,6 +469,7 @@ DFS.status = {
     submarineMinTime = 600,
     subLifeTime = 7199,
     supplyMissionTimeout = 30,
+    cargoTickerInterval = 20,
     --resupply amts
     convoyResupplyAmts = {
         [1] = 40,
@@ -3063,6 +3064,7 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                 missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing)", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small", count = q})
                 --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
             end
+            dfc.radioCargoTickerManager({group = addGroup, parentMenu = cargoMenu, prevRear = nil, prevFront = nil})
             if CAVICS then
                 local addUnit = addGroup:getUnit(1)
                 if addUnit then
@@ -3086,6 +3088,26 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
 end
 function dfc.doNothing()
     return
+end
+function dfc.radioCargoTickerManager(params)
+    local group = params.group
+    local parentMenu = params.parentMenu
+    local prevRear = params.prevRear
+    local prevFront = params.prevFront
+    local supplyCurr = DFS.status[group:getCoalition()].supply
+    supplyCurr = {front = {fuel = supplyCurr.front[1], ammo = supplyCurr.front[2], equipment = supplyCurr.front[3]},
+                        rear = {fuel = supplyCurr.rear[1], ammo = supplyCurr.rear[2], equipment = supplyCurr.rear[3]}}
+    local supplyTot = {front = {fuel = DFS.status.maxSuppliesFront[1], ammo = DFS.status.maxSuppliesFront[2], equipment = DFS.status.maxSuppliesFront[3]},
+                        rear = {fuel = DFS.status.maxSuppliesRear[1], ammo = DFS.status.maxSuppliesRear[2], equipment = DFS.status.maxSuppliesRear[3]}}
+    if prevFront then
+        missionCommands.removeItemForGroup(group:getID(), prevFront)
+    end
+    if prevRear then
+        missionCommands.removeItemForGroup(group:getID(), prevRear)
+    end
+    local front = missionCommands.addSubMenuForGroup(group:getID(), "\n    Forward depot supply state:\n      Equip: " .. supplyCurr.front.equipment .. "/" .. supplyTot.front.equipment .. "\n      Ammo:  " .. supplyCurr.front.ammo .. "/" .. supplyTot.front.ammo .. "\n      Fuel:  " .. supplyCurr.front.fuel .. "/" .. supplyTot.front.fuel .. "\n    ", parentMenu)
+    local rear = missionCommands.addSubMenuForGroup(group:getID(), "\n    Rear depot supply state:\n      Equip: " .. supplyCurr.rear.equipment .. "/" .. supplyTot.rear.equipment .. "\n      Ammo:  " .. supplyCurr.rear.ammo .. "/" .. supplyTot.rear.ammo .. "\n      Fuel:  " .. supplyCurr.rear.fuel .. "/" .. supplyTot.rear.fuel .. "\n    ", parentMenu)
+    timer.scheduleFunction(dfc.radioCargoTickerManager, {group = group, parentMenu = parentMenu, prevRear = rear, prevFront = front}, timer:getTime() + DFS.status.cargoTickerInterval)
 end
 function dfc.addGroupToCargoList(groupName, dropMenu, troopsMenu)
     local addGroup = Group.getByName(groupName)
