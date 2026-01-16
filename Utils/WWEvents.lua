@@ -100,6 +100,7 @@ function WWEvents.sonobuoyContact(coalitionId, buoyId, range, frequency, freqTyp
 end
 function WWEvents.playerCargoDelivered(playerName, coalitionId, cargoType, deliveryLocation, deliveryMessage)
     env.info("Player cargo delivery notification triggered!", false)
+    env.info("Event delivery text: " .. deliveryMessage, false)
     local Event = {
         id = world.event.S_EVENT_WWX_CARGO_DELIVERED,
         time = timer:getTime(),

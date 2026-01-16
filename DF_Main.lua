@@ -468,7 +468,7 @@ DFS.status = {
     submarinePlayerCountReduction = 540,
     submarineMinTime = 600,
     subLifeTime = 7199,
-    supplyMissionTimeout = 30,
+    supplyMissionTimeout = 40,
     cargoTickerInterval = 20,
     --resupply amts
     convoyResupplyAmts = {
@@ -2862,23 +2862,24 @@ function dfc.completeSupplyMission(params)
         local formatedCargoTotals = ""
         for location, locTable in pairs(delivery) do
             local allCargoTotal = 0
-            local wweventMessage = playerName .. " has delivered: "
             for supplyType, cargoData in pairs(locTable) do
                 local count = cargoData.crates
                 local cargoValue = cargoData.value
-                formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType] .. " crates " .. "(" .. cargoValue .. " supply)" .. ", "
+                if supplyType ~= DFS.supplyType.GUN then
+                    formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x " .. DFS.supplyNames[supplyType]  .. " crates " .. "(" .. cargoValue .. " supply)" .. ", "
+                else
+                    formatedCargoTotals = formatedCargoTotals .. tostring(count) .. " x Gun, "
+                end
                 allCargoTotal = allCargoTotal + count
-                wweventMessage = wweventMessage .. formatedCargoTotals
             end
             if formatedCargoTotals ~= "" then
                 formatedCargoTotals = formatedCargoTotals:sub(1, -3)
             end
+            formatedCargoTotals = formatedCargoTotals .. " to a " .. location .. "\n"
             if allCargoTotal > 0 then
-                wweventMessage = wweventMessage:sub(1, -3)
-                wweventMessage = wweventMessage .. " to a " .. location
+                local wweventMessage = playerName .. " has delivered " .. formatedCargoTotals:sub(1, -2)
                 if WWEvents then WWEvents.playerCargoDelivered(playerName, coalitionId, allCargoTotal, location, wweventMessage) end
             end
-            formatedCargoTotals = formatedCargoTotals .. " to a " .. location .. "\n"
         end
         formatedCargoTotals = formatedCargoTotals:sub(1, -2)
         trigger.action.outTextForCoalition(coalitionId, "Delivered Cargo Summary:\n" ..formatedCargoTotals, 15, false)
