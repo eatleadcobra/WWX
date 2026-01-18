@@ -540,7 +540,7 @@ function CSB.showRescueList(args)
                     outString = outString .. nearestBase .. "\n SOURCE: " .. string.upper(rescue.source).. "\n SIGNAL: N/A"
                 end
             else
-                outString = outString .. "\n SOURCE: " .. string.upper(rescue.source) .. "\n SIGNAL: " .. rescue.freq * 10 .. "kHz/" .. rescue.channel .. "X"
+                outString = outString .. nearestBase .. "\n SOURCE: " .. string.upper(rescue.source) .. "\n SIGNAL: " .. rescue.freq * 10 .. "kHz/" .. rescue.channel .. "X"
             end
         end
         if rescueOverflow > 0 then
