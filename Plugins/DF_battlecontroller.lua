@@ -441,10 +441,10 @@ function bc.main()
         local notification = positionNotifications[i]
         if notification then
             bc.notifyTeamofBPChange(notification.coalitionId, notification.newCoalitionId, notification.bpId, notification.gained, notification.prevCoalition)
-            if notification.gained == false and notification.coalitionId ~= 0 and notification.newCoalitionId ~= 0 then
+            if notification.gained == false and notification.coalitionId ~= 0 then
                 if CSAR then
                     env.info("About to call CSB.createCasEvac from battlecontroller with coalitionId: " .. notification.coalitionId .. " | bpId: " .. notification.bpId .. " | newCoalitionId: " .. notification.newCoalitionId .. " | prevCoalition: " .. notification.prevCoalition,false)
-                    CSB.createCasEvac(notification.coalitionId, notification.bpId)
+                    CSB.createCasEvac(notification.coalitionId, notification.bpId, notification.newCoalitionId)
                 end
             end
         end
