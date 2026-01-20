@@ -69,7 +69,7 @@ local casEvacMissions = {
 local casEvacTimePer = 480
 local genCasEvacCounter = 420
 local trackCasEvacInterval = 20
-local hotLZdist = 2500
+local hotLZdist = 3
 local autoCsarEnroll = {}
 function autoCsarEnroll:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF then
