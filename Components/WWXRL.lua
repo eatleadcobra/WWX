@@ -324,7 +324,12 @@ function wwxRacing.newLeague(division)
                 local winningTimeString = "00:"..elapsedMinutes..":"..elapsedSeconds
                 wwxrl.messageToRacers("Race is completed, the winner is " .. raceTable.winner .. " with a time of " .. winningTimeString)
                 if WWEvents and raceTable.winner and raceTable.winner ~= "" and raceTable.winningTime > 0 then
-                    env.info("Race completed notification sent", false)
+                    env.info("Race completed notification sending", false)
+                    env.info("Race ID: " .. raceTable.raceID, false)
+                    env.info("Race Winner: " .. raceTable.winner, false)
+                    env.info("Winning time: " .. math.floor(raceTable.winningTime) .. " | " .. winningTimeString, false)
+                    env.info("Division: " .. racingClassNames[division], false)
+                    env.info("Course ID: " .. courseId, false)
                     WWEvents.raceCompleted(raceTable.raceID, raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString, courseId)
                     env.info("Race completed notification sent", false)
                 end
