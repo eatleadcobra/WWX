@@ -108,6 +108,7 @@ function wwxRacing.newLeague(division)
             ["FW-190D9"] = 2,
             ["SpitfireLFMkIX"] = 2,
             ["SpitfireLFMkIXCW"] = 2,
+            ["F4U-1D"] = 2,
         },
         [3] = {
             ["AV8BNA"] = 3,
@@ -117,6 +118,7 @@ function wwxRacing.newLeague(division)
             ["F-5E-3"] = 4,
             ["Mirage-F1CE"] = 4,
             ["MiG-21Bis"] = 4,
+            ["MiG-19P"] = 4,
             ["AJS37"] = 4,
         },
         [5] = {
@@ -261,6 +263,7 @@ function wwxRacing.newLeague(division)
                                                 local playerHdg = Utils.getHdgFromPosition(raceUnit:getPosition())
                                                 local clockBearing = Utils.relativeClockBearing(racerPoint, currentRace.gates[racer.currentGate].point, playerHdg)
                                                 trigger.action.outTextForGroup(racer.groupID, "Next gate at " .. clockBearing .. " o'clock", 10, false)
+                                                trigger.action.outTextForGroup(racer.groupID, (currentRace.finalGate - racer.currentGate) + 1 .. " gates remaining." , 10, false)
                                             end
                                             if (racer.currentGate > currentRace.finalGate) and not racer.completed then
                                                 racer.endTime = timer.getTime()
