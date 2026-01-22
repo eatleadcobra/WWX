@@ -79,7 +79,7 @@ function wwxRacing.newLeague(division)
     local currentRace = {}
     local racerQueue = {}
     local createdRacers = {}
-    local courseId = tostring(trigger.misc.getUserFlag("MISSION_ID")..division)
+    local courseId = tonumber(trigger.misc.getUserFlag("MISSION_ID")..division)
     local racingStatus = {
         ["Pre-Race"] = 1,
         ["In Progress"] = 2,
@@ -429,7 +429,7 @@ function wwxRacing.newLeague(division)
                     local racerTotalElapsedTime = (racer.endTime + racer.penaltyTime) - racer.startTime
                     if racerElapsedTime < 0 then racerElapsedTime = 0 end
                     if racerTotalElapsedTime < 0 then racerTotalElapsedTime = 0 end
-                    WWEvents.raceEntrantResult(currentRace.raceID, division, racer.playerName, racerElapsedTime, racerTotalElapsedTime, racer.aircraft, courseId)
+                    WWEvents.raceEntrantResult(currentRace.raceID, division, racer.playerName, racerElapsedTime, racerTotalElapsedTime, racer.aircraft, tonumber(courseId))
                 end
                 if racer.completed then
                     local completionTime = (racer.endTime + racer.penaltyTime) - racer.startTime
