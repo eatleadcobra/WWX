@@ -238,7 +238,7 @@ function WWEvents.raceCompleted(raceId, winner, winningTime, message, courseId)
         winner = winner, -- string
         winningTime = winningTime, -- number of seconds
         text = message, -- string
-        courseId = courseId, --number
+        courseId = tonumber(courseId), --number
     }
     world.onEvent(Event)
 end
