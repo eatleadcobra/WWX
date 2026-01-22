@@ -330,7 +330,7 @@ function wwxRacing.newLeague(division)
                     env.info("Winning time: " .. math.floor(raceTable.winningTime) .. " | " .. winningTimeString, false)
                     env.info("Division: " .. racingClassNames[division], false)
                     env.info("Course ID: " .. courseId, false)
-                    WWEvents.raceCompleted(raceTable.raceID, raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString, courseId)
+                    WWEvents.raceCompleted(raceTable.raceID, raceTable.winner, math.floor(raceTable.winningTime), " has won a " .. racingClassNames[division] .. " race with a time of " .. winningTimeString, tonumber(courseId))
                     env.info("Race completed notification sent", false)
                 end
                 wwxrl.messageToRacers("To join another race, please return to the race start area.")
