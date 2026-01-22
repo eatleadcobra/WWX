@@ -318,6 +318,7 @@ function CSB.generateCsar(csarPoint, coalitionId, freq, channel, csarRadius, any
     generatedCsar.modulation = 0
     generatedCsar.contacts = {}
     generatedCsar.winchers = {}
+    generatedCsar.warned = {}
     generatedCsar.radioSilence = radioSilence
     generatedCsar.hotLZ = hotLZ
     generatedCsar.source = source
@@ -662,6 +663,7 @@ function csb.trackCsar()
                             local clockBearing = Utils.relativeClockBearing(playerPos, m.point, playerHdg)
                             if dist < csarBreakCoverRange then
                                 local pContacted = false
+                                local pWarned = false
                                 for _,h in pairs(m.contacts) do
                                     if h == pUnitName then
                                         pContacted = true
@@ -688,49 +690,62 @@ function csb.trackCsar()
                                     if dist < csarBreakCoverRange * 0.5 then
                                         local nicedist = math.floor(dist * 10)/10
                                         local outText = nil
-                                        if noRoomAtInn then
+                                        local checkTime = timer.getTime()
+                                        for i,w in pairs(m.warned) do
+                                            if w.name == pUnitName then
+                                                pWarned = true
+                                                if checkTime - w.warntime > 60 then
+                                                    pWarned = false
+                                                    m.warned[i] = nil
+                                                end
+                                            end
+                                        end
+                                        if noRoomAtInn and (pWarned == false) then
                                             outText = "The airframe is at it's volume limit. Extraction not possible."
+                                            table.insert(m.warned, {name = pUnitName, warntime = timer.getTime()})
                                         else
-                                            if playerTypeName ~= "AV8BNA" and playerTypeName ~= "Yak-52" then
-                                                outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
-                                                -- hover pick-up check
-                                                if dist < csarHoverRadius then
-                                                    if playerAgl <= csarHoverAgl and playerAgl > 3 then
-                                                        if inSafeVeloParams then
-                                                            local hoverTime = m.winchers[pUnitName]
-                                                            if not hoverTime then
-                                                                hoverTime = timer.getTime()
-                                                                m.winchers[pUnitName] = timer.getTime()
-                                                            end
-                                                            hoverTime = timer.getTime() - hoverTime
-                                                            local countdown = math.floor(csarHoverTime - hoverTime)
-                                                            outText = "Winch Op: " .. nicedist .. "m to your " .. clockBearing .. " o'clock. Package inbound...(" .. countdown .. "s)"
-                                                            if hoverTime > csarHoverTime then
-                                                                outText = "Winch Op: Package secured. " .. m.name .. " ready for RTB."
-                                                                table.insert(v.onBoard,m)
-                                                                csb.cleanupCsarGroup(m)
-                                                                m.status = 1
-                                                                didYouEvenLift = true
-                                                                transporterTable.addedMass = transporterTable.addedMass + csarTroopMass
-                                                                transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed + csarTroopVol
-                                                                trigger.action.setUnitInternalCargo(pUnitName, transporterTable.addedMass)
+                                            if not noRoomAtInn then
+                                                if playerTypeName ~= "AV8BNA" and playerTypeName ~= "Yak-52" then
+                                                    outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
+                                                    -- hover pick-up check
+                                                    if dist < csarHoverRadius then
+                                                        if playerAgl <= csarHoverAgl and playerAgl > 3 then
+                                                            if inSafeVeloParams then
+                                                                local hoverTime = m.winchers[pUnitName]
+                                                                if not hoverTime then
+                                                                    hoverTime = timer.getTime()
+                                                                    m.winchers[pUnitName] = timer.getTime()
+                                                                end
+                                                                hoverTime = timer.getTime() - hoverTime
+                                                                local countdown = math.floor(csarHoverTime - hoverTime)
+                                                                outText = "Winch Op: " .. nicedist .. "m to your " .. clockBearing .. " o'clock. Package inbound...(" .. countdown .. "s)"
+                                                                if hoverTime > csarHoverTime then
+                                                                    outText = "Winch Op: Package secured. " .. m.name .. " ready for RTB."
+                                                                    table.insert(v.onBoard,m)
+                                                                    csb.cleanupCsarGroup(m)
+                                                                    m.status = 1
+                                                                    didYouEvenLift = true
+                                                                    transporterTable.addedMass = transporterTable.addedMass + csarTroopMass
+                                                                    transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed + csarTroopVol
+                                                                    trigger.action.setUnitInternalCargo(pUnitName, transporterTable.addedMass)
+                                                                end
+                                                            else
+                                                                outText = "Winch Op: We're drifting, need to lock in...package is " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
                                                             end
                                                         else
-                                                            outText = "Winch Op: We're drifting, need to lock in...package is " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
+                                                            if playerAgl > csarHoverAgl then
+                                                                outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock - land, or descend to below " .. csarHoverAgl .. "m AGL for winching."
+                                                            elseif playerUnit:inAir() == false then -- could be on ground but was too fast when landing event was processed
+                                                                csb.checkCsarLanding(playerUnit)
+                                                            end
+                                                            m.winchers[pUnitName] = nil
                                                         end
                                                     else
-                                                        if playerAgl > csarHoverAgl then
-                                                            outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock - land, or descend to below " .. csarHoverAgl .. "m AGL for winching."
-                                                        elseif playerUnit:inAir() == false then -- could be on ground but was too fast when landing event was processed
-                                                            csb.checkCsarLanding(playerUnit)
-                                                        end
                                                         m.winchers[pUnitName] = nil
                                                     end
-                                                else
-                                                    m.winchers[pUnitName] = nil
+                                                    trigger.action.outTextForGroup(v.groupID, outText, 30 , true)
+                                                    outText = nil
                                                 end
-                                                trigger.action.outTextForGroup(v.groupID, outText, 30 , true)
-                                                outText = nil
                                             end
                                         end
                                         if outText then trigger.action.outTextForGroup(v.groupID, outText, 30 , false) end
@@ -931,6 +946,7 @@ function csb.checkCsarLanding(eUnit)
         local pPosn = eUnit:getPoint()
         local pVelo = eUnit:getVelocity()
         local pType = eUnit:getTypeName()
+        local pUnit = eUnit:getName()
         local inSafeVeloParams = csb.checkVelocity(pVelo)
         local bInCsarBase = false
         local sBaseName = "Nowhere"
@@ -972,7 +988,21 @@ function csb.checkCsarLanding(eUnit)
                         if Utils.PointDistance(pPosn, m.point) < csarPickupRadius then
                             if inSafeVeloParams then
                                 if transporterTable and transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[pType].volume then
-                                    trigger.action.outTextForGroup(csci.groupID, "The airframe is at it's volume limit. Extraction of " .. m.displayName .. "not possible.", 30, false)
+                                    local warned = false
+                                    local checkTime = timer.getTime()
+                                    for i,w in pairs(m.warned) do
+                                        if w.name == pUnit then
+                                            warned = true
+                                            if checkTime - w.warntime > 60 then
+                                                warned = false
+                                                m.warned[i] = nil
+                                            end
+                                        end
+                                    end
+                                    if not warned then
+                                        trigger.action.outTextForGroup(csci.groupID, "The airframe is at it's volume limit. Extraction of " .. m.displayName .. " not possible.", 30, false)
+                                        table.insert(m.warned, {name = pUnit, warntime = timer.getTime()})
+                                    end
                                     break
                                 else
                                     trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 30, false)
@@ -1071,7 +1101,7 @@ function csb.debugCsarGeneration()
     timer.scheduleFunction(csb.debugCsarGeneration,nil,timer.getTime()+10)
     for i=1,2 do
         if #csarMissions[i] < 2 then
-            CSB.generateCsar(nil,i,nil,nil,nil,nil,{480,720},nil,false,true,"debug",nil)
+            CSB.generateCsar(nil,i,nil,nil,nil,nil,{480,720},nil,false,false,"debug",nil)
         end
     end
 end
@@ -1108,6 +1138,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
         env.info("CSB.createCasEvac: could not find spawn point for zone: " .. coalitionName .. "CasEvac_BP-" .. bpId, false)
         return
     end
+    ceMission.hotLZ = csb.checkLZ(spawnPoint,coalitionId)
     ceMission.coalition = coalitionId
     ceMission.bpId = bpId
     ceMission.groupName = DF_UTILS.spawnGroupExact("CASEVAC-" .. coalitionId,spawnPoint,"clone")
@@ -1146,7 +1177,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     ceMission.modulation = modulation
     ceMission.soundfile = "l10n/DEFAULT/dah2.ogg"
     ceMission.missionId = genCasEvacCounter
-    CSB.generateCsar(spawnPoint,coalitionId,nil,nil,ceMission.radius,nil,nil,nil,true,true,"casevac",ceMission.missionId)
+    CSB.generateCsar(ceMission.point,ceMission.coalition,nil,nil,ceMission.radius,nil,nil,nil,true,ceMission.hotLZ,"casevac",ceMission.missionId)
     table.insert(casEvacMissions[coalitionId], ceMission)
     genCasEvacCounter = genCasEvacCounter + 1
     local nearestBp, dist, dir = csb.closestBpTo(spawnPoint)
@@ -1180,7 +1211,7 @@ function csb.trackCasEvac()
                 --end
                 if m.numCas > 0 then
                     if m.nextCsar < checkTime then
-                        CSB.generateCsar(m.point,c,nil,nil,m.radius,nil,nil,nil,true,true,"casevac",m.missionId)
+                        CSB.generateCsar(m.point,c,nil,nil,m.radius,nil,nil,nil,true,m.hotLZ,"casevac",m.missionId)
                         m.lastCsar = checkTime
                         m.numCas = m.numCas - 1
                         m.nextCsar = m.lastCsar + math.floor((remainingTime / (m.numCas+1))+0.5)
