@@ -61,20 +61,20 @@ REDCASMOD = 1
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "T-72B3",
-            [2] = "T-72B3",
-            [3] = "T-72B3",
+            [1] = "T-T62M",
+            [2] = "T-T62M",
+            [3] = "T-T62M",
             [4] = "GAZ-66"
         },
         ["Mech"] = {
-            [1] = "VAB_Mephisto",
+            [1] = "BRDM-2_malyutka",
             [2] = "BMP-2",
             [3] = "BMP-2",
             [4] = "GAZ-66"
         },
         ["Inf"] = {
-            [1] = "BTR-80",
-            [2] = "BTR-80",
+            [1] = "BTR-60",
+            [2] = "BTR-60",
             [3] = "GAZ-66",
         },
         ["DeployedInf"] = {
@@ -87,33 +87,33 @@ Platoons = {
             [7] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "BTR-80",
+            [1] = "BTR-60",
             [2] = "ATZ-5",
             [3] = "ATZ-5",
             [4] = "ATZ-5",
             [5] = "ATZ-5",
             [6] = "ATZ-5",
-            [7] = "BTR-80",
+            [7] = "BTR-60",
             [8] = "ATZ-5",
         },
         ["AmmoConvoy"] = {
-            [1] = "BTR-80",
+            [1] = "BTR-60",
             [2] = "Ural-375",
             [3] = "Ural-375",
             [4] = "Ural-375",
             [5] = "Ural-375",
             [6] = "Ural-375",
-            [7] = "BTR-80",
+            [7] = "BTR-60",
             [8] = "Ural-375",
         },
         ["EquipmentConvoy"] = {
-            [1] = "BTR-80",
+            [1] = "BTR-60",
             [2] = "KAMAZ Truck",
             [3] = "KAMAZ Truck",
             [4] = "KAMAZ Truck",
             [5] = "KAMAZ Truck",
             [6] = "KAMAZ Truck",
-            [7] = "BTR-80",
+            [7] = "BTR-60",
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
@@ -135,11 +135,11 @@ Platoons = {
             [1] = "M-60",
             [2] = "M-60",
             [3] = "M-60",
-            [4] = "M1134 Stryker ATGM",
+            [4] = "M1045 HMMWV TOW",
             [5] = "M 818"
         },
         ["Mech"] = {
-            [1] = "M1134 Stryker ATGM",
+            [1] = "M1045 HMMWV TOW",
             [2] = "MCV-80",
             [3] = "MCV-80",
             [4] = "M 818"
