@@ -772,6 +772,8 @@ function csb.trackCsar()
             csarMissions[c] = leanedOut
         end
     end --end of coalition for loop
+    trigger.action.setUserFlag("RED_CSAR_COUNT", #csarMissions[1])
+    trigger.action.setUserFlag("BLUE_CSAR_COUNT", #csarMissions[2])
 end
 function csb.refreshCsarTransmissions()
     timer.scheduleFunction(csb.refreshCsarTransmissions,nil,timer.getTime()+300)
