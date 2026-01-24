@@ -88,3 +88,8 @@ function reaper.tasking(param)
         end
     end
 end
+
+
+---MQ-9 Draw Args for Tpod:
+---306: pitch
+---307: yaw
