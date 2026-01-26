@@ -109,6 +109,9 @@ function BattleControl.getBPOwner(bpId)
     end
     return ownedBy
 end
+function BattleControl.getAvailableStrengthTableTier(params)
+    return bc.getAvailableStrengthTableTier(params.coalitionId)
+end
 function bc.getPositions()
     for i = 1, positionsCountLimit do
         local bpZone = trigger.misc.getZone("BP-"..i)
