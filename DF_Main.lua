@@ -2820,7 +2820,8 @@ function dfc.updateSupplyMission(params)
         env.info("Starting supply mission for player " .. deliverPlayer, false)
         trigger.action.outTextForGroup(deliverGroup:getID(), "We have received your cargo at the " .. deliveryLocation .. "!\nLogistics units are processing your delivery...", 15, false)
         deliveredCargos[deliverPlayer] = {deliveries = {}}
-        timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition(), groupId = deliverGroup:getID()}, timer:getTime()+1)
+        local cpyTierBefore = BattleControl.getAvailableStrengthTableTier({coalitionId = deliverGroup:getCoalition()})
+        timer.scheduleFunction(dfc.trackSupplyMission, {playerName = deliverPlayer, coalitionId = deliverGroup:getCoalition(), groupId = deliverGroup:getID(), cpyTierBefore = cpyTierBefore}, timer:getTime()+1)
     end
     if deliveredCargos[deliverPlayer].deliveries[deliveryLocation] == nil then
         env.info("Updating delivery location", false)
@@ -2841,14 +2842,15 @@ function dfc.trackSupplyMission(params)
     local playerName = params.playerName
     local coalitionId = params.coalitionId
     local groupId = params.groupId
+    local cpyTierBefore = params.cpyTierBefore
     if deliveredCargos[playerName] then
         if timer:getTime() - deliveredCargos[playerName].lastDeliveryEvent < DFS.status.supplyMissionTimeout then
             local heartbeat = (DFS.status.supplyMissionTimeout / 2) - 2
             dfc.cargoHeartbeat({groupId = groupId, heartbeat = heartbeat})
             timer.scheduleFunction(dfc.cargoHeartbeat, {groupId = groupId, heartbeat = heartbeat}, timer:getTime() + DFS.status.supplyMissionTimeout /2 ) -- supply mission timeout is pretty long, this makes it feel like stuff hasn't failed
-            timer.scheduleFunction(dfc.trackSupplyMission, {playerName = playerName, coalitionId = coalitionId, groupId = groupId}, timer:getTime() + DFS.status.supplyMissionTimeout)
+            timer.scheduleFunction(dfc.trackSupplyMission, {playerName = playerName, coalitionId = coalitionId, groupId = groupId, cpyTierBefore = cpyTierBefore}, timer:getTime() + DFS.status.supplyMissionTimeout)
         else
-            dfc.completeSupplyMission({playerName = playerName, coalitionId = coalitionId})
+            dfc.completeSupplyMission({playerName = playerName, coalitionId = coalitionId, cpyTierBefore = cpyTierBefore})
         end
     end
 end
@@ -2857,6 +2859,7 @@ function dfc.completeSupplyMission(params)
     local playerName = params.playerName
     local coalitionId = params.coalitionId
     local delivery = deliveredCargos[playerName].deliveries
+    local cpyTierBefore = params.cpyTierBefore
     if delivery then
         trigger.action.outTextForCoalition(coalitionId, "Supply Mission Complete for " .. playerName .. "!", 15, false)
         local formatedCargoTotals = ""
@@ -2883,6 +2886,10 @@ function dfc.completeSupplyMission(params)
         end
         formatedCargoTotals = formatedCargoTotals:sub(1, -2)
         trigger.action.outTextForCoalition(coalitionId, "Delivered Cargo Summary:\n" ..formatedCargoTotals, 15, false)
+        local cpyTierAfter = BattleControl.getAvailableStrengthTableTier({coalitionId = coalitionId})
+        if cpyTierAfter > cpyTierBefore then
+            trigger.action.outTextForCoalition(coalitionId, "This delivery raised the quality of units that could be sent to the front.", 15, false)
+        end
         trigger.action.outTextForCoalition(coalitionId, DF_UTILS.randomThanks({playerName = playerName}), 15, false)
         deliveredCargos[playerName] = nil
     end
