@@ -1233,6 +1233,20 @@ function csb.trackCasEvac()
                         csarParams.source = "casevac"
                         csarParams.sourceId = m.missionId
                         CSB.generateCsar(csarParams)
+                        for _,r in pairs(csarMissions[c]) do
+                            if r.sourceId == m.missionId then
+                                if r.expires then
+                                    local rEndTime = r.startTime + r.expires
+                                    if m.endTime < rEndTime then
+                                        -- extend casevac mission to cover last rescue expiry time
+                                        m.endTime = m.endTime + (math.random(6,8) * 60)
+                                        r.expires = m.endTime - r.startTime
+                                        env.info("[csb.trackCasEvac]: extending CASEVAC #" .. m.missionId .. " from " .. remainingTime .. " seconds to " .. m.endTime - checkTime .. " seconds", false)
+                                        remainingTime = m.endTime - checkTime
+                                    end
+                                end
+                            end
+                        end
                         m.lastCsar = checkTime
                         m.numCas = m.numCas - 1
                         m.nextCsar = m.lastCsar + math.floor((remainingTime / (m.numCas+1))+0.5)
