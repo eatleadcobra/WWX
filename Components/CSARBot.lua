@@ -1,7 +1,8 @@
-CSB = {}
-local csb = {}
 -- Created by combining CasBot.lua from WWXOS (https://github.com/eatleadcobra/WWX) by EatLeadCobra with
 -- autoCSAR.lua and csarManager2.lua from the DML package (https://github.com/csofranz/DML) by cfrag
+CSB = {}
+local csb = {}
+local autoCsarEnroll = {}
 local searchStackInterval = 20
 local trackCsarInterval = 2
 local csarStackRadius = 1000
@@ -21,6 +22,10 @@ local csarAutoProcRadius = 3000
 local csarEjectedRadius = 1000
 local casEvacRadius = 25
 local genCsarCounter = 25
+local casEvacTimePer = 480
+local genCasEvacCounter = 420
+local trackCasEvacInterval = 20
+local hotLZdist = 3
 
 local csarCheckIns = {
     [1] = {},
@@ -66,11 +71,7 @@ local casEvacMissions = {
     [1] = {},
     [2] = {}
 }
-local casEvacTimePer = 480
-local genCasEvacCounter = 420
-local trackCasEvacInterval = 20
-local hotLZdist = 3
-local autoCsarEnroll = {}
+
 function autoCsarEnroll:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF then
         if event and event.initiator and event.initiator.getDesc and event.initiator:getDesc().category == 1 and DFS.heloCapacities[event.initiator:getTypeName()] then
@@ -127,12 +128,11 @@ function csb.main()
     csb.searchCsarStacks()
     csb.trackCsar()
     csb.trackCasEvac()
-    --timer.scheduleFunction(csb.debugCsarGeneration,nil,timer.getTime()+20)
-    --timer.scheduleFunction(csb.debugCasEvacGeneration,nil,timer.getTime()+22)
     csb.refreshCsarTransmissions()
     csb.refreshCasEvacTransmissions()
+    --timer.scheduleFunction(csb.debugCsarGeneration,nil,timer.getTime()+20)
+    --timer.scheduleFunction(csb.debugCasEvacGeneration,nil,timer.getTime()+22)
 end
-
 function csb.searchCsarStacks()
     timer.scheduleFunction(csb.searchCsarStacks, nil, timer:getTime() + searchStackInterval)
     local genCsarFlag = false
@@ -485,6 +485,7 @@ end
 function CSB.addCsarRadioMenuToGroup(groupID, groupName, coalitionId)
     local csarSubMenu = missionCommands.addSubMenuForGroup(groupID, "CSAR", {})
     missionCommands.addCommandForGroup(groupID,"Show Active Rescues", csarSubMenu, CSB.showRescueList, {groupID = groupID, groupName = groupName, coalitionId = coalitionId})
+    missionCommands.addCommandForGroup(groupID,"Show On Board List", csarSubMenu, CSB.showOnBoardList, {groupID = groupID, groupName = groupName, coalitionId = coalitionId})
 end
 function CSB.removeCsarRadioCommandsForGroup(groupID)
     missionCommands.removeItemForGroup(groupID, {[1] = "CSAR"})
@@ -562,6 +563,24 @@ function CSB.showRescueList(args)
             outString = outString .. "\n\n Plus " .. rescueOverflow .. " distant signals..."
         end
         outString = outString .. "\n\n(!) = Hazardous LZ"
+    end
+    trigger.action.outTextForGroup(args.groupID, outString, 30, false)
+end
+function CSB.showOnBoardList(args)
+    local playerGroup = Group.getByName(args.groupName)
+    if not (playerGroup and playerGroup:isExist()) then return end
+    local playerUnit = playerGroup:getUnit(1)
+    if not (playerUnit and playerUnit:isExist()) then return end
+    local playerName = playerUnit:getPlayerName()
+    if not playerName then return end
+    local outString = " --- On Board List --- "
+    if not (csarCheckIns[args.coalitionId][playerName] and (#csarCheckIns[args.coalitionId][playerName].onBoard > 0)) then
+        outString = outString .. "\n\n\t-> No casualties on board.\n"
+        outString = outString .. "\n\nCheck the rescue list for CSAR tasks.\n"
+    else
+        for _,m in pairs(csarCheckIns[args.coalitionId][playerName].onBoard) do
+            outString = outString .. "\n\n > NAME: " .. m.displayName .. "\n\tSTATUS: stable"
+        end
     end
     trigger.action.outTextForGroup(args.groupID, outString, 30, false)
 end
@@ -954,8 +973,21 @@ function csb.checkCsarCrash(eUnit)
         -- unit probably doesn't have a group any more
         local pName = eUnit:getPlayerName()
         local pSide = eUnit:getCoalition()
+        local pType = eUnit:getTypeName()
+        local outString = ""
         if csarCheckIns[pSide][pName] then
+            if (#csarCheckIns[pSide][pName].onBoard > 0) then
+                outString = outString .. pName .. "'s " .. pType .. " has gone down with "
+                for _,m in (csarCheckIns[pSide][pName].onBoard) do
+                    outString = outString .. m.displayName .. ", "
+                end
+                outString = string.sub(outString,1,-3)
+                outString = outString .. " on board."
+            end
             csarCheckIns[pSide][pName] = nil
+        end
+        if string.len(outString) > 0 then
+            trigger.action.outTextForCoalition(pSide,outString,15,false)
         end
     end
 end
