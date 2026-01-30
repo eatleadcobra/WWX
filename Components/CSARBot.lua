@@ -25,7 +25,7 @@ local genCsarCounter = 25
 local casEvacTimePer = 480
 local genCasEvacCounter = 420
 local trackCasEvacInterval = 20
-local hotLZdist = 3
+local hotLZdist = 4
 
 local csarCheckIns = {
     [1] = {},
@@ -433,7 +433,7 @@ end
 function csb.getClearFreq(coalitionId,freqType,min,max)
     local freq = 0
     local breakVar = true
-    for j=1,50 do
+    for j=1,100 do
         freq = math.random(min,max)
         for _,v in pairs(CSARFreqCollisions[coalitionId][freqType]) do
             if freq == v then
@@ -475,7 +475,7 @@ function csb.getClearFreq(coalitionId,freqType,min,max)
             end
         end
         if breakVar then break end
-        if j==50 then
+        if j==100 then
             env.info("Could not find a clear frequency for new CSAR",false)
             return 0
         end
@@ -522,9 +522,9 @@ function CSB.showRescueList(args)
             if rescue.expires then
                 local t = (rescue.startTime + rescue.expires) - checkTime
                 if t < csarTimeLimitMin * 0.25 then
-                    currentState = "RED [=___]"
+                    currentState = "RED [=<<<]"
                 elseif t < csarTimeLimitMin * 0.5 then
-                    currentState = "YLW [==__]"
+                    currentState = "YLW [==<<]"
                 end
             end
             local nearestBase, dist, dir = csb.closestBaseTo(rescue.point)
@@ -598,6 +598,30 @@ function csb.closestBaseTo(p)
             closestBaseDist = dist
             closestBaseName = n
             closestBaseObj = o.pos
+        end
+    end
+    local direction = Utils.relativeCompassBearing(p,closestBaseObj)
+    closestBaseDist = math.floor((closestBaseDist/1000)+0.5)
+    return closestBaseName, closestBaseDist, direction
+end
+function csb.closestEnemyBaseTo(p, coalitionId)
+    local closestBaseObj = nil
+    local closestBaseName = nil
+    local closestBaseDist = math.huge
+    local csarX = p.x
+    local csarZ = p.z
+    local opposition = 1
+    if coalitionId == 1 then opposition = 2 end
+    for n,o in pairs(activeAirbases) do
+        if o.side == opposition then
+            local xDiff = csarX - o.pos.x
+            local zDiff = csarZ - o.pos.z
+            local dist = (xDiff^2 + zDiff^2)^0.5
+            if dist < closestBaseDist then
+                closestBaseDist = dist
+                closestBaseName = n
+                closestBaseObj = o.pos
+            end
         end
     end
     local direction = Utils.relativeCompassBearing(p,closestBaseObj)
@@ -1379,15 +1403,19 @@ function csb.refreshCasEvacTransmissions()
     end
 end
 function csb.checkLZ(point,coalitionId)
-    local closestEnemyBPDist = math.huge
-    local closestEnemyBPId = nil
-    local direction = nil
-    local hotLZ = false
-    closestEnemyBPId, closestEnemyBPDist, direction = csb.closestEnemyBpTo(point,coalitionId)
-    if closestEnemyBPId and (closestEnemyBPDist < hotLZdist) then
-        hotLZ = true
+    local placeDist = math.huge
+    local placeId = nil
+    local placeName = nil
+    local dir = nil
+    placeId, placeDist, dir = csb.closestEnemyBpTo(point,coalitionId)
+    if placeId and (placeDist < hotLZdist) then
+        return true
     end
-    return hotLZ
+    placeName, placeDist, dir = csb.closestEnemyBaseTo(point, coalitionId)
+    if placeName and (placeDist < hotLZdist) then
+        return true
+    end
+    return false
 end
 function csb.makeRescueInvisible(groupName)
     local rescueGroup = Group.getByName(groupName)
