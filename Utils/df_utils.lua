@@ -5,17 +5,31 @@ function DF_UTILS.spawnGroup(groupName, spawnPoint, action)
         vars.action = action
         vars.point = spawnPoint
         vars.radius = 200
-		vars.anyTerrain = true
+        vars.anyTerrain = true
         return mist.teleportToPoint(vars).name
 end
-function DF_UTILS.spawnGroupExact(groupName, spawnPoint, action)
+function DF_UTILS.spawnGroupExact(groupName, spawnPoint, action, radius, anywhere, safeZones, fName)
     local vars = {}
-        vars.gpName = groupName
-        vars.action = action
-        vars.point = spawnPoint
-        vars.radius = 5
-		vars.anyTerrain = true
-        return mist.teleportToPoint(vars).name
+    vars.gpName = groupName
+    if fName and fName ~= "" then
+        vars.newGroupName = fName
+    end
+    vars.action = action
+    vars.point = spawnPoint
+    vars.radius = radius or 5
+    if anywhere ~= false then
+        anywhere = true
+    else
+        vars.validTerrain = safeZones
+    end
+    vars.anyTerrain = anywhere
+    local newGroup = mist.teleportToPoint(vars)
+    if type(newGroup) == 'table' and newGroup.name then
+        return newGroup.name
+    else
+        env.info("DF_UTILS.spawnGroupExact.newGroup = " .. DF_UTILS.dump(newGroup),false)
+        return nil
+    end
 end
 function DF_UTILS.spawnGroupWide(groupName, spawnPoint, action, radius, anywhere, safeZones, fName)
     local vars = {}
