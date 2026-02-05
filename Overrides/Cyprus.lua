@@ -8,8 +8,9 @@ SUBTYPE =
     [2] = "santafe",
 }
 CAP = false
+PIRACY = true
 BOMBERS = true
-PIRACY = false
+ESCORT = true
 MISSILEBOATS = false
 CARGO = true
 CSAR = true
@@ -19,6 +20,12 @@ REAPER = false
 INTERCEPT = false
 SHIPPING = true
 CAPTURE = false
+CAVICS = {
+    [1] = {
+    },
+    [2] = {
+    }
+}
 NAVALCONVOY = {
     [1] = false,
     [2] = false,
@@ -26,13 +33,14 @@ NAVALCONVOY = {
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 28800 -- 8 hours runtime
 -- counts
-FDCount = 2
+FDCount = 3
 AACount = 8
+RDSubcount = 4
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
-BLUECASFREQ = 139
-REDCASFREQ = 139
+BLUECASFREQ = 150
+REDCASFREQ = 150
 BLUECASMOD = 0
 REDCASMOD = 0
 
@@ -260,10 +268,10 @@ CSARFreqs = {
 }
 CSARBases = {
     [1] = {
-        [1] = "National Rehabilitation Center"
+        [1] = "Red Forward Field Hospital"
     },
     [2] = {
-        [1] = "Larnaca Teaching Hospital"
+        [1] = "Blue Forward Field Hospital"
     }
 }
 CSARFreqCollisions = {
