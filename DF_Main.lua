@@ -2618,11 +2618,11 @@ end
 function dfc.canSpawnCargo(type, transporterCoalition, isFront, modifier, piratePickup)
     if type == DFS.supplyType["GUN"] or dfc.isTroops(type) then
         if isFront then
-            return DFS.status[transporterCoalition].supply.front[DFS.supplyType.EQUIPMENT] > DFS.status.playerResupplyAmts[type][modifier]
+            return DFS.status[transporterCoalition].supply.front[DFS.supplyType.EQUIPMENT] >= DFS.status.playerResupplyAmts[type][modifier]
         elseif piratePickup then
-            return DFS.status[transporterCoalition].supply.pirate[DFS.supplyType.EQUIPMENT] > DFS.status.playerResupplyAmts[type][modifier]
+            return DFS.status[transporterCoalition].supply.pirate[DFS.supplyType.EQUIPMENT] >= DFS.status.playerResupplyAmts[type][modifier]
         else
-            return DFS.status[transporterCoalition].supply.rear[DFS.supplyType.EQUIPMENT] > DFS.status.playerResupplyAmts[type][modifier]
+            return DFS.status[transporterCoalition].supply.rear[DFS.supplyType.EQUIPMENT] >= DFS.status.playerResupplyAmts[type][modifier]
         end
     else
         if isFront then
