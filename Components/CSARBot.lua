@@ -1532,7 +1532,7 @@ function csb.checkCorrectConfig(inUnit,inType)
     elseif inType =="Mi-8MT" or inType == "Mi-24P" then
         if inUnit:getDrawArgumentValue(38) ~= 1 and inUnit:getDrawArgumentValue(86) ~= 1 then returnVal = false end
     elseif inType == "CH-47Fbl1" then
-        if inUnit:getDrawArgumentValue(350) ~= 1 and inUnit:getDrawArgumentValue(86) ~= 1 then returnVal = false end
+        if inUnit:getDrawArgumentValue(348) ~= 1 and inUnit:getDrawArgumentValue(86) ~= 1 and inUnit:getDrawArgumentValue(85) ~= 1 then returnVal = false end
     end
     return returnVal
 end
