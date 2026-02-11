@@ -216,6 +216,11 @@ PltCosts = {
         [2] = 2, --ammo
         [3] = 2, --equipment
     },
+    [9] = {
+        [1] = 4, --fuel
+        [2] = 2, --ammo
+        [3] = 2, --equipment
+    },
 }
 CompanyCompTiers = {
     [0] = {composition = nil},
