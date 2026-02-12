@@ -193,7 +193,8 @@ PltStrengths = {
     [1] = 8,
     [2] = 3 + #Platoons[1]["DeployedInf"],
     [3] = 2 + #Platoons[1]["DeployedInf"],
-    [7] = 1
+    [7] = 1,
+    [9] = 1,
 }
 PltCosts = {
     [1] = {
