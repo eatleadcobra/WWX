@@ -35,7 +35,38 @@ local casEvacSoundFile = "l10n/DEFAULT/dah2.ogg"
 local genCsarCounter = 25
 local genCasEvacCounter = 420
 local hotLZdist = 4
+local pickupHunterCleanupDelay = 60
+local expiryHunterCleanupDelay = 5
+local csarHunterCaptureDistance = 3
+local csarHunterStartingDistMin = 500
+local csarHunterStartingDistMax = 1000
 
+local csarHunterOptions = {
+    [1] = {
+        [1] = "Infantry AK",
+        [2] = "Infantry AK Ins",
+        [3] = "Infantry AK Ins",
+        [4] = "Infantry AK ver2",
+        [5] = "Infantry AK ver3"
+    },
+    [2] = {
+        [1] = "Soldier M4",
+        [2] = "Soldier M4 GRG",
+        [3] = "Soldier M4 GRG",
+        [4] = "Infantry AK ver2",
+        [5] = "Soldier M4 GRG",
+    }
+}
+local csarHunterEliteOptions = {
+    [1] = {
+        [1] = "tt_DSHK",
+        [2] = "HL_DSHK",
+        [3] = "tt_DSHK",
+    },
+    [2] = {
+        [1] = "M1043 HMMWV Armament",
+    }
+}
 local csarCheckIns = {
     [1] = {},
     [2] = {}
@@ -147,6 +178,7 @@ function csb.main()
     csb.refreshCasEvacTransmissions()
     --timer.scheduleFunction(csb.debugCsarGeneration,nil,timer.getTime()+20)
     --timer.scheduleFunction(csb.debugCasEvacGeneration,nil,timer.getTime()+22)
+    --timer.scheduleFunction(csb.debugHunterGroups,nil,timer.getTime()+45)
 end
 function csb.searchCsarStacks()
     timer.scheduleFunction(csb.searchCsarStacks, nil, timer:getTime() + searchStackInterval)
@@ -293,7 +325,7 @@ function csb.wrappedGenerateCsar(params)
                         if v.type == 2 then table.insert(locmsns,k) end
                     end
                     if #locmsns > 0 then
-                        local msnId = locmsns[math.random(#locmsns)]
+                        local msnId = locmsns[mist.random(#locmsns)]
                         if msnId then
                             local nearestBase, dist, dir = csb.closestBaseTo(msns[msnId].point)
                             Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
@@ -325,7 +357,7 @@ function csb.wrappedGenerateCsar(params)
     csarParams.radioSilence = false
     csarParams.hotLZ = hotLZ
     csarParams.source = "ejected"
-    timer.scheduleFunction(CSB.generateCsar,csarParams,timer.getTime()+math.random(8,15))
+    timer.scheduleFunction(CSB.generateCsar,csarParams,timer.getTime()+mist.random(8,15))
 end
 function CSB.generateCsar(params)
     local csarPoint = params.csarPoint
@@ -342,7 +374,7 @@ function CSB.generateCsar(params)
     local source = params.source
     local sourceId = params.sourceId
     local fName = ""
-    local smokeNum = math.random(0,4)
+    local smokeNum = mist.random(0,4)
     local generatedCsar = {}
     local genPoint = nil
     local checkLZ = false
@@ -394,6 +426,8 @@ function CSB.generateCsar(params)
     generatedCsar.hotLZ = hotLZ
     generatedCsar.source = source
     generatedCsar.sourceId = sourceId
+    generatedCsar.hunters = {}
+    generatedCsar.hunterNames = {}
     local cloneSourceGroup = Group.getByName("SOS-"..coalitionId)
     if not cloneSourceGroup then
         env.info("[csb.generateCsar] - Could not find source group for clone", false)
@@ -413,7 +447,7 @@ function CSB.generateCsar(params)
     end
     generatedCsar.startTime = timer.getTime()
     if not timeLimit or #timeLimit ~= 2 then timeLimit = {csarTimeLimitMin, csarTimeLimitMax} end
-    local exp = math.random(math.floor(math.abs(timeLimit[2] - timeLimit[1]) / 60)) * 60
+    local exp = mist.random(math.floor(math.abs(timeLimit[2] - timeLimit[1]) / 60)) * 60
     if timeLimit[2] < timeLimit[1] then timeLimit[1] = timeLimit[2] end
     generatedCsar.expires = timeLimit[1] + exp
     generatedCsar.skipWellness = true
@@ -437,7 +471,10 @@ function csb.createCsarUnit(csarMissionTable)
     if not csarGroupName then return false end
     csarMissionTable.groupName = csarGroupName
     env.info("[csb.createCsarUnit] - csarGroupName = " .. csarGroupName,false)
-    if csarMissionTable.hotLZ == true then csb.makeRescueInvisible(csarMissionTable.groupName) end
+    if csarMissionTable.hotLZ == true then
+        csb.makeRescueInvisible(csarMissionTable.groupName)
+        csb.setupHunterGroup(csarMissionTable)
+    end
     if not csarMissionTable.radioSilence then
         env.info("[csb.createCsarUnit] - TCN - coalition: " .. csarMissionTable.coalition .. "| point: x=" .. csarMissionTable.gearPoint.x .. ", y=" .. csarMissionTable.gearPoint.y .. ", z=" .. csarMissionTable.gearPoint.z .. "| name: " .. csarMissionTable.name, false)
         local csarGearGroupName = DF_UTILS.spawnGroupWide("TCN-".. csarMissionTable.coalition, csarMissionTable.gearPoint,"clone",2, anyTerrain, csarMissionTable.terrainLimit , csarMissionTable.name .. "-TCN")
@@ -460,7 +497,7 @@ function csb.createCsarUnit(csarMissionTable)
         args.soundFile = csarMissionTable.soundFile
         args.equipment = csarGearGroupName
         args.signalPower = csarMissionTable.signalPower
-        timer.scheduleFunction(csb.startTransmission, args, timer.getTime() + math.random(10,20))
+        timer.scheduleFunction(csb.startTransmission, args, timer.getTime() + mist.random(10,20))
         if csarMissionTable.hotLZ == true then csb.makeRescueInvisible(csarMissionTable.equipment) end
     end
     return true
@@ -469,7 +506,7 @@ function csb.getClearFreq(coalitionId,freqType,min,max)
     local freq = 0
     local breakVar = true
     for j=1,100 do
-        freq = math.random(min,max)
+        freq = mist.random(min,max)
         for _,v in pairs(CSARFreqCollisions[coalitionId][freqType]) do
             if freq == v then
                 breakVar = false
@@ -517,6 +554,242 @@ function csb.getClearFreq(coalitionId,freqType,min,max)
     end
     return freq
 end
+function csb.setupHunterGroup(rescue)
+    local numEnemies = mist.random(2,6)
+    local coalitionId = rescue.coalition
+    local rescuePoint = csb.getGroupLocation(rescue.groupName)
+    if not rescuePoint then return end
+    local opposition = 1
+    if coalitionId == 1 then opposition = 2 end
+    local countryCode = 80 + (2 - opposition)
+    local hntrGrpDist = mist.random(csarHunterStartingDistMin,csarHunterStartingDistMax)
+    for i=1, numEnemies do
+        local hntrGroupName = Utils.uuid()
+        local hntrGroupTbl = csb.createSkeleGroup(hntrGroupName)
+        local hntrGroupType = csb.chooseRandomTblItem(csarHunterOptions[opposition])
+        if i == numEnemies and i > 3 and math.random() < 0.5 then
+            hntrGroupType = csb.chooseRandomTblItem(csarHunterEliteOptions[opposition])
+        end
+        local place, dist, dir = csb.closestEnemyBaseTo(rescuePoint,coalitionId)
+        local place2, dist2, dir2 = csb.closestEnemyBpTo(rescuePoint,coalitionId)
+        if dist2 <= dist then
+            place = place2
+            dist = dist2
+            dir = dir2
+        end
+        local hntrUnitDist = hntrGrpDist + mist.random(-10,10)
+        local hntrPoint = csb.createHunterSpawnPoint(rescuePoint,hntrUnitDist,dir)
+        local hntrUnitTbl = csb.createSkeleUnit(hntrGroupName .. "-e", hntrGroupType)
+        local heading = csb.dirToDegree(dir)
+        if heading < 0 then heading = heading + 360 end
+        heading = heading * 0.0174533
+        hntrUnitTbl.x = hntrPoint.x
+        hntrUnitTbl.y = hntrPoint.z
+        hntrUnitTbl.heading = heading
+        table.insert(hntrGroupTbl.units, hntrUnitTbl)
+        env.info("[csb.setupHunterGroup] - rescue point: {x = " .. rescuePoint.x .. ", y = " .. rescuePoint.y .. ", z = " .. rescuePoint.z .. "}",false)
+        hntrGroupTbl.x = hntrPoint.x
+        hntrGroupTbl.y = hntrPoint.z
+        hntrGroupTbl.hidden = true
+        local hunter = coalition.addGroup(countryCode, Group.Category.GROUND, hntrGroupTbl)
+        if hunter then
+            table.insert(rescue.hunters, hunter)
+            local hntrDCSName = hunter:getName()
+            table.insert(rescue.hunterNames, hntrDCSName)
+            local hntrPos = csb.getGroupLocation(hntrDCSName)
+            if hntrPos then
+                env.info("[csb.setupHunterGroup] - hunter (" .. hntrGroupType .. ") point: {x = " .. hntrPos.x .. ", y = " .. hntrPos.y .. ", z = " .. hntrPos.z .. "} | Dist: " .. hntrUnitDist .. "m | Dir: " .. dir,false)
+            end
+        end
+    end
+end
+function csb.triggerHunterGroup(rescue)
+    if not rescue.hunters then return end
+    local targetPoint = csb.getGroupLocation(rescue.groupName)
+    if not targetPoint then return end
+    for _, hunterName in pairs(rescue.hunterNames) do
+        local hntrGrp = Group.getByName(hunterName)
+        if csb.getGroupLocation(hntrGrp) then
+            local p1 = {}
+            p1.x = targetPoint.x
+            p1.y = 0
+            p1.z = targetPoint.z
+            csb.sendHunterToRescue(hntrGrp, p1, 5, "Off Road", 5)
+        end
+    end
+end
+function csb.chooseRandomTblItem(tbl)
+    if not tbl then return end
+    if #tbl < 1 then return end
+    if #tbl == 1 then return tbl[1] end
+    local idx = mist.random(#tbl)
+    return tbl[idx]
+end
+function csb.createSkeleGroup(groupName)
+    local skeleGroup = {}
+    skeleGroup.visible = false
+    skeleGroup.taskSelected = true
+    skeleGroup.tasks = {}
+    skeleGroup.units = {}
+    skeleGroup.x = 0
+    skeleGroup.y = 0
+    skeleGroup.name = groupName
+    skeleGroup.task = "Ground Nothing"
+    return skeleGroup
+end
+function csb.createSkeleUnit(unitName, unitType)
+    local skeleUnit = {}
+    skeleUnit.type = unitType
+    skeleUnit.transportable = {["randomTransportable"] = false}
+    skeleUnit.skill = "Average"
+    skeleUnit.x = 0
+    skeleUnit.y = 0
+    skeleUnit.name = unitName
+    skeleUnit.playerCanDrive = false
+    skeleUnit.heading = 0
+    return skeleUnit
+end
+function csb.createHunterSpawnPoint(point,dist,dir)
+    local deg = csb.dirToDegree(dir) + 180
+    if deg > 360 then deg = deg - 360 end
+    local rad = deg * 0.0174533
+    local hntrPoint = {}
+    hntrPoint.x = point.x + dist * math.cos(rad)
+    hntrPoint.y = point.y
+    hntrPoint.z = point.z + dist * math.sin(rad)
+    return hntrPoint
+end
+function csb.sendHunterToRescue(hunter,rescuePoint,speed,action,stall)
+    local wp1 = {}
+    local wp2 = {}
+    local wpTbl = {}
+    local newTask = {}
+    local params = {}
+    local randomDegrees = math.random(360) * 0.0174533
+    rescuePoint.x = rescuePoint.x + csarHunterCaptureDistance * math.cos(randomDegrees)
+    rescuePoint.z = rescuePoint.z + csarHunterCaptureDistance * math.sin(randomDegrees)
+    local hp = csb.getGroupLocation(hunter)
+    if hp then
+        wp1.x = hp.x
+        wp1.y = hp.z
+        wp1.speed = speed
+        wp1.action = action
+        wp1.type = "Turning Point"
+        wp2.x = rescuePoint.x
+        wp2.y = rescuePoint.z
+        wp2.speed = speed
+        wp2.action = action
+        wp2.type = "Turning Point"
+        wpTbl[1] = wp1
+        wpTbl[2] = wp2
+        newTask.id = "Mission"
+        newTask.params = {}
+        newTask.params.route = {}
+        newTask.params.route.points=wpTbl
+        params.group = hunter
+        params.task = newTask
+        if stall ~= 0 then
+            timer.scheduleFunction(csb.pushTaskToGroup,params,timer.getTime() + stall)
+        else
+            csb.pushTaskToGroup(params)
+        end
+    end
+end
+function csb.sendRescueToAircraft(rescueGroup,playerPoint,speed,action,stall)
+    local wp1 = {}
+    local wp2 = {}
+    local wpTbl = {}
+    local newTask = {}
+    local params = {}
+    local rescuePoint = csb.getGroupLocation(rescueGroup)
+    if not rescuePoint then return end
+    wp1.x = rescuePoint.x
+    wp1.y = rescuePoint.z
+    wp1.speed = speed
+    wp1.action = action
+    wp1.type = "Turning Point"
+    wp2.x = playerPoint.x
+    wp2.y = playerPoint.z
+    wp2.speed = speed
+    wp2.action = action
+    wp2.type = "Turning Point"
+    wpTbl[1] = wp1
+    wpTbl[2] = wp2
+    newTask.id = "Mission"
+    newTask.params = {}
+    newTask.params.route = {}
+    newTask.params.route.points=wpTbl
+    params.group = rescueGroup
+    params.task = newTask
+    if stall ~= 0 then
+        timer.scheduleFunction(csb.pushTaskToGroup,params,timer.getTime() + stall)
+    else
+        csb.pushTaskToGroup(params)
+    end
+end
+function csb.pushTaskToGroup(params)
+    local group = params.group
+    if not (group and group:isExist()) then return end
+    local ctrlr = group:getController()
+    if not ctrlr then return end
+    ctrlr:pushTask(params.task)
+end
+function csb.dirToDegree(dir)
+    if dir == "North" then return mist.random(1,22) end
+    if dir == "NE" then return mist.random(23,67) end
+    if dir == "East" then return mist.random(68,112) end
+    if dir == "SE" then return mist.random(113,157) end
+    if dir == "South" then return mist.random(158,202) end
+    if dir == "SW" then return mist.random(203,247) end
+    if dir == "West" then return mist.random(248,292) end
+    if dir == "NW" then return mist.random(293,337) end
+    return mist.random(338,359)
+end
+function csb.checkHunterCapture(rescue)
+    if not rescue.hunterNames then return true end
+    local targetPoint = csb.getGroupLocation(rescue.groupName)
+    if not targetPoint then return true end
+    local closestHunterName, closestHunterDist = csb.closestHunterName(rescue.hunterNames,targetPoint)
+    if closestHunterName then
+        if closestHunterDist <= csarHunterCaptureDistance then return false end
+    else
+        if closestHunterDist <= 25 then
+            local rescueGroup = Group.getByName(rescue.groupName)
+            if rescueGroup then
+                local ctrlr = rescueGroup:getController()
+                if ctrlr then ctrlr:setOption(0,4) end
+            end
+        end
+    end
+    return true
+end
+function csb.closestHunterName(hunterNames, targetPoint)
+    local closestHunterDist = math.huge
+    local closestHunterName = nil
+    for _,hntrName in pairs(hunterNames) do
+        local hntrPnt = csb.getGroupLocation(hntrName)
+        if hntrPnt then
+            local hntrDist = Utils.PointDistance(hntrPnt,targetPoint)
+            if hntrDist < closestHunterDist then
+                closestHunterDist = hntrDist
+                closestHunterName = hntrName
+            end
+        end
+    end
+    return closestHunterName, closestHunterDist
+end
+function csb.getGroupLocation(group)
+    if type(group) == "string" then
+        group = Group.getByName(group)
+    end
+    if not group then return nil end
+    local units = group:getUnits()
+    if not units then return nil end
+    for _,u in pairs(units) do
+        if u:isExist() and u:getLife() > 0 then return u:getPoint() end
+    end
+    return nil
+end
 function CSB.addCsarRadioMenuToGroup(groupID, groupName, coalitionId)
     local csarSubMenu = missionCommands.addSubMenuForGroup(groupID, "CSAR", {})
     missionCommands.addCommandForGroup(groupID,"Show Active Rescues", csarSubMenu, CSB.showRescueList, {groupID = groupID, groupName = groupName, coalitionId = coalitionId})
@@ -526,11 +799,8 @@ function CSB.removeCsarRadioCommandsForGroup(groupID)
     missionCommands.removeItemForGroup(groupID, {[1] = "CSAR"})
 end
 function CSB.showRescueList(args)
-    local playerGroup = Group.getByName(args.groupName)
-    if not (playerGroup and playerGroup:isExist()) then return end
-    local playerUnit = playerGroup:getUnit(1)
-    if not (playerUnit and playerUnit:isExist()) then return end
-    local playerPos = playerUnit:getPoint()
+    local playerPos = csb.getGroupLocation(args.groupName)
+    if not playerPos then return end
     local rescueList = {}
     for _,m in pairs(csarMissions[args.coalitionId]) do
         table.insert(rescueList, m)
@@ -702,14 +972,20 @@ function csb.wellnessCheck(coalitionId)
         if not m.skipWellness then
             local timeLeft = true
             local isAlive = true
+            local notHunted = true
             if m.expires then timeLeft = (m.startTime + m.expires) > checkTime end
             local rescueGroup = Group.getByName(m.groupName)
             if not (rescueGroup and rescueGroup:isExist()) then isAlive = false end
-            if isAlive and timeLeft then
+            if m.huntTriggered then notHunted = csb.checkHunterCapture(m) end
+            if isAlive and timeLeft and notHunted then
                 table.insert(safeAsHouses,m)
             else
                 if not m.radioSilence then
-                    trigger.action.outTextForCoalition(coalitionId, "(!!!) " .. m.displayName .. "'s transponder is no longer active...",20,false)
+                    local reasonStr = "'s transponder is no longer active..."
+                    if notHunted == false then
+                        reasonStr = " has been captured by enemy forces..."
+                    end
+                    trigger.action.outTextForCoalition(coalitionId, "(!!!) " .. m.displayName .. reasonStr,20,false)
                 end
                 if Recon and math.random() < 0.02 then
                     local msns = Recon.getCurrentMissionsByCoalition(opposition)
@@ -719,7 +995,7 @@ function csb.wellnessCheck(coalitionId)
                             if v.type == 2 then table.insert(locmsns,k) end
                         end
                         if #locmsns > 0 then
-                            local msnId = locmsns[math.random(#locmsns)]
+                            local msnId = locmsns[mist.random(#locmsns)]
                             if msnId then
                                 local nearestBase, dist, dir = csb.closestBaseTo(msns[msnId].point)
                                 Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
@@ -732,6 +1008,7 @@ function csb.wellnessCheck(coalitionId)
                     trigger.action.outTextForCoalition(coalitionId,"Intel reports that parts of a lost friendly aircraft have been recovered by the enemy.", 10, false)
                 end
                 csb.cleanupCsarGroup(m)
+                if m.hunters then timer.scheduleFunction(csb.cleanupHunterGroups, m.hunters, timer.getTime() + expiryHunterCleanupDelay) end
             end
         else
             m.skipWellness = nil
@@ -801,6 +1078,10 @@ function csb.trackCsar()
                                     if DFS and DFS.smokeGroup then DFS.smokeGroup(m.groupName, m.smokeNum) end
                                     if CB and CB.flareGroup then CB.flareGroup(m.groupName) end
                                     m.smokeTime = timer.getTime()
+                                    if m.hotLZ then
+                                        csb.triggerHunterGroup(m)
+                                        m.huntTriggered = true
+                                    end
                                 else
                                     -- too long
                                     if (timer.getTime() - m.smokeTime > 300) and not m.radioSilence then
@@ -881,6 +1162,7 @@ function csb.trackCsar()
                                                                     table.insert(v.onBoard,m)
                                                                     csb.updateMedicalMenuCommands(v.groupID,m.displayName,rescueMenu,m.treatments, m.onBoardTimeRemaining)
                                                                     csb.cleanupCsarGroup(m)
+                                                                    if m.hunters then timer.scheduleFunction(csb.cleanupHunterGroups, m.hunters, timer.getTime() + pickupHunterCleanupDelay) end
                                                                     m.status = 1
                                                                     didYouEvenLift = true
                                                                     transporterTable.addedMass = transporterTable.addedMass + csarTroopMass
@@ -953,24 +1235,24 @@ function csb.getRescueDecayRate(rescue)
     local checkTime = timer.getTime()
     local reason = "other"
     local sendMsg = false
-    if rescue.treatments.applied.ketamine then finalDecayRate = finalDecayRate + 0.5 + (math.random(-1,3)/10) end
-    if rescue.treatments.applied.opioid then finalDecayRate = finalDecayRate - 0.5 + (math.random(-3,1)/10) end
-    if rescue.treatments.applied.tourniquet then finalDecayRate = finalDecayRate - 0.25 + (math.random(-1,1)/10) end
+    if rescue.treatments.applied.ketamine then finalDecayRate = finalDecayRate + 0.5 + (mist.random(-1,3)/10) end
+    if rescue.treatments.applied.opioid then finalDecayRate = finalDecayRate - 0.5 + (mist.random(-3,1)/10) end
+    if rescue.treatments.applied.tourniquet then finalDecayRate = finalDecayRate - 0.25 + (mist.random(-1,1)/10) end
     if rescue.treatments.applied.cpr then finalDecayRate = csarRescueDecayRate end
     if rescue.treatments.needed.ketamine and (checkTime - rescue.treatments.needed.ketamine.since) > 30 then
-        finalDecayRate = finalDecayRate + 1.0 + (math.random(-2,2)/10)
+        finalDecayRate = finalDecayRate + 1.0 + (mist.random(-2,2)/10)
         if math.fmod((checkTime - rescue.treatments.needed.ketamine.since),60) == 0 then sendMsg = true end
     end
     if rescue.treatments.needed.opioid and (checkTime - rescue.treatments.needed.opioid.since) > 30 then
-        finalDecayRate = finalDecayRate + 0.4 + (math.random(-1,1)/10)
+        finalDecayRate = finalDecayRate + 0.4 + (mist.random(-1,1)/10)
         if math.fmod((checkTime - rescue.treatments.needed.opioid.since),60) == 0 then sendMsg = true end
     end
     if rescue.treatments.needed.tourniquet and (checkTime - rescue.treatments.needed.tourniquet.since) > 30 then
-        finalDecayRate = finalDecayRate + 0.6 + (math.random(-1,1)/10)
+        finalDecayRate = finalDecayRate + 0.6 + (mist.random(-1,1)/10)
         if math.fmod((checkTime - rescue.treatments.needed.tourniquet.since),60) == 0 then sendMsg = true end
     end
     if rescue.treatments.needed.cpr and (checkTime - rescue.treatments.needed.cpr.since) > 10 then
-        finalDecayRate = finalDecayRate + 4.0 + (math.random(-5,5)/10)
+        finalDecayRate = finalDecayRate + 4.0 + (mist.random(-5,5)/10)
         if math.fmod((checkTime - rescue.treatments.needed.cpr.since),60) == 0 then
             reason = "cpr"
             sendMsg = true
@@ -1039,6 +1321,7 @@ function csb.setInitialMedicalState(params)
     args.onBoardTimeRemaining = params.onBoardTimeRemaining
     args.displayName = params.displayName
     args.groupID = params.groupID
+    args.suppressMsg = true
     if rescueSource == "casevac" then
         if pickupState <= 0.25 then
             if math.random() < 0.16 then applyKetamine = true end
@@ -1097,7 +1380,6 @@ function csb.updateMedicalState(groupID, rescue)
     local dI = checkTime - rescue.treatments.needed.lastIssue
     if rescue.onBoardTimeRemaining > 0 then
         if dT > csarCheckThreshold then
-            --trigger.action.outTextForGroup(groupID,"checking " .. rescue.displayName .. " | dT = " .. dT .. " | dI = " .. dI .. " | pickupSeed = " .. pickupSeed,15,false)
             if rescue.onBoardTimeRemaining < 180 and dI > 90 and not (rescue.treatments.applied.cpr or rescue.treatments.needed.cpr) and math.random() < 0.04 and math.random() < pickupSeed then
                 rescue.treatments.needed.cpr = {}
                 rescue.treatments.needed.cpr.since = checkTime
@@ -1215,7 +1497,9 @@ function csb.applyTreatment(params)
         end
     end
     missionCommands.removeItemForGroup(params.groupID,params.removePath)
-    trigger.action.outTextForGroup(params.groupID,"(+) Administering " .. params.treatment .. " to " .. params.displayName,10,false)
+    if not params.suppressMsg then
+        trigger.action.outTextForGroup(params.groupID,"(+) Administering " .. params.treatment .. " to " .. params.displayName,10,false)
+    end
 end
 function csb.refreshCsarTransmissions()
     timer.scheduleFunction(csb.refreshCsarTransmissions,nil,timer.getTime()+300)
@@ -1251,7 +1535,7 @@ function csb.refreshCsarTransmissions()
                             env.info("[csb.refreshCsarTransmissions] - Stopping ".. m.channel .."X TACAN beacon of ".. args.equipment, false)
                         end
                     end
-                    timer.scheduleFunction(csb.startTransmission,args,timer.getTime()+math.random(5))
+                    timer.scheduleFunction(csb.startTransmission,args,timer.getTime()+mist.random(5))
                 end
             end
         end
@@ -1433,9 +1717,12 @@ function csb.checkCsarLanding(eUnit)
                 end
             end
             if bInCsarBase and #csci.onBoard > 0 then -- check for drop off
-            local checkTime = timer.getTime()
+                local checkTime = timer.getTime()
                 if not inSafeVeloParams then
-                    trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe drop-off.", 5, false)
+                    if not csci.lastSpeedWarning or (csci.lastSpeedWarning and (checkTime - csci.lastSpeedWarning > 5)) then
+                        trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe drop-off.", 5, false)
+                        csci.lastSpeedWarning = checkTime
+                    end
                 elseif not inCorrectConfig then
                     if not csci.lastConfigWarning or (csci.lastConfigWarning and (checkTime - csci.lastConfigWarning > 15)) then
                         trigger.action.outTextForGroup(csci.groupID, "Need to open the side/rear doors for safe drop-off", 10, false)
@@ -1465,8 +1752,8 @@ function csb.checkCsarLanding(eUnit)
                 for _,m in pairs(csarMissions[pSide]) do
                     if not m.extracting then
                         if Utils.PointDistance(pPosn, m.point) < csarPickupRadius then
+                            local checkTime = timer.getTime()
                             if inSafeVeloParams then
-                                local checkTime = timer.getTime()
                                 if transporterTable and transporterTable.cargo.volumeUsed + csarTroopVol > DFS.heloCapacities[pType].volume then
                                     local warned = false
                                     for i,w in pairs(m.warned) do
@@ -1486,6 +1773,8 @@ function csb.checkCsarLanding(eUnit)
                                 else
                                     if inCorrectConfig then
                                         trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 10, false)
+                                        local rescueGroup = Group.getByName(m.groupName)
+                                        if rescueGroup and rescueGroup:isExist() then csb.sendRescueToAircraft(rescueGroup,pPosn,3,"Off Road",0) end
                                         m.extracting = true
                                         local args = {}
                                         args.pName = pName
@@ -1498,7 +1787,7 @@ function csb.checkCsarLanding(eUnit)
                                         args.pUnit = eUnit
                                         args.mission = m
                                         args.displayName = m.displayName
-                                        timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + math.random(3,6))
+                                        timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + mist.random(3,6))
                                     else
                                         if not csci.lastConfigWarning or (csci.lastConfigWarning and (checkTime - csci.lastConfigWarning > 15)) then
                                             trigger.action.outTextForGroup(csci.groupID, "Need to open the side/rear doors for pick-up", 10, false)
@@ -1507,7 +1796,10 @@ function csb.checkCsarLanding(eUnit)
                                     end
                                 end
                             else
-                                trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe pickup.", 5, false)
+                                if not csci.lastSpeedWarning or (csci.lastSpeedWarning and (checkTime - csci.lastSpeedWarning > 5)) then
+                                    trigger.action.outTextForGroup(csci.groupID, "Travelling too fast for safe pickup.", 5, false)
+                                    csci.lastSpeedWarning = checkTime
+                                end
                             end
                         end
                     end
@@ -1577,6 +1869,7 @@ function csb.fakeExtractionTime(args)
                 trigger.action.setUnitInternalCargo(pUnitName, transporterTable.addedMass)
             end
             csb.cleanupCsarGroup(args)
+            if args.mission.hunters then timer.scheduleFunction(csb.cleanupHunterGroups, args.mission.hunters, timer.getTime() + pickupHunterCleanupDelay) end
             local filtered = {}
             for _,m in pairs(csarMissions[args.pSide]) do
                 if m ~= args.mission then
@@ -1586,7 +1879,10 @@ function csb.fakeExtractionTime(args)
             csarMissions[args.pSide] = filtered
             trigger.action.outTextForCoalition(args.pSide, args.pName .. " has taken " .. args.displayName .. " on board.", 30, true)
         else
-            trigger.action.outTextForGroup(playerGroupID, "Travelling too fast for safe pickup.", 30, false)
+            if not csci.lastSpeedWarning or (csci.lastSpeedWarning and (pickupTime - csci.lastSpeedWarning > 5)) then
+                trigger.action.outTextForGroup(playerGroupID, "Travelling too fast for safe pickup.", 10, false)
+                csci.lastSpeedWarning = pickupTime
+            end
             for _,m in pairs(csarMissions[args.pSide]) do
                 if m == args.mission then
                     m.extracting = nil
@@ -1601,6 +1897,12 @@ function csb.cleanupCsarGroup(csarData)
     if csarData.equipment ~= nil then
         local eq = Group.getByName(csarData.equipment)
         if eq and eq:isExist() then Group.destroy(eq) end
+    end
+end
+function csb.cleanupHunterGroups(hunters)
+    if not hunters then return end
+    for _,hunter in pairs(hunters) do
+        if hunter and hunter:isExist() then hunter:destroy() end
     end
 end
 function csb.checkVelocity(pVelo,limit)
@@ -1633,7 +1935,7 @@ function csb.debugCsarGeneration()
         if #csarMissions[i] < 2 then
             local csarParams = {}
             csarParams.coalitionId = i
-            csarParams.timeLimit = {480,720}
+            csarParams.timeLimit = {900,1200}
             csarParams.radioSilence = false
             csarParams.hotLZ = false
             csarParams.source = "debug"
@@ -1644,7 +1946,7 @@ end
 function csb.extendExistingCasEvac(coalitionId, bpId)
     for _,m in pairs(casEvacMissions[coalitionId]) do
         if m.bpId == bpId then
-            local newCas = math.random(2,4)
+            local newCas = mist.random(2,4)
             m.numCas = m.numCas + newCas
             m.endTime = m.endTime + (casEvacTimePer * newCas)
             local remainingTime = m.endTime - timer.getTime()
@@ -1689,8 +1991,8 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     csb.makeRescueInvisible(ceMission.groupName)
     csb.makeRescueInvisible(ceMission.equipment)
     if CB and CB.flareGroup then CB.flareGroup(ceMission.groupName) end
-    local numCas = math.random(3,6)
-    if newCoalitionId == 0 then numCas = math.random(2,4) end
+    local numCas = mist.random(3,6)
+    if newCoalitionId == 0 then numCas = mist.random(2,4) end
     local casEvacDuration = numCas * casEvacTimePer
     ceMission.startTime = createTime
     ceMission.endTime = ceMission.startTime + casEvacDuration
@@ -1730,7 +2032,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     args.amfm = ceMission.modulation
     args.soundFile = ceMission.soundfile
     args.signalPower = ceMission.signalPower
-    timer.scheduleFunction(csb.startTransmission, args, timer.getTime() + math.random(10,20))
+    timer.scheduleFunction(csb.startTransmission, args, timer.getTime() + mist.random(10,20))
     trigger.action.outTextForCoalition(coalitionId,"CASEVAC point set up approx " .. dist .. "km " .. dir .. " of BP-" .. nearestBp .. " | NDB on " .. freq * 10 .. "kHz | TCN on " .. channel .. "X\n" .. ceMission.numCas+1 .. " casualties being stabilized and prepped for evac over the next " .. math.floor((casEvacDuration/60)+0.5) .. " minutes approx.",20,false)
     env.info("[CSB.createCasEvac] - CASEVAC point set up approx " .. dist .. "km " .. dir .. " of BP-" .. nearestBp .. " | NDB on " .. freq * 10 .. "kHz | TCN on " .. channel .. "X | " .. ceMission.numCas+1 .. " casualties being stabilized and prepped for evac over the next " .. math.floor((casEvacDuration/60)+0.5) .. " minutes approx.",false)
 end
@@ -1764,7 +2066,7 @@ function csb.trackCasEvac()
                                     local rEndTime = r.startTime + r.expires
                                     if m.endTime < rEndTime then
                                         -- extend casevac mission to cover last rescue expiry time
-                                        m.endTime = m.endTime + (math.random(6,8) * 60)
+                                        m.endTime = m.endTime + (mist.random(6,8) * 60)
                                         r.expires = m.endTime - r.startTime
                                         env.info("[csb.trackCasEvac] - extending CASEVAC #" .. m.missionId .. " from " .. remainingTime .. " seconds to " .. m.endTime - checkTime .. " seconds", false)
                                         remainingTime = m.endTime - checkTime
@@ -1845,7 +2147,18 @@ function csb.debugCasEvacGeneration()
     local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
     for i=1,2 do
         if #casEvacMissions[i] < 1 then
-            CSB.createCasEvac(i,math.random(bpCount))
+            CSB.createCasEvac(i,mist.random(bpCount))
+        end
+    end
+end
+function csb.debugHunterGroups()
+    timer.scheduleFunction(csb.debugHunterGroups,nil,timer.getTime()+10)
+    for i=1,2 do
+        for _,m in pairs(csarMissions[i]) do
+            if m.hotLZ and not m.huntTriggered then
+                csb.triggerHunterGroup(m)
+                m.huntTriggered = true
+            end
         end
     end
 end
@@ -1874,7 +2187,7 @@ end
 function csb.closestEnemyBpTo(pos, coalitionId)
     local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
     bpCount = bpCount or 20
-    local direction = nil
+    local direction = ""
     local opposition = 1
     if coalitionId == 1 then opposition = 2 end
     local closestEnemyBPDist = math.huge
@@ -1932,7 +2245,7 @@ function csb.refreshCasEvacTransmissions()
                             env.info("[csb.refreshCasEvacTransmissions] - Stopping ".. m.channel .."X TACAN beacon of ".. args.equipment, false)
                         end
                     end
-                    timer.scheduleFunction(csb.startTransmission,args,timer.getTime()+math.random(5))
+                    timer.scheduleFunction(csb.startTransmission,args,timer.getTime()+mist.random(5))
                 end
             end
         end
