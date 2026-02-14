@@ -136,6 +136,9 @@ function Company.spawn(self)
         local roadPoint = {x = roadPointx, y = 0, z = roadPointy}
         --create waypoint table from waypoints list
         points = {[1] = self.waypoints[1], [2] = roadPoint, [3] = formPoint, [4] = self.waypoints[2]}
+        if COMPANIESIGNOREROADS then
+            points = {[1] = self.waypoints[1], [2] = formPoint, [3] = self.waypoints[2]}
+        end
     end
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points, self.speed)
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints)
