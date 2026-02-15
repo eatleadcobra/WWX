@@ -975,6 +975,11 @@ function dfc.initSpawns()
         DFS.groupNames[1].reardepot ="Red-RearDepot"
         DFS.groupNames[2].reardepot ="Blue-RearDepot"
     end
+    if TRAINS and SHIPPING then
+        DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]/2)
+        DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]/2)
+        DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]/2)
+    end
     if SUBS and SUBTYPE then
         DFSubs.initSub({coalitionId = 1, subType = SUBTYPE[1]})
         DFSubs.initSub({coalitionId = 2, subType = SUBTYPE[2]})
