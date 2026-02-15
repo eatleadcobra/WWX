@@ -1551,10 +1551,10 @@ function dfc.newConvoyLoop()
             end
         end
         if depotPct > 1 then
-            local activeFDs = {
-                [1] = 1,
-                [2] = 2,
-            }
+            local activeFDs = { }
+            for depotCount = 1, FDCount do
+                activeFDs[depotCount] = depotCount
+            end
             for fd = 1, #activeFDs do
                 if not dfc.depotActive(({coalitionId = ctln, zone = activeFDs[fd]})) then
                     for afd = 1, #activeFDs do

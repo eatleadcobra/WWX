@@ -1,13 +1,32 @@
 trigger.action.setUserFlag("MISSION_ID", 4)
 -- enabled features
-SUBS = false
+SUBS = true
+ACTIVETORP = false
+SUBTYPE =
+{
+    [1] = "santafe",
+    [2] = "santafe",
+}
 CAP = true
-PIRACY = false
+PIRACY = true
 BOMBERS = true
+ESCORT = false
 MISSILEBOATS = false
 CARGO = true
 CSAR = true
 CAS = true
+STRIKES = false
+REAPER = false
+INTERCEPT = false
+SHIPPING = true
+CAPTURE = false
+COMPANIESIGNOREROADS = false
+CAVICS = {
+    [1] = {
+    },
+    [2] = {
+    }
+}
 NAVALCONVOY = {
     [1] = false,
     [2] = false,
@@ -16,6 +35,7 @@ SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 28800 -- 8 hours runtime
 -- counts
 FDCount = 2
+RDSubcount = 2
 AACount = 0
 -- settings
 CSARAUTOENROLL = true
@@ -24,12 +44,13 @@ CASAUTOENROLL = false
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "M4_Sherman",
-            [2] = "M2A1_halftrack",
+            [1] = "T-34-85",
+            [2] = "T-34-85",
             [3] = "Bedford_MWD"
         },
         ["Mech"] = {
             [1] = "M2A1_halftrack",
+            [2] = "M2A1_halftrack",
             [3] = "Bedford_MWD"
         },
         ["Inf"] = {
@@ -85,15 +106,16 @@ Platoons = {
     [2] = {
         ["Armor"] = {
             [1] = "Pz_IV_H",
-            [2] = "Sd_Kfz_251",
+            [2] = "Pz_IV_H",
             [3] = "Blitz_36-6700A"
         },
         ["Mech"] = {
             [1] = "Sd_Kfz_251",
-            [2] = "GAZ-66",
+            [2] = "Sd_Kfz_251",
+            [3] = "Blitz_36-6700A",
         },
         ["Inf"] = {
-            [1] = "GAZ-66",
+            [1] = "Blitz_36-6700A",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
@@ -150,7 +172,7 @@ PlatoonUnitCarrierTypeNames = {
     ["Blitz_36-6700A"] =  "APC",
 }
 PltStrengths = {
-    [1] = 8,
+    [1] = 10,
     [2] = 3 + #Platoons[1]["DeployedInf"],
     [3] = 2 + #Platoons[1]["DeployedInf"],
     [7] = 1
@@ -159,7 +181,7 @@ PltCosts = {
     [1] = {
         [1] = 5, --fuel
         [2] = 9, --ammo
-        [3] = 3, --equipment
+        [3] = 4, --equipment
     },
     [2] = {
         [1] = 3, --fuel
@@ -169,7 +191,7 @@ PltCosts = {
     [3] = {
         [1] = 1, --fuel
         [2] = 2, --ammo
-        [3] = 1, --equipment
+        [3] = 0, --equipment
     },
     [7] = {
         [1] = 4, --fuel
@@ -180,39 +202,31 @@ PltCosts = {
 CompanyCompTiers = {
     [0] = {composition = nil},
     [1] = {
-        --tank, apc, ifv, AD
-        composition = {1,2,3,7},
+        --tank
+        composition = {1,2,7},
     },
     [2] = {
-        --tank, ifv, AD
         composition = {1,3,7},
     },
     [3] = {
-        --ifv, apc, apc, AD
-        composition = {2,3,3,7},
+        composition = {1,7},
     },
     [4] = {
-        --apc, apc, apc, AD
-        composition = {3,3,3,7},
+        composition = {2,7},
     },
     [5] = {
-        --ifv, ifv, apc
-        composition = {2,2,3},
+        composition = {2,2},
     },
     [6] = {
-        --ifv, apc, apc
-        composition = {2,3,3},
-    },
-    [7] = {
-        -- ifv, apc
         composition = {2,3},
     },
+    [7] = {
+        composition = {2},
+    },
     [8] = {
-        -- apc, apc
         composition = {3,3},
     },
     [9] = {
-        -- apc
         composition = {3},
     },
 }
