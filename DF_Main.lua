@@ -1772,7 +1772,7 @@ function dfc.checkShipping(param)
                             dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
                             dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
                         end
-                        trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
+                        trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 15, false)
                         env.info(convoyCoalition.."- Ship Cargo Delivered!", false)
                         local convoyController = convoyGroup:getController()
                         if convoyController then
@@ -1875,7 +1875,6 @@ end
 function dfc.trackTrain(coalitionId)
     local trainName = DFS.status[coalitionId].spawns.train.name
     if trainName then
-        trigger.action.outText("tracking train " .. trainName, 10, false)
         local trainGroup = Group.getByName(trainName)
         if trainGroup then
             local loco = trainGroup:getUnit(1)
@@ -1886,7 +1885,6 @@ function dfc.trackTrain(coalitionId)
                 if point and velo and health and health > 0 then
                     local speed = (velo.x^2 + velo.y^2 + velo.z^2)^0.5
                     if speed and speed > 0 then
-                        trigger.action.outText("Train moving at " .. speed .. "m/s", 10, false)
                         if DFS.status[coalitionId].spawns.train.lastPoint == nil or DFS.status[coalitionId].spawns.train.lastPoint ~= point then
                             DFS.status[coalitionId].spawns.train.lastPoint = point
                         end
@@ -1896,6 +1894,8 @@ function dfc.trackTrain(coalitionId)
                             local deliverDist = speed * trainLoopInterval
                             local distanceToGo = Utils.PointDistance(point, deliverPoint)
                             if distanceToGo < deliverDist then
+                                env.info("Unloading train " .. trainName, false)
+                                trigger.action.outTextForCoalition(coalitionId, "Train cargo delivered to rear depot!", 15, false)
                                 dfc.unloadTrain(coalitionId)
                             end
                         elseif DFS.status[coalitionId].spawns.train.loaded == false then
@@ -1904,7 +1904,7 @@ function dfc.trackTrain(coalitionId)
                             local deliverDist = (speed * trainLoopInterval) + 500 --for train length running in reverse
                             local distanceToGo = Utils.PointDistance(point, deliverPoint)
                             if distanceToGo < deliverDist then
-                                trigger.action.outText("Reloading train " .. trainName, 10, false)
+                                env.info("Reloading train " .. trainName, false)
                                 DFS.status[coalitionId].spawns.train.loaded = true
                             end
                         end
