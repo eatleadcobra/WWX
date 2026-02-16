@@ -206,10 +206,20 @@ function csb.searchCsarStacks()
                         if csarCheckIns[c][foundPlayerName] == nil then
                             currentLists[c][foundPlayerName] = {name = foundPlayerName, coalition = playerCoalition, groupID = playerGroupID, groupName = playerGroupName, typeName = playerTypeName, unitName = playerUnitName}
                         else
+                            local stackCount = 0
                             if #csarMissions[c] < 1 then
-                                trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 20, false)
+                                trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 10, false)
                                 genCsarFlag = true
                                 genCsarCoalition = playerCoalition
+                            else
+                                for _,m in pairs(csarMissions[c]) do
+                                    if m.source == "csarStack" then stackCount = stackCount + 1 end
+                                end
+                                if stackCount == 0 then
+                                    trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 10, false)
+                                    genCsarFlag = true
+                                    genCsarCoalition = playerCoalition
+                                end
                             end
                         end
                     end
@@ -980,32 +990,46 @@ function csb.wellnessCheck(coalitionId)
             if isAlive and timeLeft and notHunted then
                 table.insert(safeAsHouses,m)
             else
-                if not m.radioSilence then
-                    local reasonStr = "'s transponder is no longer active..."
-                    if notHunted == false then
-                        reasonStr = " has been captured by enemy forces..."
-                    end
-                    trigger.action.outTextForCoalition(coalitionId, "(!!!) " .. m.displayName .. reasonStr,20,false)
-                end
-                if Recon and math.random() < 0.02 then
-                    local msns = Recon.getCurrentMissionsByCoalition(opposition)
-                    local locmsns = {}
-                    if msns then
-                        for k,v in pairs(msns) do
-                            if v.type == 2 then table.insert(locmsns,k) end
+                if not m.source == "casevac" then
+                    if not m.radioSilence then
+                        local reasonStr = "'s transponder is no longer active..."
+                        if notHunted == false then
+                            reasonStr = " has been captured by enemy forces..."
                         end
-                        if #locmsns > 0 then
-                            local msnId = locmsns[mist.random(#locmsns)]
-                            if msnId then
-                                local nearestBase, dist, dir = csb.closestBaseTo(msns[msnId].point)
-                                Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
-                                trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed enemy positions " .. dist .. "km " .. dir .. " of " .. nearestBase, 10, false)
+                        trigger.action.outTextForCoalition(coalitionId, "(!!!) " .. m.displayName .. reasonStr,20,false)
+                    end
+                    if Recon and math.random() < 0.02 then
+                        local msns = Recon.getCurrentMissionsByCoalition(opposition)
+                        local locmsns = {}
+                        if msns then
+                            for k,v in pairs(msns) do
+                                if v.type == 2 then table.insert(locmsns,k) end
+                            end
+                            if #locmsns > 0 then
+                                local msnId = locmsns[mist.random(#locmsns)]
+                                if msnId then
+                                    local nearestBase, dist, dir = csb.closestBaseTo(msns[msnId].point)
+                                    Recon.processCompletedMission(opposition,msnId,nil,"enemy interrogation")
+                                    trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed enemy positions " .. dist .. "km " .. dir .. " of " .. nearestBase, 10, false)
+                                end
+                            end
+                        end
+                    elseif DFS and math.random() < 0.33 then
+                        DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT})
+                        trigger.action.outTextForCoalition(coalitionId,"Intel reports that parts of a lost friendly aircraft have been recovered by the enemy.", 10, false)
+                    end
+                else
+                    for _,ce in pairs(casEvacMissions[coalitionId]) do
+                        if m.sourceId and m.sourceId == ce.missionId then
+                            ce.lostCas = ce.lostCas + 1
+                            if math.fmod(ce.lostCas,2) == 0 then
+                                env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",false)
+                                for _,csci in pairs(csarCheckIns[coalitionId]) do
+                                    trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",10,false)
+                                end
                             end
                         end
                     end
-                elseif DFS and math.random() < 0.33 then
-                    DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT})
-                    trigger.action.outTextForCoalition(coalitionId,"Intel reports that parts of a lost friendly aircraft have been recovered by the enemy.", 10, false)
                 end
                 csb.cleanupCsarGroup(m)
                 if m.hunters then timer.scheduleFunction(csb.cleanupHunterGroups, m.hunters, timer.getTime() + expiryHunterCleanupDelay) end
@@ -1772,22 +1796,25 @@ function csb.checkCsarLanding(eUnit)
                                     break
                                 else
                                     if inCorrectConfig then
-                                        trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 10, false)
-                                        local rescueGroup = Group.getByName(m.groupName)
-                                        if rescueGroup and rescueGroup:isExist() then csb.sendRescueToAircraft(rescueGroup,pPosn,3,"Off Road",0) end
-                                        m.extracting = true
-                                        local args = {}
-                                        args.pName = pName
-                                        args.pSide = pSide
-                                        args.groupName = m.groupName
-                                        args.fName = m.name
-                                        args.equipment = m.equipment
-                                        args.pGrId = csci.groupID
-                                        args.pGrNm = csci.groupName
-                                        args.pUnit = eUnit
-                                        args.mission = m
-                                        args.displayName = m.displayName
-                                        timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + mist.random(3,6))
+                                        if not csci.extracting then
+                                            trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 10, false)
+                                            local rescueGroup = Group.getByName(m.groupName)
+                                            if rescueGroup and rescueGroup:isExist() then csb.sendRescueToAircraft(rescueGroup,pPosn,3,"Off Road",0) end
+                                            m.extracting = true
+                                            csci.extracting = true
+                                            local args = {}
+                                            args.pName = pName
+                                            args.pSide = pSide
+                                            args.groupName = m.groupName
+                                            args.fName = m.name
+                                            args.equipment = m.equipment
+                                            args.pGrId = csci.groupID
+                                            args.pGrNm = csci.groupName
+                                            args.pUnit = eUnit
+                                            args.mission = m
+                                            args.displayName = m.displayName
+                                            timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + mist.random(3,6))
+                                        end
                                     else
                                         if not csci.lastConfigWarning or (csci.lastConfigWarning and (checkTime - csci.lastConfigWarning > 15)) then
                                             trigger.action.outTextForGroup(csci.groupID, "Need to open the side/rear doors for pick-up", 10, false)
@@ -1878,6 +1905,7 @@ function csb.fakeExtractionTime(args)
             end
             csarMissions[args.pSide] = filtered
             trigger.action.outTextForCoalition(args.pSide, args.pName .. " has taken " .. args.displayName .. " on board.", 30, true)
+            csci.extracting = nil
         else
             if not csci.lastSpeedWarning or (csci.lastSpeedWarning and (pickupTime - csci.lastSpeedWarning > 5)) then
                 trigger.action.outTextForGroup(playerGroupID, "Travelling too fast for safe pickup.", 10, false)
@@ -1888,6 +1916,7 @@ function csb.fakeExtractionTime(args)
                     m.extracting = nil
                 end
             end
+            csci.extracting = nil
         end
     end
 end
@@ -1932,7 +1961,11 @@ end
 function csb.debugCsarGeneration()
     timer.scheduleFunction(csb.debugCsarGeneration,nil,timer.getTime()+10)
     for i=1,2 do
-        if #csarMissions[i] < 2 then
+        local debugCount = 0
+        for _,m in pairs(csarMissions[i]) do
+            if m.source == "debug" then debugCount = debugCount + 1 end
+        end
+        if debugCount < 2 then
             local csarParams = {}
             csarParams.coalitionId = i
             csarParams.timeLimit = {900,1200}
@@ -1948,6 +1981,7 @@ function csb.extendExistingCasEvac(coalitionId, bpId)
         if m.bpId == bpId then
             local newCas = mist.random(2,4)
             m.numCas = m.numCas + newCas
+            m.totalCas = m.totalCas + newCas
             m.endTime = m.endTime + (casEvacTimePer * newCas)
             local remainingTime = m.endTime - timer.getTime()
             m.nextCsar = m.lastCsar + math.floor((remainingTime / (m.numCas+1))+0.5)
@@ -1997,6 +2031,8 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     ceMission.startTime = createTime
     ceMission.endTime = ceMission.startTime + casEvacDuration
     ceMission.numCas = numCas - 1
+    ceMission.totalCas = numCas
+    ceMission.lostCas = 0
     ceMission.lastCsar = ceMission.startTime
     ceMission.nextCsar = ceMission.lastCsar + math.floor((casEvacDuration / (ceMission.numCas+1))+0.5)
     ceMission.point = spawnPoint
@@ -2140,6 +2176,10 @@ function csb.cleanupCasEvacGroup(ceMission)
     if ceMission.equipment ~= nil then
         local eq = Group.getByName(ceMission.equipment)
         if eq and eq:isExist() then Group.destroy(eq) end
+    end
+    env.info("[csb.cleanupCasEvacGroup] - CASEVAC #" .. ceMission.missionId .. " has finished. " .. (ceMission.totalCas - ceMission.lostCas) .. "/" .. ceMission.totalCas .. " were picked-up.",false)
+    for _,csci in pairs(csarCheckIns[ceMission.coalition]) do
+        trigger.action.outTextForGroup(csci.groupID,"CASEVAC #" .. ceMission.missionId .. " has finished. " .. (ceMission.totalCas - ceMission.lostCas) .. "/" .. ceMission.totalCas .. " were picked-up.",15,false)
     end
 end
 function csb.debugCasEvacGeneration()

@@ -20,7 +20,8 @@ REAPER = false
 INTERCEPT = false
 SHIPPING = true
 CAPTURE = false
-COMPANIESIGNOREROADS = false
+COMPANIESIGNOREROADS = true
+TRAINS = true
 CAVICS = {
     [1] = {
     },

@@ -387,6 +387,8 @@ DFS.spawnNames = {
         frontline = "RedSpawn-Front-",
         artillery = "RedSpawn-Art-",
         depot = "Red-FrontDepot-",
+        train = "Red-Train-Start",
+        trainDeliver = "Red-Train-Deliver",
         reardepot = "Red-RearDepot-",
         convoyStart = "RedConvoySpawn",
         pirate = "RedPirateShip",
@@ -400,6 +402,8 @@ DFS.spawnNames = {
         frontline = "BlueSpawn-Front-",
         artillery = "BlueSpawn-Art-",
         depot = "Blue-FrontDepot-",
+        train = "Blue-Train-Start",
+        trainDeliver = "Blue-Train-Deliver",
         reardepot = "Blue-RearDepot-",
         convoyStart = "BlueConvoySpawn",
         pirate = "BluePirateShip",
@@ -415,21 +419,21 @@ DFS.pickUpZones = {
         [1] = "Red-Pickup-RD",
         [2] = "Red-Pickup-Sea",
         [3] = "RedPiratePickup",
-        [4] = "Red-FrontDepot-1",
-        [5] = "Red-FrontDepot-2",
-        [6] = "Red-FrontDepot-3",
-        [7] = "Red-FrontDepot-4",
-        [8] = "Red-Pickup-Hub",
+        [4] = "Red-Pickup-Hub",
+        [5] = "Red-FrontDepot-1",
+        [6] = "Red-FrontDepot-2",
+        [7] = "Red-FrontDepot-3",
+        [8] = "Red-FrontDepot-4",
     },
     [2] = {
         [1] = "Blue-Pickup-RD",
         [2] = "Blue-Pickup-Sea",
         [3] = "BluePiratePickup",
-        [4] = "Blue-FrontDepot-1",
-        [5] = "Blue-FrontDepot-2",
-        [6] = "Blue-FrontDepot-3",
-        [7] = "Blue-FrontDepot-4",
-        [8] = "Blue-Pickup-Hub"
+        [4] = "Blue-Pickup-Hub",
+        [5] = "Blue-FrontDepot-1",
+        [6] = "Blue-FrontDepot-2",
+        [7] = "Blue-FrontDepot-3",
+        [8] = "Blue-FrontDepot-4",
     }
 }
 DFS.status = {
@@ -458,6 +462,7 @@ DFS.status = {
     artSpawnDelay = 1200,
     fdSpawnDelay = 2699,
     rdSpawnDelay = 3599,
+    trainSpawnDelay = 900,
     convoyBaseTime = 2099,
     convoySeparationTime = 89,
     convoyTimeout = 480,
@@ -627,6 +632,7 @@ DFS.status = {
             artillery = {},
             fd = {},
             rd = {},
+            train = {},
         },
         casCounter = 0,
     },
@@ -694,6 +700,7 @@ DFS.status = {
             artillery = {},
             fd = {},
             rd = {},
+            train = {}
         },
         casCounter = 0,
     }
@@ -967,6 +974,11 @@ function dfc.initSpawns()
     if testBlueRearDepotTemplate and testRedRearDepotTemplate then
         DFS.groupNames[1].reardepot ="Red-RearDepot"
         DFS.groupNames[2].reardepot ="Blue-RearDepot"
+    end
+    if TRAINS and SHIPPING then
+        DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]/2)
+        DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]/2)
+        DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]/2)
     end
     if SUBS and SUBTYPE then
         DFSubs.initSub({coalitionId = 1, subType = SUBTYPE[1]})
@@ -1765,7 +1777,7 @@ function dfc.checkShipping(param)
                             dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
                             dfc.increaseRearSupply({coalitionId = convoyCoalition, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
                         end
-                        trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 10, false)
+                        trigger.action.outTextForCoalition(convoyCoalition, "Ship Cargo Delivered!", 15, false)
                         env.info(convoyCoalition.."- Ship Cargo Delivered!", false)
                         local convoyController = convoyGroup:getController()
                         if convoyController then
@@ -1855,6 +1867,91 @@ function dfc.shippingLoop()
         end
     end
     timer.scheduleFunction(dfc.shippingLoop, nil, timer.getTime() + 60)
+end
+local trainLoopInterval = 10
+function dfc.runtrains()
+    for c = 1, 2 do
+        if DFS.status[c].spawns.train.name == nil then
+            dfc.spawnTrain(c)
+            dfc.trackTrain(c)
+        end
+    end
+end
+function dfc.trackTrain(coalitionId)
+    local trainName = DFS.status[coalitionId].spawns.train.name
+    if trainName then
+        local trainGroup = Group.getByName(trainName)
+        if trainGroup then
+            local loco = trainGroup:getUnit(1)
+            if loco then
+                local point = loco:getPoint()
+                local velo = loco:getVelocity()
+                local health = loco:getLife()
+                if point and velo and health and health > 0 then
+                    local speed = (velo.x^2 + velo.y^2 + velo.z^2)^0.5
+                    if speed and speed > 0 then
+                        if DFS.status[coalitionId].spawns.train.lastPoint == nil or DFS.status[coalitionId].spawns.train.lastPoint ~= point then
+                            DFS.status[coalitionId].spawns.train.lastPoint = point
+                        end
+                        if DFS.status[coalitionId].spawns.train.loaded == true then
+                            local deliveryPointZoneName = DFS.spawnNames[coalitionId].trainDeliver
+                            local deliverPoint = trigger.misc.getZone(deliveryPointZoneName).point
+                            local deliverDist = speed * trainLoopInterval
+                            local distanceToGo = Utils.PointDistance(point, deliverPoint)
+                            if distanceToGo < deliverDist then
+                                env.info("Unloading train " .. trainName, false)
+                                trigger.action.outTextForCoalition(coalitionId, "Train cargo delivered to rear depot!", 15, false)
+                                dfc.unloadTrain(coalitionId)
+                            end
+                        elseif DFS.status[coalitionId].spawns.train.loaded == false then
+                            local deliveryPointZoneName = DFS.spawnNames[coalitionId].train
+                            local deliverPoint = trigger.misc.getZone(deliveryPointZoneName).point
+                            local deliverDist = (speed * trainLoopInterval) + 500 --for train length running in reverse
+                            local distanceToGo = Utils.PointDistance(point, deliverPoint)
+                            if distanceToGo < deliverDist then
+                                env.info("Reloading train " .. trainName, false)
+                                DFS.status[coalitionId].spawns.train.loaded = true
+                            end
+                        end
+                    else
+                        DFS.status[coalitionId].spawns.train.name = nil
+                        timer.scheduleFunction(dfc.spawnTrain, coalitionId, timer:getTime() + DFS.status.trainSpawnDelay)
+                    end
+                else
+                    DFS.status[coalitionId].spawns.train.name = nil
+                    timer.scheduleFunction(dfc.spawnTrain, coalitionId, timer:getTime() + DFS.status.trainSpawnDelay)
+                end
+            end
+        end
+    else
+        DFS.status[coalitionId].spawns.train.name = nil
+        timer.scheduleFunction(dfc.spawnTrain, coalitionId, timer:getTime() + DFS.status.trainSpawnDelay)
+    end
+end
+function dfc.unloadTrain(coalitionId)
+    DFS.status[coalitionId].spawns.train.loaded = false
+    dfc.increaseRearSupply({coalitionId = coalitionId, amount = DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL], type = DFS.supplyType.FUEL})
+    dfc.increaseRearSupply({coalitionId = coalitionId, amount = DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO], type = DFS.supplyType.AMMO})
+    dfc.increaseRearSupply({coalitionId = coalitionId, amount = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
+end
+function dfc.spawnTrain(coalitionId)
+    DFS.status[coalitionId].spawns.train.loaded = true
+    DFS.status[coalitionId].spawns.train.name = nil
+    local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].train).point
+    local endPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].trainDeliver).point
+    local locoType = "Locomotive"
+    if coalitionId == 2 then
+        locoType = "ES44AH"
+    end
+    local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = startPoint, [2] = endPoint}, 100)
+    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(1, 4, {[1] = "Train"}, groupWaypoints)
+    cpyGroupTable["units"][1]["wagons"][1] = locoType
+    cpyGroupTable["units"][1]["wagons"][2] = locoType
+    cpyGroupTable["units"][1]["wagons"][#cpyGroupTable["units"][1]["wagons"]-1] = locoType
+    cpyGroupTable["units"][1]["wagons"][#cpyGroupTable["units"][1]["wagons"]] = locoType
+    coalition.addGroup(80+(2-coalitionId), 4, cpyGroupTable)
+    DFS.status[coalitionId].spawns.train.name = cpyGroupTable["name"]
+    env.info("Spawned train " .. DFS.status[coalitionId].spawns.train.name, false)
 end
 function dfc.depotActive(param)
     local depotActive = false
@@ -2028,11 +2125,11 @@ end
 function dfc.drawSupplyMarks()
     if DrawingTools then
        for a = 1,2 do
-            for i = 1, 3 do
+            for i = 1, 4 do
                 local pickupZone = trigger.misc.getZone(DFS.pickUpZones[a][i])
                 if pickupZone then
                     local pickupPoint = pickupZone.point
-                    DrawingTools.drawPackage(pickupPoint, i, true, a)
+                    DrawingTools.drawPackage(pickupPoint, 1, true, a)
                 end
             end
             for i = 1, DFS.status.fdSpawnTotal do
@@ -3206,6 +3303,9 @@ if BOMBERS then
 end
 if MISSILEBOATS then
     timer.scheduleFunction(dfc.missileboatLoop, nil, timer:getTime() + DFS.status.missileboatInterval)
+end
+if TRAINS then
+    dfc.runtrains()
 end
 dfc.mainLoop()
 dfc.saveLoop()
