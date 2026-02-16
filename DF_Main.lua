@@ -419,21 +419,21 @@ DFS.pickUpZones = {
         [1] = "Red-Pickup-RD",
         [2] = "Red-Pickup-Sea",
         [3] = "RedPiratePickup",
-        [4] = "Red-FrontDepot-1",
-        [5] = "Red-FrontDepot-2",
-        [6] = "Red-FrontDepot-3",
-        [7] = "Red-FrontDepot-4",
-        [8] = "Red-Pickup-Hub",
+        [4] = "Red-Pickup-Hub",
+        [5] = "Red-FrontDepot-1",
+        [6] = "Red-FrontDepot-2",
+        [7] = "Red-FrontDepot-3",
+        [8] = "Red-FrontDepot-4",
     },
     [2] = {
         [1] = "Blue-Pickup-RD",
         [2] = "Blue-Pickup-Sea",
         [3] = "BluePiratePickup",
-        [4] = "Blue-FrontDepot-1",
-        [5] = "Blue-FrontDepot-2",
-        [6] = "Blue-FrontDepot-3",
-        [7] = "Blue-FrontDepot-4",
-        [8] = "Blue-Pickup-Hub"
+        [4] = "Blue-Pickup-Hub",
+        [5] = "Blue-FrontDepot-1",
+        [6] = "Blue-FrontDepot-2",
+        [7] = "Blue-FrontDepot-3",
+        [8] = "Blue-FrontDepot-4",
     }
 }
 DFS.status = {
@@ -2125,11 +2125,11 @@ end
 function dfc.drawSupplyMarks()
     if DrawingTools then
        for a = 1,2 do
-            for i = 1, 3 do
+            for i = 1, 4 do
                 local pickupZone = trigger.misc.getZone(DFS.pickUpZones[a][i])
                 if pickupZone then
                     local pickupPoint = pickupZone.point
-                    DrawingTools.drawPackage(pickupPoint, i, true, a)
+                    DrawingTools.drawPackage(pickupPoint, 1, true, a)
                 end
             end
             for i = 1, DFS.status.fdSpawnTotal do
