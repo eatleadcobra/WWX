@@ -32,7 +32,7 @@ function SubControl.createSubWithIntercept(coalitionId, point, subType, depth, c
             groupTable["units"][1]["heading"] = bearing
             groupTable["route"]["points"][1].alt = point1depth
             groupTable["route"]["points"][1].speed = speedToRunIn
-            groupTable["route"]["points"][2].alt = SubControl.subValues[subType].maxDepth
+            groupTable["route"]["points"][2].alt = SubControl.subValues[subType].periscopeDepth
             groupTable["route"]["points"][2].speed = speedToRunIn
             groupTable["route"]["points"][3].alt = SubControl.subValues[subType].periscopeDepth
             groupTable["route"]["points"][3].speed = SubControl.subValues[subType].maxSpeed
@@ -55,7 +55,7 @@ function SubControl.updateSubMissionWithIntercept(groupName, point, subType, dep
             if depth then point1depth = depth end
             missionTable["params"]["route"]["points"][1].alt = point1depth
             missionTable["params"]["route"]["points"][1].speed = speedToRunIn
-            missionTable["params"]["route"]["points"][2].alt = SubControl.subValues[subType].maxDepth
+            missionTable["params"]["route"]["points"][2].alt = SubControl.subValues[subType].periscopeDepth
             missionTable["params"]["route"]["points"][2].speed = speedToRunIn
             missionTable["params"]["route"]["points"][3].alt = SubControl.subValues[subType].periscopeDepth
             missionTable["params"]["route"]["points"][4].speed = SubControl.subValues[subType].maxSpeed
