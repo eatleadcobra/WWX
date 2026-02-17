@@ -2030,7 +2030,7 @@ function dfc.trackCargoPlane(param)
                 local distanceToDest = Utils.PointDistance(destinationPoint, planePoint)
                 if distanceToDest < destinationRadius then
                     trigger.action.outTextForCoalition(param.coalitionId, "Air cargo delivered to rear depot!", 15, false)
-                    local groupPct = group:getSize()/group:getSize0()
+                    local groupPct = group:getSize()/group:getInitialSize()
                     dfc.increaseRearSupply({coalitionId = param.coalitionId, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * groupPct), type = DFS.supplyType.FUEL})
                     dfc.increaseRearSupply({coalitionId = param.coalitionId, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] * groupPct), type = DFS.supplyType.AMMO})
                     dfc.increaseRearSupply({coalitionId = param.coalitionId, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] * groupPct), type = DFS.supplyType.EQUIPMENT})
