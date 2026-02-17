@@ -19,9 +19,11 @@ STRIKES = false
 REAPER = false
 INTERCEPT = false
 SHIPPING = true
+TRAINS = true
+AIRCARGO = true
+AIRCARGOINTERVAL = 1600
 CAPTURE = false
 COMPANIESIGNOREROADS = true
-TRAINS = true
 CAVICS = {
     [1] = {
     },

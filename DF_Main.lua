@@ -358,6 +358,7 @@ DFS.groupNames = {
         depot = "Red-Depot",
         reardepot = "Red-Depot",
         strike = "Red-Strike",
+        cargoplane = "Red-AirCargo",
         convoy = {
             [1] = "Red-Fuel-Convoy-",
             [2] = "Red-Ammo-Convoy-",
@@ -375,6 +376,7 @@ DFS.groupNames = {
         depot = "Blue-Depot",
         reardepot = "Blue-Depot",
         strike = "Blue-Strike",
+        cargoplane = "Blue-AirCargo",
         convoy = {
             [1] = "Blue-Fuel-Convoy-",
             [2] = "Blue-Ammo-Convoy-",
@@ -389,6 +391,7 @@ DFS.spawnNames = {
         depot = "Red-FrontDepot-",
         train = "Red-Train-Start",
         trainDeliver = "Red-Train-Deliver",
+        cargoPlaneDeliver = "Red-Air-Deliver",
         reardepot = "Red-RearDepot-",
         convoyStart = "RedConvoySpawn",
         pirate = "RedPirateShip",
@@ -404,6 +407,7 @@ DFS.spawnNames = {
         depot = "Blue-FrontDepot-",
         train = "Blue-Train-Start",
         trainDeliver = "Blue-Train-Deliver",
+        cargoPlaneDeliver = "Blue-Air-Deliver",
         reardepot = "Blue-RearDepot-",
         convoyStart = "BlueConvoySpawn",
         pirate = "BluePirateShip",
@@ -463,6 +467,7 @@ DFS.status = {
     fdSpawnDelay = 2699,
     rdSpawnDelay = 3599,
     trainSpawnDelay = 900,
+    airCargoInterval = 1200,
     convoyBaseTime = 2099,
     convoySeparationTime = 89,
     convoyTimeout = 480,
@@ -975,11 +980,15 @@ function dfc.initSpawns()
         DFS.groupNames[1].reardepot ="Red-RearDepot"
         DFS.groupNames[2].reardepot ="Blue-RearDepot"
     end
-    if TRAINS and SHIPPING then
-        DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]/2)
-        DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]/2)
-        DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]/2)
-    end
+    local shippingMethods = 0
+    if TRAINS then shippingMethods = shippingMethods + 1 end
+    if SHIPPING then shippingMethods = shippingMethods + 1 end
+    if AIRCARGO then shippingMethods = shippingMethods + 1 end
+    if AIRCARGOINTERVAL then DFS.status.airCargoInterval = AIRCARGOINTERVAL end
+    if shippingMethods == 0 then shippingMethods = 1 end
+    DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL]/shippingMethods)
+    DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]/shippingMethods)
+    DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]/shippingMethods)
     if SUBS and SUBTYPE then
         DFSubs.initSub({coalitionId = 1, subType = SUBTYPE[1]})
         DFSubs.initSub({coalitionId = 2, subType = SUBTYPE[2]})
@@ -1986,6 +1995,12 @@ function dfc.bomberLoop()
     end
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime() + DFS.status.bomberInterval)
 end
+function dfc.airCargo()
+    for c = 1,2 do
+        dfc.spawnAirCargo(c)
+    end
+    timer.scheduleFunction(dfc.airCargo, nil, timer.getTime() + DFS.status.airCargoInterval)
+end
 --coalitionId, targetNum
 function dfc.spawnMissileboat(coalitionId)
     local groupName = ''
@@ -2000,6 +2015,31 @@ function dfc.spawnMissileboat(coalitionId)
     end
     trigger.action.outTextForCoalition(coalitionId, 'Friendly missile boats are entering the shipping area!', 15)
     trigger.action.outTextForCoalition(enemyCoalition, 'Enemy missile boats are entering the shipping area! Destroy them and protect our transports!', 15)
+end
+--coalitionId, groupName
+function dfc.trackCargoPlane(param)
+    local group = Group.getByName(param.groupName)
+    if group ~= nil then
+        local destinationZone = trigger.misc.getZone(DFS.spawnNames[param.coalitionId].cargoPlaneDeliver)
+        if destinationZone then
+            local destinationPoint = destinationZone.point
+            local destinationRadius = destinationZone.radius
+            local cargoPlane = group:getUnit(1)
+            if cargoPlane then
+                local planePoint = cargoPlane:getPoint()
+                local distanceToDest = Utils.PointDistance(destinationPoint, planePoint)
+                if distanceToDest < destinationRadius then
+                    trigger.action.outTextForCoalition(param.coalitionId, "Air cargo delivered to rear depot!", 15, false)
+                else
+                    timer.scheduleFunction(dfc.trackCargoPlane, param, timer.getTime() + 2)
+                end
+            end
+        end
+    end
+end
+function dfc.spawnAirCargo(coalitionId)
+    local groupName = mist.cloneGroup(DFS.groupNames[coalitionId].cargoplane, true).name
+    dfc.trackCargoPlane({coalitionId = coalitionId, groupName = groupName})
 end
 --coalitionId, targetNum
 function dfc.spawnBomber(param)
@@ -3304,6 +3344,9 @@ if MISSILEBOATS then
 end
 if TRAINS then
     dfc.runtrains()
+end
+if AIRCARGO then
+    dfc.airCargo()
 end
 dfc.mainLoop()
 dfc.saveLoop()
