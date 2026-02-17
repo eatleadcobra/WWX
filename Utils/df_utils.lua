@@ -16,7 +16,7 @@ function DF_UTILS.spawnGroupExact(groupName, spawnPoint, action, radius, anywher
     end
     vars.action = action
     vars.point = spawnPoint
-    vars.radius = radius or 5
+    vars.radius = radius or 1
     if anywhere ~= false then
         anywhere = true
     else
