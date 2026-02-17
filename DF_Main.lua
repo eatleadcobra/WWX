@@ -1946,8 +1946,6 @@ function dfc.spawnTrain(coalitionId)
     local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = startPoint, [2] = endPoint}, 100)
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(1, 4, {[1] = "Train"}, groupWaypoints)
     cpyGroupTable["units"][1]["wagons"][1] = locoType
-    cpyGroupTable["units"][1]["wagons"][2] = locoType
-    cpyGroupTable["units"][1]["wagons"][#cpyGroupTable["units"][1]["wagons"]-1] = locoType
     cpyGroupTable["units"][1]["wagons"][#cpyGroupTable["units"][1]["wagons"]] = locoType
     coalition.addGroup(80+(2-coalitionId), 4, cpyGroupTable)
     DFS.status[coalitionId].spawns.train.name = cpyGroupTable["name"]
