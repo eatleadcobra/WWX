@@ -22,38 +22,45 @@ function dsm.loop()
                 if IgnoreAirbases[airbaseName] == nil then
                     env.info("Managing airfield: " .. airbaseName, false)
                     env.info("Airfield category: " .. tostring(airbaseCategory), false)
+                    if airbaseCategory == 0 and ForwardAirbases[airbaseCoalition][airbaseName] == nil and FARPAirfields[airbaseCoalition][airbaseName] == nil then
+                        env.info("Main Airbase", false)
+                    end
+                    if ForwardAirbases[airbaseCoalition][airbaseName] then
+                        env.info("Forward Airbase", false)
+                    end
+                    if (airbaseCategory == 1 or (airbaseCategory == 2 and not Carriers[airbaseCoalition][airbaseName])) or (airbaseCategory == 0 and FARPAirfields[airbaseCoalition][airbaseName]) then
+                        env.info("FARP", false)
+                    end
+                    if (airbaseCategory == 2 and Carriers[airbaseCoalition][airbaseName]) then
+                        env.info("Carrier", false)
+                    end
                     for k,v in pairs(airframeslist) do
                         if v > 0 then
-                            if airbaseCategory == 0 and Airframes[airbaseCoalition].main[k] == nil then
-                                env.info("This coalition airbase should not have airframe: " .. k, false)
-                                airbaseList[i]:getWarehouse():setItem(k, 0)
-                            elseif airbaseCategory == 0 and ForwardAirbases[airbaseCoalition][airbaseName] then
-                                if Airframes[airbaseCoalition].forward[k] == nil then
-                                    env.info("Forward airbase should not have airframe: " .. k, false)
-                                    airbaseList[i]:getWarehouse():setItem(k, 0)
-                                end
-                            elseif (airbaseCategory == 1 or airbaseCategory == 2)and Airframes[airbaseCoalition].farp[k] == nil then
-                                env.info("FARP should not have airframe: " .. k, false)
-                                airbaseList[i]:getWarehouse():setItem(k, 0)
-                            end
+                            env.info("Blanking airframe count for " ..  k, false)
+                            airbaseList[i]:getWarehouse():setItem(k, 0)
                         end
                     end
                     -- adding planes that should be present
                     for c = 1, 2 do
                         if airbaseCoalition == c then
-                            if airbaseCategory == 0 and ForwardAirbases[airbaseCoalition][airbaseName] == nil then
+                            if airbaseCategory == 0 and ForwardAirbases[airbaseCoalition][airbaseName] == nil and FARPAirfields[airbaseCoalition][airbaseName] == nil then
                                 for name, number in pairs(Airframes[c].main) do
                                     env.info("Main airbase should have airframe: " .. name, false)
                                     airbaseList[i]:getWarehouse():setItem(name, 200)
                                 end
-                            elseif airbaseCategory == 0 then
+                            elseif airbaseCategory == 0 and FARPAirfields[airbaseCoalition][airbaseName] == nil then
                                 for name, number in pairs(Airframes[c].forward) do
                                     env.info("Forward airbase should have airframe: " .. name, false)
                                     airbaseList[i]:getWarehouse():setItem(name, 200)
                                 end
-                            elseif (airbaseCategory == 1 or airbaseCategory == 2) then
+                            elseif (airbaseCategory == 1 or (airbaseCategory == 2 and not Carriers[airbaseCoalition][airbaseName])) or (airbaseCategory == 0 and FARPAirfields[airbaseCoalition][airbaseName]) then
                                 for name, number in pairs(Airframes[c].farp) do
                                     env.info("FARP should have airframe: " .. name, false)
+                                    airbaseList[i]:getWarehouse():setItem(name, 200)
+                                end
+                            elseif (airbaseCategory == 2 and Carriers[airbaseCoalition][airbaseName]) then
+                                for name, number in pairs(Airframes[c].carrier) do
+                                    env.info("Carrier should have airframe: " .. name, false)
                                     airbaseList[i]:getWarehouse():setItem(name, 200)
                                 end
                             end
