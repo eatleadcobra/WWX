@@ -22,6 +22,11 @@ Airframes = {
         carrier = {
         },
         forward = {
+             --FAC
+            ["Yak-52"] = true,
+            ["Mi-8MT"] = true,
+            ["OH58D"] = true,
+            ["CH-47Fbl1"] = true,
         },
         farp = {
             ["Mi-8MT"] = true,
@@ -63,7 +68,9 @@ Airframes = {
     }
 }
 ForwardAirbases = {
-    [1] = {},
+    [1] = {
+        ["Pinarbashi"] = true
+    },
     [2] = {},
 }
 FARPAirfields = {
