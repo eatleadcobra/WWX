@@ -19,7 +19,15 @@ Airframes = {
             ["L-39C"] = true,
             ["F-86F Sabre"] = true,
         },
-        forward = {},
+        carrier = {
+        },
+        forward = {
+             --FAC
+            ["Yak-52"] = true,
+            ["Mi-8MT"] = true,
+            ["OH58D"] = true,
+            ["CH-47Fbl1"] = true,
+        },
         farp = {
             ["Mi-8MT"] = true,
             ["OH58D"] = true,
@@ -48,7 +56,10 @@ Airframes = {
             ["C-101CC"] = true,
             ['MiG-15bis'] = true,
         },
-        forward = {},
+        carrier = {
+        },
+        forward = {
+        },
         farp = {
             ["UH-1H"] = true,
             ["SA342L"] = true,
@@ -58,8 +69,16 @@ Airframes = {
 }
 ForwardAirbases = {
     [1] = {
+        ["Pinarbashi"] = true
     },
-    [2] = {
-    },
+    [2] = {},
+}
+FARPAirfields = {
+    [1] = {},
+    [2] = {},
+}
+Carriers = {
+    [1] = {},
+    [2] = {},
 }
 IgnoreAirbases = {}

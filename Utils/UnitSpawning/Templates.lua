@@ -104,7 +104,7 @@ SpawnTemplates.unitTemplates = {
         ["wagons"] =
         {
             [1] = "Locomotive",
-            [2] = "Locomotive",
+            [2] = "Coach cargo",
             [3] = "Coach cargo",
             [4] = "Coach cargo",
             [5] = "Coach cargo",
@@ -126,7 +126,7 @@ SpawnTemplates.unitTemplates = {
             [21] = "Coach cargo",
             [22] = "Coach cargo",
             [23] = "Coach cargo",
-            [24] = "Locomotive",
+            [24] = "Coach cargo",
             [25] = "Locomotive",
         }, -- end of ["wagons"]
     }
