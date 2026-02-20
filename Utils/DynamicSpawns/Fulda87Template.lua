@@ -29,12 +29,15 @@ Airframes = {
             ["L-39C"] = true,
             ["L-39ZA"] = true,
         },
+        carrier = {
+        },
         farp = {
             ["Mi-24P"] = true,
             ["Mi-8MT"] = true,
 			["Ka-50"] = true,
 			["Ka-50_3"] = true,
 			["Yak-52"] = true,
+			["L-39C"] = true,
         }
     },
     [2] = {
@@ -62,7 +65,7 @@ Airframes = {
 			["MB-339A"] = true,
         },
         forward = {
-			["AV8BNA"] = true,
+            ["AV8BNA"] = true,
 			["A-10A"] = true,
 			["A-10C"] = true,
             ["A-10C_2"] = true,
@@ -78,6 +81,8 @@ Airframes = {
 			["C-101CC"] = true,
 			["MB-339A"] = true,
         },
+        carrier = {
+        },
         farp = {
             ["UH-1H"] = true,
             ["SA342L"] = true,
@@ -85,6 +90,7 @@ Airframes = {
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
+			["MB-339A"] = true,
         }
     }
 }
@@ -96,8 +102,22 @@ ForwardAirbases = {
         ["Wiesbaden"] = true,
     }
 }
+FARPAirfields = {
+    [1] = {
+        ["Fulda"] = true,
+    },
+    [2] = {
+        ["Langenselbold"] = true,
+		["H FRG 38"] = true,
+    }
+}
+--carrier names are the UNIT name, NOT the group name
+Carrier = {
+    [1] = {
+    },
+    [2] = {
+    }
+}
+
 IgnoreAirbases = {
-	["Fulda"] = true,
-	["Langenselbold"] = true,
-	["H FRG 38"] = true,
 }
