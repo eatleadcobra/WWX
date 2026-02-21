@@ -20,7 +20,7 @@ INTERCEPT = true
 SHIPPING = false
 TRAINS = true
 AIRCARGO = true
-AIRCARGOINTERVAL = 2700
+AIRCARGOINTERVAL = 3600
 CAPTURE = false
 CAVICS = {
     [1] = {
@@ -49,29 +49,32 @@ RDSubcount = 2
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
 BLUECASFREQ = 225
-REDCASFREQ = 45
+REDCASFREQ = 130
 BLUECASMOD = 0
-REDCASMOD = 1
+REDCASMOD = 0
 
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "T-80UD",
-            [2] = "T-80UD",
-			[3] = "T-80UD",
-            [4] = "Ural-375"
+            [1] = "T-80B",
+            [2] = "T-80B",
+			[3] = "T-80B",
+			[4] = "T-80B",
+            [5] = "Ural-375"
         },
         ["Mech"] = {
             [1] = "BMP-2",
             [2] = "BMP-2",
             [3] = "BMP-2",
-            [4] = "Ural-375"
+			[4] = "BMP-2",
+            [5] = "Ural-375"
         },
         ["Inf"] = {
-            [1] = "BMP-3",
+            [1] = "BRDM-2_malyutka",
             [2] = "MTLB",
             [3] = "MTLB",
-            [4] = "Ural-375",
+			[4] = "MTLB",
+            [5] = "Ural-375",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver3",
@@ -129,20 +132,21 @@ Platoons = {
         ["Armor"] = {
             [1] = "M-1 Abrams",
             [2] = "M-1 Abrams",
-			[3] = "M-1 Abrams",
-            [4] = "M 818"
+            [3] = "M 818"
         },
         ["Mech"] = {
             [1] = "M-2 Bradley",
             [2] = "M-2 Bradley",
             [3] = "M-2 Bradley",
-            [4] = "M 818"
+			[4] = "M-2 Bradley",
+            [5] = "M 818"
         },
         ["Inf"] = {
             [1] = "M1045 HMMWV TOW",
             [2] = "M-113",
             [3] = "M-113",
-            [4] = "M 818"
+			[4] = "M-113",
+            [5] = "M 818"
         },
         ["DeployedInf"] = {
             [1] = "Soldier M4",
