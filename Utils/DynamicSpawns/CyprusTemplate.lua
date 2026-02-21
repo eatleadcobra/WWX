@@ -81,4 +81,9 @@ Carriers = {
     [1] = {},
     [2] = {},
 }
-IgnoreAirbases = {}
+IgnoreAirbases = {
+    [1] = {},
+    [2] = {
+        ["Adana Sakirpasa"] = true
+    }
+}
