@@ -34,6 +34,7 @@ local xMark = {
 local triangleMark = {
     size = 12
 }
+local bpIdOffset = 10000
 function DrawingTools.drawPackage(origin, size, pickup, coalition, noArrow)
     if coalition == nil then coalition = -1 end
     local leftQuad = DrawingTools.newMarkId()
@@ -364,14 +365,8 @@ function DrawingTools.updateRadioColor(screenId, screenColor)
     trigger.action.setMarkupColorFill(screenId, screenColors[screenColor])
 end
 function DrawingTools.numberBP(point, radius, number, max)
-    local radsToRotate = (1/max) * (2*math.pi)
-    local tickLength = radius/4
-    local northVec = {x = 1, y = 0, z = 0}
-    for i = 1, number do
-        local tickVec = Utils.RotateVector(northVec, radsToRotate*(i-1))
-        local tickStart = Utils.VectorAdd(point, Utils.ScalarMult(tickVec, radius))
-        local tickEnd = Utils.VectorAdd(point, Utils.ScalarMult(tickVec, radius+tickLength))
-        local tickId = DrawingTools.newMarkId()
-        trigger.action.lineToAll(-1, tickId, tickStart, tickEnd, {0,0,0,1}, 1, true, nil)
-    end
+    local id = bpIdOffset + number
+    local fontSize = 20
+    local offPoint = {x = point.x - fontSize/2, y = point.y, z = point.z + radius + fontSize/2}
+    trigger.action.textToAll(-1, id, offPoint, {0,0,0,1}, {0,0,0,0}, fontSize, true, number)
 end
