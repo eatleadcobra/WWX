@@ -4,6 +4,7 @@ Airframes = {
             ["C-130J-30"] = true,
             ["MiG-19P"] = true,
             ["MiG-21Bis"] = true,
+			["Mirage-F1CE"] = true,
             ["MiG-29 Fulcrum"] = true,
 			["Su-27"] = true,
             ["Su-25"] = true,
