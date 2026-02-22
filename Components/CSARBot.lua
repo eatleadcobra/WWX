@@ -7,7 +7,7 @@ local searchStackInterval = 20
 local trackCsarInterval = 2
 local csarStackRadius = 1000
 local csarStackHeight = 1000
-local csarZoneRadius = 10000
+local csarCoverageZoneRadius = 10000
 local csarTimeLimitMax = 2400
 local csarTimeLimitMin = 1200
 local csarPickupRadius = 30
@@ -41,32 +41,6 @@ local csarHunterCaptureDistance = 3
 local csarHunterStartingDistMin = 500
 local csarHunterStartingDistMax = 1000
 
-local csarHunterOptions = {
-    [1] = {
-        [1] = "Infantry AK",
-        [2] = "Infantry AK Ins",
-        [3] = "Infantry AK Ins",
-        [4] = "Infantry AK ver2",
-        [5] = "Infantry AK ver3"
-    },
-    [2] = {
-        [1] = "Soldier M4",
-        [2] = "Soldier M4 GRG",
-        [3] = "Soldier M4 GRG",
-        [4] = "Infantry AK ver2",
-        [5] = "Soldier M4 GRG",
-    }
-}
-local csarHunterEliteOptions = {
-    [1] = {
-        [1] = "tt_DSHK",
-        [2] = "HL_DSHK",
-        [3] = "tt_DSHK",
-    },
-    [2] = {
-        [1] = "M1043 HMMWV Armament",
-    }
-}
 local csarCheckIns = {
     [1] = {},
     [2] = {}
@@ -91,25 +65,21 @@ local currentLists = {
     [1] = {},
     [2] = {}
 }
-local stackZones = {
-    [1] = "RedCsarStack",
-    [2] = "BlueCsarStack"
-}
-local stackPoints = {
+local csarStackPoints = {
     [1] = {},
     [2] = {}
 }
-local csarZones = {
-    [1] = "RedCsarZone",
-    [2] = "BlueCsarZone"
-}
-local csarPoints = {
+local csarCoveragePoints = {
     [1] = {},
     [2] = {}
 }
 local casEvacMissions = {
     [1] = {},
     [2] = {}
+}
+local zoneColours = {
+    [1] = {1,0,0,0.6},
+    [2] = {0,0,1,0.6},
 }
 
 function autoCsarEnroll:onEvent(event)
@@ -138,29 +108,38 @@ function autoCsarEnroll:onEvent(event)
     end
 end
 function csb.load()
-    local redZone = trigger.misc.getZone(stackZones[1])
-    local blueZone = trigger.misc.getZone(stackZones[2])
-    local redCsarZone = trigger.misc.getZone(csarZones[1])
-    local blueCsarZone = trigger.misc.getZone(csarZones[2])
-    if redZone and blueZone then
-        stackPoints[1] = {x=redZone.point.x, y = land.getHeight({x = redZone.point.x, y = redZone.point.z})+csarStackHeight, z = redZone.point.z}
-        trigger.action.circleToAll(1, DrawingTools.newMarkId(), stackPoints[1], csarStackRadius, {1,0,0,0.6}, {0,0,0,0}, 4, true, "")
-        trigger.action.textToAll(1, DrawingTools.newMarkId(), stackPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "CSAR Stack")
-        stackPoints[2] = {x=blueZone.point.x, y = land.getHeight({x = blueZone.point.x, y = blueZone.point.z})+csarStackHeight, z = blueZone.point.z}
-        trigger.action.circleToAll(2, DrawingTools.newMarkId(), stackPoints[2], csarStackRadius, {0,0,1,0.6}, {0,0,0,0}, 4, true, "")
-        trigger.action.textToAll(2, DrawingTools.newMarkId(), stackPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CSAR Stack")
-    end
-    if redCsarZone and blueCsarZone then
-        csarZoneRadius = redCsarZone.radius
-        csarPoints[1] = {x=redCsarZone.point.x, y = land.getHeight({x = redCsarZone.point.x, y = redCsarZone.point.z})+3, z = redCsarZone.point.z}
-        trigger.action.circleToAll(1,DrawingTools.newMarkId(),csarPoints[1],csarZoneRadius,{1,0,0,0.6},{0,0,0,0}, 4, true, "")
-        trigger.action.textToAll(1, DrawingTools.newMarkId(), csarPoints[1], {1,0,0,0.6}, {1,1,1,0.9}, 10, true, "CSAR Coverage")
-        csarPoints[2] = {x=blueCsarZone.point.x, y = land.getHeight({x = blueCsarZone.point.x, y = blueCsarZone.point.z})+3, z = blueCsarZone.point.z}
-        trigger.action.circleToAll(2,DrawingTools.newMarkId(),csarPoints[2],csarZoneRadius,{0,0,1,0.6},{0,0,0,0}, 4, true, "")
-        trigger.action.textToAll(2, DrawingTools.newMarkId(), csarPoints[2], {0,0,1,0.6}, {1,1,1,0.9}, 10, true, "CSAR Coverage")
-    end
+    csb.setupCsarStacks()
+    csb.setupCsarCoverageAreas()
+    csb.setupHospitals()
     csb.buildMissionAirbaseList()
     csb.main()
+end
+function csb.setupCsarStacks()
+    for c= 1,2 do
+        for z = 1, #CSARStackZones[c] do
+            local thisZone = trigger.misc.getZone(CSARStackZones[c][z])
+            if thisZone then
+                table.insert(csarStackPoints[c],{x=thisZone.point.x, y = land.getHeight({x = thisZone.point.x, y = thisZone.point.z})+csarStackHeight, z = thisZone.point.z})
+                trigger.action.circleToAll(c, DrawingTools.newMarkId(), csarStackPoints[c][#csarStackPoints[c]], csarStackRadius, zoneColours[c], {0,0,0,0}, 4, true, "")
+                trigger.action.textToAll(c, DrawingTools.newMarkId(), csarStackPoints[c][#csarStackPoints[c]], zoneColours[c], {1,1,1,0.9}, 10, true, "CSAR Stack")
+            end
+        end
+    end
+end
+function csb.setupCsarCoverageAreas()
+    for c= 1,2 do
+        for z = 1, #CSARCoverageZones[c] do
+            local thisZone = trigger.misc.getZone(CSARCoverageZones[c][z])
+            if thisZone then
+                local czRadius = thisZone.radius
+                table.insert(csarCoveragePoints[c],{x=thisZone.point.x, y = land.getHeight({x = thisZone.point.x, y = thisZone.point.z})+3, z = thisZone.point.z})
+                trigger.action.circleToAll(c, DrawingTools.newMarkId(), csarCoveragePoints[c][#csarCoveragePoints[c]], czRadius, zoneColours[c], {0,0,0,0}, 4, true, "")
+                trigger.action.textToAll(c, DrawingTools.newMarkId(), csarCoveragePoints[c][#csarCoveragePoints[c]], zoneColours[c], {1,1,1,0.9}, 10, true, "CSAR Coverage")
+            end
+        end
+    end
+end
+function csb.setupHospitals()
     for c = 1, 2 do
         for z = 1, #CSARBases[c] do
             DrawingTools.drawHealth(trigger.misc.getZone(CSARBases[c][z]).point, c, 500)
@@ -185,55 +164,58 @@ function csb.searchCsarStacks()
     local genCsarFlag = false
     local genCsarCoalition = 0
     for c = 1,2 do
-        local volS = {
-            id = world.VolumeType.SPHERE,
-            params = {
-                point = stackPoints[c],
-                radius = csarStackRadius
+        for i = 1,#csarStackPoints[c] do
+            local volS = {
+                id = world.VolumeType.SPHERE,
+                params = {
+                    point = csarStackPoints[c][i],
+                    radius = csarStackRadius
+                }
             }
-        }
-        local ifFound = function(foundItem, val)
-            if (foundItem:getDesc().category == 0 or foundItem:getDesc().category == 1) and foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() == c and DFS.heloCapacities[foundItem:getTypeName()] then
-                local foundPlayerName = foundItem:getPlayerName()
-                local playerCoalition = foundItem:getCoalition()
-                local playerGroup = foundItem:getGroup()
-                local playerTypeName = foundItem:getTypeName()
-                local playerUnitName = foundItem:getName()
-                if playerGroup then
-                    local playerGroupID = playerGroup:getID()
-                    local playerGroupName = playerGroup:getName()
-                    if foundPlayerName and playerCoalition and playerGroupID then
-                        if csarCheckIns[c][foundPlayerName] == nil then
-                            currentLists[c][foundPlayerName] = {name = foundPlayerName, coalition = playerCoalition, groupID = playerGroupID, groupName = playerGroupName, typeName = playerTypeName, unitName = playerUnitName}
-                        else
-                            local stackCount = 0
-                            if #csarMissions[c] < 1 then
-                                trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 10, false)
-                                genCsarFlag = true
-                                genCsarCoalition = playerCoalition
+            local ifFound = function(foundItem, val)
+                if (foundItem:getDesc().category == 0 or foundItem:getDesc().category == 1) and foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() == c and DFS.heloCapacities[foundItem:getTypeName()] then
+                    local foundPlayerName = foundItem:getPlayerName()
+                    local playerCoalition = foundItem:getCoalition()
+                    local playerGroup = foundItem:getGroup()
+                    local playerTypeName = foundItem:getTypeName()
+                    local playerUnitName = foundItem:getName()
+                    if playerGroup then
+                        local playerGroupID = playerGroup:getID()
+                        local playerGroupName = playerGroup:getName()
+                        if foundPlayerName and playerCoalition and playerGroupID then
+                            if csarCheckIns[c][foundPlayerName] == nil then
+                                currentLists[c][foundPlayerName] = {name = foundPlayerName, coalition = playerCoalition, groupID = playerGroupID, groupName = playerGroupName, typeName = playerTypeName, unitName = playerUnitName}
                             else
-                                for _,m in pairs(csarMissions[c]) do
-                                    if m.source == "csarStack" then stackCount = stackCount + 1 end
-                                end
-                                if stackCount == 0 then
+                                local stackCount = 0
+                                if #csarMissions[c] < 1 then
                                     trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 10, false)
                                     genCsarFlag = true
                                     genCsarCoalition = playerCoalition
+                                else
+                                    for _,m in pairs(csarMissions[c]) do
+                                        if m.source == "csarStack" then stackCount = stackCount + 1 end
+                                    end
+                                    if stackCount == 0 then
+                                        trigger.action.outTextForGroup(playerGroupID, "You are on station for CSAR. Stand by for tasking.", 10, false)
+                                        genCsarFlag = true
+                                        genCsarCoalition = playerCoalition
+                                    end
                                 end
                             end
                         end
                     end
                 end
             end
-        end
-        world.searchObjects(Object.Category.UNIT, volS, ifFound)
-        if genCsarFlag and genCsarCoalition ~= 0 then
-            local csarParams = {}
-            csarParams.coalitionId = genCsarCoalition
-            csarParams.radioSilence = false
-            csarParams.hotLZ = false
-            csarParams.source = "csarStack"
-            CSB.generateCsar(csarParams)
+            world.searchObjects(Object.Category.UNIT, volS, ifFound)
+            if genCsarFlag and genCsarCoalition ~= 0 then
+                local csarParams = {}
+                csarParams.coalitionId = genCsarCoalition
+                csarParams.radioSilence = false
+                csarParams.hotLZ = false
+                csarParams.source = "csarStack"
+                csarParams.sourcePoint = csarStackPoints[c][i]
+                CSB.generateCsar(csarParams)
+            end
         end
         for k,v in pairs(currentLists[c]) do
             if previousLists[c][k] then
@@ -369,6 +351,19 @@ function csb.wrappedGenerateCsar(params)
     csarParams.source = "ejected"
     timer.scheduleFunction(CSB.generateCsar,csarParams,timer.getTime()+mist.random(8,15))
 end
+function csb.getClosestZonePointToStack(coalitionId, sourcePoint)
+    if not sourcePoint then return nil end
+    local closestDist = math.huge
+    local closestPoint = nil
+    for i = 1, #csarCoveragePoints[coalitionId] do
+        local dist = Utils.PointDistance(sourcePoint,csarCoveragePoints[coalitionId][i])
+        if dist < closestDist then
+            closestDist = dist
+            closestPoint = csarCoveragePoints[coalitionId][i]
+        end
+    end
+    return closestPoint
+end
 function CSB.generateCsar(params)
     local csarPoint = params.csarPoint
     local coalitionId = params.coalitionId
@@ -397,10 +392,14 @@ function CSB.generateCsar(params)
         fName = "Chris Burnett "..genCsarCounter
     end
     generatedCsar.name = fName
-    if not csarRadius then csarRadius = csarZoneRadius end
+    if not csarRadius then csarRadius = csarCoverageZoneRadius end
     if not csarPoint then
         checkLZ = true
-        csarPoint = csarPoints[coalitionId]
+        csarPoint = csb.getClosestZonePointToStack(params.coalitionId, params.sourcePoint)
+        if not csarPoint then
+            env.info("[csb.generateCsar] - Failed to find a suitable CSAR Coverage Zone",false)
+            return
+        end
     end
     env.info("[csb.generateCsar] - args :--- coalitionId: " .. coalitionId .. " csarPoint: x=" .. csarPoint.x .. ", y=" .. csarPoint.y .. ", z=" .. csarPoint.z .. " csarRadius: " .. csarRadius .. " anyTerrain: " .. tostring(anyTerrain), false)
     if not anyTerrain then
@@ -576,9 +575,9 @@ function csb.setupHunterGroup(rescue)
     for i=1, numEnemies do
         local hntrGroupName = Utils.uuid()
         local hntrGroupTbl = csb.createSkeleGroup(hntrGroupName)
-        local hntrGroupType = csb.chooseRandomTblItem(csarHunterOptions[opposition])
+        local hntrGroupType = csb.chooseRandomTblItem(CSARHunterOptions[opposition])
         if i == numEnemies and i > 3 and math.random() < 0.5 then
-            hntrGroupType = csb.chooseRandomTblItem(csarHunterEliteOptions[opposition])
+            hntrGroupType = csb.chooseRandomTblItem(CSARHunterEliteOptions[opposition])
         end
         local place, dist, dir = csb.closestEnemyBaseTo(rescuePoint,coalitionId)
         local place2, dist2, dir2 = csb.closestEnemyBpTo(rescuePoint,coalitionId)
@@ -1972,6 +1971,7 @@ function csb.debugCsarGeneration()
             csarParams.radioSilence = false
             csarParams.hotLZ = false
             csarParams.source = "debug"
+            csarParams.sourcePoint = csarStackPoints[i][mist.random(#csarStackPoints[i])]
             CSB.generateCsar(csarParams)
         end
     end

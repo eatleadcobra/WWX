@@ -305,6 +305,48 @@ CSARFreqCollisions = {
         }
     }
 }
+CSARHunterOptions = {
+    [1] = {
+        [1] = "Infantry AK",
+        [2] = "Infantry AK Ins",
+        [3] = "Infantry AK Ins",
+        [4] = "Infantry AK ver2",
+        [5] = "Infantry AK ver3"
+    },
+    [2] = {
+        [1] = "Soldier M4",
+        [2] = "Soldier M4 GRG",
+        [3] = "Soldier M4 GRG",
+        [4] = "Infantry AK ver2",
+        [5] = "Soldier M4 GRG",
+    }
+}
+CSARHunterEliteOptions = {
+    [1] = {
+        [1] = "tt_DSHK",
+        [2] = "HL_DSHK",
+        [3] = "tt_DSHK",
+    },
+    [2] = {
+        [1] = "M1043 HMMWV Armament",
+    }
+}
+CSARStackZones = {
+    [1] = {
+        [1] = "RedCsarStack",
+    },
+    [2] = {
+        [1] = "BlueCsarStack",
+    }
+}
+CSARCoverageZones = {
+    [1] = {
+        [1] = "RedCsarZone",
+    },
+    [2] = {
+        [1] = "BlueCsarZone",
+    }
+}
 RandomNames = {}
 RandomNames.firstNames = {
     [1] = {
