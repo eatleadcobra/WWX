@@ -662,6 +662,7 @@ function fbFuncs.firebaseFire(firebase, targetmark)
     mission.expendQty = firebaseExpendQtys[firebase.fbType]/#fbGroups
     if targetmark.fbType == "SUPPRESS" then
         mission.expendQty = mission.expendQty * 4
+        mission.radius = mission.radius * 2
     end
     if firebase.contents.ammo < mission.expendQty then mission.expendQty = firebase.contents.ammo end
     mission.expendQtyEnabled = true
