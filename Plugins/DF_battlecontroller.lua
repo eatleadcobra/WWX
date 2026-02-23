@@ -1,7 +1,7 @@
 --check BPs for ownership
 BattleControl = {}
 local positionsCountLimit = 20
-local bpRequiredStrength = 8
+local bpRequiredStrength = 5
 local junkRemoval = true
 local bc = {}
 local bcmarkups = {
@@ -650,19 +650,19 @@ function bc.getRealBpStrength(coalitionId, bpId)
     local ifFound = function(foundItem, val)
         if foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() == coalitionId then
             if foundItem:hasAttribute("Tanks") then
-                positionRealStrength = positionRealStrength + 6
+                positionRealStrength = positionRealStrength + 5
             elseif foundItem:hasAttribute("IFV") then
-                positionRealStrength = positionRealStrength + 4
-            elseif foundItem:hasAttribute("APC") then
                 positionRealStrength = positionRealStrength + 3
+            elseif foundItem:hasAttribute("APC") then
+                positionRealStrength = positionRealStrength + 2
             else
-                positionRealStrength = positionRealStrength + 1
+                positionRealStrength = positionRealStrength + 0.25
             end
         end
         return true
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
-    return positionRealStrength
+    return math.floor(positionRealStrength)
 end
 function bc.assessBpStrength(coalitionId, bpId)
     local battlePosition = battlePositions[bpId]
