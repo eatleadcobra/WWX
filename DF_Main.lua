@@ -990,8 +990,12 @@ function dfc.initSpawns()
     DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.AMMO]/shippingMethods)
     DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT] = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT]/shippingMethods)
     if SUBS and SUBTYPE then
-        DFSubs.initSub({coalitionId = 1, subType = SUBTYPE[1]})
-        DFSubs.initSub({coalitionId = 2, subType = SUBTYPE[2]})
+        if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[2].shipping) then
+            DFSubs.initSub({coalitionId = 1, subType = SUBTYPE[1]})
+        end
+        if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[1].shipping) then
+            DFSubs.initSub({coalitionId = 2, subType = SUBTYPE[2]})
+        end
     elseif SUBS then
         trigger.action.outText("MISSION CONFIG ERROR: NO SUBMARINE TYPE SPECIFIED IN OVERRIDES FILE", 180, false)
         env.info("MISSION CONFIG ERROR: NO SUBMARINE TYPE SPECIFIED IN OVERRIDES FILE", false)
@@ -1869,10 +1873,12 @@ function dfc.checkPirate(param)
 end
 function dfc.shippingLoop()
     for c = 1,2 do
-        if timer:getTime() - DFS.status[c].lastShipTime > (DFS.status[c].industrialModifier * DFS.status.shipConvoyInterval) or DFS.status[c].lastShipTime == 0 then
-            CpyControl.newShip(c, nil)
-            DFS.status[c].lastShipTime = timer:getTime()
-            if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
+        if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].shipping) then
+            if timer:getTime() - DFS.status[c].lastShipTime > (DFS.status[c].industrialModifier * DFS.status.shipConvoyInterval) or DFS.status[c].lastShipTime == 0 then
+                CpyControl.newShip(c, nil)
+                DFS.status[c].lastShipTime = timer:getTime()
+                if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
+            end
         end
     end
     timer.scheduleFunction(dfc.shippingLoop, nil, timer.getTime() + 60)
@@ -1880,9 +1886,11 @@ end
 local trainLoopInterval = 10
 function dfc.runtrains()
     for c = 1, 2 do
-        if DFS.status[c].spawns.train.name == nil then
-            dfc.spawnTrain(c)
-            dfc.trackTrain(c)
+        if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].trains) then
+            if DFS.status[c].spawns.train.name == nil then
+                dfc.spawnTrain(c)
+                dfc.trackTrain(c)
+            end
         end
     end
 end
@@ -1997,7 +2005,9 @@ function dfc.bomberLoop()
 end
 function dfc.airCargo()
     for c = 1,2 do
-        dfc.spawnAirCargo(c)
+        if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].aircargo) then
+            dfc.spawnAirCargo(c)
+        end
     end
     timer.scheduleFunction(dfc.airCargo, nil, timer.getTime() + DFS.status.airCargoInterval)
 end

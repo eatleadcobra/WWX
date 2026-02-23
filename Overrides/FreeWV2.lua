@@ -7,6 +7,18 @@ SUBTYPE =
     [1] = "santafe",
     [2] = "santafe",
 }
+COALITIONSHIPPINGMETHODS = {
+    [1] = {
+        shipping = false,
+        trains = true,
+        aircargo = true,
+    },
+    [2] = {
+        shipping = true,
+        trains = false,
+        aircargo = true,
+    }
+}
 CAP = true
 PIRACY = true
 BOMBERS = true
