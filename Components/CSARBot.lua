@@ -1261,10 +1261,15 @@ function csb.getRescueDecayRate(rescue)
     if rescue.treatments.applied.ketamine then finalDecayRate = finalDecayRate + 0.5 + (mist.random(-1,3)/10) end
     if rescue.treatments.applied.opioid then finalDecayRate = finalDecayRate - 0.5 + (mist.random(-3,1)/10) end
     if rescue.treatments.applied.tourniquet then finalDecayRate = finalDecayRate - 0.25 + (mist.random(-1,1)/10) end
+    if rescue.treatments.applied.cigarette then finalDecayRate = finalDecayRate - 0.1 + (mist.random(-1,1)/10) end
     if rescue.treatments.applied.cpr then finalDecayRate = csarRescueDecayRate end
     if rescue.treatments.needed.ketamine and (checkTime - rescue.treatments.needed.ketamine.since) > 30 then
         finalDecayRate = finalDecayRate + 1.0 + (mist.random(-2,2)/10)
         if math.fmod((checkTime - rescue.treatments.needed.ketamine.since),60) == 0 then sendMsg = true end
+    end
+    if rescue.treatments.needed.cigarette and (checkTime - rescue.treatments.needed.cigarette.since) > 30 then
+        finalDecayRate = finalDecayRate + 0.2 + (mist.random(-1,1)/10)
+        if math.fmod((checkTime - rescue.treatments.needed.cigarette.since),60) == 0 then sendMsg = true end
     end
     if rescue.treatments.needed.opioid and (checkTime - rescue.treatments.needed.opioid.since) > 30 then
         finalDecayRate = finalDecayRate + 0.4 + (mist.random(-1,1)/10)
@@ -1410,6 +1415,13 @@ function csb.updateMedicalState(groupID, rescue)
                 dI = 0
                 trigger.action.outTextForGroup(groupID, "(!!!) " .. rescue.displayName .. " is going into cardiac arrest...need to start CPR.",15,false)
             end
+            if rescue.onBoardTimeRemaining >= 300 and dI > 120 and not (rescue.treatments.applied.cigarette or rescue.treatments.needed.cigarette) and math.random() < 0.2 and math.random() < pickupSeed then
+                rescue.treatments.needed.cigarette = {}
+                rescue.treatments.needed.cigarette.since = checkTime
+                rescue.treatments.needed.lastIssue = checkTime
+                dI = 0
+                trigger.action.outTextForGroup(groupID, "(!) " .. rescue.displayName .. " is asking for a cigarette.",15,false)
+            end
             if rescue.onBoardTimeRemaining >= 180 and dI > 120 and not (rescue.treatments.applied.opioid or rescue.treatments.needed.opioid) and math.random() < 0.1 and math.random() < pickupSeed then
                 rescue.treatments.needed.opioid = {}
                 rescue.treatments.needed.opioid.since = checkTime
@@ -1510,6 +1522,15 @@ function csb.applyTreatment(params)
             params.onBoardTimeRemaining = params.onBoardTimeRemaining + 120
         end
     end
+    if params.treatment == "cigarette" then
+        params.treatments.applied.cigarette = true
+        params.treatments.needed.cigarette = nil
+        if params.onBoardTimeRemaining < 180 then
+            params.onBoardTimeRemaining = params.onBoardTimeRemaining + (180-params.onBoardTimeRemaining)
+        else
+            params.onBoardTimeRemaining = params.onBoardTimeRemaining + 60
+        end
+    end
     if params.treatment == "cpr" then
         params.treatments.applied.cpr = true
         params.treatments.needed.cpr = nil
@@ -1521,7 +1542,11 @@ function csb.applyTreatment(params)
     end
     missionCommands.removeItemForGroup(params.groupID,params.removePath)
     if not params.suppressMsg then
-        trigger.action.outTextForGroup(params.groupID,"(+) Administering " .. params.treatment .. " to " .. params.displayName,10,false)
+        if params.treatment ~= "cigarette" then
+            trigger.action.outTextForGroup(params.groupID,"(+) Administering " .. params.treatment .. " to " .. params.displayName,10,false)
+        else
+            trigger.action.outTextForGroup(params.groupID,"(+) Lighting up " .. params.displayName .. "'s " .. params.treatment,10,false)
+        end
     end
 end
 function csb.refreshCsarTransmissions()
