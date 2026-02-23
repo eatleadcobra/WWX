@@ -271,12 +271,10 @@ CSARFreqs = {
 }
 CSARBases = {
     [1] = {
-        [1] = "Red North Forward Field Hospital",
-        [2] = "Red South Forward Field Hospital"
+        [1] = "Red Forward Field Hospital",
     },
     [2] = {
-        [1] = "Blue North Forward Field Hospital",
-        [2] = "Red South Forward Field Hospital"
+        [1] = "Blue Forward Field Hospital",
     }
 }
 CSARFreqCollisions = {
