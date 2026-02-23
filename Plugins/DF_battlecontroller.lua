@@ -304,7 +304,7 @@ function bc.deployments()
                 local availableStr = bc.companyToStrength(CompanyCompTiers[availableCpyTier].composition)
                 env.info("Our strength: " .. availableStr, false)
                 env.info("strength to hold: " .. strengthToHold, false)
-                if availableStr > 0 and availableStr >= strengthToHold then
+                if (availableStr > 0 and availableStr >= strengthToHold) or (availableCpyTier <= 5) then
                     local sendCpy = nil
                     if priority == "REINFORCE" then
                         sendCpy = bc.getReinforcementNeeded(targetTable[j].strength, strengthToHold)
@@ -698,7 +698,7 @@ function bc.assessBpStrength(coalitionId, bpId)
     return positionAssessedStrength
 end
 function bc.getAvailableStrengthTableTier(coalitionId)
-    local availableEquipmentPct =  bc.availableSupplyPct(coalitionId, DFS.supplyType.EQUIPMENT)
+    local availableEquipmentPct = bc.availableSupplyPct(coalitionId, DFS.supplyType.EQUIPMENT)
     local availableFuelPct = bc.availableSupplyPct(coalitionId, DFS.supplyType.FUEL)
     local cpyTier = math.ceil((100-availableEquipmentPct)/10)
     if cpyTier == 0 then cpyTier = 1 end
