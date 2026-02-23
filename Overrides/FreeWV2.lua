@@ -15,8 +15,8 @@ COALITIONSHIPPINGMETHODS = {
     },
     [2] = {
         shipping = true,
-        trains = false,
-        aircargo = true,
+        trains = true,
+        aircargo = false,
     }
 }
 CAP = true
@@ -113,6 +113,10 @@ Platoons = {
             [1] = "Type_94_25mm_AA_Truck",
             [2] = "KAMAZ Truck"
         },
+        ["EmbeddedADhigh"] = {
+            [1] = "Type_94_25mm_AA_Truck",
+            [2] = "KAMAZ Truck"
+        },
         ["Shipping"] = {
             [1] = "Ship_Tilde_Supply",
             [2] = "CastleClass_01"
@@ -174,6 +178,10 @@ Platoons = {
             [1] = "Type_94_25mm_AA_Truck",
             [2] = "GAZ-66"
         },
+        ["EmbeddedADHigh"] = {
+            [1] = "Type_94_25mm_AA_Truck",
+            [2] = "GAZ-66"
+        },
         ["Shipping"] = {
             [1] = "Ship_Tilde_Supply",
             [2] = "CastleClass_01"
@@ -188,9 +196,10 @@ PlatoonUnitCarrierTypeNames = {
 }
 PltStrengths = {
     [1] = 10,
-    [2] = 3 + #Platoons[1]["DeployedInf"],
-    [3] = 2 + #Platoons[1]["DeployedInf"],
-    [7] = 1
+    [2] = 3,
+    [3] = 2,
+    [7] = 2,
+    [9] = 2
 }
 PltCosts = {
     [1] = {
@@ -209,6 +218,11 @@ PltCosts = {
         [3] = 0, --equipment
     },
     [7] = {
+        [1] = 4, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
+    },
+    [9] = {
         [1] = 4, --fuel
         [2] = 2, --ammo
         [3] = 1, --equipment
@@ -257,10 +271,12 @@ CSARFreqs = {
 }
 CSARBases = {
     [1] = {
-        [1] = "Red Forward Field Hospital"
+        [1] = "Red North Forward Field Hospital",
+        [2] = "Red South Forward Field Hospital"
     },
     [2] = {
-        [1] = "Blue Forward Field Hospital"
+        [1] = "Blue North Forward Field Hospital",
+        [2] = "Red South Forward Field Hospital"
     }
 }
 CSARFreqCollisions = {
