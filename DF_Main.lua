@@ -2131,6 +2131,31 @@ function dfc.mainLoop()
         timer.scheduleFunction(dfc.mainLoop, nil, timer.getTime() + 10)
     end
 end
+function dfc.respawnLoop()
+    for groupName, respawnTime in pairs(RESPAWNGROUPS) do
+        local checkgroup = Group.getByName(groupName)
+        local groupDead = false
+        if checkgroup then
+            if checkgroup:getSize()/checkgroup:getInitialSize() <= 0.2 then
+                groupDead = true
+            end
+        else
+            groupDead = true
+        end
+        if groupDead then
+            env.info("Respawn group " .. groupName .. " is dead, scheduling respawn", false)
+            timer.scheduleFunction(dfc.respawnRespawnGroup, {groupName = groupName, respawnTime = respawnTime}, timer:getTime() + respawnTime)
+            RESPAWNGROUPS[groupName] = nil
+        end
+    end
+    timer.scheduleFunction(dfc.respawnLoop, nil, timer:getTime() + 10)
+end
+--groupName, respawnTime
+function dfc.respawnRespawnGroup(param)
+    local newGroupName = mist.cloneGroup(param.groupName, true).name
+    RESPAWNGROUPS[newGroupName] = param.respawnTime
+    env.info("Respawn group " .. newGroupName .. " added, respawn time is " .. param.respawnTime, false)
+end
 function dfc.checkNoFlyZones()
     dfc.checkNoFlyZone(1)
     dfc.checkNoFlyZone(2)
@@ -3361,6 +3386,9 @@ if TRAINS then
 end
 if AIRCARGO then
     dfc.airCargo()
+end
+if RESPAWNGROUPS then
+    dfc.respawnLoop()
 end
 dfc.mainLoop()
 dfc.saveLoop()
