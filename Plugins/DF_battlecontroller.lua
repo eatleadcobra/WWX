@@ -611,6 +611,7 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, strengthTableTier, de
                     else
                         newCpy = Company.new(coalitionId, true, strengthTable, false)
                     end
+                    if newCpy == nil then return end
                     Companies[newCpy.id] = newCpy
                     table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
                     newCpy:setWaypoints({startPoint, destination}, targetBP, 999)

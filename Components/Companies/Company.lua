@@ -72,6 +72,10 @@ function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, co
     end
     for i = 1, #platoons do
         local pltUnits = Company.deepcopy(Platoons[coalitionId][PlatoonTypes[platoons[i]]])
+        if pltUnits == nil then
+            env.info("error, nil platoon. Attempted type " ..platoons[i], false)
+            return nil
+        end
         for j = 1, #pltUnits do
             table.insert(newCpy.units, pltUnits[j])
             if PlatoonUnitCarrierTypeNames[pltUnits[j]] then
