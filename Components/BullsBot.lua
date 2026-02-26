@@ -42,6 +42,11 @@ local interceptors = {
     [2] = {}
 }
 local unitTypes = {
+    ["An-26B"] = "Transport",
+    ["An-30M"] = "Transport",
+    ["c-17A"] = "Transport",
+    ["il-76md"] = "Transport",
+    ["il-78m"] = "Transport",
     ["C-130J-30"] = "Transport",
     ["Bf-109K-4"] = "Single-engine prop",
     ["FW-190A8"] = "Single-engine prop",
