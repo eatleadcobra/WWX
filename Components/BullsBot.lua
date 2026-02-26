@@ -92,6 +92,7 @@ local unitTypes = {
     ["F-14A-135-GR"] = "Fighter",
     ["F-14B"] = "Fighter",
     ["B-1B"] = "Bomber",
+    ["b-52H"] = "Large Bomber",
     ["Tu-22M3"] = "Bomber",
     ["Tornado IDS"] = "Bomber",
     ["Su-24M"] = "Bomber",
