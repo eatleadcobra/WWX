@@ -56,6 +56,10 @@ AACount = 0
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
 
+BLUECASFREQ = 150
+REDCASFREQ = 150
+BLUECASMOD = 0
+REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
