@@ -301,28 +301,30 @@ CSARFreqCollisions = {
 }
 CSARHunterOptions = {
     [1] = {
-        [1] = "Infantry AK",
-        [2] = "Infantry AK Ins",
-        [3] = "Infantry AK Ins",
-        [4] = "Infantry AK ver2",
-        [5] = "Infantry AK ver3"
-    },
-    [2] = {
-        [1] = "Soldier M4",
+        [1] = "Soldier M4 GRG",
         [2] = "Soldier M4 GRG",
         [3] = "Soldier M4 GRG",
-        [4] = "Infantry AK ver2",
-        [5] = "Soldier M4 GRG",
+        [4] = "Soldier M4 GRG",
+        [5] = "Soldier M249",
+    },
+    [2] = {
+        [1] = "Infantry AK ver2",
+        [2] = "Infantry AK ver3",
+        [3] = "Infantry AK ver2",
+        [4] = "Infantry AK ver3",
+        [5] = "Infantry AK ver2",
     }
 }
 CSARHunterEliteOptions = {
     [1] = {
-        [1] = "tt_DSHK",
-        [2] = "HL_DSHK",
-        [3] = "tt_DSHK",
+        [1] = "M2A1_halftrack",
+        [2] = "Type_94_25mm_AA_Truck",
+        [3] = "M2A1_halftrack",
     },
     [2] = {
-        [1] = "M1043 HMMWV Armament",
+        [1] = "Type_94_25mm_AA_Truck",
+        [2] = "Sd_Kfz_251",
+        [3] = "Type_94_25mm_AA_Truck",
     }
 }
 CSARStackZones = {
