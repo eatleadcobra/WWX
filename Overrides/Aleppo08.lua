@@ -153,10 +153,10 @@ Platoons = {
         },
         ["Inf"] = {
             [1] = "M1128 Stryker MGS",
-			[1] = "M1134 Stryker ATGM",
-			[1] = "M1126 Stryker ICV", --CHAP_M1130
-            [2] = "M1126 Stryker ICV",
-            [3] = "M 818"
+			[2] = "M1134 Stryker ATGM",
+			[3] = "M1126 Stryker ICV", --CHAP_M1130
+            [4] = "M1126 Stryker ICV",
+            [5] = "M 818"
         },
         ["DeployedInf"] = {
             [1] = "Soldier M4 GRG",
