@@ -357,6 +357,7 @@ function bc.main()
     local redPositions = 0
     local bluePositions = 0
     local positionNotifications = {}
+    local checkTime = timer.getTime()
     for k,v in pairs(battlePositions) do
         local redUnits = 0
         local blueUnits = 0
@@ -417,10 +418,14 @@ function bc.main()
                 local reconCoalitionId = 1
                 if ownedBy == 1 then reconCoalitionId = 2 end
                 v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id, true)
-                table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true, prevCoalition = v.ownedBy})
-                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
+                if checkTime > 10 then
+                    table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true, prevCoalition = v.ownedBy})
+                    table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
+                end
             else
-                table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
+                if checkTime > 10 then
+                    table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
+                end
             end
             v.ownedBy = ownedBy
         end
