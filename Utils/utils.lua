@@ -209,3 +209,23 @@ function Utils.fileExists(file)
     if f then f:close() end
     return f ~= nil
 end
+
+function Utils.checkZoneIntersection(coalitionId, zoneName)
+    local zone = trigger.misc.getZone(zoneName)
+    local units = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = zone.point,
+            radius = zone.radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:getCoalition() == coalitionId then
+            units[#units + 1] = foundItem:getName()
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    return units
+end
