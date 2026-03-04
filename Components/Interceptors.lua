@@ -12,6 +12,10 @@ local lastInterceptorTime = {
     [2] = {
     }
 }
+local totalIntercepting = {
+    [1] = 0,
+    [2] = 0,
+}
 local updateInterval = 60
 function intr.initTables()
     for i = 1, INTERCEPTORS.intercept_limit do
@@ -48,7 +52,7 @@ function intr.spawnInterceptor(coalitionId, target)
         return
     end
     local groupName = mist.cloneGroup(cloneGroupName, true).name
-
+    totalIntercepting[coalitionId]= totalIntercepting[coalitionId] + 1
     -- set interceptor task to engage target
     local interceptPoint = {
         id = 'Orbit',
@@ -80,12 +84,13 @@ function intr.checkInterceptor(param)
     local group = Group.getByName(param.groupName)
     local target = Unit.getByName(param.target)
     if group ~= nil then
-        if group:getSize() == 0 or group:getUnit(1) == nil or group:getUnit(1):inAir() == false or target == nil then
+        if group:getSize() == 0 or group:getUnit(1) == nil or group:getUnit(1):inAir() == false then
             env.info("Interceptor group " .. param.groupName .. " has been destroyed or is on the ground", false)
             group:destroy()
             lastInterceptorTime[param.coalitionId][param.number] = timer:getTime()
             currentlyIntercepting[param.coalitionId][param.target] = nil
-        else
+            totalIntercepting[param.coalitionId] = totalIntercepting[param.coalitionId] - 1
+        elseif target ~= nil then
             -- set interceptor task to engage target new position if detected on bulls
             if intr.detectedOnBulls(param.coalitionId, param.target) then
                 env.info("Target " .. param.target .. " still detected on bulls, updating interceptor task", false)
@@ -119,11 +124,14 @@ function intr.checkInterceptor(param)
                 env.info("Target " .. param.target .. " no longer detected on bulls, interceptor will continue to last known position", false)
             end
             timer.scheduleFunction(intr.checkInterceptor, param, timer.getTime() + updateInterval)
+        else
+            timer.scheduleFunction(intr.checkInterceptor, param, timer.getTime() + updateInterval)
         end
     else
         if param.target then
             currentlyIntercepting[param.coalitionId][param.target] = nil
         end
+        totalIntercepting[param.coalitionId] = totalIntercepting[param.coalitionId] - 1
         lastInterceptorTime[param.coalitionId][param.number] = timer:getTime()
     end
 end
@@ -163,7 +171,7 @@ function Intr.interceptorLoop()
             if i <= #blueInterceptTargets then
                 if intr.detectedOnBulls(2, blueInterceptTargets[i].name) then
                     env.info("target " .. blueInterceptTargets[i].name .. " detected on bulls, spawning interceptor", false)
-                    if not currentlyIntercepting[2][blueInterceptTargets[i].name] then
+                    if not currentlyIntercepting[2][blueInterceptTargets[i].name] and totalIntercepting[2] < INTERCEPTORS.intercept_limit then
                         intr.spawnInterceptor(2, blueInterceptTargets[i].name)
                     else
                         env.info("Already intercepting target " .. blueInterceptTargets[i].name, false)
@@ -178,7 +186,7 @@ function Intr.interceptorLoop()
             if i <= #redInterceptTargets then
                 if intr.detectedOnBulls(1, redInterceptTargets[i].name) then
                     env.info("target " .. redInterceptTargets[i].name .. " detected on bulls, spawning interceptor", false)
-                    if not currentlyIntercepting[1][redInterceptTargets[i].name] then
+                    if not currentlyIntercepting[1][redInterceptTargets[i].name] and totalIntercepting[1] < INTERCEPTORS.intercept_limit then
                         intr.spawnInterceptor(1, redInterceptTargets[i].name)
                     else
                         env.info("Already intercepting target " .. redInterceptTargets[i].name, false)
