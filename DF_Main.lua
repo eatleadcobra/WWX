@@ -2240,8 +2240,12 @@ function dfc.spawnSupply(param)
                 local piratePickup = string.find(pickUpZone, 'Pirate')
                 local canSpawnCargo = dfc.canSpawnCargo(param.type, transporterCoalition, frontPickup, param.modifier, piratePickup)
                 local seaPickup = false
+                local hubPickup = false
                 if string.find(pickUpZone, 'Sea') or string.find(pickUpZone, 'Hub') then
                     seaPickup = true
+                    if string.find(pickUpZone, 'Hub') then
+                        hubPickup = true
+                    end
                 end
                 if seaPickup or canSpawnCargo then
                     local pickupPoint = trigger.misc.getZone(pickUpZone).point
@@ -2263,13 +2267,13 @@ function dfc.spawnSupply(param)
                         if param.type == DFS.supplyType.GUN then decreaseType = DFS.supplyType.EQUIPMENT end
                         dfc.decreaseFrontSupply({coalitionId = transporterCoalition,  amount = (DFS.status.playerResupplyAmts[param.type][param.modifier]), type = decreaseType})
                     end
-                    dfc.trackCargo({coalition = transporterCoalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
+                    dfc.trackCargo({coalition = transporterCoalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = seaPickup, hubPickup = hubPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
                     if SBS then
                         SBS.watchCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
                     end
                 else
                     trigger.action.outTextForGroup(transporterGroup:getID(), "This depot does not have enough " .. DFS.supplyNames[param.type].. " to create a crate!", 5, false)
-                    if frontPickup  then
+                    if frontPickup then
                         trigger.action.outTextForGroup(transporterGroup:getID(), "Front depots only allow pickup for ammo and artillery.", 10, false)
                     end
                 end
@@ -2462,7 +2466,7 @@ function dfc.unloadInternalCargo(param)
                     dfc.troopUnload(param.groupName, param.type, param.ammo)
                 else
                     local cargo = dfc.spawnStatic(param.type, unloadPoint, param.country, "small")
-                    dfc.trackCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
+                    dfc.trackCargo({coalition = param.coalition, cargo = cargo, supplyType = param.type, spawnTime = timer:getTime(), seaPickup = param.seaPickup, hubPickup = param.hubPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = nil, modifier = "small", groupName = param.groupName, successfulDeployChecks = 0})
                 end
                 local secondLevel = "Virtual Cargo"
                 if dfc.isTroops(param.type) then
@@ -2829,26 +2833,41 @@ end
 function dfc.trackCargo(param)
     local cargo = StaticObject.getByName(param.cargo)
     local pickupZone = DFS.pickUpZones[param.coalition][1]
-    if param.seaPickup then pickupZone = DFS.pickUpZones[param.coalition][2] end
+    if param.seaPickup then
+        pickupZone = DFS.pickUpZones[param.coalition][2]
+        if param.hubPickup then
+            pickupZone = DFS.pickUpZones[param.coalition][4]
+        end
+    end
     if cargo and cargo.getPoint and cargo:getPoint() then
-        local closestDepotToCargo = dfc.findClosestDepot(cargo:getPoint(), param.coalition)
+        local cargoPoint = cargo:getPoint()
+        if cargoPoint == nil then
+            env.info("cargo " .. param.cargo .. " has no point! ERROR", false)
+            return
+        end
+        local pickupZoneActual = trigger.misc.getZone(pickupZone)
+        if pickupZoneActual == nil then
+            env.info("cargo " .. param.cargo .. " has invalid pickup zone! ERROR", false)
+            return
+        end
+        local closestDepotToCargo = dfc.findClosestDepot(cargoPoint, param.coalition)
         local closestFirebaseToCargo = nil
         local distanceToClosestFb =  nil
         if param.supplyType == DFS.supplyType.AMMO or param.supplyType == DFS.supplyType.GUN then
-            closestFirebaseToCargo = Firebases.getClosestFirebase(cargo:getPoint(), param.coalition)
+            closestFirebaseToCargo = Firebases.getClosestFirebase(cargoPoint, param.coalition)
             if closestFirebaseToCargo > 0 then
-                distanceToClosestFb = Utils.PointDistance(Firebases[closestFirebaseToCargo].positions.location, cargo:getPoint())
+                distanceToClosestFb = Utils.PointDistance(Firebases[closestFirebaseToCargo].positions.location, cargoPoint)
             end
         end
         if closestDepotToCargo then
             if timer:getTime() - param.spawnTime > DFS.status.cargoExpireTime then
-                if Utils.PointDistance(cargo:getPoint(),trigger.misc.getZone(pickupZone).point) <= DFS.status.playerDeliverRadius then
+                if Utils.PointDistance(cargoPoint,trigger.misc.getZone(pickupZone).point) <= DFS.status.playerDeliverRadius then
                     dfc.deliverToDepot(closestDepotToCargo, param.coalition, param.supplyType, param.modifier)
                 end
                 if cargo and cargo:isExist() then
                     timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                 end
-            elseif timer:getTime() - param.spawnTime > 1800 and Utils.PointDistance(cargo:getPoint(),trigger.misc.getZone(pickupZone).point) < 30 then
+            elseif timer:getTime() - param.spawnTime > 1800 and Utils.PointDistance(cargoPoint, trigger.misc.getZone(pickupZone).point) < 30 then
                 if not param.seaPickup then
                     local reclaimType = param.supplyType
                     if reclaimType == 4 then reclaimType = 3 end
@@ -2868,7 +2887,6 @@ function dfc.trackCargo(param)
                         chinookCargo = deliverUnit:getTypeName() == "CH-47Fbl1"
                     end
                 end
-                local cargoPoint = cargo:getPoint()
                 if cargoPoint then env.info("cargo (".. param.cargo .. ") location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z .. " AGL: " .. altitude, false) end
                 if (velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) and (altitude < 0.5 and altitude > -5) then
                    param.successfulDeployChecks = param.successfulDeployChecks + 1

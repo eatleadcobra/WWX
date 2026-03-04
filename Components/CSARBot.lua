@@ -214,6 +214,7 @@ function csb.searchCsarStacks()
                 csarParams.hotLZ = false
                 csarParams.source = "csarStack"
                 csarParams.sourcePoint = csarStackPoints[c][i]
+                csarParams.anyTerrain = true
                 CSB.generateCsar(csarParams)
             end
         end
@@ -254,6 +255,7 @@ function CSB.csarCheckIn(params)
         csarParams.radioSilence = false
         csarParams.hotLZ = false
         csarParams.source = "csarStack"
+        csarParams.anyTerrain = true
         CSB.generateCsar(csarParams)
     end
     if not prev then
@@ -1997,6 +1999,7 @@ function csb.debugCsarGeneration()
             csarParams.hotLZ = false
             csarParams.source = "debug"
             csarParams.sourcePoint = csarStackPoints[i][mist.random(#csarStackPoints[i])]
+            csarParams.anyTerrain = true
             CSB.generateCsar(csarParams)
         end
     end
@@ -2041,8 +2044,8 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     ceMission.hotLZ = csb.checkLZ(spawnPoint,coalitionId)
     ceMission.coalition = coalitionId
     ceMission.bpId = bpId
-    ceMission.groupName = DF_UTILS.spawnGroupExact("CASEVAC-" .. coalitionId,spawnPoint,"clone",nil,nil,nil,"CASEVAC-" .. genCasEvacCounter)
-    ceMission.equipment = DF_UTILS.spawnGroupExact("TCN-" .. coalitionId,spawnPoint,"clone",nil,nil,nil,"CASEVAC-TCN-" .. genCasEvacCounter)
+    ceMission.groupName = DF_UTILS.spawnGroupExact("CASEVAC-" .. coalitionId,spawnPoint,"clone",nil,true,nil,"CASEVAC-" .. genCasEvacCounter)
+    ceMission.equipment = DF_UTILS.spawnGroupExact("TCN-" .. coalitionId,spawnPoint,"clone",nil,true,nil,"CASEVAC-TCN-" .. genCasEvacCounter)
     if not (ceMission.groupName and ceMission.equipment) then
         env.info("[CSB.createCasEvac] - could not spawn CasEvac group",false)
         return
@@ -2081,6 +2084,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     csarParams.hotLZ = ceMission.hotLZ
     csarParams.source = "casevac"
     csarParams.sourceId = ceMission.missionId
+    csarParams.anyTerrain = true
     CSB.generateCsar(csarParams)
     table.insert(casEvacMissions[coalitionId], ceMission)
     genCasEvacCounter = genCasEvacCounter + 1
@@ -2120,6 +2124,7 @@ function csb.trackCasEvac()
                         csarParams.hotLZ = m.hotLZ
                         csarParams.source = "casevac"
                         csarParams.sourceId = m.missionId
+                        csarParams.anyTerrain = true
                         CSB.generateCsar(csarParams)
                         for _,r in pairs(csarMissions[c]) do
                             if r.sourceId == m.missionId then
