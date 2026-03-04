@@ -91,34 +91,35 @@ function intr.checkInterceptor(param)
             currentlyIntercepting[param.coalitionId][param.target] = nil
             totalIntercepting[param.coalitionId] = totalIntercepting[param.coalitionId] - 1
         elseif target ~= nil then
-            -- set interceptor task to engage target new position if detected on bulls
-            if intr.detectedOnBulls(param.coalitionId, param.target) then
-                env.info("Target " .. param.target .. " still detected on bulls, updating interceptor task", false)
-                local targetPoint = target:getPoint()
-                if targetPoint == nil then
-                    env.info("Could not get target point for interceptor task update, aborting task update", false)
-                    timer.scheduleFunction(intr.checkInterceptor, param, timer.getTime() + updateInterval)
-                    return
-                end
-                local interceptPoint = {
-                id = 'Orbit',
-                    params = {
-                    pattern = 'Circle',
-                    point = targetPoint,
-                    speed = 1000,
-                    altitude = targetPoint.y,
-                    } 
-                }
-                local interceptTask = {
-                    id = "EngageUnit",
-                    params = {
-                        unitId = target:getID(),
-                    }
-                }
-                local controller = Group.getByName(param.groupName):getController()
-                if controller then
-                    controller:pushTask(interceptPoint)
-                    controller:setTask(interceptTask)
+            local controller = Group.getByName(param.groupName):getController()
+            if controller then
+                if not controller:isTargetDetected(target) then -- if target is no longer detected, check if it's still on bulls and update task to new position if so
+                    if intr.detectedOnBulls(param.coalitionId, param.target) then
+                        env.info("Target " .. param.target .. " still detected on bulls, updating interceptor task", false)
+                        local targetPoint = target:getPoint()
+                        if targetPoint == nil then
+                            env.info("Could not get target point for interceptor task update, aborting task update", false)
+                            timer.scheduleFunction(intr.checkInterceptor, param, timer.getTime() + updateInterval)
+                            return
+                        end
+                        local interceptPoint = {
+                        id = 'Orbit',
+                            params = {
+                            pattern = 'Circle',
+                            point = targetPoint,
+                            speed = 1000,
+                            altitude = targetPoint.y,
+                            } 
+                        }
+                        local interceptTask = {
+                            id = "EngageUnit",
+                            params = {
+                                unitId = target:getID(),
+                            }
+                        }
+                        controller:pushTask(interceptPoint)
+                        controller:setTask(interceptTask)
+                    end
                 end
             else
                 env.info("Target " .. param.target .. " no longer detected on bulls, interceptor will continue to last known position", false)
