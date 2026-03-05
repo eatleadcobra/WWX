@@ -1,3 +1,21 @@
+--- @module Interceptors
+--- @author "George "Gepset" Brooker"
+--- @description "This module handles spawning interceptors to engage targets in specific zones. It checks for targets in the zones, prioritizes them based on distance to the zone, and spawns interceptors to engage them if they are detected on bulls. Interceptors will continue to engage their target as long as it is detected on bulls, even if it leaves the zone. If an interceptor is destroyed or lands, it will be removed from the currentlyIntercepting table and a new interceptor can be spawned for that target if it is still detected on bulls and within the intercept limit."
+--- @version "1.0.0"
+
+-- For V2 create more optimised zone search logic by filtering units by bulls detection first and only checking targets on bulls for zone intersection.
+-- TODO finish multiple zone logic and linked airframes system
+
+
+-- Template to follow when creating your override file. should be named INTERCEPTORS in the override file.
+local templateOverride = {
+    interval = 600, --seconds for a new interceptor to spawn after the last one dies (each interceptor has its own cooldown applied individually
+    intercept_limit = 3, -- total number of interceptors that can be in the air at one time
+    multipleZones = true, -- if true, will look for targets in multiple zones with the same name and a number at the end (e.g. InterceptorZoneRed-1, InterceptorZoneRed-2, etc.) and will prioritize targets in the closest zone to the interceptor spawn point. If false, will look for targets in a single zone (InterceptorZoneRed and InterceptorZoneBlue)
+    independantZones = true, -- if true, will treat each zone as independent for interceptor spawning (e.g. target priority will be determined relative to interceptrZone1, if zones are independant, each zone will have its own priority list and interceptors will spawn based on that list instead of a combined list for all zones). Interceptors are tasked randomly among the zones.
+    linkedAirframes = true -- if true each zone will be linked to a specific interceptor group with the same name and a number at the end (e.g. InterceptorZoneRed-1 will be linked to Red-Interceptor-1). If false, will use the same interceptor group for all zones (Red-Interceptor and Blue-Interceptor)
+}
+
 Intr = {}
 local intr = {}
 local currentlyIntercepting = {
@@ -17,6 +35,12 @@ local totalIntercepting = {
     [2] = 0,
 }
 local updateInterval = 60
+local zonePriorityTables = {
+    [1] = {
+    },
+    [2] = {
+    }
+}
 function intr.initTables()
     for i = 1, INTERCEPTORS.intercept_limit do
         lastInterceptorTime[1][i] = 0
