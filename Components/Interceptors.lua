@@ -149,6 +149,9 @@ function intr.detectedOnBulls(coalitionId, unitName)
     end
 end
 function intr.getInterceptorPriority(units, zoneName)
+    if zoneName:sub(-1) == "-" then 
+        zoneName = zoneName.."1" -- first zone will be the priority zone.
+    end
     local priorityUnits = {}
     local zone = trigger.misc.getZone(zoneName)
     for i = 1, #units do
@@ -165,7 +168,13 @@ function intr.getInterceptorPriority(units, zoneName)
     return priorityUnits
 end
 function Intr.interceptorLoop()
-    local blueInterceptTargets = intr.getInterceptorPriority(Utils.checkZoneIntersection(1, "InterceptorZoneBlue"), "InterceptorZoneBlue")
+    local blueZone = "InterceptorZoneBlue"
+    local redZone = "InterceptorZoneRed"
+    if INTERCEPTORS.multipleZones then
+        blueZone = "InterceptorZoneBlue-"
+        redZone = "InterceptorZoneRed-"
+    end
+    local blueInterceptTargets = intr.getInterceptorPriority(Utils.checkZoneIntersection(1, blueZone), blueZone)
     if INTERCEPTORS.intercept_limit == nil then INTERCEPTORS.intercept_limit = 1 end
     if blueInterceptTargets then
         for i = 1, INTERCEPTORS.intercept_limit do
@@ -181,7 +190,7 @@ function Intr.interceptorLoop()
             end
         end
     end
-    local redInterceptTargets = intr.getInterceptorPriority(Utils.checkZoneIntersection(2, "InterceptorZoneRed"), "InterceptorZoneRed")
+    local redInterceptTargets = intr.getInterceptorPriority(Utils.checkZoneIntersection(2, redZone), redZone)
     if redInterceptTargets then
         for i = 1, INTERCEPTORS.intercept_limit do
             if i <= #redInterceptTargets then

@@ -211,8 +211,17 @@ function Utils.fileExists(file)
 end
 
 function Utils.checkZoneIntersection(coalitionId, zoneName)
-    local zone = trigger.misc.getZone(zoneName)
     local units = {}
+    if zoneName:sub(-1) == "-" then -- automatically handle prefix zones
+        i = 1
+        while trigger.misc.getZone(zoneName..i) do
+            local zoneUnits = Utils.checkZoneIntersection(coalitionId, zoneName..i)
+            table.move(zoneUnits, 1, #zoneUnits, #units + 1, units)
+            i = i + 1
+        end
+        return units
+    end
+    local zone = trigger.misc.getZone(zoneName)
     local volS = {
         id = world.VolumeType.SPHERE,
         params = {
