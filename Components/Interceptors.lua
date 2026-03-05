@@ -15,9 +15,11 @@ local templateOverride = {
     -- OPTIONAL
     multipleZones = true, -- if true, will look for targets in multiple zones with the same name and a number at the end (e.g. InterceptorZoneRed-1, InterceptorZoneRed-2, etc.) and will prioritize targets in the closest zone to the interceptor spawn point. If false, will look for targets in a single zone (InterceptorZoneRed and InterceptorZoneBlue)
     independantZones = true, -- if true, will treat each zone as independent for interceptor spawning (e.g. target priority will be determined relative to interceptrZone1, if zones are independant, each zone will have its own priority list and interceptors will spawn based on that list instead of a combined list for all zones). Interceptors are tasked randomly among the zones.
-    linkedAirframes = true, -- if true each zone will be linked to a specific interceptor group with the same name and a number at the end (e.g. InterceptorZoneRed-1 will be linked to Red-Interceptor-1). If false, will use the same interceptor group for all zones (Red-Interceptor and Blue-Interceptor)
+    linkedAirframes = {
+        [1] = {[1] = 1, [2] = 1, [3] = 2}, -- Red coalition, zone 1 and 2 will use Red-Interceptor-1 template, zone 3 will use Red-Interceptor-2 template
+        [2] = {[1] = 1, [2] = 1, [3] = 2}, -- Blue coalition, zone 1 and 2 will use Blue-Interceptor-1 template, zone 3 will use Blue-Interceptor-2 template
+    }, -- if true each zone will be linked to a specific interceptor group template, defined by the number (e.g. if 1, will use Red-Interceptor-1 and Blue-Interceptor-1 templates, if 2, will use Red-Interceptor-2 and Blue-Interceptor-2 templates, etc.). If false, will use the same interceptor group template for all zones. There is required to be an entry for all zones if enabled. 
     noGci = false, -- if true, intercept points will not be updated via script, interceptors will need to use their own sensors to find the target.
-    sensorRestriction = "RADAR,IRST", -- if set, will restrict interceptor from using certain sensors to detect the target (e.g. "RADAR", "DATALINK", etc.)
 }
 
 Intr = {}
@@ -62,6 +64,15 @@ function intr.spawnInterceptor(coalitionId, target)
 
     local cloneGroupName = 'Red-Interceptor'
     if coalitionId == 2 then cloneGroupName = 'Blue-Interceptor' end
+    if INTERCEPTORS.linkedAirframes and INTERCEPTORS.multipleZones then
+        local zoneNumber = target.zone:match("%d+$") or 1 -- extract number at end of target name, default to 1 if not found
+        local linkedGroupNumber = INTERCEPTORS.linkedAirframes[coalitionId][zoneNumber]
+        if linkedGroupNumber then
+            cloneGroupName = cloneGroupName .. "-" .. linkedGroupNumber
+        else
+            env.info("No linked interceptor group found for coalition " .. coalitionId .. " and zone number " .. zoneNumber .. ", using default interceptor group", false)
+        end
+    end
     env.info("Spawning interceptor " .. cloneGroupName .. " for target " .. target .. " with number " .. number, false)
     -- get first available interceptor slot for coalitionId
     for i = 1, INTERCEPTORS.intercept_limit do
@@ -117,7 +128,7 @@ function intr.checkInterceptor(param)
             local controller = Group.getByName(param.groupName):getController()
             if controller then
                 if not controller:isTargetDetected(target) then -- if target is no longer detected, check if it's still on bulls and update task to new position if so
-                    if intr.detectedOnBulls(param.coalitionId, param.target) then
+                    if intr.detectedOnBulls(param.coalitionId, param.target) and not INTERCEPTORS.noGci then
                         env.info("Target " .. param.target .. " still detected on bulls, updating interceptor task", false)
                         local targetPoint = target:getPoint()
                         if targetPoint == nil then
@@ -196,7 +207,7 @@ function intr.getInterceptorPriority(units, zoneName)
             local unitPoint = unit:getPoint()
             if unitPoint then
                 local distanceToZone = Utils.PointDistance(unitPoint, zone.point)
-                priorityUnits[#priorityUnits + 1] = {name = units[i], distance = distanceToZone}
+                priorityUnits[#priorityUnits + 1] = {name = units[i], distance = distanceToZone, zone = zoneName}
             end
         end
     end
@@ -235,7 +246,7 @@ function intr.scrambleInterceptors(coalitionId, targets)
             end
         end
     end
-
+end
 function Intr.interceptorLoop()
     local blueZone = "InterceptorZoneBlue"
     local redZone = "InterceptorZoneRed"
