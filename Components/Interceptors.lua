@@ -9,11 +9,15 @@
 
 -- Template to follow when creating your override file. should be named INTERCEPTORS in the override file.
 local templateOverride = {
+    -- REQUIRED
     interval = 600, --seconds for a new interceptor to spawn after the last one dies (each interceptor has its own cooldown applied individually
     intercept_limit = 3, -- total number of interceptors that can be in the air at one time
+    -- OPTIONAL
     multipleZones = true, -- if true, will look for targets in multiple zones with the same name and a number at the end (e.g. InterceptorZoneRed-1, InterceptorZoneRed-2, etc.) and will prioritize targets in the closest zone to the interceptor spawn point. If false, will look for targets in a single zone (InterceptorZoneRed and InterceptorZoneBlue)
     independantZones = true, -- if true, will treat each zone as independent for interceptor spawning (e.g. target priority will be determined relative to interceptrZone1, if zones are independant, each zone will have its own priority list and interceptors will spawn based on that list instead of a combined list for all zones). Interceptors are tasked randomly among the zones.
-    linkedAirframes = true -- if true each zone will be linked to a specific interceptor group with the same name and a number at the end (e.g. InterceptorZoneRed-1 will be linked to Red-Interceptor-1). If false, will use the same interceptor group for all zones (Red-Interceptor and Blue-Interceptor)
+    linkedAirframes = true, -- if true each zone will be linked to a specific interceptor group with the same name and a number at the end (e.g. InterceptorZoneRed-1 will be linked to Red-Interceptor-1). If false, will use the same interceptor group for all zones (Red-Interceptor and Blue-Interceptor)
+    noGci = false, -- if true, intercept points will not be updated via script, interceptors will need to use their own sensors to find the target.
+    sensorRestriction = "RADAR,IRST", -- if set, will restrict interceptor from using certain sensors to detect the target (e.g. "RADAR", "DATALINK", etc.)
 }
 
 Intr = {}
@@ -35,13 +39,8 @@ local totalIntercepting = {
     [2] = 0,
 }
 local updateInterval = 60
-local zonePriorityTables = {
-    [1] = {
-    },
-    [2] = {
-    }
-}
 function intr.initTables()
+    if INTERCEPTORS.intercept_limit == nil then INTERCEPTORS.intercept_limit = 1 end
     for i = 1, INTERCEPTORS.intercept_limit do
         lastInterceptorTime[1][i] = 0
         lastInterceptorTime[2][i] = 0
@@ -173,6 +172,19 @@ function intr.detectedOnBulls(coalitionId, unitName)
     end
 end
 function intr.getInterceptorPriority(units, zoneName)
+    if INTERCEPTORS.independantZones and zoneName:sub(-1) == "-" then
+        local i = 1
+        local priorityZones = {}
+        while trigger.misc.getZone(zoneName .. i) do
+            local indUnits = intr.getInterceptorPriority(units, zoneName .. i)
+            if #indUnits > 0 then
+                priorityZones[zoneName .. i] = indUnits
+            end
+            i = i + 1
+        end
+        priorityZones.independent = true
+        return priorityZones
+    end
     if zoneName:sub(-1) == "-" then 
         zoneName = zoneName.."1" -- first zone will be the priority zone.
     end
@@ -191,6 +203,39 @@ function intr.getInterceptorPriority(units, zoneName)
     table.sort(priorityUnits, function(a, b) return a.distance < b.distance end)
     return priorityUnits
 end
+function intr.scrambleInterceptors(coalitionId, targets)
+    if targets then
+        if INTERCEPTORS.independantZones then
+            for i=1, INTERCEPTORS.intercept_limit do
+                local randomZone = math.random(1, #targets)
+                target = randomZone[1] -- take higest priority target from random zone
+                if target then
+                    table.remove(target, 1) -- remove target from zone priority list so next interceptor will take next target in that zone if selected again
+                    if intr.detectedOnBulls(coalitionId, target.name) then
+                        env.info("target " .. target.name .. " detected on bulls, spawning interceptor", false)
+                        if not currentlyIntercepting[coalitionId][target.name] and totalIntercepting[coalitionId] < INTERCEPTORS.intercept_limit then
+                            intr.spawnInterceptor(coalitionId, target.name)
+                        else
+                            env.info("Already intercepting target " .. target.name, false)
+                        end
+                    end
+                end
+            end
+        end
+        for i = 1, INTERCEPTORS.intercept_limit do
+            if i <= #blueInterceptTargets then
+                if intr.detectedOnBulls(coalitionId, targets[i].name) then
+                    env.info("target " .. targets[i].name .. " detected on bulls, spawning interceptor", false)
+                    if not currentlyIntercepting[coalitionId][targets[i].name] and totalIntercepting[coalitionId] < INTERCEPTORS.intercept_limit then
+                        intr.spawnInterceptor(coalitionId, targets[i].name)
+                    else
+                        env.info("Already intercepting target " .. targets[i].name, false)
+                    end
+                end
+            end
+        end
+    end
+
 function Intr.interceptorLoop()
     local blueZone = "InterceptorZoneBlue"
     local redZone = "InterceptorZoneRed"
@@ -199,36 +244,11 @@ function Intr.interceptorLoop()
         redZone = "InterceptorZoneRed-"
     end
     local blueInterceptTargets = intr.getInterceptorPriority(Utils.checkZoneIntersection(1, blueZone), blueZone)
-    if INTERCEPTORS.intercept_limit == nil then INTERCEPTORS.intercept_limit = 1 end
-    if blueInterceptTargets then
-        for i = 1, INTERCEPTORS.intercept_limit do
-            if i <= #blueInterceptTargets then
-                if intr.detectedOnBulls(2, blueInterceptTargets[i].name) then
-                    env.info("target " .. blueInterceptTargets[i].name .. " detected on bulls, spawning interceptor", false)
-                    if not currentlyIntercepting[2][blueInterceptTargets[i].name] and totalIntercepting[2] < INTERCEPTORS.intercept_limit then
-                        intr.spawnInterceptor(2, blueInterceptTargets[i].name)
-                    else
-                        env.info("Already intercepting target " .. blueInterceptTargets[i].name, false)
-                    end
-                end
-            end
-        end
-    end
+    intr.scrambleInterceptors(1, blueInterceptTargets)
+
     local redInterceptTargets = intr.getInterceptorPriority(Utils.checkZoneIntersection(2, redZone), redZone)
-    if redInterceptTargets then
-        for i = 1, INTERCEPTORS.intercept_limit do
-            if i <= #redInterceptTargets then
-                if intr.detectedOnBulls(1, redInterceptTargets[i].name) then
-                    env.info("target " .. redInterceptTargets[i].name .. " detected on bulls, spawning interceptor", false)
-                    if not currentlyIntercepting[1][redInterceptTargets[i].name] and totalIntercepting[1] < INTERCEPTORS.intercept_limit then
-                        intr.spawnInterceptor(1, redInterceptTargets[i].name)
-                    else
-                        env.info("Already intercepting target " .. redInterceptTargets[i].name, false)
-                    end
-                end
-            end
-        end
-    end
+    intr.scrambleInterceptors(2, redInterceptTargets)
+
     timer.scheduleFunction(Intr.interceptorLoop, nil, timer.getTime() + updateInterval)
 end
 env.info("Initializing Interceptors...", false)
