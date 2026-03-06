@@ -82,7 +82,7 @@ Platoons = {
             [3] = "Infantry AK ver2",
             [4] = "Paratrooper RPG-16",
             [5] = "Infantry AK ver2",
-            [6] = "Infantry AK ver2",
+            [6] = "2B11 mortar",
         },
         ["DeployedGun"] = {
             [1] = "Infantry AK ver2",
@@ -153,7 +153,7 @@ Platoons = {
             [3] = "Infantry AK ver2",
             [4] = "Paratrooper RPG-16",
             [5] = "Infantry AK ver2",
-            [6] = "Infantry AK ver2",
+            [6] = "2B11 mortar",
         },
         ["DeployedGun"] = {
             [1] = "Infantry AK ver2",
