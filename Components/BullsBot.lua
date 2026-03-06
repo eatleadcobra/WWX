@@ -530,3 +530,7 @@ bulls.getUnits()
 bulls.getEWRs()
 bulls.cleanCallsignsLoop()
 Bulls.loop()
+
+function Bulls.getTargetsOnScope(coalitionId)
+    return groupsList[coalitionId]
+end
