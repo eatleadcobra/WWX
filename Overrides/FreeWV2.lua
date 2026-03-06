@@ -70,7 +70,8 @@ Platoons = {
         ["Mech"] = {
             [1] = "M2A1_halftrack",
             [2] = "M2A1_halftrack",
-            [3] = "Bedford_MWD"
+            [3] = "Bedford_MWD",
+            [4] = "GAZ-66"
         },
         ["Inf"] = {
             [1] = "Bedford_MWD",
@@ -82,6 +83,11 @@ Platoons = {
             [4] = "Paratrooper RPG-16",
             [5] = "Infantry AK ver2",
             [6] = "Infantry AK ver2",
+        },
+        ["DeployedGun"] = {
+            [1] = "Infantry AK ver2",
+            [2] = "KS-19",
+            [3] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
             [1] = "M2A1_halftrack",
@@ -136,6 +142,7 @@ Platoons = {
             [1] = "Sd_Kfz_251",
             [2] = "Sd_Kfz_251",
             [3] = "Blitz_36-6700A",
+            [4] = "Land_Rover_101_FC",
         },
         ["Inf"] = {
             [1] = "Blitz_36-6700A",
@@ -147,6 +154,11 @@ Platoons = {
             [4] = "Paratrooper RPG-16",
             [5] = "Infantry AK ver2",
             [6] = "Infantry AK ver2",
+        },
+        ["DeployedGun"] = {
+            [1] = "Infantry AK ver2",
+            [2] = "KS-19",
+            [3] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
             [1] = "Sd_Kfz_251",
@@ -197,6 +209,10 @@ PlatoonUnitCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "APC",
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
+}
+PlatoonGunCarrierTypeNames = {
+    ["GAZ-66"] = "GUN",
+    ["Land_Rover_101_FC"] = "GUN"
 }
 PltStrengths = {
     [1] = 10,

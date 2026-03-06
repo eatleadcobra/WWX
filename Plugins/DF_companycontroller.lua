@@ -56,6 +56,7 @@ function cpyctl.saveCompanies()
             groupName = v.groupName,
             deployedGroupNames = v.deployedGroupNames,
             deployableGroups = v.deployableGroups,
+            deployableGuns = v.deployableGuns,
             arrived = v.arrived,
             onRoad = v.onRoad,
             speed = v.speed,
