@@ -318,7 +318,7 @@ function cpyctl.cpyStatusLoop()
                         timer.scheduleFunction(cpyctl.cleanDesGroup, {coalitionId = c, groupName = cpy.groupName}, timer:getTime() + 30)
                     end
                     if cpy.isShip == false and cpy.isConvoy == false and cpy.spawnTime and cpy.spawnTime ~= 0 then
-                        if timer:getTime() - cpy.spawnTime > cpyTimeLimit then
+                        if cpy.arrived == false and timer:getTime() - cpy.spawnTime > cpyTimeLimit then
                             cpy:savePosition()
                             cpy:despawn()
                             cpy:spawn()
