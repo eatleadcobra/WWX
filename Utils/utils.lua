@@ -213,10 +213,12 @@ end
 function Utils.checkZoneIntersection(coalitionId, zoneName)
     local units = {}
     if zoneName:sub(-1) == "-" then -- automatically handle prefix zones
-        i = 1
+        local i = 1
         while trigger.misc.getZone(zoneName..i) do
             local zoneUnits = Utils.checkZoneIntersection(coalitionId, zoneName..i)
-            table.move(zoneUnits, 1, #zoneUnits, #units + 1, units)
+            for j = 1, #zoneUnits do
+                units[#units + 1] = zoneUnits[j]
+            end
             i = i + 1
         end
         return units
@@ -237,4 +239,9 @@ function Utils.checkZoneIntersection(coalitionId, zoneName)
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
     return units
+end
+Utils.getlengthOfTable = function(table)
+    local count = 0
+    for _ in pairs(table) do count = count + 1 end
+    return count
 end
