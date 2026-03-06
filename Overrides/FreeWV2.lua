@@ -71,7 +71,7 @@ Platoons = {
             [1] = "M2A1_halftrack",
             [2] = "M2A1_halftrack",
             [3] = "Bedford_MWD",
-            [4] = "GAZ-66"
+            [4] = "Land_Rover_101_FC"
         },
         ["Inf"] = {
             [1] = "Bedford_MWD",
@@ -206,12 +206,10 @@ Platoons = {
 }
 
 PlatoonUnitCarrierTypeNames = {
-    ["Land_Rover_101_FC"] = "APC",
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
 }
 PlatoonGunCarrierTypeNames = {
-    ["GAZ-66"] = "GUN",
     ["Land_Rover_101_FC"] = "GUN"
 }
 PltStrengths = {
