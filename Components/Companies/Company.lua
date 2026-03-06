@@ -244,8 +244,15 @@ function Company.deploy(self)
                             local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, pltUnits, groupWaypoints)
                             for j = 1, #deployedGroupTable["units"] do
                                 local deployPoint = Utils.VectorAdd(unit:getPoint(), Utils.ScalarMult(Utils.RotateVector(unit:getPosition().x, 0.52 + (0.14 * (j-1))), 8+(((j-1)/2))))
+                                local heading = 0
+                                local droppingPos = unit:getPosition()
+                                if droppingPos then
+                                    heading = math.atan2(droppingPos.x.z, droppingPos.x.x)
+                                    if heading < 0 then heading = heading + (2 * math.pi) end
+                                end
                                 deployedGroupTable["units"][j].x = deployPoint.x
                                 deployedGroupTable["units"][j].y = deployPoint.z
+                                deployedGroupTable["units"][j].heading = heading
                             end
                             table.insert(self.deployedGroupNames, deployedGroupTable["name"])
                             --spawn group
@@ -275,8 +282,15 @@ function Company.deploy(self)
                             local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, pltUnits, groupWaypoints)
                             for j = 1, #deployedGroupTable["units"] do
                                 local deployPoint = Utils.VectorAdd(unit:getPoint(), Utils.ScalarMult(Utils.RotateVector(unit:getPosition().x, 0.52 + (0.14 * (j-1))), 8+(((j-1)/2))))
+                                local heading = 0
+                                local droppingPos = unit:getPosition()
+                                if droppingPos then
+                                    heading = math.atan2(droppingPos.x.z, droppingPos.x.x)
+                                    if heading < 0 then heading = heading + (2 * math.pi) end
+                                end
                                 deployedGroupTable["units"][j].x = deployPoint.x
                                 deployedGroupTable["units"][j].y = deployPoint.z
+                                deployedGroupTable["units"][j].heading = heading
                             end
                             table.insert(self.deployedGroupNames, deployedGroupTable["name"])
                             --spawn group
