@@ -203,6 +203,20 @@ function Utils.getGroupPoint(groupName)
     end
     return returnPoint
 end
+function Utils.shuffleList(list, prefix)
+    if prefix then
+        for i = Utils.getlengthOfTable(list), 2, -1 do
+            local j = math.random(i)
+            list[prefix .. i], list[prefix .. j] = list[prefix .. j], list[prefix .. i]
+        end
+    else
+        for i = Utils.getlengthOfTable(list), 2, -1 do
+            local j = math.random(i)
+            list[i], list[j] = list[j], list[i]
+        end
+    end
+    return list
+end
 function Utils.fileExists(file)
     local f = io.open(file, 'rb')
     if f then f:close() end

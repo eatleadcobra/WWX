@@ -79,6 +79,8 @@ function intr.spawnInterceptor(coalitionId, target, number)
     end
     local groupName = mist.cloneGroup(cloneGroupName, true).name
     totalIntercepting[coalitionId] = totalIntercepting[coalitionId] + 1
+    lastInterceptorTime[coalitionId][number] = timer:getTime()
+    currentlyIntercepting[coalitionId][target.name] = true
     -- set interceptor task to engage target
     local interceptPoint = {
         id = 'Orbit',
@@ -101,8 +103,6 @@ function intr.spawnInterceptor(coalitionId, target, number)
         controller:setTask(interceptTask)
     end
 
-    lastInterceptorTime[coalitionId][number] = timer:getTime()
-    currentlyIntercepting[coalitionId][target.name] = true
     intr.checkInterceptor({groupName = groupName, coalitionId = coalitionId, number = number, target = target.name})
 end
 function intr.checkInterceptor(param)
@@ -201,11 +201,13 @@ function intr.checkZoneIntersection(targets, zoneName)
 end
 function intr.checkAvailableInterceptors(coalitionId)
     local number = -1
-    for i = 1, INTERCEPTORS.interceptLimit do
-        env.info("Checking slot " .. i .. " for coalition " .. coalitionId .. ", last interceptor time: " .. lastInterceptorTime[coalitionId][i] - timer:getTime() .. "interval: " .. INTERCEPTORS.interval, debug)
-        if lastInterceptorTime[coalitionId][i] - timer:getTime() < INTERCEPTORS.interval then
-            number = i
-            break
+    if totalIntercepting[coalitionId] < INTERCEPTORS.interceptLimit then
+        for i = 1, INTERCEPTORS.interceptLimit do
+            env.info("Checking slot " .. i .. " for coalition " .. coalitionId .. ", last interceptor time: " .. lastInterceptorTime[coalitionId][i] - timer:getTime() .. "interval: " .. INTERCEPTORS.interval, debug)
+            if lastInterceptorTime[coalitionId][i] - timer:getTime() < INTERCEPTORS.interval then
+                number = i
+                break
+            end
         end
     end
     return number
@@ -266,35 +268,37 @@ function intr.scrambleInterceptors(coalitionId, targets)
         if INTERCEPTORS.independantZones then
             local zonePrefix = "InterceptorZoneBlue-"
             if coalitionId == 1 then zonePrefix = "InterceptorZoneRed-" end
+            targets = Utils.shuffleList(targets, zonePrefix) -- I dont think this works
 
-            for _ = 1, INTERCEPTORS.interceptLimit - totalIntercepting[coalitionId] do
-                local randomZone = math.random(1, Utils.getlengthOfTable(targets))
-                if randomZone then
-                    if next(targets) then
-                        for i = 1, #targets[zonePrefix .. randomZone] do
-                            local target = targets[zonePrefix .. randomZone][i]
-                            if target then
-                                if not currentlyIntercepting[coalitionId][target.name] then
-                                    local slotNumber = intr.checkAvailableInterceptors(coalitionId)
-                                    if slotNumber ~= -1 then
-                                        intr.spawnInterceptor(coalitionId, target, slotNumber)
-                                    end
+            for zoneName, zone in pairs(targets) do
+                env.info("zone = " .. Utils.dump(targets[zoneName]).."\nTargets: \n"..Utils.dump(targets) .. "\n Zone name: " .. zoneName, debug)
+                if zone then
+                    for j = 1, #zone do
+                        local target = zone[j]
+                        if target then
+                            if not currentlyIntercepting[coalitionId][target.name] then
+                                local slotNumber = intr.checkAvailableInterceptors(coalitionId)
+                                if slotNumber ~= -1 then
+                                    env.info("intercepting target", debug)
+                                    intr.spawnInterceptor(coalitionId, target, slotNumber)
+                                else
+                                    env.info("no free spawns for interceptors", debug)
                                 end
+                            else
+                                env.info("target already being intercepted", debug)
                             end
                         end
                     end
                 end
             end
         else
-            for _ = 1, INTERCEPTORS.interceptLimit - totalIntercepting[coalitionId] do
-                for j = 1, #targets do
-                    local target = targets[j]
-                    if target then
-                        if not currentlyIntercepting[coalitionId][target.name]then
-                            local slotNumber = intr.checkAvailableInterceptors(coalitionId)
-                            if slotNumber ~= -1 then
-                                intr.spawnInterceptor(coalitionId, target, slotNumber)
-                            end
+            for j = 1, #targets do
+                local target = targets[j]
+                if target then
+                    if not currentlyIntercepting[coalitionId][target.name]then
+                        local slotNumber = intr.checkAvailableInterceptors(coalitionId)
+                        if slotNumber ~= -1 then
+                            intr.spawnInterceptor(coalitionId, target, slotNumber)
                         end
                     end
                 end
@@ -310,12 +314,14 @@ function Intr.interceptorLoop()
         redZone = "InterceptorZoneRed-"
     end
     if totalIntercepting[1] < INTERCEPTORS.interceptLimit then
+        env.info("total intercepting " .. totalIntercepting[1] .. ". intercept limit " .. INTERCEPTORS.interceptLimit, debug)
         local redInterceptTargets = intr.getInterceptorPriority(1, redZone)
         intr.scrambleInterceptors(1, redInterceptTargets)
     else
         env.info("Red coalition at interceptor limit, skipping spawn", debug)
     end
     if totalIntercepting[2] < INTERCEPTORS.interceptLimit then
+        env.info("total intercepting " .. totalIntercepting[2] .. ". intercept limit " .. INTERCEPTORS.interceptLimit, debug)
         local blueInterceptTargets = intr.getInterceptorPriority(2, blueZone)
         intr.scrambleInterceptors(2, blueInterceptTargets)
     else
