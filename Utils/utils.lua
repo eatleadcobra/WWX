@@ -203,42 +203,10 @@ function Utils.getGroupPoint(groupName)
     end
     return returnPoint
 end
-
 function Utils.fileExists(file)
     local f = io.open(file, 'rb')
     if f then f:close() end
     return f ~= nil
-end
-
-function Utils.checkZoneIntersection(coalitionId, zoneName)
-    local units = {}
-    if zoneName:sub(-1) == "-" then -- automatically handle prefix zones
-        local i = 1
-        while trigger.misc.getZone(zoneName..i) do
-            local zoneUnits = Utils.checkZoneIntersection(coalitionId, zoneName..i)
-            for j = 1, #zoneUnits do
-                units[#units + 1] = zoneUnits[j]
-            end
-            i = i + 1
-        end
-        return units
-    end
-    local zone = trigger.misc.getZone(zoneName)
-    local volS = {
-        id = world.VolumeType.SPHERE,
-        params = {
-            point = zone.point,
-            radius = zone.radius
-        }
-    }
-    local ifFound = function(foundItem, val)
-        if foundItem:getCoalition() == coalitionId then
-            units[#units + 1] = foundItem:getName()
-        end
-        return true
-    end
-    world.searchObjects(Object.Category.UNIT, volS, ifFound)
-    return units
 end
 Utils.getlengthOfTable = function(table)
     local count = 0
