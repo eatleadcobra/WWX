@@ -40,14 +40,24 @@ NAVALCONVOY = {
     [2] = false,
 }
 RESPAWNGROUPS = {
-    ["SA-2-1"] = 14400,
-	["SA-2-2"] = 14400,
-	["SA-3-1"] = 14400,
+    ["SA-2-1"] = 14400, --4hr
+	["SA-2-2"] = 14400, --4hr
+	["SA-3-1"] = 14400, --4hr
 	["SA-5-1"] = 21600, --6hr
 	["SA-6-1"] = 14400, --4hr
+	["SA-6-2"] = 14400, --4hr
+	["SA-6-3"] = 14400, --4hr
+	["SA-11-1"] = 14400, --4hr
 	["RED-SHORAD-SA-2-1"] = 7200, --2hr
-	["RED-AAA-SA-6-1"] = 3600,
-	["RED-AAA-SA-6-1"] = 3600, --1hr
+	["RED-SHORAD-SA-5-1"] = 7200, --2hr
+	["RED-SHORAD-SA-6-1"] = 7200, --2hr
+	["RED-SHORAD-SA-6-2"] = 7200, --2hr
+	["RED-SHORAD-SA-6-3"] = 7200, --2hr
+	["RED-AAA-SA-11-1"] = 3600, --1hr
+	["Patriot-1"] = 21600, --6hr
+	["BlueTanker"] = 7200, --2hr
+	["BlueAWACS"] = 21600, --6hr
+	["BlueNavyAWACS"] = 21600, --6hr
 }
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 46800 -- 13 hours runtime
@@ -58,8 +68,8 @@ RDSubcount = 2
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
-BLUECASFREQ = 285
-REDCASFREQ = 280
+BLUECASFREQ = 280
+REDCASFREQ = 140
 BLUECASMOD = 0
 REDCASMOD = 0
 
@@ -68,23 +78,25 @@ Platoons = {
         ["Armor"] = {
             [1] = "T-72B",
 			[2] = "T-72B",
-			[3] = "T62M",
-			[4] = "T62M",
+			[3] = "T-72B",
+			[4] = "T-72B",
             [5] = "KAMAZ Truck"
         },
         ["Mech"] = {
-            [1] = "T-55",
-            [2] = "BMP-1",
+            [1] = "T62M",
+			[2] = "T62M",
             [3] = "BMP-1",
-			[4] = "BMP-1",
-            [5] = "KAMAZ Truck"
+            [4] = "BMP-1",
+			[5] = "BMP-1",
+            [6] = "KAMAZ Truck"
         },
         ["Inf"] = {
-            [1] = "BRDM-2_malyutka",
-			[2] = "BTR-60", --HL_DSHK
-			[3] = "BTR-60", --tt_DSHK
+            [1] = "T-55",
+			[2] = "T-55",
+			[3] = "BTR-60",
 			[4] = "BTR-60",
-            [5] = "KAMAZ Truck",
+			[5] = "BTR-60",
+            [6] = "KAMAZ Truck",
         },
         ["DeployedInf"] = {
             [1] = "Soldier RPG",
@@ -156,7 +168,8 @@ Platoons = {
 			[2] = "M1134 Stryker ATGM",
 			[3] = "M1126 Stryker ICV", --CHAP_M1130
             [4] = "M1126 Stryker ICV",
-            [5] = "M 818"
+			[5] = "M1126 Stryker ICV",
+            [6] = "M 818"
         },
         ["DeployedInf"] = {
             [1] = "Soldier M4 GRG",

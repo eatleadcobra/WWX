@@ -147,7 +147,9 @@ Carriers = {
     [2] = {
 	["LHA-1"] = true,
 	["CV-59"] = true,
+	["CV-59-1"] = true,
 	["LPD-71"] = true,
+	["FFG"] = true,
     }
 }
 
