@@ -19,6 +19,16 @@ REAPER = false
 INTERCEPT = true
 SHIPPING = true
 CAPTURE = false
+INTERCEPTORS= {
+interval = 3600, --3600
+interceptLimit = 4,
+multipleZones = true,
+independantZones = true,
+linkedAirframes = {
+	[1] = {[1] = 1, [2] = 2},
+	[2] = {[1] = 1, [2] = 2},
+	},
+}
 CAVICS = {
     [1] = {
         [1] = {text = "AT - BRDM", typename = "BRDM-2_malyutka"},
@@ -40,21 +50,21 @@ NAVALCONVOY = {
     [2] = false,
 }
 RESPAWNGROUPS = {
-    ["SA-2-1"] = 14400, --4hr
-	["SA-2-2"] = 14400, --4hr
-	["SA-3-1"] = 14400, --4hr
-	["SA-5-1"] = 21600, --6hr
+    ["SA-2-1"] = 21600, --6hr
+	["SA-2-2"] = 21600, --6hr
+	["SA-3-1"] = 21600, --6hr
+	["SA-5-1"] = 28800, --8hr
 	["SA-6-1"] = 14400, --4hr
 	["SA-6-2"] = 14400, --4hr
 	["SA-6-3"] = 14400, --4hr
-	["SA-11-1"] = 14400, --4hr
+	["SA-11-1"] = 21600, --4hr
 	["RED-SHORAD-SA-2-1"] = 7200, --2hr
 	["RED-SHORAD-SA-5-1"] = 7200, --2hr
 	["RED-SHORAD-SA-6-1"] = 7200, --2hr
 	["RED-SHORAD-SA-6-2"] = 7200, --2hr
 	["RED-SHORAD-SA-6-3"] = 7200, --2hr
 	["RED-AAA-SA-11-1"] = 3600, --1hr
-	["Patriot-1"] = 21600, --6hr
+	["Patriot-1"] = 28800, --8hr
 	["BlueTanker"] = 7200, --2hr
 	["BlueAWACS"] = 21600, --6hr
 	["BlueNavyAWACS"] = 21600, --6hr

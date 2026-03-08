@@ -68,7 +68,7 @@ Airframes = {
 			["F-5E-3"] = true,
 			["F-15ESE"] = true,
             ["F-16C_50"] = true,
-			["FA-18C_hornet"] = true,
+			["FA-18C_hornet"] = true, --land
             ["A-10A"] = true,
             ["A-10C"] = true,
             ["A-10C_2"] = true,
@@ -93,6 +93,7 @@ Airframes = {
             ["A-10C"] = true,
             ["A-10C_2"] = true,
             ["AV8BNA"] = true,
+			["FA-18C_hornet"] = true, --marine
             ["F-4E-45MC"] = true,
 			["MB-339A"] = true,
         },
