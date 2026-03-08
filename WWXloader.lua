@@ -34,6 +34,9 @@ if CAS then
    assert(loadfile(pathToWWX.."Components\\CasBot.lua"))()
    assert(loadfile(pathToWWX.."Components\\CAS2.lua"))()
 end
+if INTERCEPTORS then
+   assert(loadfile(pathToWWX.."Components\\Interceptors.lua"))()
+end
 if SUBS then
    assert(loadfile(pathToWWX.."Components\\Sonobuoy.lua"))()
    assert(loadfile(pathToWWX.."Components\\VisiBuoy.lua"))()
