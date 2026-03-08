@@ -38,6 +38,7 @@ Company = {
     },
     deployedGroupNames = {},
     deployableGroups = {},
+    deployableGuns = {},
     arrived = false,
     onRoad = false,
     speed = nil,
@@ -80,6 +81,8 @@ function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, co
             table.insert(newCpy.units, pltUnits[j])
             if PlatoonUnitCarrierTypeNames[pltUnits[j]] then
                 table.insert(newCpy.deployableGroups, Platoons[coalitionId]["DeployedInf"])
+            elseif PlatoonGunCarrierTypeNames and PlatoonGunCarrierTypeNames[pltUnits[j]] then
+                table.insert(newCpy.deployableGuns, Platoons[coalitionId]["DeployedGun"])
             end
         end
     end
@@ -104,6 +107,7 @@ function Company.newFromTable(cpyData)
     newCpy.groupName = cpyData.groupName
     newCpy.deployedGroupNames = {}
     newCpy.deployableGroups = cpyData.deployableGroups
+    newCpy.deployableGuns = cpyData.deployableGuns
     newCpy.arrived = cpyData.arrived
     newCpy.onRoad = cpyData.onRoad
     newCpy.speed = cpyData.speed
@@ -240,12 +244,64 @@ function Company.deploy(self)
                             local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, pltUnits, groupWaypoints)
                             for j = 1, #deployedGroupTable["units"] do
                                 local deployPoint = Utils.VectorAdd(unit:getPoint(), Utils.ScalarMult(Utils.RotateVector(unit:getPosition().x, 0.52 + (0.14 * (j-1))), 8+(((j-1)/2))))
+                                local heading = 0
+                                local droppingPos = unit:getPosition()
+                                if droppingPos then
+                                    heading = math.atan2(droppingPos.x.z, droppingPos.x.x)
+                                    if heading < 0 then heading = heading + (2 * math.pi) end
+                                end
                                 deployedGroupTable["units"][j].x = deployPoint.x
                                 deployedGroupTable["units"][j].y = deployPoint.z
+                                deployedGroupTable["units"][j].heading = heading
                             end
                             table.insert(self.deployedGroupNames, deployedGroupTable["name"])
                             --spawn group
                             coalition.addGroup(80+(2-self.coalitionId), 2, deployedGroupTable)
+                            anyDeployed = true
+                            thisGroupDeployed = true
+                        end
+                    end
+                end
+            end
+        end
+    end
+    for i = 1, #self.deployableGuns do
+        local thisGroupDeployed = false
+        for u = 1, cpyGroup:getSize() do
+            if thisGroupDeployed == false then
+                local unit = cpyGroup:getUnit(u)
+                if unit then
+                    if (PlatoonGunCarrierTypeNames and PlatoonGunCarrierTypeNames[unit:getTypeName()] == "GUN") then
+                        if (deployers[unit:getName()] == nil) then
+                            deployers[unit:getName()] = true
+                            local pltUnits = {}
+                            for p = 1, #self.deployableGuns[i] do
+                                table.insert(pltUnits, self.deployableGuns[i][p])
+                            end
+                            local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = unit:getPoint()})
+                            local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, pltUnits, groupWaypoints)
+                            for j = 1, #deployedGroupTable["units"] do
+                                local deployPoint = Utils.VectorAdd(unit:getPoint(), Utils.ScalarMult(Utils.RotateVector(unit:getPosition().x, 0.52 + (0.14 * (j-1))), 8+(((j-1)/2))))
+                                local heading = 0
+                                local droppingPos = unit:getPosition()
+                                if droppingPos then
+                                    heading = math.atan2(droppingPos.x.z, droppingPos.x.x)
+                                    if heading < 0 then heading = heading + (2 * math.pi) end
+                                end
+                                deployedGroupTable["units"][j].x = deployPoint.x
+                                deployedGroupTable["units"][j].y = deployPoint.z
+                                deployedGroupTable["units"][j].heading = heading
+                            end
+                            table.insert(self.deployedGroupNames, deployedGroupTable["name"])
+                            --spawn group
+                            coalition.addGroup(80+(2-self.coalitionId), 2, deployedGroupTable)
+                            local deployedGunGroup = Group.getByName(deployedGroupTable["name"])
+                            if deployedGunGroup then
+                                local gunGroupController = deployedGunGroup:getController()
+                                if gunGroupController then
+                                    gunGroupController:setOption(28, 2)
+                                end
+                            end
                             anyDeployed = true
                             thisGroupDeployed = true
                         end
