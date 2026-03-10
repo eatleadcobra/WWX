@@ -5,16 +5,32 @@ local jtac = {
     missionLength = 30,
     jtacs = {},
     updateInterval = 30,
-    CLONEGROUP = "JTAC_TEMPLATE"
+    CLONEGROUP = "JTAC_TEMPLATE",
+    jtacHeight = 1.8,
+    vehicleHeight = 2.5,
+    jtacMenu = nil
 }
 local lasing = {}
 -- use events to handle death of target better. if player kills, good kill and exit loop, if not player kill immediatly lase new target.
 
-local debug = false
+local debug = true
 local lightDebug = false
 local spawnDebug = true
 if debug then lightDebug = true end
-
+function jtac.populateMenus()
+    if not jtac.jtacMenu then
+        jtac.jtacMenu = {}
+        jtac.jtacMenu["root"] = missionCommands.addSubMenuForCoalition(2, "JTAC")
+    end
+    for j, _ in pairs(jtac.jtacs) do
+        if not jtac.jtacMenu[j] then
+            jtac.jtacMenu[j] = missionCommands.addSubMenuForCoalition(2, _.frequency .. " " .. _.modulation .. " - " .. _.callsign, jtac.jtacMenu["root"])
+            -- add check in logic eventually, for now just laser on and laser off
+            missionCommands.addCommandForCoalition(2, "Laser on", jtac.jtacMenu[j], jtac.startMission, j)
+            missionCommands.addCommandForCoalition(2, "Laser off", jtac.jtacMenu[j], jtac.stopMission, j)
+        end
+    end
+end
 function JTAC.targetTypeList(targets) -- Used with detectedTargets not just a unit list
     local targetTable = {
         ["SAM"] = {},
@@ -24,7 +40,7 @@ function JTAC.targetTypeList(targets) -- Used with detectedTargets not just a un
         ["Armed vehicles"] = {}
     }
     for i = 1, #targets do
-        local targetObject = targets[i].object
+        local targetObject = Unit.getByName(targets[i])
         if targetObject then
             if targetObject:getDesc().category == 2 then
                 local targetName = targetObject:getName()
@@ -83,6 +99,7 @@ function jtac.laseAvailableTarget(jtacUnitName, code, targetList)
                                 local distance = Utils.PointDistance(jtacPoint, targetPoint)
                                 if distance <= jtac.distanceLimit then
                                     env.info("jtac " .. jtacUnitName .. " lasing target " .. targetList[i], debug or lightDebug)
+                                    trigger.action.outTextForCoalition(2, "LASER HOT", 15, false)
                                     lasing[jtacUnitName] = {
                                         laser = Spot.createLaser(jtacUnit, laserSourceRelativeToUnit, targetPoint, code),
                                         targetName = target:getName(),
@@ -101,9 +118,51 @@ function jtac.laseAvailableTarget(jtacUnitName, code, targetList)
         env.error("JTAC unit not found: " .. jtacUnitName, debug)
     end
 end
+function jtac.getUnitsInRadius(coalitionId, point, radius)
+    local findCoalition = 2
+    if coalitionId == 2 then
+        findCoalition = 1
+    end
+    local jtacPoint = point
+    jtacPoint.y = jtacPoint.y + jtac.jtacHeight
+    local units = {}
+    local rejectedUnits = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = point,
+            radius = radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:getCoalition() == findCoalition then
+            if foundItem:getDesc().category == 2 and foundItem:hasAttribute("Ground vehicles") then
+                local targetPoint = foundItem:getPoint()
+                targetPoint.y = targetPoint.y + jtac.vehicleHeight
+                if land.isVisible(jtacPoint, targetPoint) then
+                    units[#units+1] = foundItem:getName()
+                end
+            end
+        end
+        return true
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    return units
+end
 -- jtacName
 function jtac.trackLaser(param)
     local jtacUnit = Unit.getByName(param.jtacName)
+    if jtac.jtacs[param.jtacName].stopLasing then
+        if lasing[param.jtacName] and lasing[param.jtacName].laser and jtacUnit then -- remove and jtacUnit if we have trouble
+        env.info("Destroying laser", (debug or lightDebug))
+        lasing[param.jtacName].laser:destroy()
+        trigger.action.outTextForCoalition(2, "Laser destoyed", 15, false)
+        end
+        env.info("nilling lase", (debug or lightDebug))
+        lasing[param.jtacName] = nil
+        jtac.jtacs[param.jtacName].stopLasing = false
+        trigger.action.outTextForCoalition(2, "JTAC mission ended", 15, false)
+    end
     if jtacUnit then
         local lasingInfo = lasing[param.jtacName]
         if lasingInfo then
@@ -112,7 +171,7 @@ function jtac.trackLaser(param)
                 local tp = target:getPoint()
                 local laser = lasingInfo.laser
                 if tp and laser then
-                    env.info("laser exists", debug)
+                    --env.info("laser exists", debug)
                     laser:setPoint(tp)
                     timer.scheduleFunction(jtac.trackLaser, {jtacName = param.jtacName}, timer.getTime() + jtac.trackingInterval)
                     return
@@ -120,24 +179,33 @@ function jtac.trackLaser(param)
             end
         end
     end
-    -- if anything fails here either the jtac, target, or laser are dead so we start over
-    if lasing[param.jtacName] and lasing[param.jtacName].laser then
-        env.info("Destroying laser", debug or lightDebug)
-        lasing[param.jtacName].laser:destroy()
+    if lasing[param.jtacName] then
+        -- if anything fails here either the jtac, target, or laser are dead so we start over
+        if lasing[param.jtacName] and lasing[param.jtacName].laser and jtacUnit then -- remove and jtacUnit if we have trouble
+            env.info("Destroying laser", (debug or lightDebug))
+            lasing[param.jtacName].laser:destroy()
+        end
+        -- if no new targets for length of mission start relasing, I am going to replace this with having to get a 9l for every new mission but this is a 'for now' thing
+        if lasing[param.jtacName].startTime + jtac.missionLength > timer:getTime() then
+            lasing[param.jtacName] = nil
+            jtac.laseAvailableTarget(param.jtacName, param.code, param.targetList)
+        else
+            env.info("nilling lase", (debug or lightDebug))
+            lasing[param.jtacName] = nil
+        end
     end
-    -- if still have targets to lase, get at em
-    if lasing[param.jtacName].startTime + jtac.missionLength > timer:getTime() then
-        lasing[param.jtacName] = nil
-        jtac.laseAvailableTarget(param.jtacName, param.code, param.targetList)
-    else
-        env.info("nilling lase", debug or lightDebug)
-        lasing[param.jtacName] = nil
-    end
+end
+function jtac.stopMission(jtacName)
+    jtac.jtacs[jtacName].stopLasing = true
 end
 function JTAC.registerJtac(name)
     local jtacUnit = Unit.getByName(name)
     if jtacUnit then
-        jtac.jtacs[name] = {spawnTime = timer:getTime(), code = 1688}
+        -- placeholders, will be generated eventually
+        local callsign = "PLAYBOY"
+        local frequency = "97.5"
+        local modulation = "FM"
+        jtac.jtacs[name] = {spawnTime = timer:getTime(), code = 1688, callsign = callsign, frequency = frequency, modulation = modulation}
     end
 end
 function JTAC.deRegisterJtac(name)
@@ -153,14 +221,14 @@ end
 function JTAC.spawnJtacAtPoint(point)
     local groupName
     if point then
-        groupName = mist.teleportToPoint({groupName = jtac.CLONEGROUP, point = point, action = 'clone'})
+        groupName = mist.teleportToPoint({groupName = jtac.CLONEGROUP, point = point, action = 'clone'}).name
     else
         groupName = mist.cloneGroup(jtac.CLONEGROUP, true).name
     end
     if groupName then
         local jtacGroup = Group.getByName(groupName)
         if jtacGroup then
-            local jtacUnit = jtacGroup.getUnit(1)
+            local jtacUnit = jtacGroup:getUnit(1)
             if jtacUnit then
                 JTAC.registerJtac(jtacUnit:getName())
             end
@@ -170,12 +238,12 @@ end
 function jtac.detectUnits(jtacUnitName)
     local unit = Unit.getByName(jtacUnitName)
     if unit then
-        local group = unit:getGroup()
-        if group then
-            local controller = unit:getController()
-            if controller then
+        local coalition = unit:getCoalition()
+        if coalition then
+            local point = unit:getPoint()
+            if point then
                 env.info("detecting targets...", debug)
-                local detectedTargets = controller:getDetectedTargets()
+                local detectedTargets = jtac.getUnitsInRadius(coalition, point, jtac.distanceLimit)
                 if detectedTargets then
                     return detectedTargets
                 end
@@ -183,39 +251,36 @@ function jtac.detectUnits(jtacUnitName)
         end
     end
 end
-function jtac.jtacLoop()
-    for jtacUnitName, _ in pairs(jtac.jtacs) do
-        local jtacUnit = Unit.getByName(jtacUnitName)
-        env.info("jtac unit " .. jtacUnitName, debug)
-        if jtacUnit then
-            if not lasing[jtacUnitName] then
-                local targets = jtac.detectUnits(jtacUnitName)
-                env.info("jtac unit " .. jtacUnitName .. " found: \n" .. Utils.dump(targets), debug)
-                if targets then
-                    local targetTypes = JTAC.targetTypeList(targets)
-                    env.info("jtac unit " .. jtacUnitName .. " target types: \n" .. Utils.dump(targetTypes), debug)
-                    if targetTypes then
-                        local priorityList = jtac.getPriorityList(targetTypes)
-                        env.info("jtac unit ".. jtacUnitName .. " priorityTable: \n" .. Utils.dump(priorityList), debug)
-                        if priorityList then
-                            -- in future just store the priorityTable and use it for syntax?
-                            jtac.laseAvailableTarget(jtacUnitName, jtac.jtacs[jtacUnitName].code, priorityList)
-                        end
+function jtac.startMission(jtacUnitName)
+    local jtacUnit = Unit.getByName(jtacUnitName)
+    env.info("jtac unit " .. jtacUnitName, debug)
+    if jtacUnit then
+        if not lasing[jtacUnitName] then
+            local targets = jtac.detectUnits(jtacUnitName)
+            env.info("jtac unit " .. jtacUnitName .. " found: \n" .. Utils.dump(targets), debug)
+            if targets then
+                local targetTypes = JTAC.targetTypeList(targets)
+                env.info("jtac unit " .. jtacUnitName .. " target types: \n" .. Utils.dump(targetTypes), debug)
+                if targetTypes then
+                    local priorityList = jtac.getPriorityList(targetTypes)
+                    env.info("jtac unit ".. jtacUnitName .. " priorityTable: \n" .. Utils.dump(priorityList), debug)
+                    if priorityList then
+                        -- in future just store the priorityTable and use it for syntax?
+                        jtac.laseAvailableTarget(jtacUnitName, jtac.jtacs[jtacUnitName].code, priorityList)
                     end
                 end
             end
-        else
-            JTAC.deRegisterJtac(jtacUnitName)
         end
+    else
+        JTAC.deRegisterJtac(jtacUnitName)
+        trigger.action.outTextForCoalition(2, jtac.jtacs[jtacUnitName].callsign .. "is out of action!", 15, false)
     end
-    timer.scheduleFunction(jtac.jtacLoop, nil, timer:getTime() + jtac.updateInterval)
 end
 if spawnDebug then
-    local groupName = mist.cloneGroup("JtacTemplate", true).name
-    local group = Group.getByName(groupName)
-    local unit = group:getUnit(1)
-    local unitName = unit:getName()
-    JTAC.registerJtac(unitName)
+    local point = trigger.misc.getZone("JTAC_DEBUG_POINT").point
+    JTAC.spawnJtacAtPoint(point)
 end
-jtac.jtacLoop()
+jtac.populateMenus()
+
+
 
