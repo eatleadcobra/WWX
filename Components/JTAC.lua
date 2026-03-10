@@ -12,24 +12,86 @@ local jtac = {
 }
 local lasing = {}
 -- use events to handle death of target better. if player kills, good kill and exit loop, if not player kill immediatly lase new target.
-
+local jtacEvents = {}
 local debug = true
 local lightDebug = false
 local spawnDebug = true
 if debug then lightDebug = true end
-function jtac.populateMenus()
-    if not jtac.jtacMenu then
-        jtac.jtacMenu = {}
-        jtac.jtacMenu["root"] = missionCommands.addSubMenuForCoalition(2, "JTAC")
-    end
-    for j, _ in pairs(jtac.jtacs) do
-        if not jtac.jtacMenu[j] then
-            jtac.jtacMenu[j] = missionCommands.addSubMenuForCoalition(2, _.frequency .. " " .. _.modulation .. " - " .. _.callsign, jtac.jtacMenu["root"])
-            -- add check in logic eventually, for now just laser on and laser off
-            missionCommands.addCommandForCoalition(2, "Laser on", jtac.jtacMenu[j], jtac.startMission, j)
-            missionCommands.addCommandForCoalition(2, "Laser off", jtac.jtacMenu[j], jtac.stopMission, j)
+
+
+-- ===========================
+function jtacEvents:onEvent(event)
+    if event.id == world.event.S_EVENT_TAKEOFF then
+        if event.initiator and event .initiator.getGroup then
+            local group = event.initiator:getGroup()
+            local playerName = event.initiator:getPlayerName()
+            if group and playerName then
+                jtac.populateMenus({group = group:getName()})
+            end
         end
     end
+    if event.id == world.event.S_EVENT_PILOT_DEAD or event.id == world.event.S_EVENT_EJECTION  or event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT or event.id == world.event.S_EVENT_LAND then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            if group ~= nil then
+                jtac.removeMenus({group = group:getName()})
+            end
+        end
+    end
+end
+world.addEventHandler(jtacEvents)
+-- ============================
+
+function jtac.populateMenus(params)
+    local groupName = params.group
+    local group = Group.getByName(params.group)
+    if group then
+        if not jtac.jtacMenu then
+            jtac.jtacMenu = {}
+        end
+        if not jtac.jtacMenu["root"] then
+            jtac.jtacMenu["root"] = {}
+            jtac.jtacMenu["root"][groupName] = missionCommands.addSubMenuForGroup(group:getID(), "JTAC")
+        end
+        for j, _ in pairs(jtac.jtacs) do
+            if not jtac.jtacMenu[j] then
+                jtac.jtacMenu[groupName][j] = missionCommands.addSubMenuForCoalition(2, _.frequency .. " " .. _.modulation .. " - " .. _.callsign, jtac.jtacMenu["root"])
+                -- add check in logic eventually, for now just laser on and laser off
+                missionCommands.addCommandForCoalition(2, "Laser on", jtac.jtacMenu[groupName][j], jtac.startMission, j)
+                missionCommands.addCommandForCoalition(2, "Laser off", jtac.jtacMenu[groupName][j], jtac.stopMission, j)
+            end
+        end
+    end
+end
+function jtac.removeMenus(params)
+    local groupName = params.group
+    local group = Group.getByName(params.group)
+    if group then
+        missionCommands.removeItemForGroup(group:getID(), jtac.jtacMenu["root"][groupName])
+    end
+end
+function jtac.checkIn(params)
+    local group = Group.getByName(params.group)
+    if group then
+        local unit = Group:getUnit(1)
+        if unit then
+            local flight = jtac.jtacs[params.jtac].callsign .. ", this is " .. unit:getPlayerName() .. ", 1 x " .. unit:getDesc().typeName
+            local location = coord.LLtoMGRS(coord.LOtoLL(unit:getPoint()))
+            -- Loadout
+            local loadout = unit:getAmmo()
+            local loadoutStr = "Ordinance: "
+            for i = 1, #loadout do
+                loadoutStr = loadoutStr .. loadout[i].count .. "x" .. loadout[i].desc.displayName .. ", "
+            end
+            loadoutStr:sub(1, -2)
+            local timeOnStation = "Play time is 0 + 30"
+            local remark = "Available for tasking. What do you have for me?"
+            return flight .. "\n" .. location .. "\n" .. loadoutStr .. "\n" .. timeOnStation .. "\n" .. remark
+        end
+    end
+end
+function jtac.confirmCheckIn(params)
+    
 end
 function JTAC.targetTypeList(targets) -- Used with detectedTargets not just a unit list
     local targetTable = {
