@@ -10,6 +10,7 @@ Airframes = {
             ["SpitfireLFMkIXCW"] = true,
             ["P-51D"] = true,
             ["I-16"] = true,
+            ["La-7"] = true,
             --FAC
             ["TF-51D"] = true,
             --Helos
