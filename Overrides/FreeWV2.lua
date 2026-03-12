@@ -212,6 +212,9 @@ PlatoonUnitCarrierTypeNames = {
 PlatoonGunCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "GUN"
 }
+PlatoonGunTypeNames = {
+    ["KS-19"] = "GUN"
+}
 PltStrengths = {
     [1] = 10,
     [2] = 3,

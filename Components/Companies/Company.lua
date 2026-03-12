@@ -326,7 +326,7 @@ function Company.undeploy(self)
                     local unit = deployedGroup:getUnit(j)
                     if unit then
                         local unitType = unit:getTypeName()
-                        if PlatoonGunCarrierTypeNames[unitType] then
+                        if PlatoonGunTypeNames and PlatoonGunTypeNames[unitType] then
                             isGunUnit = true
                         end
                         table.insert(listOfUnits, unit:getTypeName())
