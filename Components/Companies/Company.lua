@@ -321,13 +321,22 @@ function Company.undeploy(self)
             local deployedGroup = Group.getByName(self.deployedGroupNames[i])
             if deployedGroup then
                 local listOfUnits = {}
+                local isGunUnit = false
                 for j = 1, deployedGroup:getSize() do
                     local unit = deployedGroup:getUnit(j)
                     if unit then
+                        local unitType = unit:getTypeName()
+                        if PlatoonGunCarrierTypeNames[unitType] then
+                            isGunUnit = true
+                        end
                         table.insert(listOfUnits, unit:getTypeName())
                     end
                 end
-                table.insert(self.deployableGroups, listOfUnits)
+                if isGunUnit then
+                    table.insert(self.deployableGuns, listOfUnits)
+                else
+                    table.insert(self.deployableGroups, listOfUnits)
+                end
                 deployedGroup:destroy()
                 self.deployedGroupName = nil
                 self.isDeployed = false
