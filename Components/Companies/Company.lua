@@ -317,6 +317,7 @@ end
 function Company.undeploy(self)
     if self.isDeployed then
         self.deployableGroups = {}
+        self.deployableGuns = {}
         for i = 1, #self.deployedGroupNames do
             local deployedGroup = Group.getByName(self.deployedGroupNames[i])
             if deployedGroup then
