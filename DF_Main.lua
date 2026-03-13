@@ -1913,7 +1913,7 @@ function dfc.trackTrain(coalitionId)
                         if DFS.status[coalitionId].spawns.train.loaded == true then
                             local deliveryPointZoneName = DFS.spawnNames[coalitionId].trainDeliver
                             local deliverPoint = trigger.misc.getZone(deliveryPointZoneName).point
-                            local deliverDist = speed * trainLoopInterval
+                            local deliverDist = (speed * trainLoopInterval) + 500
                             local distanceToGo = Utils.PointDistance(point, deliverPoint)
                             if distanceToGo < deliverDist then
                                 env.info("Unloading train " .. trainName, false)
@@ -2039,6 +2039,7 @@ function dfc.trackCargoPlane(param)
                 local planePoint = cargoPlane:getPoint()
                 local distanceToDest = Utils.PointDistance(destinationPoint, planePoint)
                 if distanceToDest < destinationRadius then
+                    env.info(param.coalitionId .. " air cargo delivered.", false)
                     trigger.action.outTextForCoalition(param.coalitionId, "Air cargo delivered to rear depot!", 15, false)
                     local groupPct = group:getSize()/group:getInitialSize()
                     dfc.increaseRearSupply({coalitionId = param.coalitionId, amount = math.floor(DFS.status.shippingResupplyAmts[DFS.supplyType.FUEL] * groupPct), type = DFS.supplyType.FUEL})
