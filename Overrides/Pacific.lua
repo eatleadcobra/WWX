@@ -37,15 +37,17 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "Pz_IV_H",
+            [1] = "Type_98_Ke_Ni",
             [2] = "Type_98_Ke_Ni",
             [3] = "Type_98_So_Da",
-            [4] = "Type_94_Truck"
+            [4] = "Land_Rover_101_FC",
+            [5] = "Type_94_Truck",
         },
         ["Mech"] = {
             [1] = "Sd_Kfz_251",
             [2] = "Type_98_So_Da",
-            [3] = "Type_94_Truck"
+            [3] = "Land_Rover_101_FC",
+            [4] = "Type_94_Truck"
         },
         ["Inf"] = {
             [1] = "Type_98_So_Da",
@@ -57,6 +59,11 @@ Platoons = {
             [3] = "Paratrooper RPG-16",
             [4] = "Infantry AK ver2",
             [5] = "Infantry AK ver2",
+        },
+        ["DeployedGun"] = {
+            [1] = "Infantry AK ver2",
+            [2] = "KS-19",
+            [3] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
             [1] = "ATZ-5",
@@ -91,11 +98,11 @@ Platoons = {
     [2] = {
         ["Armor"] = {
             [1] = "M4_Sherman",
-            [2] = "MTLB",
+            [2] = "M2A1_halftrack",
             [3] = "Bedford_MWD"
         },
         ["Mech"] = {
-            [1] = "MTLB",
+            [1] = "M2A1_halftrack",
             [2] = "Bedford_MWD"
         },
         ["Inf"] = {
@@ -107,6 +114,11 @@ Platoons = {
             [3] = "Paratrooper RPG-16",
             [4] = "Infantry AK ver2",
             [5] = "Infantry AK ver2",
+        },
+        ["DeployedGun"] = {
+            [1] = "Infantry AK ver2",
+            [2] = "KS-19",
+            [3] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
             [1] = "Dry-cargo ship-2"
@@ -134,8 +146,11 @@ PlatoonUnitCarrierTypeNames = {
     ["Sd_Kfz_251"] = "APC",
 }
 
-PlatoonFlakCarrierTypeNames = {
-    [""] = "FLAK"
+PlatoonGunCarrierTypeNames = {
+    ["Land_Rover_101_FC"] = "GUN"
+}
+PlatoonGunTypeNames = {
+    ["KS-19"] = "GUN"
 }
 
 
