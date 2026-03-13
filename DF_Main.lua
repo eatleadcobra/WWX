@@ -1896,6 +1896,7 @@ function dfc.runtrains()
 end
 function dfc.trackTrain(coalitionId)
     local trainName = DFS.status[coalitionId].spawns.train.name
+    local trainDead = false
     if trainName then
         local trainGroup = Group.getByName(trainName)
         if trainGroup then
@@ -1931,18 +1932,25 @@ function dfc.trackTrain(coalitionId)
                             end
                         end
                     else
-                        DFS.status[coalitionId].spawns.train.name = nil
-                        timer.scheduleFunction(dfc.spawnTrain, coalitionId, timer:getTime() + DFS.status.trainSpawnDelay)
+                       trainDead = true
                     end
                 else
-                    DFS.status[coalitionId].spawns.train.name = nil
-                    timer.scheduleFunction(dfc.spawnTrain, coalitionId, timer:getTime() + DFS.status.trainSpawnDelay)
+                    trainDead = true
                 end
+            else
+                trainDead = true
             end
+        else
+            trainDead = true
         end
     else
+        trainDead = true
+    end
+    if trainDead then
         DFS.status[coalitionId].spawns.train.name = nil
         timer.scheduleFunction(dfc.spawnTrain, coalitionId, timer:getTime() + DFS.status.trainSpawnDelay)
+    else
+        timer.scheduleFunction(dfc.trackTrain, coalitionId, timer:getTime() + trainLoopInterval)
     end
 end
 function dfc.unloadTrain(coalitionId)
