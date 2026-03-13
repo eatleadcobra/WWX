@@ -185,39 +185,31 @@ PltCosts = {
 CompanyCompTiers = {
     [0] = {composition = nil},
     [1] = {
-        --tank, apc, ifv, AD
-        composition = {1,2,3,7},
+        --tank
+        composition = {1,2,7},
     },
     [2] = {
-        --tank, ifv, AD
         composition = {1,3,7},
     },
     [3] = {
-        --ifv, apc, apc, AD
-        composition = {2,3,3,7},
+        composition = {1,7},
     },
     [4] = {
-        --apc, apc, apc, AD
-        composition = {3,3,3,7},
+        composition = {2,7},
     },
     [5] = {
-        --ifv, ifv, apc
-        composition = {2,2,3},
+        composition = {2,2},
     },
     [6] = {
-        --ifv, apc, apc
-        composition = {2,3,3},
-    },
-    [7] = {
-        -- ifv, apc
         composition = {2,3},
     },
+    [7] = {
+        composition = {2},
+    },
     [8] = {
-        -- apc, apc
         composition = {3,3},
     },
     [9] = {
-        -- apc
         composition = {3},
     },
 }
