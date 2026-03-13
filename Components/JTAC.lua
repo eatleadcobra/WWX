@@ -55,10 +55,10 @@ function jtac.populateMenus(params)
         end
         for j, _ in pairs(jtac.jtacs) do
             if not jtac.jtacMenu[j] then
-                jtac.jtacMenu[groupName][j] = missionCommands.addSubMenuForCoalition(2, _.frequency .. " " .. _.modulation .. " - " .. _.callsign, jtac.jtacMenu["root"])
+                jtac.jtacMenu[groupName][j] = missionCommands.addSubMenuForGroup(group:getID(), _.frequency .. " " .. _.modulation .. " - " .. _.callsign, jtac.jtacMenu["root"])
                 -- add check in logic eventually, for now just laser on and laser off
-                missionCommands.addCommandForCoalition(2, "Laser on", jtac.jtacMenu[groupName][j], jtac.startMission, j)
-                missionCommands.addCommandForCoalition(2, "Laser off", jtac.jtacMenu[groupName][j], jtac.stopMission, j)
+                missionCommands.addCommandForGroup(group:getID(), "Laser on", jtac.jtacMenu[groupName][j], jtac.startMission, j)
+                missionCommands.addCommandForGroup(group:getID(), "Laser off", jtac.jtacMenu[groupName][j], jtac.stopMission, j)
             end
         end
     end
@@ -86,12 +86,39 @@ function jtac.checkIn(params)
             loadoutStr:sub(1, -2)
             local timeOnStation = "Play time is 0 + 30"
             local remark = "Available for tasking. What do you have for me?"
-            return flight .. "\n" .. location .. "\n" .. loadoutStr .. "\n" .. timeOnStation .. "\n" .. remark
+            local checkInStr = flight .. "\n" .. location .. "\n" .. loadoutStr .. "\n" .. timeOnStation .. "\n" .. remark
+            jtac.transmit({message = checkInStr})
+            return {{loadout = loadout, location = location, callsign = unit:getPlayerName(), text = checkInStr, jtac = params.jtac, groupName = params.group}}
         end
     end
 end
+function jtac.transmit(params)
+    local radioGroup = Group.getByName(params.jtac)
+        if radioGroup then
+            local msg = {
+                id = 'TransmitMessage',
+                params = {
+                duration = 10,
+                subtitle = params.message,
+                loop = false,
+                file ="l10n/DEFAULT/Alert.ogg",
+                }
+            }
+            radioGroup:getController():setCommand(msg)
+    end
+end
 function jtac.confirmCheckIn(params)
-    
+    if jtac.jtacs[params.jtac].controlling then
+        if jtac.jtacs[params.jtac].controlling ~= params.callsign then
+            jtac.transmit({message="Already Controlling another Unit, please hold"})
+            return
+        end
+    end
+    local group = Group.getByName(params.groupName)
+    if group then
+        jtac.transmit({"check in confirmed proceed to hold near BP and report established when ready"})
+        missionCommands.addCommandForGroup(group:getID(), "established", jtac.jtacMenu[params.group][params.jtac], jtac.established, {{loadout = params.loadout, location = params.location, callsign = params, jtac = params.jtac, groupName = params.groupName}})
+    end
 end
 function JTAC.targetTypeList(targets) -- Used with detectedTargets not just a unit list
     local targetTable = {
