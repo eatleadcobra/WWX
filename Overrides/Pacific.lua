@@ -190,6 +190,37 @@ PltCosts = {
         [3] = 1, --equipment
     },
 }
+CompanyCompTiers = {
+    [0] = {composition = nil},
+    [1] = {
+        --tank
+        composition = {1,2,7},
+    },
+    [2] = {
+        composition = {1,3,7},
+    },
+    [3] = {
+        composition = {1,7},
+    },
+    [4] = {
+        composition = {2,7},
+    },
+    [5] = {
+        composition = {2,2},
+    },
+    [6] = {
+        composition = {2,3},
+    },
+    [7] = {
+        composition = {2},
+    },
+    [8] = {
+        composition = {3,3},
+    },
+    [9] = {
+        composition = {3},
+    },
+}
 CSARFreqs = {
     [1] = {
         ["NDB"] = {20,59},
