@@ -50,7 +50,6 @@ Platoons = {
             [4] = "Type_94_Truck"
         },
         ["Inf"] = {
-            [1] = "Type_98_So_Da",
             [2] = "Type_94_Truck"
         },
         ["DeployedInf"] = {
@@ -62,7 +61,7 @@ Platoons = {
         },
         ["DeployedGun"] = {
             [1] = "Infantry AK ver2",
-            [2] = "KS-19",
+            [2] = "L118_Unit",
             [3] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
@@ -98,12 +97,14 @@ Platoons = {
     [2] = {
         ["Armor"] = {
             [1] = "M4_Sherman",
-            [2] = "M2A1_halftrack",
+            [2] = "M4_Sherman",
             [3] = "Bedford_MWD"
         },
         ["Mech"] = {
             [1] = "M2A1_halftrack",
-            [2] = "Bedford_MWD"
+            [2] = "M2A1_halftrack",
+            [3] = "Land_Rover_101_FC",
+            [4] = "Bedford_MWD"
         },
         ["Inf"] = {
             [1] = "Bedford_MWD",
@@ -150,21 +151,23 @@ PlatoonGunCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "GUN"
 }
 PlatoonGunTypeNames = {
-    ["KS-19"] = "GUN"
+    ["KS-19"] = "GUN",
+    ["L118_Unit"] = "GUN"
 }
 
 
 PltStrengths = {
-    [1] = 8,
-    [2] = 3 + #Platoons[1]["DeployedInf"],
-    [3] = 2 + #Platoons[1]["DeployedInf"],
-    [7] = 1
+    [1] = 10,
+    [2] = 3,
+    [3] = 2,
+    [7] = 2,
+    [9] = 2
 }
 PltCosts = {
     [1] = {
         [1] = 5, --fuel
         [2] = 9, --ammo
-        [3] = 3, --equipment
+        [3] = 4, --equipment
     },
     [2] = {
         [1] = 3, --fuel
@@ -174,43 +177,17 @@ PltCosts = {
     [3] = {
         [1] = 1, --fuel
         [2] = 2, --ammo
-        [3] = 1, --equipment
+        [3] = 0, --equipment
     },
     [7] = {
         [1] = 4, --fuel
         [2] = 2, --ammo
         [3] = 1, --equipment
     },
-}
-CompanyCompTiers = {
-    [0] = {composition = nil},
-    [1] = {
-        --tank
-        composition = {1,2,7},
-    },
-    [2] = {
-        composition = {1,3,7},
-    },
-    [3] = {
-        composition = {1,7},
-    },
-    [4] = {
-        composition = {2,7},
-    },
-    [5] = {
-        composition = {2,2},
-    },
-    [6] = {
-        composition = {2,3},
-    },
-    [7] = {
-        composition = {2},
-    },
-    [8] = {
-        composition = {3,3},
-    },
     [9] = {
-        composition = {3},
+        [1] = 4, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
     },
 }
 CSARFreqs = {
