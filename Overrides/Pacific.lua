@@ -16,6 +16,7 @@ CSAR = true
 CAS = true
 SHIPPING = true
 CAPTURE = false
+COMPANIESIGNOREROADS = true
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 28800 -- 8 hours runtime
 NAVALCONVOY = {
