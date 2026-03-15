@@ -41,14 +41,12 @@ Platoons = {
             [1] = "Type_98_Ke_Ni",
             [2] = "Type_98_Ke_Ni",
             [3] = "Type_98_So_Da",
-            [4] = "Land_Rover_101_FC",
-            [5] = "Type_94_Truck",
+            [4] = "Type_94_Truck",
         },
         ["Mech"] = {
             [1] = "Sd_Kfz_251",
             [2] = "Type_98_So_Da",
-            [3] = "Land_Rover_101_FC",
-            [4] = "Type_94_Truck"
+            [3] = "Type_94_Truck"
         },
         ["Inf"] = {
             [2] = "Type_94_Truck"
@@ -104,8 +102,7 @@ Platoons = {
         ["Mech"] = {
             [1] = "M2A1_halftrack",
             [2] = "M2A1_halftrack",
-            [3] = "Land_Rover_101_FC",
-            [4] = "Bedford_MWD"
+            [3] = "Bedford_MWD"
         },
         ["Inf"] = {
             [1] = "Bedford_MWD",
