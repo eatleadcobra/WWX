@@ -88,6 +88,9 @@ Platoons = {
             [1] = "Type_94_25mm_AA_Truck",
             [2] = "Type_94_Truck"
         },
+        ["EmbeddedADHigh"] = {
+            [1] = "tt_DSHK"
+        },
         ["Shipping"] = {
             [1] = "HandyWind",
             [2] = "CastleClass_01"
@@ -129,6 +132,9 @@ Platoons = {
             [1] = "Dry-cargo ship-2"
         },
         ["EmbeddedAD"] = {
+            [1] = "tt_DSHK"
+        },
+        ["EmbeddedADHigh"] = {
             [1] = "tt_DSHK"
         },
         ["Shipping"] = {
