@@ -2903,14 +2903,10 @@ function dfc.trackCargo(param)
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
                         end
-                        if (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius)) then
-                            if SBS then
-                                SBS.endWatch(cargo)
-                            end
+                        if (distanceToClosestFb == nil or (distanceToClosestFb and distanceToClosestFb > closestDepotToCargo.distance and (param.supplyType == DFS.supplyType["AMMO"] or param.supplyType == DFS.supplyType["GUN"]))) and (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius)) then
                             env.info("Group: " .. param.groupId .. "-" .. param.groupName .. " delivered " .. param.cargo .. " to " .. closestDepotToCargo.depotName, false)
                             local deliverType = "FRONT"
                             if closestDepotToCargo.isRear then deliverType = "REAR" end
-                            --trigger.action.outTextForGroup(param.groupId, DFS.supplyNames[param.supplyType] .. " delivered!", 15, false)
                             dfc.deliverToDepot(closestDepotToCargo.isRear, param.coalition, param.supplyType, param.modifier)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
@@ -2918,24 +2914,16 @@ function dfc.trackCargo(param)
                             dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, deliverType)
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["AMMO"] then
-                            if SBS then
-                                SBS.endWatch(cargo)
-                            end
                             Firebases.resupplyFirebase(Firebases[closestFirebaseToCargo], DFS.status.playerResupplyAmts[param.supplyType][param.modifier])
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                            --trigger.action.outTextForGroup(param.groupId,"Ammo delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
                             dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, "FIREBASE")
                             return
                         elseif distanceToClosestFb and distanceToClosestFb <= DFS.status.playerDeliverRadius and closestFirebaseToCargo and param.supplyType == DFS.supplyType["GUN"] then
-                            if SBS then
-                                SBS.endWatch(cargo)
-                            end
                             Firebases.addGroupToFirebase(Firebases[closestFirebaseToCargo], Firebases[closestFirebaseToCargo].fbType)
                             env.info("Group: " .. param.groupId .. " delivered " .. param.cargo .. " to firebase", false)
-                            --trigger.action.outTextForGroup(param.groupId, "Gun delivered to firebase!", 10, false)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
