@@ -589,45 +589,90 @@ function csb.setupHunterGroup(rescue)
             dir = dir2
         end
         local hntrUnitDist = hntrGrpDist + mist.random(-10,10)
-        local hntrPoint = csb.createHunterSpawnPoint(rescuePoint,hntrUnitDist,dir)
-        local hntrUnitTbl = csb.createSkeleUnit(hntrGroupName .. "-e", hntrGroupType)
-        local heading = csb.dirToDegree(dir)
-        if heading < 0 then heading = heading + 360 end
-        heading = heading * 0.0174533
-        hntrUnitTbl.x = hntrPoint.x
-        hntrUnitTbl.y = hntrPoint.z
-        hntrUnitTbl.heading = heading
-        table.insert(hntrGroupTbl.units, hntrUnitTbl)
-        env.info("[csb.setupHunterGroup] - rescue point: {x = " .. rescuePoint.x .. ", y = " .. rescuePoint.y .. ", z = " .. rescuePoint.z .. "}",false)
-        hntrGroupTbl.x = hntrPoint.x
-        hntrGroupTbl.y = hntrPoint.z
-        hntrGroupTbl.hidden = true
-        local hunter = coalition.addGroup(countryCode, Group.Category.GROUND, hntrGroupTbl)
-        if hunter then
-            table.insert(rescue.hunters, hunter)
-            local hntrDCSName = hunter:getName()
-            table.insert(rescue.hunterNames, hntrDCSName)
-            local hntrPos = csb.getGroupLocation(hntrDCSName)
-            if hntrPos then
-                env.info("[csb.setupHunterGroup] - hunter (" .. hntrGroupType .. ") point: {x = " .. hntrPos.x .. ", y = " .. hntrPos.y .. ", z = " .. hntrPos.z .. "} | Dist: " .. hntrUnitDist .. "m | Dir: " .. dir,false)
+        local hntrPoint = nil
+        for _ = 1,10 do
+            hntrPoint = csb.createHunterSpawnPoint(rescuePoint,hntrUnitDist,dir)
+            if hntrPoint and hntrPoint.z then
+                env.info("[csb.setupHunterGroup] - hunter point: {x = " .. hntrPoint.x .. ", y = " .. hntrPoint.y .. ", z = " .. hntrPoint.z .. "}",false)
+                break
+            end
+            hntrUnitDist = hntrUnitDist + 50
+        end
+        if hntrPoint then
+            local hntrUnitTbl = csb.createSkeleUnit(hntrGroupName .. "-e", hntrGroupType)
+            local heading = csb.dirToDegree(dir)
+            if heading < 0 then heading = heading + 360 end
+            heading = heading * 0.0174533
+            hntrUnitTbl.x = hntrPoint.x
+            hntrUnitTbl.y = hntrPoint.z
+            hntrUnitTbl.heading = heading
+            table.insert(hntrGroupTbl.units, hntrUnitTbl)
+            env.info("[csb.setupHunterGroup] - rescue point: {x = " .. rescuePoint.x .. ", y = " .. rescuePoint.y .. ", z = " .. rescuePoint.z .. "}",false)
+            hntrGroupTbl.x = hntrPoint.x
+            hntrGroupTbl.y = hntrPoint.z
+            hntrGroupTbl.hidden = true
+            local hunter = coalition.addGroup(countryCode, Group.Category.GROUND, hntrGroupTbl)
+            if hunter then
+                table.insert(rescue.hunters, hunter)
+                local hntrDCSName = hunter:getName()
+                table.insert(rescue.hunterNames, hntrDCSName)
+                local hntrPos = csb.getGroupLocation(hntrDCSName)
+                if hntrPos then
+                    env.info("[csb.setupHunterGroup] - hunter (" .. hntrGroupType .. ") point: {x = " .. hntrPos.x .. ", y = " .. hntrPos.y .. ", z = " .. hntrPos.z .. "} | Dist: " .. hntrUnitDist .. "m | Dir: " .. dir,false)
+                end
             end
         end
     end
 end
 function csb.triggerHunterGroup(rescue)
     if not rescue.hunters then return end
+    if rescue.huntTriggered then return end
     local targetPoint = csb.getGroupLocation(rescue.groupName)
+    local wetFeet = false
     if not targetPoint then return end
+    local surfaceType = land.getSurfaceType({x=targetPoint.x, y=targetPoint.z})
+    if surfaceType == 3 or surfaceType == 2 then wetFeet = true end
     for _, hunterName in pairs(rescue.hunterNames) do
         local hntrGrp = Group.getByName(hunterName)
-        if csb.getGroupLocation(hntrGrp) then
-            local p1 = {}
-            p1.x = targetPoint.x
-            p1.y = 0
-            p1.z = targetPoint.z
-            csb.sendHunterToRescue(hntrGrp, p1, 5, "Off Road", 5)
+        local hntrPos = csb.getGroupLocation(hntrGrp)
+        local loopTgtPnt = nil
+        loopTgtPnt = Utils.deepcopy(targetPoint)
+        env.info("[csb.triggerHunterGroup] - loopTgtPnt before wetFeet check: " .. Utils.dump(loopTgtPnt), false)
+        env.info("[csb.triggerHunterGroup] - hntrPos before wetFeet check: " .. Utils.dump(hntrPos), false)
+        if hntrPos then
+            if wetFeet then loopTgtPnt = csb.makeDryHunterTargetPoint(loopTgtPnt, hntrPos) end
+            env.info("[csb.triggerHunterGroup] - loopTgtPnt after wetFeet check: " .. Utils.dump(loopTgtPnt), false)
+            env.info("[csb.triggerHunterGroup] - hntrPos after wetFeet check: " .. Utils.dump(hntrPos), false)
+            if loopTgtPnt then
+                local p1 = {}
+                p1.x = loopTgtPnt.x
+                p1.y = 0
+                p1.z = loopTgtPnt.z
+                csb.sendHunterToRescue(hntrGrp, p1, 5, "Off Road", 5)
+            end
         end
     end
+end
+function csb.makeDryHunterTargetPoint(tgtPnt, hntrPnt)
+    local dist = Utils.PointDistance(tgtPnt,hntrPnt)
+    local dir = Utils.GetBearingRad(tgtPnt,hntrPnt)
+    local x,y = math.frexp(dist)
+    if y > 3 then y = y - 3 else y = y - 1 end
+    env.info("[csb.makeDryHunterTargetPoint] - about to check for dry point with y = " .. y .. ", dist = " .. dist .. " and dir = " .. dir,false)
+    for i=y-1,1,-1 do
+        local checkDist = dist / 2^i
+        local checkPnt = {}
+        checkPnt.x = tgtPnt.x + checkDist * math.cos(dir)
+        checkPnt.z = tgtPnt.z + checkDist * math.sin(dir)
+        checkPnt.y = checkPnt.z
+        local surfaceType = land.getSurfaceType(checkPnt)
+        if surfaceType ~= 3 and surfaceType ~= 2 then
+            env.info("[csb.makeDryHunterTargetPoint] - found valid point on land at " .. checkDist .. "m from rescue",false)
+            return checkPnt
+        end
+    end
+    env.info("[csb.makeDryHunterTargetPoint] - unable to find valid point on land/shallows for hunter to target",false)
+    return nil
 end
 function csb.chooseRandomTblItem(tbl)
     if not tbl then return end
@@ -668,6 +713,8 @@ function csb.createHunterSpawnPoint(point,dist,dir)
     hntrPoint.x = point.x + dist * math.cos(rad)
     hntrPoint.y = point.y
     hntrPoint.z = point.z + dist * math.sin(rad)
+    local surfaceType = land.getSurfaceType({x=hntrPoint.x,y=hntrPoint.z})
+    if surfaceType == 3 or surfaceType == 2 then return nil end
     return hntrPoint
 end
 function csb.sendHunterToRescue(hunter,rescuePoint,speed,action,stall)
