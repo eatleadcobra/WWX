@@ -2075,7 +2075,7 @@ function dfc.spawnBomber(param)
         groupName = mist.cloneGroup('Red Bombers-' .. param.targetNum, true).name
         if DOUBLEBOMBERS then
             if param.targetNum == 1 then param.targetNum = 2 else param.targetNum = 1 end
-            groupName = mist.cloneGroup('Red Bombers-' .. param.targetNum, true).name
+            mist.cloneGroup('Red Bombers-' .. param.targetNum, true)
         end
     elseif param.coalitionId == 2 then
         groupName = mist.cloneGroup('Blue Bombers-' .. param.targetNum, true).name
