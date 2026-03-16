@@ -38,18 +38,17 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "Type_98_Ke_Ni",
-            [2] = "Type_98_Ke_Ni",
-            [3] = "Type_98_So_Da",
+            [1] = "Type_89_I_Go",
+            [2] = "Type_89_I_Go",
             [4] = "Type_94_Truck",
         },
         ["Mech"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "Type_98_So_Da",
+            [1] = "Type_98_Ke_Ni",
+            [2] = "Sd_Kfz_251",
             [3] = "Type_94_Truck"
         },
         ["Inf"] = {
-            [2] = "Type_94_Truck"
+            [1] = "Type_98_So_Da",
         },
         ["DeployedInf"] = {
             [1] = "Paratrooper RPG-16",
@@ -99,8 +98,7 @@ Platoons = {
     [2] = {
         ["Armor"] = {
             [1] = "M4_Sherman",
-            [2] = "M4_Sherman",
-            [3] = "Bedford_MWD"
+            [2] = "Bedford_MWD"
         },
         ["Mech"] = {
             [1] = "M2A1_halftrack",
