@@ -76,7 +76,8 @@ Platoons = {
         ["Inf"] = {
             [1] = "Type_98_So_Da",
             [2] = "Type_98_So_Da",
-            [3] = "Type_94_Truck"
+			[3] = "S_75_ZIL",
+            [4] = "Type_94_Truck"
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK Ins",
@@ -86,6 +87,11 @@ Platoons = {
             [5] = "Paratrooper RPG-16",
             [6] = "Infantry AK Ins",
             [7] = "Infantry AK Ins"
+        },
+		["DeployedGun"] = {
+            [1] = "Infantry AK Ins",
+            [2] = "bofors40",
+            [3] = "Infantry AK Ins",
         },
         ["FuelConvoy"] = {
             [1] = "Type_94_25mm_AA_Truck",
@@ -144,7 +150,7 @@ Platoons = {
         ["Inf"] = {
             [1] = "Land_Rover_109_S3",
             [2] = "Land_Rover_109_S3",
-			[3] = "Land_Rover_109_S3",
+			[3] = "S_75_ZIL",
             [4] = "Bedford_MWD"
         },
         ["DeployedInf"] = {
@@ -155,6 +161,11 @@ Platoons = {
             [5] = "Paratrooper RPG-16",
             [6] = "Infantry AK ver3",
             [7] = "Infantry AK ver3"
+        },
+		["DeployedGun"] = {
+            [1] = "Infantry AK ver3",
+            [2] = "bofors40",
+            [3] = "Infantry AK ver3",
         },
         ["FuelConvoy"] = {
             [1] = "CastleClass_01"
@@ -186,6 +197,12 @@ PlatoonUnitCarrierTypeNames = {
     ["Land_Rover_109_S3"] = "APC"
 }
 
+PlatoonGunCarrierTypeNames = {
+    ["S_75_ZIL"] = "GUN"
+}
+PlatoonGunTypeNames = {
+    ["bofors40"] = "GUN"
+}
 
 PltStrengths = {
     [1] = 15,
