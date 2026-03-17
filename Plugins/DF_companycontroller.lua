@@ -196,7 +196,7 @@ function cpyctl.underAirAttack(shipunit)
     if shipunit then
         local shipCtrl = shipunit:getController()
         if shipCtrl then
-            local targets = shipCtrl:getDetectedTargets(Controller.Detection.VISUAL,Controller.Detection.OPTIC)
+            local targets = shipCtrl:getDetectedTargets()
             local checkNum = #targets
             if checkNum > 5 then checkNum = 5 end
             for i = 1, checkNum do
