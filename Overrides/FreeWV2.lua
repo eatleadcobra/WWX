@@ -263,16 +263,16 @@ CompanyCompTiers = {
         composition = {1,7},
     },
     [4] = {
-        composition = {2,7},
+        composition = {1,2},
     },
     [5] = {
-        composition = {2,2},
+        composition = {2,2,7},
     },
     [6] = {
-        composition = {2,3},
+        composition = {2,2},
     },
     [7] = {
-        composition = {2},
+        composition = {2,3},
     },
     [8] = {
         composition = {3,3},
