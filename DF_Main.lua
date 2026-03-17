@@ -2073,8 +2073,16 @@ function dfc.spawnBomber(param)
     end
     if param.coalitionId == 1 then
         groupName = mist.cloneGroup('Red Bombers-' .. param.targetNum, true).name
+        if DOUBLEBOMBERS then
+            if param.targetNum == 1 then param.targetNum = 2 else param.targetNum = 1 end
+            mist.cloneGroup('Red Bombers-' .. param.targetNum, true)
+        end
     elseif param.coalitionId == 2 then
         groupName = mist.cloneGroup('Blue Bombers-' .. param.targetNum, true).name
+        if DOUBLEBOMBERS then
+            if param.targetNum == 1 then param.targetNum = 2 else param.targetNum = 1 end
+            groupName = mist.cloneGroup('Blue Bombers-' .. param.targetNum, true).name
+        end
     end
     trigger.action.outTextForCoalition(param.coalitionId, 'Friendly bomber flight enroute! Requesting escort!', 15)
     trigger.action.outTextForCoalition(enemyCoalition, 'Enemy bomber flight spotted! En route to our rear depots', 15)

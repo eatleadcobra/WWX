@@ -27,14 +27,15 @@ MISSILEBOATS = false
 CARGO = true
 CSAR = true
 CAS = true
-STRIKES = false
+STRIKES = true
 REAPER = false
 INTERCEPT = false
 SHIPPING = true
 TRAINS = true
 AIRCARGO = true
-AIRCARGOINTERVAL = 2700
+AIRCARGOINTERVAL = 3600
 CAPTURE = false
+DOUBLEBOMBERS = true
 COMPANIESIGNOREROADS = true
 CAVICS = {
     [1] = {
@@ -262,16 +263,16 @@ CompanyCompTiers = {
         composition = {1,7},
     },
     [4] = {
-        composition = {2,7},
+        composition = {1,2},
     },
     [5] = {
-        composition = {2,2},
+        composition = {2,2,7},
     },
     [6] = {
-        composition = {2,3},
+        composition = {2,2},
     },
     [7] = {
-        composition = {2},
+        composition = {2,3},
     },
     [8] = {
         composition = {3,3},
