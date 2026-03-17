@@ -69,8 +69,8 @@ Platoons = {
         },
         ["Mech"] = {
             [1] = "Type_89_I_Go",
-			[2] = "Type_89_I_Go",
-			[3] = "Type_89_I_Go",
+			[2] = "Type_98_So_Da",
+			[3] = "Type_98_So_Da",
             [4] = "Type_94_Truck"
         },
         ["Inf"] = {
@@ -90,7 +90,7 @@ Platoons = {
         },
 		["DeployedGun"] = {
             [1] = "Infantry AK Ins",
-            [2] = "bofors40",
+            [2] = "S-60_Type59_Artillery",
             [3] = "Infantry AK Ins",
         },
         ["FuelConvoy"] = {
