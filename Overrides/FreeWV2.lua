@@ -33,7 +33,7 @@ INTERCEPT = false
 SHIPPING = true
 TRAINS = true
 AIRCARGO = true
-AIRCARGOINTERVAL = 3600
+AIRCARGOINTERVAL = 5400
 CAPTURE = false
 DOUBLEBOMBERS = true
 COMPANIESIGNOREROADS = true
@@ -412,4 +412,8 @@ CASCALLSIGNS = {
             number = 1,
         },
     }
+}
+INTERCEPTORS= {
+    interval = 1800,
+    interceptLimit = 1,
 }
