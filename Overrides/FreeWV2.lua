@@ -417,3 +417,6 @@ INTERCEPTORS= {
     interval = 1800,
     interceptLimit = 1,
 }
+INTERCEPTORTARGETTYPES = {
+    ["Bomber"] = true,
+}

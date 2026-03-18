@@ -222,7 +222,9 @@ function intr.processBullsGroups(groups)
                 for j = 1, #groupUnits do
                     local unit = groupUnits[j]
                     if unit then
-                        processedTargets[#processedTargets + 1] = {name = unit:getName()}
+                        if INTERCEPTORTARGETTYPES == nil or (INTERCEPTORTARGETTYPES and (INTERCEPTORTARGETTYPES[Bulls.getTargetType(unit:getTypeName())])) then
+                            processedTargets[#processedTargets + 1] = {name = unit:getName()}
+                        end
                     end
                 end
             end

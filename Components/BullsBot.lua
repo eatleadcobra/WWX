@@ -534,3 +534,8 @@ Bulls.loop()
 function Bulls.getTargetsOnScope(coalitionId)
     return groupsList[coalitionId]
 end
+function Bulls.getTargetType(targetTypeName)
+    local targetType = nil
+    if unitTypes[targetTypeName] then targetType = unitTypes[targetTypeName] end
+    return targetType
+end
