@@ -20,7 +20,7 @@ COALITIONSHIPPINGMETHODS = {
     }
 }
 CAP = true
-PIRACY = true
+PIRACY = false
 BOMBERS = true
 ESCORT = false
 MISSILEBOATS = false
