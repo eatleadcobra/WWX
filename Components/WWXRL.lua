@@ -100,6 +100,7 @@ function wwxRacing.newLeague(division)
             ["P-51D-30-NA"] = 2,
             ["TF-51D"] = 2,
             ["P-47D-30bl1"] = 2,
+            ["P-47D-30"] = 2,
             ["P-47D-40"] = 2,
             ["MosquitoFBMkVI"] = 2,
             ["Bf-109K-4"] = 2,
@@ -109,6 +110,7 @@ function wwxRacing.newLeague(division)
             ["SpitfireLFMkIX"] = 2,
             ["SpitfireLFMkIXCW"] = 2,
             ["F4U-1D"] = 2,
+            ["La-7"] = 2,
         },
         [3] = {
             ["AV8BNA"] = 3,

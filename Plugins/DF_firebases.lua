@@ -75,6 +75,10 @@ local firemissionDelays = {
         perShot = 17,
     }
 }
+if PAIDTHEPRICE then
+    firemissionDelays["HOWITZER"].aiming = 120
+    firemissionDelays["HOWITZER"].perShot = 12
+end
 function fbFuncs.removeRadioCommandsForGroup(groupID)
     missionCommands.removeItemForGroup(groupID, {})
 end

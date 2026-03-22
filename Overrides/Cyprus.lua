@@ -31,7 +31,7 @@ NAVALCONVOY = {
     [2] = false,
 }
 SUNSET = 65130 -- 18:05:30 local time
-RUNTIME = 28800 -- 8 hours runtime
+RUNTIME = 57600 -- 16 hours runtime
 -- counts
 FDCount = 3
 AACount = 8

@@ -20,7 +20,7 @@ COALITIONSHIPPINGMETHODS = {
     }
 }
 CAP = true
-PIRACY = true
+PIRACY = false
 BOMBERS = true
 ESCORT = false
 MISSILEBOATS = false
@@ -33,7 +33,7 @@ INTERCEPT = false
 SHIPPING = true
 TRAINS = true
 AIRCARGO = true
-AIRCARGOINTERVAL = 3600
+AIRCARGOINTERVAL = 7200
 CAPTURE = false
 DOUBLEBOMBERS = true
 COMPANIESIGNOREROADS = true
@@ -412,4 +412,11 @@ CASCALLSIGNS = {
             number = 1,
         },
     }
+}
+INTERCEPTORS= {
+    interval = 1800,
+    interceptLimit = 1,
+}
+INTERCEPTORTARGETTYPES = {
+    ["Bomber"] = true,
 }

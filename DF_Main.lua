@@ -3408,7 +3408,7 @@ if TRAINS then
     dfc.runtrains()
 end
 if AIRCARGO then
-    dfc.airCargo()
+    timer.scheduleFunction(dfc.airCargo, nil, timer:getTime() + AIRCARGOINTERVAL)
 end
 if RESPAWNGROUPS then
     dfc.respawnLoop()

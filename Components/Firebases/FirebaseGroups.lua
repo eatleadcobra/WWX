@@ -417,6 +417,9 @@ local unitTemplates = {
         ["playerCanDrive"] = false,
     }
 }
+if PAIDTHEPRICE then
+   unitTemplates["HOWITZER"]["type"] = "M2A1-105"
+end
 function FirebaseGroups.spawnPirateBoat(point, boatCoalition)
     local newGroupId = fbg.newGroupId()
     local countryId = country.id.CJTF_BLUE
