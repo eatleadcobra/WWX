@@ -164,7 +164,7 @@ Platoons = {
         },
 		["DeployedGun"] = {
             [1] = "Infantry AK ver3",
-            [2] = "bofors40",
+            [2] = "S-60_Type59_Artillery",
             [3] = "Infantry AK ver3",
         },
         ["FuelConvoy"] = {
@@ -201,7 +201,7 @@ PlatoonGunCarrierTypeNames = {
     ["S_75_ZIL"] = "GUN"
 }
 PlatoonGunTypeNames = {
-    ["bofors40"] = "GUN"
+    ["S-60_Type59_Artillery"] = "GUN"
 }
 
 PltStrengths = {
