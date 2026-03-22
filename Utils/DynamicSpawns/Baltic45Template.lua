@@ -1,12 +1,15 @@
 Airframes = {
     [1] = {
         main = {
-            ["FW-190A8"] = true,
-            ["FW-190D9"] = true,
-            ["Bf-109K-4"] = true,
-			["F4U-1D"] = true,
-			["F4U-1D_CW"] = true,
-            ["C-101CC"] = true,
+            ["P-47D-30bl1"] = true,
+			["P-47D-30"] = true,
+			["P-47D-40"] = true,
+			["P-51D"] = true,
+			["MosquitoFBMkVI"] = true,
+			["SpitfireLFMkIX"] = true,
+			["SpitfireLFMkIXCW"] = true,
+			["I-16"] = true,
+			["La-7"] = true,
         },
         forward = {
         },
@@ -17,15 +20,12 @@ Airframes = {
     },
     [2] = {
         main = {
-            ["P-47D-30bl1"] = true,
-			["P-47D-30"] = true,
-			["P-47D-40"] = true,
-			["P-51D"] = true,
-			["MosquitoFBMkVI"] = true,
-			["SpitfireLFMkIX"] = true,
-			["SpitfireLFMkIXCW"] = true,
-			["I-16"] = true,
-			["La-7"] = true,
+			["FW-190A8"] = true,
+            ["FW-190D9"] = true,
+            ["Bf-109K-4"] = true,
+			["F4U-1D"] = true,
+			["F4U-1D_CW"] = true,
+            ["C-101CC"] = true,
         },
         forward = {
         },
