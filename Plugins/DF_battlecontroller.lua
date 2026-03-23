@@ -552,10 +552,12 @@ function bc.companyToCost(companyTable)
         [DFS.supplyType.AMMO] = 0,
         [DFS.supplyType.EQUIPMENT] = 0,
     }
-    for i = 1, #companyTable do
-        cpyCost[DFS.supplyType.FUEL] = cpyCost[DFS.supplyType.FUEL] + PltCosts[companyTable[i]][DFS.supplyType.FUEL]
-        cpyCost[DFS.supplyType.AMMO] = cpyCost[DFS.supplyType.AMMO] + PltCosts[companyTable[i]][DFS.supplyType.AMMO]
-        cpyCost[DFS.supplyType.EQUIPMENT] = cpyCost[DFS.supplyType.EQUIPMENT] + PltCosts[companyTable[i]][DFS.supplyType.EQUIPMENT]
+    if companyTable then
+        for i = 1, #companyTable do
+            cpyCost[DFS.supplyType.FUEL] = cpyCost[DFS.supplyType.FUEL] + PltCosts[companyTable[i]][DFS.supplyType.FUEL]
+            cpyCost[DFS.supplyType.AMMO] = cpyCost[DFS.supplyType.AMMO] + PltCosts[companyTable[i]][DFS.supplyType.AMMO]
+            cpyCost[DFS.supplyType.EQUIPMENT] = cpyCost[DFS.supplyType.EQUIPMENT] + PltCosts[companyTable[i]][DFS.supplyType.EQUIPMENT]
+        end
     end
     return cpyCost
 end
