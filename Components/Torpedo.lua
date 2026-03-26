@@ -21,7 +21,9 @@ function torpEvents:onEvent(event)
             if event.initiator and event.initiator.getPlayerName then
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
-            torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
+            if torpedoPlayerName then
+                torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
+            end
         elseif (ACTIVETORP and event.weapon:getTypeName() == "Mark_46") then
             local torpedoPlayerName = ""
             local torpedoPlayerGroupID = 0
@@ -29,7 +31,9 @@ function torpEvents:onEvent(event)
                 torpedoPlayerGroupID = event.initiator:getGroup():getID()
                 torpedoPlayerName = event.initiator:getPlayerName()
             end
-            torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerGroupId = torpedoPlayerGroupID, playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
+            if torpedoPlayerName then
+                torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerGroupId = torpedoPlayerGroupID, playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
+            end
         end
     end
 end
