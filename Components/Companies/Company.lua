@@ -51,6 +51,35 @@ Company = {
     groupType = 2,
     spawnTime = 0,
 }
+function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit)
+local newCpy = Company:deepcopy()
+    newCpy.id = Utils.uuid()
+    newCpy.coalitionId = coalitionId
+    if navalUnit then
+        newCpy.groupType = 3
+    end
+    if convoy then
+        newCpy.isConvoy = true
+        newCpy.convoyParam = convoyParam
+    elseif ship then
+        newCpy.isShip = true
+        newCpy.convoyParam = convoyParam
+        newCpy.convoyParam.cpyId = newCpy.id
+    end
+    if onRoad == nil or onRoad == false then
+        newCpy.onRoad = false
+    else
+        newCpy.onRoad = true
+    end
+    newCpy.units = units
+    newCpy.initUnits = newCpy.units
+    if persistent then
+        Companies[newCpy.id] = newCpy
+        table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
+    end
+    return newCpy
+end
+
 function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, convoyParam, navalUnit)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
