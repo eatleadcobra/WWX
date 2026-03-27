@@ -1,6 +1,6 @@
 trigger.action.setUserFlag("MISSION_ID", 101)
 -- enabled features
-SUBS = false
+SUBS = true
 ACTIVETORP = false
 SUBTYPE =
 {
