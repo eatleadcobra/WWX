@@ -2301,6 +2301,9 @@ function csb.closestBpTo(pos)
     closestBPDist = math.floor((closestBPDist/1000)+0.5)
     return closestBPId, closestBPDist, direction
 end
+function CSB.closestBpTo(pos)
+    return csb.closestBpTo(pos)
+end
 function csb.closestEnemyBpTo(pos, coalitionId)
     local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
     bpCount = bpCount or 20

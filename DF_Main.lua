@@ -2551,10 +2551,18 @@ function dfc.loadNearestTroops(param)
                                 if transporterTable.cargo.carrying == false then
                                     missionCommands.addCommandForGroup(pickupGroup:getID(), "Unload All Troops", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = "ALL", country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Unload All Troops"})
                                 else
-                                    missionCommands.removeItemForGroup(pickupGroup:getID(), {[1] = "Unload All Troops Troops"})
-                                    missionCommands.addCommandForGroup(pickupGroup:getID(), "Unload All Troops Troops", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = "ALL", country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Unload All Troops Troops"})
+                                    missionCommands.removeItemForGroup(pickupGroup:getID(), {[1] = "Unload All Troops"})
+                                    missionCommands.addCommandForGroup(pickupGroup:getID(), "Unload All Troops", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupPoint.x + 6, y = pickupPoint.y, z = pickupPoint.z + 6}, groupName = param.groupName, type = "ALL", country = pickupUnit:getCountry(), seaPickup = false, frontPickup = false, groupId = pickupGroup:getID(), coalition = pickupCoalition, removeCommand = "Unload All Troops"})
                                 end
                                 transporterTable.cargo.carrying = true
+                                transporterTable.cargo.cargoType = pickupTroopType
+                                transporterTable.cargo.volumeUsed = transporterTable.cargo.volumeUsed + DFS.cargoVolumes[pickupTroopType] --todo: make table for volume lookup
+                                transporterTable.addedMass = transporterTable.addedMass + DFS.cargoMasses[pickupTroopType]
+                                trigger.action.setUnitInternalCargo(pickupUnit:getName(), transporterTable.addedMass)
+                                if transporterTable.cargo.manifest == nil then
+                                    transporterTable.cargo.manifest = {}
+                                end
+                                table.insert(transporterTable.cargo.manifest, pickupTroopType)
                                 pickupTroopGroup:destroy()
                                 trigger.action.outTextForGroup(pickupGroup:getID(), "Loaded " .. DFS.supplyNames[pickupTroopType],5, false)
                             end
@@ -2635,33 +2643,26 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                         Firebases.deploy(droppingGroupName, "MORTAR", ammo)
                     elseif troopType == DFS.supplyType.SF then
                         local isWater = land.getSurfaceType({x = droppingPoint.x, y = droppingPoint.z})
-                        if (isWater == 2 or isWater == 3) then
-                            local spawnPoints = {}
-                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.9), 11))
-                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.7), 10))
-                            spawnPoints[3] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.6), 10))
-                            spawnPoints[4] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.9), 11))
-                            local groups = {
-                                [1] = {type = "m249", point = spawnPoints[1]},
-                                [2] = {type = "m249", point = spawnPoints[2]},
-                                [3] = {type = "m249", point = spawnPoints[3]},
-                                [4] = {type = "m249", point = spawnPoints[4]},
-                            }
-                            local sfGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
-                            dfc.hvbss(sfGroup, droppingPoint, droppingGroup:getCoalition(), droppingGroup:getID(), droppingPlayerName)
-                        else
-                            local spawnPoints = {}
-                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.9), 11))
-                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.7), 10))
-                            spawnPoints[3] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.6), 10))
-                            local groups = {
-                                [1] = {type = "m249", point = spawnPoints[1]},
-                                [2] = {type = "m249", point = spawnPoints[2]},
-                                [3] = {type = "rpg", point = spawnPoints[3]},
-                            }
-                            local sfGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
+                        local spawnPoints = {}
+                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 15))
+                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,8)))
+                            local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(droppingPoint)
+                            if closestBPdistance <= 1000 then
+                                 spawnPoints[2] = BattleControl.getBPPoint(closestBPID)
+                                 trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
+                            end
+                            local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, {[1] = "Soldier M249", [2] = "Paratrooper RPG-16", [3] = "Soldier M249"}, false, false, false, nil, false)
+                            local sfGroup = nil
+                            if newCpy then
+                                newCpy:setWaypoints({spawnPoints[1], spawnPoints[2]}, -1, 12)
+                                newCpy:spawn()
+                                sfGroup = newCpy.groupName
+                            end
+                        if sfGroup then
                             DFS.deployedGroups[droppingGroup:getCoalition()][sfGroup] = {groupName = sfGroup, type = troopType, point = droppingPoint}
-                            Group.getByName(sfGroup):getController():setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.RED)
+                            if (isWater == 2 or isWater == 3) then
+                                dfc.hvbss(sfGroup, droppingPoint, droppingGroup:getCoalition(), droppingGroup:getID(), droppingPlayerName)
+                            end
                         end
                     elseif troopType == "TRUCK" then
                         local spawnPoints = {}
