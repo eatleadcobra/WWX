@@ -252,7 +252,7 @@ function cpyctl.playerControlMonitorLoop()
                             local groupId = cpyGroup:getID()
                             if groupId then
                                 local warnMeters = math.floor(controllableDistance - distance)
-                                trigger.action.outTextForGroup(groupId, "Warning: a unit in your company is deserting! it must return in " .. warnMeters .. " meters or it will be destroyed.", 10, true)
+                                trigger.action.outTextForGroup(groupId, "Warning: a unit in your company is deserting! it must return in " .. warnMeters .. " meters or it will be destroyed.", 5, true)
                             end
                         end
                     end
@@ -261,7 +261,7 @@ function cpyctl.playerControlMonitorLoop()
         else
             playerUnits[unitName] = nil
         end
-        timer.scheduleFunction(cpyctl.playerControlMonitorLoop, nil, timer:getTime() + 10)
+        timer.scheduleFunction(cpyctl.playerControlMonitorLoop, nil, timer:getTime() + 5)
     end
 end
 
