@@ -8,8 +8,9 @@ local tankFuelConsumption = 0.5--(PltCosts[1][1]/2)
 local ifvFuelConsumption = 0
 local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
-
+local controllableDistance = 2000 -- 1nm + a bit for ish factor
 local fuelConsumptionInterval = 1800
+local playerUnits = {}
 CpyControl = {}
 local convoyPltTypes = {
     [1] = 4,
@@ -178,6 +179,92 @@ function cpyctl.updateMission(coalitionId, companyId, newPoints)
         cpy:updateMission(newPoints)
     end
 end
+function cpyctl.getCompanyByGroupName(groupName)
+    if not groupName then return nil end
+    for _, cpy in pairs(Companies) do
+        if cpy.groupName == groupName then
+            return cpy
+        end
+    end
+    return nil
+end
+function cpyctl.addPlayerControlledUnit(cpy, unitName)
+    if not cpy or not unitName then return end
+    playerUnits[unitName] = cpy
+    cpyctl.playerControlMonitorLoop()
+    env.info("Player occupied ground unit " .. unitName .. " in company " .. cpy.id, false)
+end
+
+local cpyEvents = {}
+function cpyEvents:onEvent(event)
+    if not event or not event.id or not event.initiator or not event.initiator.getGroup then
+        return
+    end
+    if event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
+        local group = event.initiator:getGroup()
+        if group then
+            local cpy = cpyctl.getCompanyByGroupName(group:getName())
+            if cpy then
+                cpyctl.addPlayerControlledUnit(cpy, event.initiator:getName())
+            end
+        end
+    elseif event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT then
+        local group = event.initiator:getGroup()
+        if group then
+            local cpy = cpyctl.getCompanyByGroupName(group:getName())
+            if cpy then
+                local unitName = event.initiator:getName()
+                playerUnits[unitName] = nil
+                local unitPoint = event.initiator:getPoint()
+                local destinationPoint = cpy.waypoints[#cpy.waypoints]
+                if unitPoint and destinationPoint and (Utils.PointDistance(unitPoint, destinationPoint) > 200 or Utils.PointDistance(cpy.point, destinationPoint) > 200) then
+                    env.info("Player has left unit " .. unitName .. " and that unit, or company is more than 200m from company destination, updating company mission to new location.", false)
+                    cpy:updateMission(cpy.waypoints, cpy.bp, 999)
+                end
+            end
+        end
+    end
+end
+world.addEventHandler(cpyEvents)
+
+function cpyctl.playerControlMonitorLoop()
+    for unitName, cpy in pairs(playerUnits) do
+        local unit = Unit.getByName(unitName)
+        if unit and unit:isExist() then
+            local unitPoint = unit:getPoint()
+            if unitPoint and cpy.point then
+                local cpyGroup = Group.getByName(cpy.groupName)
+                if cpyGroup then
+                    local destinationPoint = cpy.waypoints[#cpy.waypoints]
+                    if destinationPoint then
+                        local distance = Utils.PointDistance(unitPoint, destinationPoint)
+                        if distance > controllableDistance then
+                            local groupId = cpyGroup:getID()
+                            if groupId then
+                                trigger.action.outTextForGroup(groupId, "A unit has been court martialed for desertion.", 10, false)
+                            end
+                            unit:destroy()
+                            if unitPoint and destinationPoint and (Utils.PointDistance(unitPoint, destinationPoint) > 200 or Utils.PointDistance(cpy.point, destinationPoint) > 200) then
+                                env.info("Player has left unit " .. unitName .. " and that unit, or company is more than 200m from company destination, updating company mission to new location.", false)
+                                cpy:updateMission(cpy.waypoints, cpy.bp, 999)
+                            end
+                        elseif distance > (controllableDistance - 500) then
+                            local groupId = cpyGroup:getID()
+                            if groupId then
+                                local warnMeters = math.floor(controllableDistance - distance)
+                                trigger.action.outTextForGroup(groupId, "Warning: a unit in your company is deserting! it must return in " .. warnMeters .. " meters or it will be destroyed.", 5, true)
+                            end
+                        end
+                    end
+                end
+            end
+        else
+            playerUnits[unitName] = nil
+        end
+        timer.scheduleFunction(cpyctl.playerControlMonitorLoop, nil, timer:getTime() + 5)
+    end
+end
+
 local evaded = {}
 function CpyControl.checkEvasion(companyId, shipunit)
     if cpyctl.underAirAttack(shipunit) and evaded[companyId] == nil then
@@ -288,6 +375,13 @@ function cpyctl.cpyStatusLoop()
                 --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
+                if (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable and CONTROLLABLE_COMPANIES then
+                    cpy:savePosition()
+                    cpy:despawn()
+                    cpy:spawn({playerControllable = true})
+                    cpy.playerControllable = true
+                    break
+                end
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
                     if cpy.status == companyStatuses["Defeated"] then
@@ -418,6 +512,12 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         if coalitionId == 2 then enemyCoalition = 1 end
         if WWEvents then WWEvents.tankCpyStalled(enemyCoalition) end
         if STATS then STATS.addStat(enemyCoalition, STATS.statID["TANK_CPYS_STALLED"]) end
+        if CONTROLLABLE_COMPANIES then
+            cpyToReturn:savePosition()
+            cpyToReturn:despawn()
+            cpyToReturn:spawn({playerControllable = false})
+            cpyToReturn.playerControllable = false
+        end
     end
 end
 function cpyctl.getCompanyStrength(cpy)
