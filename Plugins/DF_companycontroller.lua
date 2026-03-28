@@ -443,6 +443,11 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         if coalitionId == 2 then enemyCoalition = 1 end
         if WWEvents then WWEvents.tankCpyStalled(enemyCoalition) end
         if STATS then STATS.addStat(enemyCoalition, STATS.statID["TANK_CPYS_STALLED"]) end
+        if CONTROLLABLE_COMPANIES then
+            cpyToReturn:savePosition()
+            cpyToReturn:despawn()
+            cpyToReturn:spawn({playerControllable = false})
+        end
     end
 end
 function cpyctl.getCompanyStrength(cpy)
