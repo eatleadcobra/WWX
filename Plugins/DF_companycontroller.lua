@@ -8,7 +8,7 @@ local tankFuelConsumption = 0.5--(PltCosts[1][1]/2)
 local ifvFuelConsumption = 0
 local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
-local controllableDistance = 3000
+local controllableDistance = 2000 -- 1nm + a bit for ish factor
 local fuelConsumptionInterval = 1800
 CpyControl = {}
 local convoyPltTypes = {
@@ -298,9 +298,13 @@ function cpyctl.cpyStatusLoop()
                                 local evalUnit = cpyUnits[j]
                                 if evalUnit then
                                     local unitPoint = evalUnit:getPoint()
-                                    if Utils.PointDistance(unitPoint, destinationPoint) > 200 then
-                                        cpy:setWaypoints({cpy.point, destinationPoint}, cpy.bp)
-                                        break
+                                    if Utils.PointDistance(unitPoint, destinationPoint) > 250 then
+                                        env.info("checking for player in unit " .. evalUnit:getName(), false)
+                                        if not evalUnit:getPlayerName() then
+                                            cpy:updateMission({cpy.point, destinationPoint}, cpy.bp, 999)
+                                            env.info("Resetting waypoints for " .. cpy.groupName .. " due to straggler unit: " .. evalUnit:getName(), false)
+                                            break
+                                        end
                                     end
                                 end
                             end
@@ -311,6 +315,7 @@ function cpyctl.cpyStatusLoop()
                     cpy:savePosition()
                     cpy:despawn()
                     cpy:spawn({playerControllable = true})
+                    cpy.playerControllable = true
                     break
                 end
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
@@ -447,6 +452,7 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
             cpyToReturn:savePosition()
             cpyToReturn:despawn()
             cpyToReturn:spawn({playerControllable = false})
+            cpyToReturn.playerControllable = false
         end
     end
 end
