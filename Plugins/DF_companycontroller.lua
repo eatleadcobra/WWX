@@ -8,7 +8,7 @@ local tankFuelConsumption = 0.5--(PltCosts[1][1]/2)
 local ifvFuelConsumption = 0
 local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
-
+local controllableDistance = 3000
 local fuelConsumptionInterval = 1800
 CpyControl = {}
 local convoyPltTypes = {
@@ -288,6 +288,31 @@ function cpyctl.cpyStatusLoop()
                 --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
+                if cpy.playerControllable then
+                    -- itterate over the companies units, if a unit is outside the BP, reset the company waypoints to get them moving back towards the destination
+                    local cpyGroup = Group.getByName(cpy.groupName)
+                    if cpyGroup then
+                        local cpyUnits = cpyGroup:getUnits()
+                        if cpyUnits then
+                            for j = 1, #cpyUnits do
+                                local evalUnit = cpyUnits[j]
+                                if evalUnit then
+                                    local unitPoint = evalUnit:getPoint()
+                                    if Utils.PointDistance(unitPoint, destinationPoint) > 200 then
+                                        cpy:setWaypoints({cpy.point, destinationPoint}, cpy.bp)
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                if (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable and CONTROLLABLE_COMPANIES then
+                    cpy:savePosition()
+                    cpy:despawn()
+                    cpy:spawn({playerControllable = true})
+                    break
+                end
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
                     if cpy.status == companyStatuses["Defeated"] then
