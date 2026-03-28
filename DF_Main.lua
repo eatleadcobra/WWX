@@ -723,6 +723,7 @@ local redFront = lfs.writedir() .. [[Logs/]] .. 'redFront.txt'
 local blueFront = lfs.writedir() .. [[Logs/]] .. 'blueFront.txt'
 local redFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'redFbs.txt'
 local blueFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'blueFbs.txt'
+local deployedGroupsFile = lfs.writedir() .. [[Logs/]] .. 'deployedGroups.txt'
 local mapState = lfs.writedir() .. [[Logs/]] ..'mapState.txt'
 --Global event listener
 local dfcEvents = {}
@@ -795,6 +796,7 @@ function dfc.getMission()
         redState = lfs.writedir() .. [[Logs/]] ..'redState'..missionName..'.txt'
         redFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'redFbs'..missionName..'.lua'
         blueFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'blueFbs'..missionName..'.lua'
+        deployedGroupsFile = lfs.writedir() .. [[Logs/]] .. 'deployedGroups'..missionName..'.txt'
     end
 end
 function dfc.fileExists(file)
@@ -842,6 +844,9 @@ function dfc.getData()
             DFS.status[2].supply.pirate[DFS.supplyType.AMMO] = tonumber(lines[9])
             DFS.status[2].supply.pirate[DFS.supplyType.EQUIPMENT] = tonumber(lines[10])
             f:close()
+        end
+        if dfc.fileExists(deployedGroupsFile) then
+            DFS.deployedGroups = dofile(deployedGroupsFile)
         end
     else
         dfc.initSupply()
@@ -925,6 +930,9 @@ function dfc.saveData()
         f:write("return " .. Utils.saveToString(fbData))
         f:close()
     end
+    f = io.open(deployedGroupsFile, 'w')
+    f:write("return " .. Utils.saveToString(DFS.deployedGroups))
+    f:close()
 end
 function dfc.blankData()
     dfc.initSupply()
@@ -1260,19 +1268,27 @@ function dfc.checkRDHealth()
     end
 end
 function dfc.checkDeployedGroups()
-    for c = 1, 2 do
-        for groupName, data in pairs(DFS.deployedGroups[c]) do
-            local checkingGroup = Group.getByName(groupName)
-            if checkingGroup then
-                local checkingUnit = checkingGroup:getUnit(1)
-                if checkingUnit then
-                    local checkingPoint = checkingUnit:getPoint()
-                    if checkingPoint then
-                        DFS.deployedGroups[c][groupName].point = checkingPoint
+    if Companies then
+        for c = 1, 2 do
+            for groupName, data in pairs(DFS.deployedGroups[c]) do
+                if data.cpyId then
+                    local cpy = Companies[data.cpyId]
+                    if cpy then
+                        DFS.deployedGroups[c][cpy.groupName] = data
                     end
                 end
-            else
-                DFS.deployedGroups[c][groupName] = nil
+                local checkingGroup = Group.getByName(groupName)
+                if checkingGroup then
+                    local checkingUnit = checkingGroup:getUnit(1)
+                    if checkingUnit then
+                        local checkingPoint = checkingUnit:getPoint()
+                        if checkingPoint then
+                            DFS.deployedGroups[c][groupName].point = checkingPoint
+                        end
+                    end
+                else
+                    DFS.deployedGroups[c][groupName] = nil
+                end
             end
         end
     end
@@ -2659,7 +2675,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                                 sfGroup = newCpy.groupName
                             end
                         if sfGroup then
-                            DFS.deployedGroups[droppingGroup:getCoalition()][sfGroup] = {groupName = sfGroup, type = troopType, point = droppingPoint}
+                            DFS.deployedGroups[droppingGroup:getCoalition()][sfGroup] = {groupName = sfGroup, type = troopType, point = droppingPoint, cpyId = newCpy.id}
                             if (isWater == 2 or isWater == 3) then
                                 dfc.hvbss(sfGroup, droppingPoint, droppingGroup:getCoalition(), droppingGroup:getID(), droppingPlayerName)
                             end
