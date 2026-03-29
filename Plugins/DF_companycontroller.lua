@@ -242,25 +242,22 @@ function cpyctl.playerControlMonitorLoop()
             end
             local unitPoint = unit:getPoint()
             if unitPoint and cpy.point then
-                local cpyGroup = Group.getByName(cpy.groupName)
-                if cpyGroup then
-                    local destinationPoint = cpy.waypoints[#cpy.waypoints]
-                    if destinationPoint then
-                        local distance = Utils.PointDistance(unitPoint, destinationPoint)
-                        if distance > controllableDistance then
-                            local groupId = cpyGroup:getID()
-                            if groupId then
-                                trigger.action.outTextForGroup(groupId, "A unit has been court martialed for desertion.", 10, false)
-                            end
-                            unit:destroy()
-                            env.info("Player has left unit " .. unitName .. " forming up company again.", false)
-                            cpy:updateMission(cpy.waypoints, cpy.bp, 999)
-                        elseif distance > (controllableDistance - 500) then
-                            local groupId = cpyGroup:getID()
-                            if groupId then
-                                local warnMeters = math.floor(controllableDistance - distance)
-                                trigger.action.outTextForGroup(groupId, "Warning: a unit in your company is deserting! it must return in " .. warnMeters .. " meters or it will be destroyed.", 5, true)
-                            end
+                local destinationPoint = cpy.waypoints[#cpy.waypoints]
+                if destinationPoint then
+                    local distance = Utils.PointDistance(unitPoint, destinationPoint)
+                    if distance > controllableDistance then
+                        local unitId = unit:getID()
+                        if unitId then
+                            trigger.action.outTextForUnit(unitId, "A unit has been court martialed for desertion.", 10, false)
+                        end
+                        unit:destroy()
+                        env.info("Player has left unit " .. unitName .. " forming up company again.", false)
+                        cpy:updateMission(cpy.waypoints, cpy.bp, 999)
+                    elseif distance > (controllableDistance - 500) then
+                        local unitId = unit:getID()
+                        if unitId then
+                            local warnMeters = math.floor(controllableDistance - distance)
+                            trigger.action.outTextForUnit(unitId, "Warning: a unit in your company is deserting! it must return in " .. warnMeters .. " meters or it will be destroyed.", 5, true)
                         end
                     end
                 end
