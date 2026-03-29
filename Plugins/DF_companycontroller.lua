@@ -197,10 +197,11 @@ end
 
 local cpyEvents = {}
 function cpyEvents:onEvent(event)
-    if not event or not event.id or not event.initiator or not event.initiator.getGroup then
+    if not event or not event.id or not event.initiator then
         return
     end
     if event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
+        env.info("Player entered unit " .. event.initiator:getName(), false)
         local group = event.initiator:getGroup()
         if group then
             local cpy = cpyctl.getCompanyByGroupName(group:getName())
@@ -209,6 +210,7 @@ function cpyEvents:onEvent(event)
             end
         end
     elseif event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT then
+        env.info("Player left unit " .. event.initiator:getName(), false)
         local group = event.initiator:getGroup()
         if group then
             local cpy = cpyctl.getCompanyByGroupName(group:getName())
