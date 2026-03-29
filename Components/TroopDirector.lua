@@ -3,7 +3,6 @@ local tdEvents = {}
 function tdEvents:onEvent(event)
     --on mark change
     if (event.id == world.event.S_EVENT_MARK_CHANGE) then
-        trigger.action.outText("mark change", 10, false)
         local playerName = nil
         if event.idx then
             if event.initiator ~= nil then
