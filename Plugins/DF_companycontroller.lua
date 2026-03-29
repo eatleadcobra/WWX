@@ -190,11 +190,13 @@ function cpyctl.getCompanyByGroupName(groupName)
 end
 function cpyctl.addPlayerControlledUnit(cpy, unitName)
     if not cpy or not unitName then return end
+    if playerUnits[unitName] then return end
     playerUnits[unitName] = cpy
     cpyctl.playerControlMonitorLoop()
     env.info("Player occupied ground unit " .. unitName .. " in company " .. cpy.id, false)
 end
 function cpyctl.removePlayerControlledUnit(unitName)
+    env.info("Player left ground unit " .. unitName .. " in company " .. playerUnits[unitName].id, false)
     local unit = Unit.getByName(unitName)
     if unit and unit:isExist() then
         local group = unit:getGroup()
@@ -202,12 +204,9 @@ function cpyctl.removePlayerControlledUnit(unitName)
             local cpy = playerUnits[unitName]
             if cpy then
                 playerUnits[unitName] = nil
-                local unitPoint = unit.getPoint()
-                local destinationPoint = cpy.waypoints[#cpy.waypoints]
-                if unitPoint and destinationPoint and (Utils.PointDistance(unitPoint, destinationPoint) > 200 or Utils.PointDistance(cpy.point, destinationPoint) > 200) then
-                    env.info("Player has left unit " .. unitName .. " and that unit, or company is more than 200m from company destination, updating company mission to new location.", false)
-                    cpy:updateMission(cpy.waypoints, cpy.bp, 999)
-                end
+                env.info("Player has left unit " .. unitName .. " forming up company again.", false)
+                cpy:updateMission(cpy.waypoints, cpy.bp, 999)
+                -- in future could make form up its own function where units circle bp to give time to get in line again.
             end
         end
     end
@@ -231,14 +230,13 @@ function cpyctl.babysitter()
             end
         end
     end
-    timer.scheduleFunction(cpyctl.babysitter, nil, timer:getTime() + 10)
+    timer.scheduleFunction(cpyctl.babysitter, nil, timer:getTime() + 5)
 end
 function cpyctl.playerControlMonitorLoop()
     for unitName, cpy in pairs(playerUnits) do
         local unit = Unit.getByName(unitName)
         if unit and unit:isExist() then
             if not unit:getPlayerName() then
-                env.info("Player left unit " .. unitName .. " in company " .. cpy.id .. " without triggering event, removing from player controlled units.", false)
                 cpyctl.removePlayerControlledUnit(unitName)
                 break
             end
@@ -255,10 +253,8 @@ function cpyctl.playerControlMonitorLoop()
                                 trigger.action.outTextForGroup(groupId, "A unit has been court martialed for desertion.", 10, false)
                             end
                             unit:destroy()
-                            if unitPoint and destinationPoint and (Utils.PointDistance(unitPoint, destinationPoint) > 200 or Utils.PointDistance(cpy.point, destinationPoint) > 200) then
-                                env.info("Player has left unit " .. unitName .. " and that unit, or company is more than 200m from company destination, updating company mission to new location.", false)
-                                cpy:updateMission(cpy.waypoints, cpy.bp, 999)
-                            end
+                            env.info("Player has left unit " .. unitName .. " forming up company again.", false)
+                            cpy:updateMission(cpy.waypoints, cpy.bp, 999)
                         elseif distance > (controllableDistance - 500) then
                             local groupId = cpyGroup:getID()
                             if groupId then
