@@ -52,7 +52,7 @@ Company = {
     groupType = 2,
     spawnTime = 0,
 }
-function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit)
+function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit, closeDeploy)
 local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
@@ -74,6 +74,9 @@ local newCpy = Company:deepcopy()
     end
     newCpy.units = units
     newCpy.initUnits = newCpy.units
+    if closeDeploy then
+        newCpy.closeDeploy = true
+    end
     if persistent then
         Companies[newCpy.id] = newCpy
         table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
@@ -190,8 +193,20 @@ function Company.spawn(self, options)
             cpyGroupTable["units"][j].y = deployPoint.z + (12*(j-1))
             cpyGroupTable["units"][j].heading = self.heading
         end
+        if self.closeDeploy then
+            for j = 1, #cpyGroupTable["units"] do
+                local deployPoint = self.waypoints[1]
+                cpyGroupTable["units"][j].x = deployPoint.x + (1*(j-1))
+                cpyGroupTable["units"][j].y = deployPoint.z + (1*(j-1))
+                cpyGroupTable["units"][j].heading = self.heading
+            end
+        end
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
+        if self.closeDeploy then
+            cpyGroupTable["route"]["points"][2].action = "Cone"
+            cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Cone"
+        end
     elseif self.isShip == false and self.isConvoy == true then
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "On Road"
