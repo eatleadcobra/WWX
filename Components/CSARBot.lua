@@ -35,8 +35,8 @@ local casEvacSoundFile = "l10n/DEFAULT/dah2.ogg"
 local genCsarCounter = 25
 local genCasEvacCounter = 420
 local hotLZdist = 8
-local pickupHunterCleanupDelay = 60
-local expiryHunterCleanupDelay = 5
+local pickupHunterCleanupDelay = 90
+local expiryHunterCleanupDelay = 10
 local csarHunterCaptureDistance = 3
 local csarHunterStartingDistMin = 500
 local csarHunterStartingDistMax = 1000
@@ -482,7 +482,7 @@ function csb.createCsarUnit(csarMissionTable)
     if not csarGroupName then return false end
     csarMissionTable.groupName = csarGroupName
     env.info("[csb.createCsarUnit] - csarGroupName = " .. csarGroupName,false)
-    if csarMissionTable.hotLZ == true then
+    if csarMissionTable.hotLZ == true or (csarMissionTable.source == "casevac" and math.random() < 0.5) then
         csb.makeRescueInvisible(csarMissionTable.groupName)
         csb.setupHunterGroup(csarMissionTable)
     end
@@ -622,6 +622,9 @@ function csb.setupHunterGroup(rescue)
                 end
             end
         end
+    end
+    if rescue.source == "casevac" then
+        env.info("[csb.setupHunterGroup] - casevac #".. rescue.sourceId .." rescue (".. rescue.name ..") as target",false)
     end
 end
 function csb.triggerHunterGroup(rescue)
@@ -1067,14 +1070,26 @@ function csb.wellnessCheck(coalitionId)
                         trigger.action.outTextForCoalition(coalitionId,"Intel reports that parts of a lost friendly aircraft have been recovered by the enemy.", 10, false)
                     end
                 else
-                    for _,ce in pairs(casEvacMissions[coalitionId]) do
-                        if m.sourceId and m.sourceId == ce.missionId then
-                            ce.lostCas = ce.lostCas + 1
-                            if math.fmod(ce.lostCas,2) == 0 then
-                                env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",false)
-                                for _,csci in pairs(csarCheckIns[coalitionId]) do
-                                    trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",10,false)
+                    if notHunted then
+                        for _,ce in pairs(casEvacMissions[coalitionId]) do
+                            if m.sourceId and m.sourceId == ce.missionId then
+                                ce.lostCas = ce.lostCas + 1
+                                if math.fmod(ce.lostCas,2) == 0 then
+                                    env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",false)
+                                    for _,csci in pairs(csarCheckIns[coalitionId]) do
+                                        trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",10,false)
+                                    end
                                 end
+                            end
+                        end
+                    else
+                        for _,ce in pairs(casEvacMissions[coalitionId]) do
+                            if m.sourceId and m.sourceId == ce.missionId then
+                                ce.overrun = true
+                                for _,csci in pairs(csarCheckIns[coalitionId]) do
+                                    trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " has been overrun by hostile forces. Abort rescue.",10,false)
+                                end
+                                break
                             end
                         end
                     end
@@ -2122,6 +2137,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     ceMission.soundfile = casEvacSoundFile
     ceMission.missionId = genCasEvacCounter
     ceMission.signalPower = casEvacSignalPower
+    ceMission.overrun = false
     local csarParams = {}
     csarParams.csarPoint = ceMission.point
     csarParams.coalitionId = ceMission.coalition
@@ -2156,7 +2172,7 @@ function csb.trackCasEvac()
     for c = 1, 2 do
         ongoingMissions = {}
         for _,m in pairs(casEvacMissions[c]) do
-            if m.endTime < checkTime then
+            if m.endTime < checkTime or m.overrun == true then
                 csb.cleanupCasEvacGroup(m)
             else
                 remainingTime = m.endTime - checkTime
