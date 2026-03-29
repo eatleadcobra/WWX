@@ -52,10 +52,10 @@ DFS.cargoVolumes = {
     [1] = 5,
     [2] = 5,
     [3] = 5,
-    [5] = 10,
-    [6] = 5,
+    [5] = 8,
+    [6] = 6,
     [7] = 2,
-    [8] = 5,
+    [8] = 3,
 }
 DFS.internalCargo = {
 
@@ -113,7 +113,7 @@ DFS.heloCapacities = {
             ["Combat Engineers (Landmines)"] = 7,
             ["Small Mortar Squad"] = 8,
         },
-        volume = 15,
+        volume = 8,
         seats = 8
     },
     ["UH-1H"] = {
@@ -126,7 +126,7 @@ DFS.heloCapacities = {
             ["Combat Engineers (Landmines)"] = 7,
             ["Small Mortar Squad"] = 8,
         },
-        volume = 15,
+        volume = 14,
         seats = 14
     },
     ["C-130J-30"] = {
@@ -136,21 +136,8 @@ DFS.heloCapacities = {
             ["Combat Engineers (Landmines)"] = 7,
             ["Small Mortar Squad"] = 8,
         },
-        volume = 45,
+        volume = 65,
         seats = 30
-    },
-    ["UH-60L"] = {
-        types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
-            ["Mortar Squad"] = 5,
-            ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
-            ["Small Mortar Squad"] = 8,
-        },
-        volume = 20,
-        seats = 12
     },
     ["SA342L"] = {
         types = {
@@ -162,7 +149,7 @@ DFS.heloCapacities = {
             ["Combat Engineers (Landmines)"] = 7,
             ["Small Mortar Squad"] = 8,
         },
-        volume = 10,
+        volume = 3,
         seats = 3
     },
     ["SA342Minigun"] = {
@@ -174,7 +161,7 @@ DFS.heloCapacities = {
             ["Combat Engineers (Landmines)"] = 7,
             ["Small Mortar Squad"] = 8,
         },
-        volume = 10,
+        volume = 2,
         seats = 2
     },
     ["CH-47Fbl1"] = {
@@ -187,20 +174,8 @@ DFS.heloCapacities = {
             ["Combat Engineers (Landmines)"] = 7,
             ["Small Mortar Squad"] = 8,
         },
-        volume = 30,
+        volume = 35,
         seats = 30
-    },
-    ["OH-6A"] = {
-        types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
-            ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
-            ["Small Mortar Squad"] = 8,
-        },
-        volume = 5,
-        seats = 2
     }
 }
 DFS.helos = {
@@ -2663,11 +2638,26 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                             spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 15))
                             spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,8)))
                             local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(droppingPoint)
-                            if closestBPdistance <= 1000 then
+                            if Troopmarks and Troopmarks[droppingPlayerName] then
+                                if Utils.PointDistance(droppingPoint, Troopmarks[droppingPlayerName]) < 3704 then
+                                    trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving to your mark point!", 10, false)
+                                    spawnPoints[2] = Troopmarks[droppingPlayerName]
+                                else
+                                    trigger.action.outTextForGroup(droppingGroup:getID(), "Your mark point is too far away!", 10, false)
+                                end
+                            elseif closestBPdistance <= 1852 then
                                  spawnPoints[2] = BattleControl.getBPPoint(closestBPID)
                                  trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
                             end
-                            local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, {[1] = "Soldier M249", [2] = "Paratrooper RPG-16", [3] = "Soldier M249"}, false, false, false, nil, false)
+                            local platoonTable = {
+                                [1] = "Paratrooper RPG-16",
+                                [2] = "Paratrooper AKS-74",
+                                [3] = "Paratrooper AKS-74",
+                                [4] = "Soldier M249",
+                                [5] = "Paratrooper AKS-74",
+                                [6] = "Paratrooper AKS-74",
+                            }
+                            local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, platoonTable, false, false, false, nil, false, true)
                             local sfGroup = nil
                             if newCpy then
                                 newCpy:setWaypoints({spawnPoints[1], spawnPoints[2]}, -1, 12)
@@ -3313,15 +3303,12 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small"})
             -- Spawn Multiple Troops submenu: choose quantity then type
             local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiples)", cargoMenu)
             local troopQuantities = {2, 3, 6}
             for _, q in ipairs(troopQuantities) do
                 local troopQtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " squads", multipleTroopMenu)
                 missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small", count = q})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Small Mortar Team (Auto firing)", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SMALL_MORTAR, groupName = groupName, modifier = "small", count = q})
                 --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
             end
             dfc.radioCargoTickerManager({groupName = groupName, parentMenu = cargoMenu, prevRear = nil, prevFront = nil})
