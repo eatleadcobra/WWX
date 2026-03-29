@@ -194,30 +194,15 @@ function cpyctl.addPlayerControlledUnit(cpy, unitName)
     cpyctl.playerControlMonitorLoop()
     env.info("Player occupied ground unit " .. unitName .. " in company " .. cpy.id, false)
 end
-
-local cpyEvents = {}
-function cpyEvents:onEvent(event)
-    if not event or not event.id or not event.initiator then
-        return
-    end
-    if event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
-        env.info("Player entered unit " .. event.initiator:getName(), false)
-        local group = event.initiator:getGroup()
+function cpyctl.removePlayerControlledUnit(unitName)
+    local unit = Unit.getByName(unitName)
+    if unit and unit:isExist() then
+        local group = unit:getGroup()
         if group then
-            local cpy = cpyctl.getCompanyByGroupName(group:getName())
+            local cpy = playerUnits[unitName]
             if cpy then
-                cpyctl.addPlayerControlledUnit(cpy, event.initiator:getName())
-            end
-        end
-    elseif event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT then
-        env.info("Player left unit " .. event.initiator:getName(), false)
-        local group = event.initiator:getGroup()
-        if group then
-            local cpy = cpyctl.getCompanyByGroupName(group:getName())
-            if cpy then
-                local unitName = event.initiator:getName()
                 playerUnits[unitName] = nil
-                local unitPoint = event.initiator:getPoint()
+                local unitPoint = unit.getPoint()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 if unitPoint and destinationPoint and (Utils.PointDistance(unitPoint, destinationPoint) > 200 or Utils.PointDistance(cpy.point, destinationPoint) > 200) then
                     env.info("Player has left unit " .. unitName .. " and that unit, or company is more than 200m from company destination, updating company mission to new location.", false)
@@ -227,12 +212,36 @@ function cpyEvents:onEvent(event)
         end
     end
 end
-world.addEventHandler(cpyEvents)
-
+function cpyctl.babysitter()
+    for _, cpy in pairs(Companies) do
+        if cpy.playerControllable then
+            local cpyGroup = Group.getByName(cpy.groupName)
+            if cpyGroup then
+                local units = cpyGroup:getUnits()
+                if units then
+                    for i = 1, #units do
+                        local unit = units[i]
+                        if unit and unit:isExist() then
+                            if unit:getPlayerName() then
+                                cpyctl.addPlayerControlledUnit(cpy, unit:getName())
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    timer.scheduleFunction(cpyctl.babysitter, nil, timer:getTime() + 10)
+end
 function cpyctl.playerControlMonitorLoop()
     for unitName, cpy in pairs(playerUnits) do
         local unit = Unit.getByName(unitName)
         if unit and unit:isExist() then
+            if not unit:getPlayerName() then
+                env.info("Player left unit " .. unitName .. " in company " .. cpy.id .. " without triggering event, removing from player controlled units.", false)
+                cpyctl.removePlayerControlledUnit(unitName)
+                break
+            end
             local unitPoint = unit:getPoint()
             if unitPoint and cpy.point then
                 local cpyGroup = Group.getByName(cpy.groupName)
@@ -606,7 +615,9 @@ end
 
 cpyctl.getCompanies()
 cpyctl.spawnCompanies()
-
 cpyctl.saveLoop()
 cpyctl.cpyStatusLoop()
 cpyctl.teamFuelConsumptionLoop()
+if CONTROLLABLE_COMPANIES then
+    cpyctl.babysitter()
+end
