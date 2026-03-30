@@ -117,6 +117,10 @@ function fbEvents:onEvent(event)
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "STARSHELL", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
         end
+        if (string.upper(event.text) == 'WP') then
+            table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "SMOKE", playerName = playerName})
+            timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
+        end
         if (string.upper(event.text) == 'X') then
             table.insert(targetMarks, {coalition = event.coalition, pos = event.pos, id=event.idx, fbType = "ANY", playerName = playerName})
             timer.scheduleFunction(Firebases.sendFireMission, event.coalition, timer.getTime() + 5)
@@ -555,7 +559,7 @@ function Firebases.getClosestUnassignedFirebaseInRangeByType(point, coalition, f
     local distanceToFirebase = 100000
     local returnBaseIndex = 0
     for i = 1, #FirebaseIds[coalition] do
-        if fbType == "ANY" or fbType == "STARSHELL" or fbType == "SUPPRESS" or (Firebases[FirebaseIds[coalition][i]].fbType and Firebases[FirebaseIds[coalition][i]].fbType == fbType) then
+        if fbType == "ANY" or fbType == "STARSHELL" or fbType == "SMOKE" or fbType == "SUPPRESS" or (Firebases[FirebaseIds[coalition][i]].fbType and Firebases[FirebaseIds[coalition][i]].fbType == fbType) then
             local distance = Utils.PointDistance(point, Firebases[FirebaseIds[coalition][i]].positions.location)
             if fbFuncs.inRange(Firebases[FirebaseIds[coalition][i]], point) and distance < distanceToFirebase and not Firebases[FirebaseIds[coalition][i]]:isAssigned() and Firebases[FirebaseIds[coalition][i]].contents.ammo > 0 then
                 distanceToFirebase = distance
@@ -610,6 +614,12 @@ function Firebases.sendFireMission(coalitionId)
                         trigger.action.removeMark(targetMarks[i].id)
                         table.remove(targetMarks, i)
                         return
+                    elseif targetMarks[i].fbType == "SMOKE" then
+                        firebase:expendAmmo(1)
+                        timer.scheduleFunction(fbFuncs.firebaseSmoke, targetMarks[i].pos, timer:getTime() + (5 + math.random(4)))
+                        trigger.action.removeMark(targetMarks[i].id)
+                        table.remove(targetMarks, i)
+                        return
                     else
                         firebase:assign()
                         fbFuncs.firebaseFire(firebase, targetMarks[i])
@@ -655,6 +665,11 @@ end
 function fbFuncs.firebaseIllum(point)
     if point then
         trigger.action.illuminationBomb({x=point.x, y = land.getHeight({x = point.x, y = point.z})+700, z = point.z}, 8000)
+    end
+end
+function fbFuncs.firebaseSmoke(point)
+    if point then
+        trigger.action.smoke(point, 2)
     end
 end
 function fbFuncs.firebaseFire(firebase, targetmark)
