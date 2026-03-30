@@ -22,7 +22,6 @@ TRAINS = true
 AIRCARGO = true
 AIRCARGOINTERVAL = 3600
 CAPTURE = false
-CONTROLLABLE_COMPANIES = true
 INTERCEPTORS= {
 interval = 3600, --3600
 interceptLimit = 4,
