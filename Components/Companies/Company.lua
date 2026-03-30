@@ -44,6 +44,7 @@ Company = {
     speed = nil,
     isDeployed = false,
     bp = 0,
+    playerControllable = false,
     isConvoy = false,
     isShip = false,
     casTracked = false,
@@ -148,6 +149,7 @@ function Company.newFromTable(cpyData)
     newCpy.isShip = cpyData.isShip
     newCpy.convoyParam = cpyData.convoyParam
     newCpy.groupType = cpyData.groupType
+    newCpy.playerControllable = cpyData.playerControllable
     newCpy.spawnTime = 0
     return newCpy
 end
@@ -163,7 +165,9 @@ function Company.setWaypoints(self, waypoints, bp, speed)
     if speed then self.speed = speed end
     if self.isShip then env.info("set new waypoints for ship: " .. self.groupName, false) end
 end
-function Company.spawn(self)
+function Company.spawn(self, options)
+    local playerControllable = (options and options.playerControllable) or false
+    self.playerControllable = playerControllable
     self.spawnTime = timer.getTime()+1
     local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
     if self.isShip then
@@ -181,7 +185,7 @@ function Company.spawn(self)
         end
     end
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points, self.speed)
-    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints)
+    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints, playerControllable)
     if self.onRoad == false and self.isShip == false then
         for j = 1, #cpyGroupTable["units"] do
             local deployPoint = self.waypoints[1]

@@ -8,8 +8,9 @@ local tankFuelConsumption = 0.5--(PltCosts[1][1]/2)
 local ifvFuelConsumption = 0
 local apcFuelConsumption = 0
 local cpyTimeLimit = 2700
-
+local controllableDistance = 2000 -- 1nm + a bit for ish factor
 local fuelConsumptionInterval = 1800
+local playerUnits = {}
 CpyControl = {}
 local convoyPltTypes = {
     [1] = 4,
@@ -178,6 +179,96 @@ function cpyctl.updateMission(coalitionId, companyId, newPoints)
         cpy:updateMission(newPoints)
     end
 end
+function cpyctl.getCompanyByGroupName(groupName)
+    if not groupName then return nil end
+    for _, cpy in pairs(Companies) do
+        if cpy.groupName == groupName then
+            return cpy
+        end
+    end
+    return nil
+end
+function cpyctl.addPlayerControlledUnit(cpy, unitName)
+    if not cpy or not unitName then return end
+    if playerUnits[unitName] then return end
+    playerUnits[unitName] = cpy
+    cpyctl.playerControlMonitorLoop()
+    env.info("Player occupied ground unit " .. unitName .. " in company " .. cpy.id, false)
+end
+function cpyctl.removePlayerControlledUnit(unitName)
+    env.info("Player left ground unit " .. unitName .. " in company " .. playerUnits[unitName].id, false)
+    local unit = Unit.getByName(unitName)
+    if unit and unit:isExist() then
+        local group = unit:getGroup()
+        if group then
+            local cpy = playerUnits[unitName]
+            if cpy then
+                playerUnits[unitName] = nil
+                env.info("Player has left unit " .. unitName .. " forming up company again.", false)
+                cpy:updateMission(cpy.waypoints, cpy.bp, 999)
+                -- in future could make form up its own function where units circle bp to give time to get in line again.
+            end
+        end
+    end
+end
+function cpyctl.babysitter()
+    for _, cpy in pairs(Companies) do
+        if cpy.playerControllable then
+            local cpyGroup = Group.getByName(cpy.groupName)
+            if cpyGroup then
+                local units = cpyGroup:getUnits()
+                if units then
+                    for i = 1, #units do
+                        local unit = units[i]
+                        if unit and unit:isExist() then
+                            if unit:getPlayerName() then
+                                cpyctl.addPlayerControlledUnit(cpy, unit:getName())
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    timer.scheduleFunction(cpyctl.babysitter, nil, timer:getTime() + 5)
+end
+function cpyctl.playerControlMonitorLoop()
+    for unitName, cpy in pairs(playerUnits) do
+        local unit = Unit.getByName(unitName)
+        if unit and unit:isExist() then
+            if not unit:getPlayerName() then
+                cpyctl.removePlayerControlledUnit(unitName)
+                break
+            end
+            local unitPoint = unit:getPoint()
+            if unitPoint and cpy.point then
+                local destinationPoint = cpy.waypoints[#cpy.waypoints]
+                if destinationPoint then
+                    local distance = Utils.PointDistance(unitPoint, destinationPoint)
+                    if distance > controllableDistance then
+                        local unitId = unit:getID()
+                        if unitId then
+                            trigger.action.outTextForUnit(unitId, "A unit has been court martialed for desertion.", 10, false)
+                        end
+                        unit:destroy()
+                        env.info("Player has left unit " .. unitName .. " forming up company again.", false)
+                        cpy:updateMission(cpy.waypoints, cpy.bp, 999)
+                    elseif distance > (controllableDistance - 500) then
+                        local unitId = unit:getID()
+                        if unitId then
+                            local warnMeters = math.floor(controllableDistance - distance)
+                            trigger.action.outTextForUnit(unitId, "Warning: a unit in your company is deserting! it must return in " .. warnMeters .. " meters or it will be destroyed.", 5, true)
+                        end
+                    end
+                end
+            end
+        else
+            playerUnits[unitName] = nil
+        end
+        timer.scheduleFunction(cpyctl.playerControlMonitorLoop, nil, timer:getTime() + 5)
+    end
+end
+
 local evaded = {}
 function CpyControl.checkEvasion(companyId, shipunit)
     if cpyctl.underAirAttack(shipunit) and evaded[companyId] == nil then
@@ -288,6 +379,13 @@ function cpyctl.cpyStatusLoop()
                 --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
+                if (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable and CONTROLLABLE_COMPANIES then
+                    cpy:savePosition()
+                    cpy:despawn()
+                    cpy:spawn({playerControllable = true})
+                    cpy.playerControllable = true
+                    break
+                end
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
                     if cpy.status == companyStatuses["Defeated"] then
@@ -418,6 +516,12 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         if coalitionId == 2 then enemyCoalition = 1 end
         if WWEvents then WWEvents.tankCpyStalled(enemyCoalition) end
         if STATS then STATS.addStat(enemyCoalition, STATS.statID["TANK_CPYS_STALLED"]) end
+        if CONTROLLABLE_COMPANIES then
+            cpyToReturn:savePosition()
+            cpyToReturn:despawn()
+            cpyToReturn:spawn({playerControllable = false})
+            cpyToReturn.playerControllable = false
+        end
     end
 end
 function cpyctl.getCompanyStrength(cpy)
@@ -504,7 +608,9 @@ end
 
 cpyctl.getCompanies()
 cpyctl.spawnCompanies()
-
 cpyctl.saveLoop()
 cpyctl.cpyStatusLoop()
 cpyctl.teamFuelConsumptionLoop()
+if CONTROLLABLE_COMPANIES then
+    cpyctl.babysitter()
+end

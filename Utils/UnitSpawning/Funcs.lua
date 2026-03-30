@@ -38,7 +38,8 @@ function SpawnFuncs.createMission(listOfWaypoints)
     end
     return missionTable
 end
-function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, listOfUnitTypeNames, listOfWaypoints)
+function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, listOfUnitTypeNames, listOfWaypoints, playerControllable)
+    playerControllable = playerControllable or false
     local newGroupId = SpawnFuncs.getNextGroupId()
     local countryId = 80 + (2-coalitionId)
     local groupTable = SpawnFuncs.deepcopy(SpawnTemplates.groupTemplate)
@@ -49,6 +50,7 @@ function SpawnFuncs.createGroupTableFromListofUnitTypes(coalitionId, groupType, 
         local addUnitTable = SpawnFuncs.deepcopy(SpawnTemplates.unitTemplates[groupType])
         addUnitTable["type"] = listOfUnitTypeNames[i]
         addUnitTable["name"] = listOfUnitTypeNames[i] .. newGroupId .. i
+        addUnitTable["playerCanDrive"] = playerControllable
         unitsTable[#unitsTable+1] = addUnitTable
         addUnitTable = {}
     end
