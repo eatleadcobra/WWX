@@ -64,6 +64,7 @@ function cpyctl.saveCompanies()
             bp = v.bp,
             isConvoy = v.isConvoy,
             isShip = v.isShip,
+            cpyType = v.cpyType,
             convoyParam = v.convoyParam,
             groupType = v.groupType,
         }

@@ -48,16 +48,20 @@ Company = {
     isConvoy = false,
     isShip = false,
     casTracked = false,
+    cpyType = nil,
     convoyParam = {},
     groupType = 2,
     spawnTime = 0,
 }
-function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit, closeDeploy)
-local newCpy = Company:deepcopy()
+function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit, closeDeploy, cpyType)
+    local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
     if navalUnit then
         newCpy.groupType = 3
+    end
+    if cpyType then
+        newCpy.cpyType = cpyType
     end
     if convoy then
         newCpy.isConvoy = true
@@ -147,6 +151,7 @@ function Company.newFromTable(cpyData)
     newCpy.bp = cpyData.bp
     newCpy.isConvoy = cpyData.isConvoy
     newCpy.isShip = cpyData.isShip
+    newCpy.cpyType = cpyData.cpyType
     newCpy.convoyParam = cpyData.convoyParam
     newCpy.groupType = cpyData.groupType
     newCpy.playerControllable = cpyData.playerControllable
@@ -237,7 +242,7 @@ function Company.spawn(self, options)
         CpyControl.setShipCargo(self.groupName, loading)
         DFS.checkShip(self.convoyParam)
     else
-        if CAS then
+        if CAS and (self.cpyType == nil or self.cpyType ~= "INF") then
             CAS.followGroup(self.coalitionId, self.groupName, cm.newCallsign(self.coalitionId), math.random(1,3), cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
             self.casTracked = true
         end

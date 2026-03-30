@@ -2657,7 +2657,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                                 [5] = "Paratrooper AKS-74",
                                 [6] = "Paratrooper AKS-74",
                             }
-                            local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, platoonTable, false, false, false, nil, false, true)
+                            local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, platoonTable, false, false, false, nil, false, true, "INF")
                             local sfGroup = nil
                             if newCpy then
                                 newCpy:setWaypoints({spawnPoints[1], spawnPoints[2]}, -1, 12)
