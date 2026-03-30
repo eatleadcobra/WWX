@@ -365,6 +365,52 @@ function Company.deploy(self)
             end
         end
     end
+    if self.cpyType and self.cpyType == "INF" then
+        local leadUnit = cpyGroup:getUnit(1)
+        if leadUnit then
+            local deployPoint = leadUnit:getPoint()
+            local deployPos = leadUnit:getPosition()
+            if deployPoint and deployPos then
+                local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = deployPoint})
+                local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, {[1] = "2B11 mortar"}, groupWaypoints)
+                for j = 1, #deployedGroupTable["units"] do
+                    local mortarDeployPoint = Utils.VectorAdd(deployPoint, Utils.ScalarMult(Utils.RotateVector(deployPos.x, 0.52 + (0.14 * (j-1))), 4+(((j-1)/2))))
+                    local heading = 0
+                    heading = math.atan2(deployPos.x.z, deployPos.x.x)
+                    if heading < 0 then heading = heading + (2 * math.pi) end
+                    deployedGroupTable["units"][j].x = mortarDeployPoint.x
+                    deployedGroupTable["units"][j].y = mortarDeployPoint.z
+                    deployedGroupTable["units"][j].heading = heading
+                end
+                table.insert(self.deployedGroupNames, deployedGroupTable["name"])
+                --spawn group
+                coalition.addGroup(80+(2-self.coalitionId), 2, deployedGroupTable)
+                anyDeployed = true
+            end
+        end
+        local lastUnit = cpyGroup:getUnit(cpyGroup:getSize())
+        if lastUnit then
+            local deployPoint = lastUnit:getPoint()
+            local deployPos = lastUnit:getPosition()
+            if deployPoint and deployPos then
+                local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = deployPoint})
+                local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, {[1] = "2B11 mortar"}, groupWaypoints)
+                for j = 1, #deployedGroupTable["units"] do
+                    local mortarDeployPoint = Utils.VectorAdd(deployPoint, Utils.ScalarMult(Utils.RotateVector(deployPos.x, 0.52 + (0.14 * (j-1))), 4+(((j-1)/2))))
+                    local heading = 0
+                    heading = math.atan2(deployPos.x.z, deployPos.x.x)
+                    if heading < 0 then heading = heading + (2 * math.pi) end
+                    deployedGroupTable["units"][j].x = mortarDeployPoint.x
+                    deployedGroupTable["units"][j].y = mortarDeployPoint.z
+                    deployedGroupTable["units"][j].heading = heading
+                end
+                table.insert(self.deployedGroupNames, deployedGroupTable["name"])
+                --spawn group
+                coalition.addGroup(80+(2-self.coalitionId), 2, deployedGroupTable)
+                anyDeployed = true
+            end
+        end
+    end
     self.isDeployed = anyDeployed
 end
 function Company.undeploy(self)
