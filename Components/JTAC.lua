@@ -116,8 +116,18 @@ function jtac.confirmCheckIn(params)
     end
     local group = Group.getByName(params.groupName)
     if group then
-        jtac.transmit({"check in confirmed proceed to hold near BP and report established when ready"})
+        jtac.transmit({message = "check in confirmed proceed to hold near BP and report established when ready"})
         missionCommands.addCommandForGroup(group:getID(), "established", jtac.jtacMenu[params.group][params.jtac], jtac.established, {{loadout = params.loadout, location = params.location, callsign = params, jtac = params.jtac, groupName = params.groupName}})
+    end
+end
+function jtac.established(params)
+    local group = Group.getByName(params.groupName)
+    if group then
+        local jtacName = params.jtac
+        if jtacName then
+            jtac.startMission(jtacName)
+            missionCommands.addCommandForGroup(group:getID(), "end mission", jtac.jtacMenu[params.group][params.jtac], jtac.stopMission, {jtacName = params.jtac})
+        end
     end
 end
 function JTAC.targetTypeList(targets) -- Used with detectedTargets not just a unit list
@@ -188,6 +198,7 @@ function jtac.laseAvailableTarget(jtacUnitName, code, targetList)
                                 local distance = Utils.PointDistance(jtacPoint, targetPoint)
                                 if distance <= jtac.distanceLimit then
                                     env.info("jtac " .. jtacUnitName .. " lasing target " .. targetList[i], debug or lightDebug)
+                                    jtac.transmit({message = "Lasing taget: " .. target .. "you are cleared hot!", jtac = jtacUnitName})
                                     trigger.action.outTextForCoalition(2, "LASER HOT", 15, false)
                                     lasing[jtacUnitName] = {
                                         laser = Spot.createLaser(jtacUnit, laserSourceRelativeToUnit, targetPoint, code),
