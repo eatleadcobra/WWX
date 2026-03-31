@@ -1,5 +1,32 @@
 --check BPs for ownership
 BattleControl = {}
+PltCosts = {
+    [1] = {
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]/8), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]/8), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/8), --equipment
+    },
+    [2] = {
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --equipment
+    },
+    [3] = {
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --equipment
+    },
+    [7] = {
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --equipment
+    },
+    [9] = {
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --equipment
+    },
+}
 local attackPlan = {
     attackingCoalition = 0,
     targetBPs = {},
@@ -163,7 +190,6 @@ end
 function bc.deployments()
     for c = 1,2 do
         if not attackPlanFiled[c] then
-            trigger.action.outText("Running deployment loop for " .. c, 10, false)
             -- step one, determine the number of target BPs. 
             local enemyCoalition = 2
             if c == 2 then enemyCoalition = 1 end
@@ -195,7 +221,7 @@ function bc.deployments()
                 end
             end
             if #neutralBPs == 0 and #enemyBPs == 0 and #friendlyBPs == 0 then
-                trigger.action.outText("No valid BPs", 10, false)
+                env.info("No valid BPs for team: " .. c, false)
             else
                 table.sort(neutralBPs, function(a, b) return a.distance < b.distance end)
                 table.sort(enemyBPs, function(a, b) return a.distance < b.distance end)
@@ -262,19 +288,13 @@ function bc.prepareAttack(filedAttackPlan)
         if targetBP then
             if targetBP.state == "E" then
                 local bpSupply = bc.companyToCost(CompanyCompTiers[1].composition)
-                requiredSupply[1] = requiredSupply[1] + bpSupply[1]
-                requiredSupply[2] = requiredSupply[2] + bpSupply[2]
-                requiredSupply[3] = requiredSupply[3] + bpSupply[3]
+                bc.costAdd(requiredSupply, bpSupply)
             elseif targetBP.state == "N" then
                 local bpSupply = bc.companyToCost(CompanyCompTiers[5].composition)
-                requiredSupply[1] = requiredSupply[1] + bpSupply[1]
-                requiredSupply[2] = requiredSupply[2] + bpSupply[2]
-                requiredSupply[3] = requiredSupply[3] + bpSupply[3]
+                bc.costAdd(requiredSupply, bpSupply)
             elseif targetBP.state == "F" then
                 local bpSupply = bc.companyToCost({1})
-                requiredSupply[1] = requiredSupply[1] + bpSupply[1]
-                requiredSupply[2] = requiredSupply[2] + bpSupply[2]
-                requiredSupply[3] = requiredSupply[3] + bpSupply[3]
+                bc.costAdd(requiredSupply, bpSupply)
             else
                 trigger.action.outText("Something is fucked up", 10, false)
             end
@@ -305,10 +325,10 @@ function bc.prepareAttack(filedAttackPlan)
     filedAttackPlan.startTimeString = startTimeHours..":"..startTimeMinutes
     timer.scheduleFunction(bc.executeAttack, filedAttackPlan, startTime)
     for i = 1, #filedAttackPlan.targetBPs do
-        local bpPoint = BattleControl.getBPPoint(filedAttackPlan.targetBPs[i].id)
+        local bpPoint = Utils.deepcopy(BattleControl.getBPPoint(filedAttackPlan.targetBPs[i].id))
         if bpPoint then
             bpPoint.z = bpPoint.z - 300
-            local markIds = DrawingTools.drawSwords(filedAttackPlan.attackingCoalition, BattleControl.getBPPoint(filedAttackPlan.targetBPs[i].id))
+            local markIds = DrawingTools.drawSwords(filedAttackPlan.attackingCoalition, bpPoint)
             table.insert(filedAttackPlan.markups.attackPoints, markIds)
         end
     end
@@ -347,12 +367,10 @@ function bc.executeAttack(filedAttackPlan)
             local loopTries = 0
             while canAffordAttack == false do
                 loopTries = loopTries + 1
-                trigger.action.outText("loop " .. loopTries, 10, false)
                 if loopTries > 100 then
                     trigger.action.outText("INFINITE LOOP REEEEEEEEE", 10, false)
                     return
                 end
-                trigger.action.outText("Cannot afford current attack, downgrading", 10, false)
                 supplyRequiredForCurrentCompanies = {
                     [1] = 0,
                     [2] = 0,
@@ -370,21 +388,20 @@ function bc.executeAttack(filedAttackPlan)
                                 targetBP.canLower = false
                             end
                         else
-                            targetBP.attackWith = targetBP.attackWith + 1
-                            if targetBP.attackWith == 3 then
+                            targetBP.attackWith[1] = targetBP.attackWith[1] + 1
+                            if targetBP.attackWith[1] == 3 then
                                 targetBP.canLower = false
                             end
                         end
                         bc.costAdd(supplyRequiredForCurrentCompanies, bc.companyToCost(targetBP.attackWith))
                     elseif canlowercount == 0 then
-                        trigger.action.outText("Can't afford to attack and can't lower any more, delaying attack!", 10, false)
+                        trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because of insufficient materiel!\nProtect our convoys and deliver supplies to our front depots!", 10, false)
                         bc.rescheduleAttack(filedAttackPlan)
                         return
                     end
                 end
                 canAffordAttack = bc.sufficient(DFS.status[filedAttackPlan.attackingCoalition].supply.front, supplyRequiredForCurrentCompanies)
             end
-            trigger.action.outText("Can afford!", 10, false)
             DFS.decreaseFrontSupply(({coalitionId = filedAttackPlan.attackingCoalition, type = DFS.supplyType.FUEL, amount = supplyRequiredForCurrentCompanies[DFS.supplyType.FUEL]}))
             DFS.decreaseFrontSupply(({coalitionId = filedAttackPlan.attackingCoalition, type = DFS.supplyType.AMMO, amount = supplyRequiredForCurrentCompanies[DFS.supplyType.AMMO]}))
             DFS.decreaseFrontSupply(({coalitionId = filedAttackPlan.attackingCoalition, type = DFS.supplyType.EQUIPMENT, amount = supplyRequiredForCurrentCompanies[DFS.supplyType.EQUIPMENT]}))
@@ -407,7 +424,7 @@ function bc.executeAttack(filedAttackPlan)
             trigger.action.setMarkupText(filedAttackPlan.markups.orders, "  ATTACK IS IN PROGRESS\n  Support the attack on the marked battle positions!  ")
             bc.followAttack(filedAttackPlan)
         else
-            trigger.action.outText("We have no front depots, delaying attack!", 10, false)
+            trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because our front depots are destroyed!\nProtect our front depots!!", 30, false)
             bc.rescheduleAttack(filedAttackPlan)
         end
     end
@@ -434,7 +451,7 @@ function bc.followAttack(filedAttackPlan)
         end
     end
     if targetBPCount == ownedBPs then
-        trigger.action.outText("Attack Success", 10, false)
+        trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a success! Keep up the good work!", 30, false)
         bc.cleanupAttack(filedAttackPlan)
         return
     end
@@ -449,10 +466,9 @@ function bc.followAttack(filedAttackPlan)
         end
     end
     if livingCpyCount > 0 then
-        trigger.action.outText("Attack In Progress", 10, false)
         timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 60)
     else
-        trigger.action.outText("Attack Failed", 10, false)
+        trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a complete failure!\nWe need support for our attacking companies!", 30, false)
         bc.cleanupAttack(filedAttackPlan)
         return
     end
@@ -545,20 +561,20 @@ function bc.main()
         end
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
         local ownedBy = 0
-        trigger.action.outText("Checking BP: " .. v.id .."\nRedUnits: " .. redUnits .. "\nBlueUnits: " .. blueUnits, 10, false)
-
         if blueUnits > redUnits then
             local bpStrength = bc.getRealBpStrength(2, v.id)
-            env.info("Blue units ("..blueUnits ..") outnumber red (" .. redUnits .. ")\nBP Stregnth: " .. bpStrength, false)
+            env.info("Blue units ("..blueUnits ..") outnumber red (" .. redUnits .. ") in BP: " .. v.id.."\nBP Stregnth: " .. bpStrength, false)
             if bpStrength > bpRequiredStrength then
                 ownedBy = 2
             end
         elseif redUnits > blueUnits then
             local bpStrength = bc.getRealBpStrength(1, v.id)
-            env.info("Red units ("..redUnits ..") outnumber blue (" .. blueUnits .. ")\nBP Stregnth: " .. bpStrength, false)
+            env.info("Red units ("..redUnits ..") outnumber blue (" .. blueUnits .. ") in BP: " .. v.id.."\nBP Stregnth: " .. bpStrength, false)
             if bpStrength > bpRequiredStrength then
                 ownedBy = 1
             end
+        else
+            env.info("No units found in BP: " ..v.id, false)
         end
         if ownedBy == 1 then redPositions = redPositions + 1 end
         if ownedBy == 2 then bluePositions = bluePositions + 1 end
@@ -629,7 +645,7 @@ function bc.main()
     elseif bluePositions == #battlePositions then
         DFS.endMission(2)
     end
-    bc.deployments()
+    timer.scheduleFunction(bc.deployments, nil, timer:getTime() + 60)
     timer.scheduleFunction(bc.main, nil, timer:getTime() + 30)
 end
 

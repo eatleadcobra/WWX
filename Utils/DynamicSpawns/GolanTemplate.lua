@@ -96,3 +96,11 @@ IgnoreAirbases = {
     ["CV59"] = true,
     ["LHA-1"] = true,
 }
+FARPAirfields = {
+    [1] = {},
+    [2] = {},
+}
+Carriers = {
+    [1] = {},
+    [2] = {},
+}
