@@ -144,7 +144,7 @@ function bc.setBPMarkups()
             trigger.action.setMarkupColorFill(v.markupId, bcmarkups.fills[v.ownedBy])
         end
     end
-    timer.scheduleFunction(bc.setBPMarkups, nil, timer:getTime() + 30)
+    timer.scheduleFunction(bc.setBPMarkups, nil, timer:getTime() + 10)
 end
 function bc.bpRecon()
     for c = 1, 2 do
