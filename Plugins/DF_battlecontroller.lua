@@ -218,7 +218,7 @@ function bc.deployments()
                         table.insert(enemyBPs, {bpId = k, distance = closerDistance, fromDepot = closerDepot, ownedBy = v.ownedBy})
                     end
                 elseif v.ownedBy == c then
-                    if bc.getRealBpStrength(c, v.id) < 12 and bc.companyAssignedToBp(c, k) == false then
+                    if bc.needsReinforcement(c, v.id) and bc.companyAssignedToBp(c, k) == false then
                         table.insert(friendlyBPs, {bpId = k, distance = closerDistance, fromDepot = closerDepot, ownedBy = v.ownedBy})
                     end
                 end
@@ -739,6 +739,36 @@ function bc.sendCompany(coalitionId, targetBP, spawnDepot, cpyTable)
         sentCpyId = newCpy.id
     end
     return sentCpyId
+end
+function bc.needsReinforcement(coalitionId, bpId)
+    local battlePosition = battlePositions[bpId]
+    local tankCount = 0
+    local ifvCount = 0
+    local apcCount = 0
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = battlePosition.point,
+            radius = battlePosition.radius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() == coalitionId then
+            if foundItem:hasAttribute("Tanks") then
+                tankCount = tankCount + 1
+            elseif foundItem:hasAttribute("IFV") or foundItem:hasAttribute("AA_flak") then
+                ifvCount = ifvCount + 1
+            elseif foundItem:hasAttribute("APC") then
+                apcCount = apcCount + 1
+            end
+        end
+        if tankCount < 2 and (ifvCount + apcCount) < 3 then
+            return true
+        else
+            return false
+        end
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
 end
 
 function bc.getRealBpStrength(coalitionId, bpId)
