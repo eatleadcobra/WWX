@@ -313,7 +313,6 @@ function bc.prepareAttack(filedAttackPlan)
             timePenalty = timePenalty + 600
         end
     end
-    timePenalty = 15
     local startTime = timer:getTime() + timePenalty
     local startTimeAbs = timer:getAbsTime() + timePenalty
     local startTimeHours = math.floor(startTimeAbs/3600)
@@ -422,6 +421,9 @@ function bc.executeAttack(filedAttackPlan)
             end
             filedAttackPlan.status = "EXECUTING"
             trigger.action.setMarkupText(filedAttackPlan.markups.orders, "  ATTACK IS IN PROGRESS\n  Support the attack on the marked battle positions!  ")
+            for i = 1, #filedAttackPlan.markups.supplies do
+                trigger.action.removeMark(filedAttackPlan.markups.supplies[i])
+            end
             bc.followAttack(filedAttackPlan)
         else
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because our front depots are destroyed!\nProtect our front depots!!", 30, false)
