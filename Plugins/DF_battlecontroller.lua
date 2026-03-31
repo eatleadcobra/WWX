@@ -368,6 +368,7 @@ function bc.executeAttack(filedAttackPlan)
             local canAffordAttack = bc.sufficient(DFS.status[filedAttackPlan.attackingCoalition].supply.front, supplyRequiredForCurrentCompanies)
             local loopTries = 0
             while canAffordAttack == false do
+                env.info("Cannot afford attack, lowering tiers", false)
                 loopTries = loopTries + 1
                 if loopTries > 100 then
                     trigger.action.outText("INFINITE LOOP REEEEEEEEE", 10, false)
@@ -428,6 +429,7 @@ function bc.executeAttack(filedAttackPlan)
                 trigger.action.removeMark(filedAttackPlan.markups.supplies[i])
             end
             bc.followAttack(filedAttackPlan)
+            env.info("Attack plan execution complete", false)
         else
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because our front depots are destroyed!\nProtect our front depots!!", 30, false)
             bc.rescheduleAttack(filedAttackPlan)
@@ -458,6 +460,7 @@ function bc.followAttack(filedAttackPlan)
         end
         if targetBPCount == ownedBPs then
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a success! Keep up the good work!", 30, false)
+            env.info(filedAttackPlan.attackingCoalition .. " team attack success", false)
             bc.cleanupAttack(filedAttackPlan)
             return
         end
@@ -472,14 +475,17 @@ function bc.followAttack(filedAttackPlan)
             end
         end
         if livingCpyCount > 0 then
+            env.info(filedAttackPlan.attackingCoalition .. " team attack in progress", false)
             timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 60)
         else
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a complete failure!\nWe need support for our attacking companies!", 30, false)
+            env.info(filedAttackPlan.attackingCoalition .. " team attack failed", false)
             bc.cleanupAttack(filedAttackPlan)
             return
         end
     else
         trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has stalled out!\nWe are planning a follow up attack!", 30, false)
+        env.info(filedAttackPlan.attackingCoalition .. " team attack stalled", false)
         bc.cleanupAttack(filedAttackPlan)
         return
     end
