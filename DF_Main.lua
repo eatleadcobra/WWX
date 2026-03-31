@@ -174,7 +174,7 @@ DFS.heloCapacities = {
             ["Combat Engineers (Landmines)"] = 7,
             ["Small Mortar Squad"] = 8,
         },
-        volume = 35,
+        volume = 42,
         seats = 30
     }
 }
