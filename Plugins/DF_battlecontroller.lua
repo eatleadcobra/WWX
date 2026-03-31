@@ -20,7 +20,7 @@ local attackPlanFiled = {
 }
 local maxCapAmount = 3
 local positionsCountLimit = 20
-local bpRequiredStrength = 3
+local bpRequiredStrength = 1
 local junkRemoval = true
 local bc = {}
 local bcmarkups = {
@@ -308,8 +308,8 @@ function bc.prepareAttack(filedAttackPlan)
         local bpPoint = BattleControl.getBPPoint(filedAttackPlan.targetBPs[i].id)
         if bpPoint then
             bpPoint.z = bpPoint.z - 300
-            local markId = DrawingTools.drawSwords(filedAttackPlan.attackingCoalition, BattleControl.getBPPoint(filedAttackPlan.targetBPs[i].id))
-            table.insert(filedAttackPlan.markups.attackPoints, markId)
+            local markIds = DrawingTools.drawSwords(filedAttackPlan.attackingCoalition, BattleControl.getBPPoint(filedAttackPlan.targetBPs[i].id))
+            table.insert(filedAttackPlan.markups.attackPoints, markIds)
         end
     end
     bc.drawRequiredSupplies(filedAttackPlan)
@@ -450,7 +450,7 @@ function bc.followAttack(filedAttackPlan)
     end
     if livingCpyCount > 0 then
         trigger.action.outText("Attack In Progress", 10, false)
-        timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 300)
+        timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 60)
     else
         trigger.action.outText("Attack Failed", 10, false)
         bc.cleanupAttack(filedAttackPlan)
@@ -460,14 +460,21 @@ end
 function bc.cleanupAttack(filedAttackPlan)
     attackPlanFiled[filedAttackPlan.attackingCoalition] = false
     --remove all markups
-    for i = 1, #filedAttackPlan.markups.supplies do
-        trigger.action.removeMark(filedAttackPlan.markups.supplies[i])
+    if filedAttackPlan.markups.supplies then
+        for i = 1, #filedAttackPlan.markups.supplies do
+            trigger.action.removeMark(filedAttackPlan.markups.supplies[i])
+        end
     end
-    for i = 1, #filedAttackPlan.markups.orders do
-        trigger.action.removeMark(filedAttackPlan.markups.orders[i])
+    if filedAttackPlan.markups.orders then
+        trigger.action.removeMark(filedAttackPlan.markups.orders)
     end
-    for i = 1, #filedAttackPlan.markups.attackPoints do
-        trigger.action.removeMark(filedAttackPlan.markups.attackPoints[i])
+    if filedAttackPlan.markups.attackPoints then
+        for i = 1, #filedAttackPlan.markups.attackPoints do
+            local attackPoint = filedAttackPlan.markups.attackPoints[i]
+            for j = 1, #attackPoint do
+                trigger.action.removeMark(attackPoint[j])
+            end
+        end
     end
 end
 function bc.costAdd(table1, table2)
@@ -538,6 +545,8 @@ function bc.main()
         end
         world.searchObjects(Object.Category.UNIT, volS, ifFound)
         local ownedBy = 0
+        trigger.action.outText("Checking BP: " .. v.id .."\nRedUnits: " .. redUnits .. "\nBlueUnits: " .. blueUnits, 10, false)
+
         if blueUnits > redUnits then
             local bpStrength = bc.getRealBpStrength(2, v.id)
             env.info("Blue units ("..blueUnits ..") outnumber red (" .. redUnits .. ")\nBP Stregnth: " .. bpStrength, false)
@@ -621,7 +630,7 @@ function bc.main()
         DFS.endMission(2)
     end
     bc.deployments()
-    timer.scheduleFunction(bc.main, nil, timer:getTime() + 120)
+    timer.scheduleFunction(bc.main, nil, timer:getTime() + 30)
 end
 
 function bc.findCanCap(coalitionId)
