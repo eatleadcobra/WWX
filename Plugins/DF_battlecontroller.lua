@@ -218,7 +218,7 @@ function bc.deployments()
                         table.insert(enemyBPs, {bpId = k, distance = closerDistance, fromDepot = closerDepot, ownedBy = v.ownedBy})
                     end
                 elseif v.ownedBy == c then
-                    if bc.getRealBpStrength(c, v.id) < 5 and bc.companyAssignedToBp(c, k) == false then
+                    if bc.getRealBpStrength(c, v.id) < 12 and bc.companyAssignedToBp(c, k) == false then
                         table.insert(friendlyBPs, {bpId = k, distance = closerDistance, fromDepot = closerDepot, ownedBy = v.ownedBy})
                     end
                 end
