@@ -46,6 +46,7 @@ local attackPlanFiled = {
     [2] = false,
 }
 local maxCapAmount = 3
+local maxAttackDuration = 2700
 local positionsCountLimit = 20
 local bpRequiredStrength = 1
 local junkRemoval = true
@@ -217,7 +218,9 @@ function bc.deployments()
                         table.insert(enemyBPs, {bpId = k, distance = closerDistance, fromDepot = closerDepot, ownedBy = v.ownedBy})
                     end
                 elseif v.ownedBy == c then
-                    table.insert(friendlyBPs, {bpId = k, distance = closerDistance, fromDepot = closerDepot, ownedBy = v.ownedBy})
+                    if bc.getRealBpStrength(c, v.id) < 5 and bc.companyAssignedToBp(c, k) == false then
+                        table.insert(friendlyBPs, {bpId = k, distance = closerDistance, fromDepot = closerDepot, ownedBy = v.ownedBy})
+                    end
                 end
             end
             if #neutralBPs == 0 and #enemyBPs == 0 and #friendlyBPs == 0 then
@@ -445,32 +448,38 @@ function bc.rescheduleAttack(filedAttackPlan)
     trigger.action.setMarkupText(filedAttackPlan.markups.orders,"  Attacking marked Battle Positions at " .. filedAttackPlan.startTimeString.."\n  Ensure all front supply meters are above the orange lines for an effective attack!  ")
 end
 function bc.followAttack(filedAttackPlan)
-    local targetBPCount = #filedAttackPlan.targetBPs
-    local ownedBPs = 0
-    for i = 1, #filedAttackPlan.targetBPs do
-        if BattleControl.getBPOwner(filedAttackPlan.targetBPs[i].id) == filedAttackPlan.attackingCoalition then
-            ownedBPs = ownedBPs + 1
-        end
-    end
-    if targetBPCount == ownedBPs then
-        trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a success! Keep up the good work!", 30, false)
-        bc.cleanupAttack(filedAttackPlan)
-        return
-    end
-    local livingCpyCount = 0
-    for i = 1, #filedAttackPlan.attackingCompanyIds do
-        local cpy = Companies[filedAttackPlan.attackingCompanyIds[i]]
-        if cpy then
-            local cpyGroup = Group.getByName(cpy.groupName)
-            if cpyGroup then
-                livingCpyCount = livingCpyCount + 1
+    if timer:getTime() - filedAttackPlan.startTime < maxAttackDuration then
+        local targetBPCount = #filedAttackPlan.targetBPs
+        local ownedBPs = 0
+        for i = 1, #filedAttackPlan.targetBPs do
+            if BattleControl.getBPOwner(filedAttackPlan.targetBPs[i].id) == filedAttackPlan.attackingCoalition then
+                ownedBPs = ownedBPs + 1
             end
         end
-    end
-    if livingCpyCount > 0 then
-        timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 60)
+        if targetBPCount == ownedBPs then
+            trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a success! Keep up the good work!", 30, false)
+            bc.cleanupAttack(filedAttackPlan)
+            return
+        end
+        local livingCpyCount = 0
+        for i = 1, #filedAttackPlan.attackingCompanyIds do
+            local cpy = Companies[filedAttackPlan.attackingCompanyIds[i]]
+            if cpy then
+                local cpyGroup = Group.getByName(cpy.groupName)
+                if cpyGroup then
+                    livingCpyCount = livingCpyCount + 1
+                end
+            end
+        end
+        if livingCpyCount > 0 then
+            timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 60)
+        else
+            trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a complete failure!\nWe need support for our attacking companies!", 30, false)
+            bc.cleanupAttack(filedAttackPlan)
+            return
+        end
     else
-        trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a complete failure!\nWe need support for our attacking companies!", 30, false)
+        trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has stalled out!\nWe are planning a follow up attack!", 30, false)
         bc.cleanupAttack(filedAttackPlan)
         return
     end
