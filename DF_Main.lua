@@ -1977,6 +1977,9 @@ function dfc.depotActive(param)
     end
     return depotActive
 end
+function DFS.depotActive(coalitionId, depotZoneNum)
+    return dfc.depotActive({coalitionId = coalitionId, zone = depotZoneNum})
+end
 
 function dfc.missileboatLoop()
     local coalitionId = DFS.status.missileboatCoalition

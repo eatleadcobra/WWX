@@ -494,7 +494,7 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targ
                     local bearingString = string.format("%.0f", bearingInDeg)
                     if string.len(bearingString) == 2 then
                         bearingString = "0"..bearingString
-                    elseif string.len(bearingString) == 2 then
+                    elseif string.len(bearingString) == 1 then
                         bearingString = "00"..bearingString
                     end
                     local bullsPrefix = ""
