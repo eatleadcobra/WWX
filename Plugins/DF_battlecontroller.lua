@@ -523,6 +523,8 @@ function bc.followAttack(filedAttackPlan)
                     WWEvents.attackCompleted(filedAttackPlan.attackingCoalition, "partial success")
                 end
             end
+            bc.cleanupAttack(filedAttackPlan)
+            return
         else
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a complete failure!\nWe need support for our attacking companies!", 30, false)
             env.info(filedAttackPlan.attackingCoalition .. " team attack failed", false)
