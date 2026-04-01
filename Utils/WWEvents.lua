@@ -23,6 +23,9 @@ world.event.S_EVENT_WWX_TANKCPY_STALLED = 8423
 world.event.S_EVENT_WWX_CONVOY_DESTROYED = 8424
 world.event.S_EVENT_WWX_SHIP_SUNK = 8425
 world.event.S_EVENT_WWX_RECONMISSION_COMPLETED = 8426
+world.event.S_EVENT_WWX_ATTACK_SCHEDULED = 8427
+world.event.S_EVENT_WWX_ATTACK_STARTED = 8428
+world.event.S_EVENT_WWX_ATTACK_COMPLETED = 8429
 
 WWEvents = {}
 WWEvents.latches = {
@@ -311,6 +314,38 @@ function WWEvents.shipSunk(coalitionId)
         id = world.event.S_EVENT_WWX_SHIP_SUNK,
         time = timer.getTime(),
         coalition = coalitionId
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.attackScheduled(coalitionId, attackTime, targetBPs, needsSupply)
+    local Event = {
+        id = world.event.S_EVENT_WWX_ATTACK_SCHEDULED,
+        time = timer.getTime(),
+        coalition = coalitionId,
+        attackTime = attackTime, -- number of minutes until attack begins
+        targetBPs = targetBPs, -- comma separated string of target BP numbers
+        needsSupply = needsSupply -- true/false for if the team needs more supplies to make the attack go as planned
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.attackStarted(coalitionId, targetBPs)
+    local Event = {
+        id = world.event.S_EVENT_WWX_ATTACK_STARTED,
+        time = timer.getTime(),
+        coalition = coalitionId,
+        targetBPs = targetBPs, -- comma separated string of target BP numbers
+    }
+    world.onEvent(Event)
+end
+
+function WWEvents.attackCompleted(coalitionId, outcomeString)
+    local Event = {
+        id = world.event.S_EVENT_WWX_ATTACK_STARTED,
+        time = timer.getTime(),
+        coalition = coalitionId,
+        outcomeString = outcomeString -- string with the attack outcome "success", "partial success", "failure" all strings will fit into a sentence like "the outcome of the battle was a "
     }
     world.onEvent(Event)
 end

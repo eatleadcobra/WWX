@@ -300,10 +300,15 @@ function bc.prepareAttack(filedAttackPlan)
         [2] = 0,
         [3] = 0,
     }
+    local targetBPString =  ""
     for i = 1, #filedAttackPlan.targetBPs do
         env.info("adding up costs", false)
         local targetBP = filedAttackPlan.targetBPs[i]
         if targetBP then
+            if string.len(targetBPString) > 0 then
+                targetBPString = targetBPString .. ","
+            end
+            targetBPString = targetBPString .. targetBP.id
             if targetBP.state == "E" then
                 env.info("calc enemy cost", false)
                 local bpSupply = bc.companyToCost(CompanyCompTiers[1].composition)
@@ -324,6 +329,7 @@ function bc.prepareAttack(filedAttackPlan)
         end
     end
     filedAttackPlan.requiredSupply = requiredSupply
+    filedAttackPlan.targetBPString = targetBPString
     local supplyDelta = {
         [1] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] - requiredSupply[1],
         [2] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[2] - requiredSupply[2],
@@ -355,6 +361,9 @@ function bc.prepareAttack(filedAttackPlan)
             local markIds = DrawingTools.drawSwords(filedAttackPlan.attackingCoalition, bpPoint)
             table.insert(filedAttackPlan.markups.attackPoints, markIds)
         end
+    end
+    if WWEvents then
+        WWEvents.attackScheduled(filedAttackPlan.attackingCoalition, (timePenalty/60), targetBPString, (timePenalty>1200))
     end
     bc.drawRequiredSupplies(filedAttackPlan)
     bc.drawAttackMsg(filedAttackPlan)
@@ -448,6 +457,9 @@ function bc.executeAttack(filedAttackPlan)
             end
             filedAttackPlan.status = "EXECUTING"
             trigger.action.setMarkupText(filedAttackPlan.markups.orders, "  ATTACK IS IN PROGRESS\n  Support the attack on the marked battle positions!  ")
+            if WWEvents and filedAttackPlan.targetBPString then
+                WWEvents.attackStarted(filedAttackPlan.attackingCoalition, filedAttackPlan.targetBPString)
+            end
             for i = 1, #filedAttackPlan.markups.supplies do
                 trigger.action.removeMark(filedAttackPlan.markups.supplies[i])
             end
@@ -483,6 +495,9 @@ function bc.followAttack(filedAttackPlan)
         end
         if targetBPCount == ownedBPs then
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a success! Keep up the good work!", 30, false)
+            if WWEvents then
+                WWEvents.attackCompleted(filedAttackPlan.attackingCoalition, "success")
+            end
             env.info(filedAttackPlan.attackingCoalition .. " team attack success", false)
             bc.cleanupAttack(filedAttackPlan)
             return
@@ -504,10 +519,16 @@ function bc.followAttack(filedAttackPlan)
             if ownedBPs == livingCpyCount then
                 trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was only a partial success!\nWe need support for our attacking companies!", 30, false)
                 env.info(filedAttackPlan.attackingCoalition .. " team attack partial success, captured " .. ownedBPs .. " objectives.", false)
+                if WWEvents then
+                    WWEvents.attackCompleted(filedAttackPlan.attackingCoalition, "partial success")
+                end
             end
         else
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a complete failure!\nWe need support for our attacking companies!", 30, false)
             env.info(filedAttackPlan.attackingCoalition .. " team attack failed", false)
+            if WWEvents then
+                    WWEvents.attackCompleted(filedAttackPlan.attackingCoalition, "failure")
+                end
             bc.cleanupAttack(filedAttackPlan)
             return
         end
