@@ -2317,6 +2317,13 @@ function csb.closestBpTo(pos)
     closestBPDist = math.floor((closestBPDist/1000)+0.5)
     return closestBPId, closestBPDist, direction
 end
+function CSB.closestBpToCAS(pos)
+    local closestBPId, closestBPDist, direction = csb.closestBpTo(pos)
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(pos, BattleControl.getBPPoint(closestBPId))
+    end
+    return closestBPId, closestBPDist, direction
+end
 function CSB.closestBpTo(pos)
     --this function gives the compass bearing in the opposite direction of the normal func because it's for deployed forces that are moving to the BPs
     local closestBPId, closestBPDist, direction = csb.closestBpTo(pos)

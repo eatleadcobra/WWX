@@ -204,19 +204,11 @@ function CAS.designateGroup(groupName)
     local desGroup = groups[groupName]
     if desGroup then
         local casMessage = "This is " .. desGroup.callsign .. ". We are in contact with enemy forces!"
-        local locationMessage = "\nWe are located at "
-        local groupLat, groupLong, groupAlt = coord.LOtoLL(desGroup.currentPoint)
-        local groupMGRS = coord.LLtoMGRS(groupLat, groupLong)
-        local eastingString = tostring(groupMGRS.Easting)
-        local northingString = tostring(groupMGRS.Northing)
-        for i = 1, 5 - #eastingString do
-            eastingString = tostring(0)..eastingString
+        local locationMessage = "\nWe are located "
+        local closestBpId, distance, direction = CSB.closestBpToCAS(desGroup.currentPoint)
+        if closestBpId and distance and direction then
+            locationMessage = locationMessage .. distance .. "m " .. direction .. " of Battle Position " .. closestBpId
         end
-        for i = 1, 5 - #northingString do
-            northingString = tostring(0)..northingString
-        end
-        local location = groupMGRS.MGRSDigraph .. eastingString:sub(1,desGroup.jtacType)..northingString:sub(1,desGroup.jtacType)
-        locationMessage = locationMessage .. location
         if desGroup.isMoving then
                 locationMessage = locationMessage .. "\nWe are moving " .. Utils.degToCompass(desGroup.heading)
         end
