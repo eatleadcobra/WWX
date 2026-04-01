@@ -2316,7 +2316,7 @@ function csb.closestBpTo(pos)
     end
     local newClosestBPDist = math.floor((closestBPDist/1000)+0.5)
     if newClosestBPDist then
-        newClosestBPDist = math.floor((closestBPDist.y/100)+0.5)*100
+        newClosestBPDist = math.floor((closestBPDist/100)+0.5)*100
     end
     closestBPDist = newClosestBPDist
     return closestBPId, closestBPDist, direction
