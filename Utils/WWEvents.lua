@@ -342,7 +342,7 @@ end
 
 function WWEvents.attackCompleted(coalitionId, outcomeString)
     local Event = {
-        id = world.event.S_EVENT_WWX_ATTACK_STARTED,
+        id = world.event.S_EVENT_WWX_ATTACK_COMPLETED,
         time = timer.getTime(),
         coalition = coalitionId,
         outcomeString = outcomeString -- string with the attack outcome "success", "partial success", "failure" all strings will fit into a sentence like "the outcome of the battle was a "
