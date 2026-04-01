@@ -522,9 +522,11 @@ function bc.followAttack(filedAttackPlan)
                 if WWEvents then
                     WWEvents.attackCompleted(filedAttackPlan.attackingCoalition, "partial success")
                 end
+                bc.cleanupAttack(filedAttackPlan)
+                return
             end
-            bc.cleanupAttack(filedAttackPlan)
-            return
+            env.info(filedAttackPlan.attackingCoalition .. " team attack in progress", false)
+            timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 60)
         else
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a complete failure!\nWe need support for our attacking companies!", 30, false)
             env.info(filedAttackPlan.attackingCoalition .. " team attack failed", false)
