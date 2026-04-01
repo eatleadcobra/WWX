@@ -363,7 +363,7 @@ function bc.prepareAttack(filedAttackPlan)
         end
     end
     if WWEvents then
-        WWEvents.attackScheduled(filedAttackPlan.attackingCoalition, (timePenalty/60), targetBPString, (timePenalty>1200))
+        WWEvents.attackScheduled(filedAttackPlan.attackingCoalition, math.floor(timePenalty/60), targetBPString, (timePenalty>1200))
     end
     bc.drawRequiredSupplies(filedAttackPlan)
     bc.drawAttackMsg(filedAttackPlan)
