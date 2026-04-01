@@ -235,6 +235,13 @@ function bc.deployments()
                 local newAttackPlan = Utils.deepcopy(attackPlan)
                 newAttackPlan.attackingCoalition = c
                 local assignedBPs = 0
+                if assignedBPs < maxCapAmount then
+                    env.info("looking for reinforce", false)
+                    if friendlyBPs[1] then
+                        env.info("reinforce found", false)
+                        table.insert(newAttackPlan.targetBPs, {id = friendlyBPs[1].bpId, state = "F"})
+                    end
+                end
                 if #neutralBPs > 0 then
                     env.info("neutral BP assignment", false)
                     while assignedBPs < 3 do
@@ -266,13 +273,6 @@ function bc.deployments()
                                 assignedBPs = assignedBPs + 1
                             end
                         end
-                    end
-                end
-                if assignedBPs < maxCapAmount then
-                    env.info("looking for reinforce", false)
-                    if friendlyBPs[1] then
-                        env.info("reinforce found", false)
-                        table.insert(newAttackPlan.targetBPs, {id = friendlyBPs[1].bpId, state = "F"})
                     end
                 end
                 -- battle plan now how a full list of target BPs. Create plan markup and determine needed tiers.
@@ -688,7 +688,8 @@ end
 function bc.findCanCap(coalitionId)
     local enemyCoalition = 2
     if coalitionId == 2 then enemyCoalition = 1 end
-    return math.random(1,3)
+    --return math.random(1,3)
+    return 3
 end
 function bc.companyAssignedToBp(coalitionId, targetbp)
     local cpyAlreadyAssignedToBP = false
