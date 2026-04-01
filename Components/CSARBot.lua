@@ -2314,7 +2314,11 @@ function csb.closestBpTo(pos)
     if closestBPId then
         direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
     end
-    closestBPDist = math.floor((closestBPDist/1000)+0.5)
+    local newClosestBPDist = math.floor((closestBPDist/1000)+0.5)
+    if newClosestBPDist then
+        newClosestBPDist = math.floor((closestBPDist.y/100)+0.5)*100
+    end
+    closestBPDist = newClosestBPDist
     return closestBPId, closestBPDist, direction
 end
 function CSB.closestBpToCAS(pos)
