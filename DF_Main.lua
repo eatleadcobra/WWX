@@ -1246,23 +1246,18 @@ function dfc.checkDeployedGroups()
     if Companies then
         for c = 1, 2 do
             for groupName, data in pairs(DFS.deployedGroups[c]) do
-                if data.cpyId then
-                    local cpy = Companies[data.cpyId]
-                    if cpy then
-                        DFS.deployedGroups[c][cpy.groupName] = data
-                    end
-                end
-                local checkingGroup = Group.getByName(groupName)
-                if checkingGroup then
-                    local checkingUnit = checkingGroup:getUnit(1)
-                    if checkingUnit then
-                        local checkingPoint = checkingUnit:getPoint()
-                        if checkingPoint then
-                            DFS.deployedGroups[c][groupName].point = checkingPoint
-                        end
+                local deployedGroupCpy = Companies[data.cpyId]
+                if deployedGroupCpy then
+                    if groupName ~= deployedGroupCpy.groupName then
+                        DFS.deployedGroups[c][groupName] = nil
+                        DFS.deployedGroups[c][deployedGroupCpy.groupName] = {groupName = deployedGroupCpy.groupName, type = data.type, point = data.point, cpyId = data.cpyId}
+                        return
+                    else
+                        DFS.deployedGroups[c][groupName].point = deployedGroupCpy.point
                     end
                 else
                     DFS.deployedGroups[c][groupName] = nil
+                    return
                 end
             end
         end
@@ -2641,6 +2636,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                             spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 15))
                             spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,8)))
                             local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(droppingPoint)
+                            trigger.action.outText("closest BP distance: " .. closestBPdistance, 10, false)
                             if Troopmarks and Troopmarks[droppingPlayerName] then
                                 if Utils.PointDistance(droppingPoint, Troopmarks[droppingPlayerName]) < 3704 then
                                     trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving to your mark point!", 10, false)
@@ -2648,7 +2644,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                                 else
                                     trigger.action.outTextForGroup(droppingGroup:getID(), "Your mark point is too far away!", 10, false)
                                 end
-                            elseif closestBPdistance <= 1852 then
+                            elseif (string.len(closestBPdistance) == 1 and closestBPdistance <= 6) or (string.len(closestBPdistance) > 1) then
                                  spawnPoints[2] = BattleControl.getBPPoint(closestBPID)
                                  trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
                             end

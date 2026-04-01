@@ -908,7 +908,9 @@ function CSB.showRescueList(args)
             else
                 outString = outString .. "\n\n > NAME: "
             end
-            outString = outString .. rescue.displayName .. "\n STATUS: " .. currentState .. "\n POSTN : apprx " .. dist .. "km " .. dir .. " of "
+            local unitString = "km "
+            if string.len(dist) > 1 then unitString = "m " end
+            outString = outString .. rescue.displayName .. "\n STATUS: " .. currentState .. "\n POSTN : apprx " .. dist .. unitString .. dir .. " of "
             if rescue.radioSilence then
                 if rescue.source == "casevac" then
                     local ceFreq = 0
@@ -2314,11 +2316,11 @@ function csb.closestBpTo(pos)
     if closestBPId then
         direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
     end
-    local newClosestBPDist = math.floor((closestBPDist/1000)+0.5)
-    if newClosestBPDist < 1 then
-        newClosestBPDist = math.floor((closestBPDist/100)+0.5)*100
+    if closestBPDist < 1000 then
+        closestBPDist = math.floor((closestBPDist/100)*100)
+    else
+        closestBPDist = math.floor((closestBPDist/1000)+0.5)
     end
-    closestBPDist = newClosestBPDist
     return closestBPId, closestBPDist, direction
 end
 function CSB.closestBpToCAS(pos)

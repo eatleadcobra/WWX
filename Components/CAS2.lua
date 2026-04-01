@@ -207,7 +207,9 @@ function CAS.designateGroup(groupName)
         local locationMessage = "\nWe are located "
         local closestBpId, distance, direction = CSB.closestBpToCAS(desGroup.currentPoint)
         if closestBpId and distance and direction then
-            locationMessage = locationMessage .. distance .. "m " .. direction .. " of Battle Position " .. closestBpId
+            local unitString = "m "
+            if string.len(distance) == 1 then unitString = "km " end
+            locationMessage = locationMessage .. distance .. unitString .. direction .. " of Battle Position " .. closestBpId
         end
         if desGroup.isMoving then
                 locationMessage = locationMessage .. "\nWe are moving " .. Utils.degToCompass(desGroup.heading)
