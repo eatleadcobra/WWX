@@ -500,7 +500,7 @@ function bc.followAttack(filedAttackPlan)
         if livingCpyCount > 0 and livingCpyCount >= targetBPCount then
             env.info(filedAttackPlan.attackingCoalition .. " team attack in progress", false)
             timer.scheduleFunction(bc.followAttack, filedAttackPlan, timer:getTime() + 60)
-        elseif livingCpyCount < targetBPCount then
+        elseif livingCpyCount > 0 and livingCpyCount < targetBPCount then
             if ownedBPs == livingCpyCount then
                 trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was only a partial success!\nWe need support for our attacking companies!", 30, false)
                 env.info(filedAttackPlan.attackingCoalition .. " team attack partial success, captured " .. ownedBPs .. " objectives.", false)
