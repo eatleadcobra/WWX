@@ -319,6 +319,7 @@ function WWEvents.shipSunk(coalitionId)
 end
 
 function WWEvents.attackScheduled(coalitionId, attackTime, targetBPs, needsSupply)
+    env.info("attack scheduled event fired", false)
     local Event = {
         id = world.event.S_EVENT_WWX_ATTACK_SCHEDULED,
         time = timer.getTime(),
@@ -331,6 +332,7 @@ function WWEvents.attackScheduled(coalitionId, attackTime, targetBPs, needsSuppl
 end
 
 function WWEvents.attackStarted(coalitionId, targetBPs)
+    env.info("attack started event fired", false)
     local Event = {
         id = world.event.S_EVENT_WWX_ATTACK_STARTED,
         time = timer.getTime(),
@@ -341,6 +343,7 @@ function WWEvents.attackStarted(coalitionId, targetBPs)
 end
 
 function WWEvents.attackCompleted(coalitionId, outcomeString)
+    env.info("attack completed event fired", false)
     local Event = {
         id = world.event.S_EVENT_WWX_ATTACK_COMPLETED,
         time = timer.getTime(),
