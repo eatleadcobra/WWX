@@ -2636,7 +2636,6 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                             spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 15))
                             spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,8)))
                             local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(droppingPoint)
-                            trigger.action.outText("closest BP distance: " .. closestBPdistance, 10, false)
                             if Troopmarks and Troopmarks[droppingPlayerName] then
                                 if Utils.PointDistance(droppingPoint, Troopmarks[droppingPlayerName]) < 3704 then
                                     trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving to your mark point!", 10, false)
