@@ -191,6 +191,7 @@ end
 function bc.deployments()
     for c = 1,2 do
         if not attackPlanFiled[c] then
+            env.info("beginning deployment loop team: " .. c, false)
             -- step one, determine the number of target BPs. 
             local enemyCoalition = 2
             if c == 2 then enemyCoalition = 1 end
@@ -223,16 +224,19 @@ function bc.deployments()
                     end
                 end
             end
+            env.info("bp lists created", false)
             if #neutralBPs == 0 and #enemyBPs == 0 and #friendlyBPs == 0 then
                 env.info("No valid BPs for team: " .. c, false)
             else
                 table.sort(neutralBPs, function(a, b) return a.distance < b.distance end)
                 table.sort(enemyBPs, function(a, b) return a.distance < b.distance end)
                 table.sort(friendlyBPs, function(a, b) return a.distance < b.distance end)
+                env.info("bp lists sorted", false)
                 local newAttackPlan = Utils.deepcopy(attackPlan)
                 newAttackPlan.attackingCoalition = c
                 local assignedBPs = 0
                 if #neutralBPs > 0 then
+                    env.info("neutral BP assignment", false)
                     while assignedBPs < 3 do
                         if neutralBPs[assignedBPs+1] then
                             local bp = neutralBPs[assignedBPs+1]
@@ -244,6 +248,7 @@ function bc.deployments()
                     end
                 end
                 if assignedBPs < maxCapAmount then
+                    env.info("assigning additional BPs", false)
                     local amountCanCap = 1
                     amountCanCap = bc.findCanCap(c)
                     local leftToAssign = maxCapAmount - assignedBPs
@@ -262,7 +267,9 @@ function bc.deployments()
                     end
                 end
                 if assignedBPs < maxCapAmount then
+                    env.info("looking for reinforce", false)
                     if friendlyBPs[1] then
+                        env.info("reinforce found", false)
                         table.insert(newAttackPlan.targetBPs, {id = friendlyBPs[1].bpId, state = "F"})
                     end
                 end
@@ -277,6 +284,7 @@ function bc.deployments()
     end
 end
 function bc.prepareAttack(filedAttackPlan)
+    env.info("preparing attack for team: " .. filedAttackPlan.attackingCoalition, false)
     -- determine amount of supplies needed for attack
     -- set attack time roughly based on how much supply is currently needed at the front depots
     -- minimum attack start time is 20 minutes - 1200s
@@ -287,19 +295,25 @@ function bc.prepareAttack(filedAttackPlan)
         [3] = 0,
     }
     for i = 1, #filedAttackPlan.targetBPs do
+        env.info("adding up costs", false)
         local targetBP = filedAttackPlan.targetBPs[i]
         if targetBP then
             if targetBP.state == "E" then
+                env.info("calc enemy cost", false)
                 local bpSupply = bc.companyToCost(CompanyCompTiers[1].composition)
                 bc.costAdd(requiredSupply, bpSupply)
             elseif targetBP.state == "N" then
+                env.info("calc neutral cost", false)
                 local bpSupply = bc.companyToCost(CompanyCompTiers[5].composition)
                 bc.costAdd(requiredSupply, bpSupply)
             elseif targetBP.state == "F" then
+                env.info("calc reinforce cost", false)
                 local bpSupply = bc.companyToCost({1})
                 bc.costAdd(requiredSupply, bpSupply)
             else
+                env.info("something is fucked up", false)
                 trigger.action.outText("Something is fucked up", 10, false)
+                break
             end
         end
     end
@@ -326,7 +340,9 @@ function bc.prepareAttack(filedAttackPlan)
     filedAttackPlan.startTime = startTime
     filedAttackPlan.startTimeString = startTimeHours..":"..startTimeMinutes
     timer.scheduleFunction(bc.executeAttack, filedAttackPlan, startTime)
+    env.info("start time determined", false)
     for i = 1, #filedAttackPlan.targetBPs do
+        env.info("marking target BPs", false)
         local bpPoint = Utils.deepcopy(BattleControl.getBPPoint(filedAttackPlan.targetBPs[i].id))
         if bpPoint then
             bpPoint.z = bpPoint.z - 300
@@ -338,6 +354,7 @@ function bc.prepareAttack(filedAttackPlan)
     bc.drawAttackMsg(filedAttackPlan)
 end
 function bc.executeAttack(filedAttackPlan)
+    env.info("executing attack for team " .. filedAttackPlan.attackingCoalition, false)
     if filedAttackPlan.status == "PREP" then
         if #DFS.status[filedAttackPlan.attackingCoalition].spawns.fd > 0 then
             local supplyRequiredForCurrentCompanies = {
