@@ -241,6 +241,10 @@ function bc.deployments()
                         env.info("reinforce found", false)
                         table.insert(newAttackPlan.targetBPs, {id = friendlyBPs[1].bpId, state = "F"})
                     end
+                    if friendlyBPs[2] then
+                        env.info("second reinforce found", false)
+                        table.insert(newAttackPlan.targetBPs, {id = friendlyBPs[1].bpId, state = "F"})
+                    end
                 end
                 if #neutralBPs > 0 then
                     env.info("neutral BP assignment", false)
