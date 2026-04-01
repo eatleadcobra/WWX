@@ -244,6 +244,8 @@ function bc.deployments()
                                 table.insert(newAttackPlan.targetBPs, {id = bp.bpId, state = "N", fromDepot = bp.fromDepot})
                                 assignedBPs = assignedBPs + 1
                             end
+                        else
+                            break
                         end
                     end
                 end
