@@ -1,6 +1,7 @@
 local sunsetNotified = false
 local deliveredCargos = {
 }
+local troopTutoriald = {}
 DFS = {}
 DFS.supplyType = {
     FUEL = 1,
@@ -2376,7 +2377,10 @@ function dfc.loadInternalCargo(param)
                         local menuForDrop = transporterTable.dropMenu
                         if dfc.isTroops(param.type) then menuForDrop = transporterTable.troopsMenu end
                         if param.type == DFS.supplyType.SF then
-                            trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a SOF squad.\nWhen unloaded, SOF squads move to the closest Battle Position within 6km.\nTo send them to a specific point, place a map marker on the F10 map with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+                            if not troopTutoriald[param.groupName] then
+                                trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a SOF squad.\nWhen unloaded, SOF squads move to the closest Battle Position within 6km.\nTo send them to a specific point, place a map marker on the F10 map with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+                                troopTutoriald[param.groupName] = true
+                            end
                             missionCommands.addCommandForGroup(transporterGroup:getID(), "Begin Fast Rope (60s)", {}, FR.ropeLoop, {groupName = param.groupName, startTime = 0})
                         end
                         missionCommands.addCommandForGroup(transporterGroup:getID(), "Drop " .. DFS.supplyNames[param.type], menuForDrop, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = param.type, country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Drop " .. DFS.supplyNames[param.type]})
@@ -2607,8 +2611,9 @@ end
 function dfc.troopUnloadDirect(param)
     dfc.troopUnload(param.droppingGroupName, param.troopType, nil, param.c130, true)
     local transporterGroup = Group.getByName(param.droppingGroupName)
-    if transporterGroup then
+    if transporterGroup and not troopTutoriald[param.droppingGroupName] then
         trigger.action.outTextForGroup(transporterGroup:getID(), "You have spawned an airborne infantry squad.\nWhen dropped, these squads move to the closest Battle Position within 6km.\nTo send them to a specific point, place a map marker on the F10 map with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+        troopTutoriald[param.droppingGroupName] = true
     end
 end
 function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proximityOverride)
