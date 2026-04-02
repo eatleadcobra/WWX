@@ -387,6 +387,24 @@ function cpyctl.cpyStatusLoop()
                     cpy.playerControllable = true
                     break
                 end
+                if not cpy.assigned then
+                    if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
+                        local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(cpy.point)
+                        if Troopmarks and Troopmarks[cpy.droppingPlayerName] then
+                            if Utils.PointDistance(cpy.point, Troopmarks[cpy.droppingPlayerName]) <= 6500 then
+                                cpy.assigned = true
+                                cpy:updateMission({cpy.point, Troopmarks[cpy.droppingPlayerName]}, -1, 12)
+                                trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving to your mark point!", 10, false)
+                            else
+                                trigger.action.outTextForGroup(cpy.droppingGroupID, "Your mark point is too far away!", 10, false)
+                            end
+                        elseif closestBPdistance <= 6 then
+                            cpy.assigned = true
+                            cpy:updateMission({cpy.point, BattleControl.getBPPoint(closestBPID)}, -1, 12)
+                            trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
+                        end
+                    end
+                end
                 if Utils.PointDistance(currentPoint, destinationPoint) < 200 then
                     cpy.arrived = true
                     if cpy.status == companyStatuses["Defeated"] then

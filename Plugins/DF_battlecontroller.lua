@@ -517,7 +517,7 @@ function bc.rescheduleAttack(filedAttackPlan)
     filedAttackPlan.startTime = startTime
     filedAttackPlan.startTimeString = startTimeHours..":"..startTimeMinutes
     timer.scheduleFunction(bc.executeAttack, filedAttackPlan, startTime)
-    trigger.action.setMarkupText(filedAttackPlan.markups.orders,"  Attacking marked Battle Positions at " .. filedAttackPlan.startTimeString.."\n  Ensure all front supply meters are above the orange lines for an effective attack!  ")
+    trigger.action.setMarkupText(filedAttackPlan.markups.orders,"  Attacking marked Battle Positions at " .. filedAttackPlan.startTimeString.." local time.\n  Ensure all front supply meters are above the orange lines for an effective attack!  ")
 end
 function bc.followAttack(filedAttackPlan)
     if timer:getTime() - filedAttackPlan.startTime < maxAttackDuration then
