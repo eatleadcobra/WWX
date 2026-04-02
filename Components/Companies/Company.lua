@@ -370,7 +370,7 @@ function Company.deploy(self)
         if leadUnit then
             local deployPoint = leadUnit:getPoint()
             local deployPos = leadUnit:getPosition()
-            if deployPoint and deployPos then
+            if deployPoint and deployPos and deployPoint.y == 0 then
                 local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = deployPoint})
                 local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, {[1] = "2B11 mortar"}, groupWaypoints)
                 for j = 1, #deployedGroupTable["units"] do

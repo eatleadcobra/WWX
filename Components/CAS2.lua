@@ -208,7 +208,6 @@ function CAS.designateGroup(groupName)
         local closestBpId, distance, direction = CSB.closestBpToCAS(desGroup.currentPoint)
         if closestBpId and distance and direction then
             local unitString = "m "
-            if string.len(distance) == 1 then unitString = "km " end
             locationMessage = locationMessage .. distance .. unitString .. direction .. " of Battle Position " .. closestBpId
         end
         if desGroup.isMoving then

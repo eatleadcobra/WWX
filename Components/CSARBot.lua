@@ -912,9 +912,7 @@ function CSB.showRescueList(args)
             else
                 outString = outString .. "\n\n > NAME: "
             end
-            local unitString = "km "
-            if string.len(dist) > 1 then unitString = "m " end
-            outString = outString .. rescue.displayName .. "\n STATUS: " .. currentState .. "\n POSTN : apprx " .. dist .. unitString .. dir .. " of "
+            outString = outString .. rescue.displayName .. "\n STATUS: " .. currentState .. "\n POSTN : apprx " .. dist .. "km " .. dir .. " of "
             if rescue.radioSilence then
                 if rescue.source == "casevac" then
                     local ceFreq = 0
@@ -2322,15 +2320,33 @@ function csb.closestBpTo(pos)
     if closestBPId then
         direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
     end
-    if closestBPDist < 1000 then
-        closestBPDist = math.floor((closestBPDist/100)*100)
-    else
-        closestBPDist = math.floor((closestBPDist/1000)+0.5)
+    closestBPDist = math.floor((closestBPDist/1000)+0.5)
+    return closestBPId, closestBPDist, direction
+end
+function csb.closestBpToCAS(pos)
+    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
+    bpCount = bpCount or 20
+    local closestBPDist = math.huge
+    local closestBPId = nil
+    local direction = ""
+    for i = 1,bpCount do
+        local bpPoint = BattleControl.getBPPoint(i)
+        if bpPoint then
+            local dist = Utils.PointDistance(bpPoint,pos)
+            if dist < closestBPDist then
+                closestBPDist = dist
+                closestBPId = i
+            end
+        end
     end
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
+    end
+    closestBPDist = math.floor((closestBPDist/100)*100)
     return closestBPId, closestBPDist, direction
 end
 function CSB.closestBpToCAS(pos)
-    local closestBPId, closestBPDist, direction = csb.closestBpTo(pos)
+    local closestBPId, closestBPDist, direction = csb.closestBpToCAS(pos)
     if closestBPId then
         direction = Utils.relativeCompassBearing(pos, BattleControl.getBPPoint(closestBPId))
     end

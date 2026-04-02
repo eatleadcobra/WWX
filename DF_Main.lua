@@ -2616,7 +2616,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                 if heading < 0 then heading = heading + (2 * math.pi) end
                 local closestDepot = dfc.findClosestDepot(droppingPoint, droppingGroup:getCoalition())
                 local pickupZone = dfc.findPickupZone(droppingPoint, droppingGroup:getCoalition())
-                if closestDepot and closestDepot.distance < 150 or pickupZone then
+                if PENIS then
                     trigger.action.outTextForGroup(droppingGroup:getID(), "Troops returned.", 6, false)
                     local piratePickup = false
                     if pickupZone and string.find(pickupZone, 'Pirate') then
@@ -2643,7 +2643,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                                 else
                                     trigger.action.outTextForGroup(droppingGroup:getID(), "Your mark point is too far away!", 10, false)
                                 end
-                            elseif (string.len(closestBPdistance) == 1 and closestBPdistance <= 6) or (string.len(closestBPdistance) > 1) then
+                            elseif closestBPdistance <= 6 then
                                  spawnPoints[2] = BattleControl.getBPPoint(closestBPID)
                                  trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
                             end
