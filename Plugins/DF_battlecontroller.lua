@@ -3,7 +3,7 @@ BattleControl = {}
 PltCosts = {
     [1] = {
         [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]/8), --fuel
-        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]/8), --ammo
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]/10), --ammo
         [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/8), --equipment
     },
     [2] = {
