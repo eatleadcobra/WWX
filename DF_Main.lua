@@ -2378,7 +2378,7 @@ function dfc.loadInternalCargo(param)
                         if dfc.isTroops(param.type) then menuForDrop = transporterTable.troopsMenu end
                         if param.type == DFS.supplyType.SF then
                             if not troopTutoriald[param.groupName] then
-                                trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a SOF squad.\nWhen unloaded, SOF squads move to the closest Battle Position within 6km.\nTo send them to a specific point, place a map marker on the F10 map with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+                                trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a SOF squad.\nWhen unloaded, SOF squads move to the closest Battle Position within 3km.\nTo send them to a specific point, place a map marker on the F10 map AFTER LOADING with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
                                 troopTutoriald[param.groupName] = true
                             end
                             missionCommands.addCommandForGroup(transporterGroup:getID(), "Begin Fast Rope (60s)", {}, FR.ropeLoop, {groupName = param.groupName, startTime = 0})
@@ -2612,7 +2612,7 @@ function dfc.troopUnloadDirect(param)
     dfc.troopUnload(param.droppingGroupName, param.troopType, nil, param.c130, true)
     local transporterGroup = Group.getByName(param.droppingGroupName)
     if transporterGroup and not troopTutoriald[param.droppingGroupName] then
-        trigger.action.outTextForGroup(transporterGroup:getID(), "You have spawned an airborne infantry squad.\nWhen dropped, these squads move to the closest Battle Position within 6km.\nTo send them to a specific point, place a map marker on the F10 map with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+        trigger.action.outTextForGroup(transporterGroup:getID(), "You have spawned an airborne infantry squad.\nWhen dropped, these squads move to the closest Battle Position within 3km.\nTo send them to a specific point, place a map marker on the F10 map AFTER LOADING with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
         troopTutoriald[param.droppingGroupName] = true
     end
 end

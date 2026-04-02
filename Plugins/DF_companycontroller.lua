@@ -398,7 +398,7 @@ function cpyctl.cpyStatusLoop()
                             else
                                 trigger.action.outTextForGroup(cpy.droppingGroupID, "Your mark point is too far away!", 10, false)
                             end
-                        elseif closestBPdistance <= 6 then
+                        elseif closestBPdistance <= 3 then
                             cpy.assigned = true
                             cpy:updateMission({cpy.point, BattleControl.getBPPoint(closestBPID)}, -1, 12)
                             trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
