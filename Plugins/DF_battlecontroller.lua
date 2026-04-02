@@ -45,6 +45,10 @@ local attackPlanFiled = {
     [1] = false,
     [2] = false,
 }
+local attackPlans = {
+    [1] = nil,
+    [2] = nil
+}
 local maxCapAmount = 3
 local maxAttackDuration = 2700
 local positionsCountLimit = 20
@@ -82,6 +86,36 @@ function BattleControl.reconBP(coalitionId, bpID, markIds)
     reconnedBPs[coalitionId][bpID] = true
     reconnedBPMarkups[coalitionId][bpID] = markIds
     bc.fillCamera(coalitionId,bpID)
+end
+function BattleControl.revealPlan(coalitionId)
+    local enemyCoalitionId = 2
+    if coalitionId == 2 then enemyCoalitionId = 1 end
+    if attackPlans[1] and attackPlans[2] then
+        local defendMarks = {}
+        if attackPlans[coalitionId].targetBPs then
+            for i = 1, #attackPlans[coalitionId].targetBPs do
+                local targetBP = attackPlans[coalitionId].targetBPs[i]
+                if targetBP then
+                    if BattleControl.getBPOwner(targetBP.id) == enemyCoalitionId then
+                        local bpPoint = BattleControl.getBPPoint(targetBP.id)
+                        if bpPoint then
+                            table.insert(defendMarks, DrawingTools.drawShield(enemyCoalitionId, {x = bpPoint.x + 200, y = 0, z = bpPoint.z + 200}))
+                        end
+                    end
+                end
+            end
+            if #defendMarks > 0 then
+                attackPlans[enemyCoalitionId].markups.revealed = defendMarks
+                local drawingOriginFrontZone = trigger.misc.getZone(DFS.spawnNames[enemyCoalitionId].frontSupplyDrawing)
+                if drawingOriginFrontZone then
+                    local drawingOriginFront = drawingOriginFrontZone.point
+                    local markId = DrawingTools.newMarkId()
+                    trigger.action.textToAll(enemyCoalitionId, markId, {x = drawingOriginFront.x -300, y = drawingOriginFront.y, z = drawingOriginFront.z}, {0,0,0,1}, {1,0.9,0.8,0.9}, 14, true, "  The enemy attack plans have been captured!\n  Defend the marked objectives from their attack!  ")
+                    attackPlans[enemyCoalitionId].markups.revealedText = markId
+                end
+            end
+        end
+    end
 end
 function BattleControl.endMission()
     return
@@ -243,7 +277,7 @@ function bc.deployments()
                     end
                     if friendlyBPs[2] then
                         env.info("second reinforce found", false)
-                        table.insert(newAttackPlan.targetBPs, {id = friendlyBPs[1].bpId, state = "F"})
+                        table.insert(newAttackPlan.targetBPs, {id = friendlyBPs[2].bpId, state = "F"})
                     end
                 end
                 if #neutralBPs > 0 then
@@ -365,6 +399,7 @@ function bc.prepareAttack(filedAttackPlan)
     if WWEvents then
         WWEvents.attackScheduled(filedAttackPlan.attackingCoalition, math.floor(timePenalty/60), targetBPString, (timePenalty>1200))
     end
+    attackPlans[filedAttackPlan.attackingCoalition] = filedAttackPlan
     bc.drawRequiredSupplies(filedAttackPlan)
     bc.drawAttackMsg(filedAttackPlan)
 end
@@ -545,6 +580,7 @@ function bc.followAttack(filedAttackPlan)
 end
 function bc.cleanupAttack(filedAttackPlan)
     attackPlanFiled[filedAttackPlan.attackingCoalition] = false
+    attackPlans[filedAttackPlan] = nil
     --remove all markups
     if filedAttackPlan.markups.supplies then
         for i = 1, #filedAttackPlan.markups.supplies do
@@ -561,6 +597,17 @@ function bc.cleanupAttack(filedAttackPlan)
                 trigger.action.removeMark(attackPoint[j])
             end
         end
+    end
+    if filedAttackPlan.markups.revealed then
+        for i = 1, #filedAttackPlan.markups.revealed do
+            local defendPoint = filedAttackPlan.markups.revealed[i]
+            if defendPoint then
+                trigger.action.removeMark(defendPoint)
+            end
+        end
+    end
+    if filedAttackPlan.markups.revealedText then
+        trigger.action.removeMark(filedAttackPlan.markups.revealedText)
     end
 end
 function bc.costAdd(table1, table2)
@@ -816,11 +863,11 @@ function bc.needsReinforcement(coalitionId, bpId)
                 apcCount = apcCount + 1
             end
         end
-        if tankCount < 2 and (ifvCount + apcCount) < 3 then
-            return true
-        else
-            return false
-        end
+    end
+    if tankCount < 2 and (ifvCount + apcCount) < 3 then
+        return true
+    else
+        return false
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
 end
