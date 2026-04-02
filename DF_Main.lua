@@ -2616,7 +2616,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                 if heading < 0 then heading = heading + (2 * math.pi) end
                 local closestDepot = dfc.findClosestDepot(droppingPoint, droppingGroup:getCoalition())
                 local pickupZone = dfc.findPickupZone(droppingPoint, droppingGroup:getCoalition())
-                if PENIS then
+                if closestDepot and closestDepot.distance < 150 or pickupZone then
                     trigger.action.outTextForGroup(droppingGroup:getID(), "Troops returned.", 6, false)
                     local piratePickup = false
                     if pickupZone and string.find(pickupZone, 'Pirate') then
