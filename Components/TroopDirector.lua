@@ -29,7 +29,6 @@ function tdEvents:onEvent(event)
             end
             if playerName and playerCoalition then
                 Troopmarks[playerName] = nil
-                trigger.action.outTextForCoalition(playerCoalition, "SOF marker removed for " .. playerName, 5, false)
             end
         end
     end
