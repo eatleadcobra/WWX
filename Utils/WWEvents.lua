@@ -342,12 +342,13 @@ function WWEvents.attackStarted(coalitionId, targetBPs)
     world.onEvent(Event)
 end
 
-function WWEvents.attackCompleted(coalitionId, outcomeString)
+function WWEvents.attackCompleted(coalitionId, outcomeString, targetBPs)
     env.info("attack completed event fired", false)
     local Event = {
         id = world.event.S_EVENT_WWX_ATTACK_COMPLETED,
         time = timer.getTime(),
         coalition = coalitionId,
+        targetBPs = targetBPs,
         outcomeString = outcomeString -- string with the attack outcome "success", "partial success", "failure" all strings will fit into a sentence like "the outcome of the battle was a "
     }
     world.onEvent(Event)

@@ -530,8 +530,8 @@ function bc.followAttack(filedAttackPlan)
         end
         if targetBPCount == ownedBPs then
             trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack was a success! Keep up the good work!", 30, false)
-            if WWEvents then
-                WWEvents.attackCompleted(filedAttackPlan.attackingCoalition, "success")
+            if WWEvents and filedAttackPlan.targetBPString then
+                WWEvents.attackCompleted(filedAttackPlan.attackingCoalition, "success", filedAttackPlan.targetBPString)
             end
             env.info(filedAttackPlan.attackingCoalition .. " team attack success", false)
             bc.cleanupAttack(filedAttackPlan)
