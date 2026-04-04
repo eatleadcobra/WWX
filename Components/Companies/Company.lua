@@ -178,7 +178,7 @@ function Company.spawn(self, options)
     if self.isShip then
         points = self.waypoints
     end
-    if self.onRoad == false and self.arrived == false and self.isShip == false then
+    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType ~= "INF" then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
         local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 1000))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
@@ -370,7 +370,7 @@ function Company.deploy(self)
         if leadUnit then
             local deployPoint = leadUnit:getPoint()
             local deployPos = leadUnit:getPosition()
-            if deployPoint and deployPos then
+            if deployPoint and deployPos and Utils.getAGL(deployPoint) <= 0.5 and self.assigned then
                 local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = deployPoint})
                 local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, {[1] = "2B11 mortar"}, groupWaypoints)
                 for j = 1, #deployedGroupTable["units"] do
@@ -392,7 +392,7 @@ function Company.deploy(self)
         if lastUnit then
             local deployPoint = lastUnit:getPoint()
             local deployPos = lastUnit:getPosition()
-            if deployPoint and deployPos then
+            if deployPoint and deployPos and Utils.getAGL(deployPoint) <= 0.5 and self.assigned then
                 local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = deployPoint})
                 local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, {[1] = "2B11 mortar"}, groupWaypoints)
                 for j = 1, #deployedGroupTable["units"] do

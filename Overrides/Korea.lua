@@ -223,33 +223,7 @@ PltStrengths = {
     [7] = 2,
     [9] = 2
 }
-PltCosts = {
-    [1] = {
-        [1] = 5, --fuel
-        [2] = 9, --ammo
-        [3] = 4, --equipment
-    },
-    [2] = {
-        [1] = 3, --fuel
-        [2] = 4, --ammo
-        [3] = 2, --equipment
-    },
-    [3] = {
-        [1] = 1, --fuel
-        [2] = 2, --ammo
-        [3] = 0, --equipment
-    },
-    [7] = {
-        [1] = 4, --fuel
-        [2] = 2, --ammo
-        [3] = 1, --equipment
-    },
-    [9] = {
-        [1] = 4, --fuel
-        [2] = 2, --ammo
-        [3] = 1, --equipment
-    },
-}
+
 CompanyCompTiers = {
     [0] = {composition = nil},
     [1] = {
