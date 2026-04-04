@@ -391,9 +391,9 @@ function cpyctl.cpyStatusLoop()
                     if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
                         local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(cpy.point)
                         if Troopmarks and Troopmarks[cpy.droppingPlayerName] then
-                            if Utils.PointDistance(cpy.point, Troopmarks[cpy.droppingPlayerName]) <= 6500 then
+                            if Utils.PointDistance(cpy.point, Troopmarks[cpy.droppingPlayerName].point) <= 6500 then
                                 cpy.assigned = true
-                                cpy:updateMission({cpy.point, Troopmarks[cpy.droppingPlayerName]}, -1, 12)
+                                cpy:updateMission({cpy.point, Troopmarks[cpy.droppingPlayerName].point}, -1, 12)
                                 trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving to your mark point!", 10, false)
                             else
                                 trigger.action.outTextForGroup(cpy.droppingGroupID, "Your mark point is too far away!", 10, false)

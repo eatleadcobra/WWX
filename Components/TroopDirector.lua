@@ -12,7 +12,7 @@ function tdEvents:onEvent(event)
             end
             if playerName and playerCoalition and event.pos then
                 if (string.upper(event.text) == 'SOF') then
-                    Troopmarks[playerName] = event.pos
+                    Troopmarks[playerName] = {point = event.pos, id = event.idx}
                     trigger.action.outTextForCoalition(playerCoalition, "SOF marker added for " .. playerName, 5, false)
                 end
             end
@@ -27,7 +27,7 @@ function tdEvents:onEvent(event)
                 playerName = event.initiator:getPlayerName()
                 playerCoalition = event.initiator:getCoalition()
             end
-            if playerName and playerCoalition and Troopmarks[playerName] then
+            if playerName and playerCoalition and Troopmarks[playerName] and Troopmarks[playerName].id == event.idx then
                 Troopmarks[playerName] = nil
                 trigger.action.outTextForCoalition(playerCoalition, "SOF marker removed for " .. playerName, 5, false)
             end
