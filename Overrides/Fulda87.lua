@@ -7,7 +7,7 @@ SUBTYPE =
     [1] = "santafe",
     [2] = "santafe",
 }
-CAP = false
+CAP = true
 PIRACY = false
 BOMBERS = true
 MISSILEBOATS = false
@@ -64,6 +64,8 @@ RESPAWNGROUPS = {
 	["BLUE-SHORAD-HAWK-2"] = 7200, --2hr
 	["Blue-Patriot-1"] = 21600, --6hr
 	["BLUE-SHORAD-PATRIOT-1"] = 7200, --2hr
+	["RED-SHORAD-FARP-1"] = 3600, --1hr
+	["BLUE-SHORAD-HFRG38"] = 3600, --1hr
 }
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
