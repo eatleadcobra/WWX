@@ -178,7 +178,7 @@ function Company.spawn(self, options)
     if self.isShip then
         points = self.waypoints
     end
-    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType ~= "INF" then
+    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType and self.cpyType ~= "INF" then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
         local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 1000))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
