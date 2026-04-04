@@ -314,7 +314,7 @@ function DrawingTools.drawShield(coalitionId, markPoint)
     trigger.action.markupToAll(7, coalitionId, shieldMarkId, markPoint, shieldIntermediate2LowerLeft, shieldIntermediate1LowerLeft, shieldLowerLeft, shieldUpperLeft, shieldUpperRight, shieldLowerRight, shieldIntermediate1LowerRight, shieldIntermediate2LowerRight, {0,0,0,1}, {0,0,0,1}, 1, true, nil)
     table.insert(markIds, shieldMarkId)
     ---
-    return markIds
+    return shieldMarkId
 end
 local screenColors = {
     [-1] = {1,1,1,0.3},

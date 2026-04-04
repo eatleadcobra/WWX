@@ -311,6 +311,8 @@ function csb.wrappedGenerateCsar(params)
     if isCloseToBase and airbaseSide ~= 0 then
         if enemyBase then
             trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to enemy airbase at " .. airbaseName .. " and was captured.",20,false)
+            BattleControl.revealPlan(coalitionId)
+            trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed the enemy attack plans!", 15, false)
             if Recon and math.random() < 0.02 then
                 local msns = Recon.getCurrentMissionsByCoalition(opposition)
                 local locmsns = {}
@@ -330,6 +332,8 @@ function csb.wrappedGenerateCsar(params)
             elseif DFS and math.random() < 0.33 then
                 DFS.IncreaseFrontSupply({coalitionId = opposition, amount = 1, type = DFS.supplyType.EQUIPMENT})
                 trigger.action.outTextForCoalition(coalitionId,"Intel reports that parts of a lost friendly aircraft have been recovered by the enemy.", 10, false)
+                BattleControl.revealPlan(coalitionId)
+                trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed the enemy attack plans!", 15, false)
             end
         else
             trigger.action.outTextForCoalition(coalitionId, "Pilot" .. pilotStr .. " bailed out and landed close to friendly airbase at " .. airbaseName .. " and was picked up.",20,false)
@@ -1049,6 +1053,8 @@ function csb.wellnessCheck(coalitionId)
                         end
                         trigger.action.outTextForCoalition(coalitionId, "(!!!) " .. m.displayName .. reasonStr,20,false)
                     end
+                    BattleControl.revealPlan(coalitionId)
+                    trigger.action.outTextForCoalition(opposition,"Interrogation of enemy pilot has revealed the enemy attack plans!", 15, false)
                     if Recon and math.random() < 0.02 then
                         local msns = Recon.getCurrentMissionsByCoalition(opposition)
                         local locmsns = {}
@@ -1075,9 +1081,9 @@ function csb.wellnessCheck(coalitionId)
                             if m.sourceId and m.sourceId == ce.missionId then
                                 ce.lostCas = ce.lostCas + 1
                                 if math.fmod(ce.lostCas,2) == 0 then
-                                    env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",false)
+                                    env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " reporting friendlies are bleeding out while waiting for evac.",false)
                                     for _,csci in pairs(csarCheckIns[coalitionId]) do
-                                        trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",10,false)
+                                        trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " reporting friendlies are bleeding out while waiting for evac.",10,false)
                                     end
                                 end
                             end
@@ -1086,6 +1092,8 @@ function csb.wellnessCheck(coalitionId)
                         for _,ce in pairs(casEvacMissions[coalitionId]) do
                             if m.sourceId and m.sourceId == ce.missionId then
                                 ce.overrun = true
+                                ce.lostCas = ce.lostCas + ce.numCas + 1
+                                env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " has been overrun by hostile forces. Abort rescue.",false)
                                 for _,csci in pairs(csarCheckIns[coalitionId]) do
                                     trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " has been overrun by hostile forces. Abort rescue.",10,false)
                                 end
@@ -2315,6 +2323,28 @@ function csb.closestBpTo(pos)
         direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
     end
     closestBPDist = math.floor((closestBPDist/1000)+0.5)
+    return closestBPId, closestBPDist, direction
+end
+function CSB.closestBpToCAS(pos)
+    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
+    bpCount = bpCount or 20
+    local closestBPDist = math.huge
+    local closestBPId = nil
+    local direction = ""
+    for i = 1,bpCount do
+        local bpPoint = BattleControl.getBPPoint(i)
+        if bpPoint then
+            local dist = Utils.PointDistance(bpPoint,pos)
+            if dist < closestBPDist then
+                closestBPDist = dist
+                closestBPId = i
+            end
+        end
+    end
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
+    end
+    closestBPDist = math.floor((closestBPDist/100)*100)
     return closestBPId, closestBPDist, direction
 end
 function CSB.closestBpTo(pos)

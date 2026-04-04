@@ -1,6 +1,7 @@
 local sunsetNotified = false
 local deliveredCargos = {
 }
+local troopTutoriald = {}
 DFS = {}
 DFS.supplyType = {
     FUEL = 1,
@@ -1246,23 +1247,18 @@ function dfc.checkDeployedGroups()
     if Companies then
         for c = 1, 2 do
             for groupName, data in pairs(DFS.deployedGroups[c]) do
-                if data.cpyId then
-                    local cpy = Companies[data.cpyId]
-                    if cpy then
-                        DFS.deployedGroups[c][cpy.groupName] = data
-                    end
-                end
-                local checkingGroup = Group.getByName(groupName)
-                if checkingGroup then
-                    local checkingUnit = checkingGroup:getUnit(1)
-                    if checkingUnit then
-                        local checkingPoint = checkingUnit:getPoint()
-                        if checkingPoint then
-                            DFS.deployedGroups[c][groupName].point = checkingPoint
-                        end
+                local deployedGroupCpy = Companies[data.cpyId]
+                if deployedGroupCpy then
+                    if groupName ~= deployedGroupCpy.groupName then
+                        DFS.deployedGroups[c][groupName] = nil
+                        DFS.deployedGroups[c][deployedGroupCpy.groupName] = {groupName = deployedGroupCpy.groupName, type = data.type, point = data.point, cpyId = data.cpyId}
+                        return
+                    else
+                        DFS.deployedGroups[c][groupName].point = deployedGroupCpy.point
                     end
                 else
                     DFS.deployedGroups[c][groupName] = nil
+                    return
                 end
             end
         end
@@ -1977,6 +1973,9 @@ function dfc.depotActive(param)
     end
     return depotActive
 end
+function DFS.depotActive(coalitionId, depotZoneNum)
+    return dfc.depotActive({coalitionId = coalitionId, zone = depotZoneNum})
+end
 
 function dfc.missileboatLoop()
     local coalitionId = DFS.status.missileboatCoalition
@@ -2378,6 +2377,10 @@ function dfc.loadInternalCargo(param)
                         local menuForDrop = transporterTable.dropMenu
                         if dfc.isTroops(param.type) then menuForDrop = transporterTable.troopsMenu end
                         if param.type == DFS.supplyType.SF then
+                            if not troopTutoriald[param.groupName] then
+                                trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a SOF squad.\nWhen unloaded, SOF squads move to the closest Battle Position within 3km.\nTo send them to a specific point, place a map marker on the F10 map AFTER LOADING with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+                                troopTutoriald[param.groupName] = true
+                            end
                             missionCommands.addCommandForGroup(transporterGroup:getID(), "Begin Fast Rope (60s)", {}, FR.ropeLoop, {groupName = param.groupName, startTime = 0})
                         end
                         missionCommands.addCommandForGroup(transporterGroup:getID(), "Drop " .. DFS.supplyNames[param.type], menuForDrop, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = param.type, country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Drop " .. DFS.supplyNames[param.type]})
@@ -2605,7 +2608,15 @@ function DFS.troopUnloadExternal(droppingGroupName, troopType, ammo)
         end
     end
 end
-function dfc.troopUnload(droppingGroupName, troopType, ammo)
+function dfc.troopUnloadDirect(param)
+    dfc.troopUnload(param.droppingGroupName, param.troopType, nil, param.c130, true)
+    local transporterGroup = Group.getByName(param.droppingGroupName)
+    if transporterGroup and not troopTutoriald[param.droppingGroupName] then
+        trigger.action.outTextForGroup(transporterGroup:getID(), "You have spawned an airborne infantry squad.\nWhen dropped, these squads move to the closest Battle Position within 3km.\nTo send them to a specific point, place a map marker on the F10 map AFTER LOADING with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+        troopTutoriald[param.droppingGroupName] = true
+    end
+end
+function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proximityOverride)
     local droppingGroup = Group.getByName(droppingGroupName)
     if droppingGroup then
         local droppingUnit = droppingGroup:getUnit(1)
@@ -2618,7 +2629,7 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                 if heading < 0 then heading = heading + (2 * math.pi) end
                 local closestDepot = dfc.findClosestDepot(droppingPoint, droppingGroup:getCoalition())
                 local pickupZone = dfc.findPickupZone(droppingPoint, droppingGroup:getCoalition())
-                if closestDepot and closestDepot.distance < 150 or pickupZone then
+                if (closestDepot and closestDepot.distance < 150 or pickupZone) and not proximityOverride then
                     trigger.action.outTextForGroup(droppingGroup:getID(), "Troops returned.", 6, false)
                     local piratePickup = false
                     if pickupZone and string.find(pickupZone, 'Pirate') then
@@ -2637,18 +2648,6 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                         local spawnPoints = {}
                             spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 15))
                             spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,8)))
-                            local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(droppingPoint)
-                            if Troopmarks and Troopmarks[droppingPlayerName] then
-                                if Utils.PointDistance(droppingPoint, Troopmarks[droppingPlayerName]) < 3704 then
-                                    trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving to your mark point!", 10, false)
-                                    spawnPoints[2] = Troopmarks[droppingPlayerName]
-                                else
-                                    trigger.action.outTextForGroup(droppingGroup:getID(), "Your mark point is too far away!", 10, false)
-                                end
-                            elseif closestBPdistance <= 1852 then
-                                 spawnPoints[2] = BattleControl.getBPPoint(closestBPID)
-                                 trigger.action.outTextForGroup(droppingGroup:getID(), "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
-                            end
                             local platoonTable = {
                                 [1] = "Paratrooper RPG-16",
                                 [2] = "Paratrooper AKS-74",
@@ -2657,12 +2656,37 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                                 [5] = "Paratrooper AKS-74",
                                 [6] = "Paratrooper AKS-74",
                             }
+                            if paratroopers then
+                                platoonTable = {
+                                    [1] = "Paratrooper RPG-16",
+                                    [2] = "Paratrooper AKS-74",
+                                    [3] = "Paratrooper AKS-74",
+                                    [4] = "Paratrooper AKS-74",
+                                    [5] = "Paratrooper AKS-74",
+                                    [6] = "Soldier M249",
+                                    [7] = "Paratrooper AKS-74",
+                                    [8] = "Paratrooper AKS-74",
+                                    [9] = "Paratrooper AKS-74",
+                                    [10] = "Paratrooper AKS-74",
+                                    [11] = "Paratrooper RPG-16",
+                                    [12] = "Paratrooper AKS-74",
+                                    [13] = "Paratrooper AKS-74",
+                                    [14] = "Paratrooper AKS-74",
+                                    [15] = "Paratrooper AKS-74",
+                                    [16] = "Soldier M249",
+                                    [17] = "Paratrooper AKS-74",
+                                    [18] = "Paratrooper AKS-74",
+                            }
+                            end
                             local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, platoonTable, false, false, false, nil, false, true, "INF")
                             local sfGroup = nil
                             if newCpy then
                                 newCpy:setWaypoints({spawnPoints[1], spawnPoints[2]}, -1, 12)
                                 newCpy:spawn()
                                 sfGroup = newCpy.groupName
+                                newCpy.droppingPlayerName = droppingPlayerName
+                                newCpy.droppingGroupID = droppingGroup:getID()
+                                --timer.scheduleFunction(dfc.embarkSet, sfGroup, timer:getTime() + 1)
                             end
                         if sfGroup then
                             DFS.deployedGroups[droppingGroup:getCoalition()][sfGroup] = {groupName = sfGroup, type = troopType, point = droppingPoint, cpyId = newCpy.id}
@@ -2696,6 +2720,29 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo)
                         Group.getByName(sfGroup):getController():setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.RED)
                     end
                 end
+            end
+        end
+    end
+end
+function dfc.embarkSet(groupName)
+    local group = Group.getByName(groupName)
+    if group then
+        local groupController = group:getController()
+        if groupController then
+            local leadUnit = group:getUnit(1)
+            if leadUnit then
+               local leadUnitPoint = leadUnit:getPoint()
+               if leadUnitPoint then
+                    local EmbarkToTransport = {
+                            id = "EmbarkToTransport",
+                            params = {
+                            x = leadUnitPoint.x,
+                            y = leadUnitPoint.z,
+                            zoneRadius = 150
+                        }
+                    }
+                    groupController:pushTask(EmbarkToTransport)
+               end
             end
         end
     end
@@ -3299,21 +3346,28 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                 missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})
             end
             local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation", cargoMenu)
-            missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
-            missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
-            -- Spawn Multiple Troops submenu: choose quantity then type
-            local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiples)", cargoMenu)
-            local troopQuantities = {2, 3, 6}
-            for _, q in ipairs(troopQuantities) do
-                local troopQtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " squads", multipleTroopMenu)
-                missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small", count = q})
-                --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
+            local addUnit = addGroup:getUnit(1)
+            if addUnit then
+                local addType = addUnit:getTypeName()
+                if addType and addType == "C-130J-30" then
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Spawn Airborne Infantry Squad", troopsMenu, dfc.troopUnloadDirect, {droppingGroupName = groupName, troopType = DFS.supplyType.SF, c130 = true})
+                else
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
+                    -- Spawn Multiple Troops submenu: choose quantity then type
+                    local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiples)", cargoMenu)
+                    local troopQuantities = {2, 3, 6}
+                    for _, q in ipairs(troopQuantities) do
+                        local troopQtyMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " squads", multipleTroopMenu)
+                        missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small", count = q})
+                        --missionCommands.addCommandForGroup(addGroup:getID(), "Carry Combat Eng. Squad (Landmine) - 0 Equipment", troopQtyMenu, dfc.loadInternalCargoMultiples, {type = DFS.supplyType.CE, groupName = groupName, modifier = "small", count = q})
+                    end
+                end
             end
-            dfc.radioCargoTickerManager({groupName = groupName, parentMenu = cargoMenu, prevRear = nil, prevFront = nil})
+            if not DISABLEF10CARGOSTATUS then
+                dfc.radioCargoTickerManager({groupName = groupName, parentMenu = cargoMenu, prevRear = nil, prevFront = nil})
+            end
             if CAVICS then
-                local addUnit = addGroup:getUnit(1)
                 if addUnit then
                     local addType = addUnit:getTypeName()
                     if addType and addType == "C-130J-30" then
