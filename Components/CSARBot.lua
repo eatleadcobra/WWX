@@ -2323,7 +2323,7 @@ function csb.closestBpTo(pos)
     closestBPDist = math.floor((closestBPDist/1000)+0.5)
     return closestBPId, closestBPDist, direction
 end
-function csb.closestBpToCAS(pos)
+function CSB.closestBpToCAS(pos)
     local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
     bpCount = bpCount or 20
     local closestBPDist = math.huge
@@ -2343,13 +2343,6 @@ function csb.closestBpToCAS(pos)
         direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
     end
     closestBPDist = math.floor((closestBPDist/100)*100)
-    return closestBPId, closestBPDist, direction
-end
-function CSB.closestBpToCAS(pos)
-    local closestBPId, closestBPDist, direction = csb.closestBpToCAS(pos)
-    if closestBPId then
-        direction = Utils.relativeCompassBearing(pos, BattleControl.getBPPoint(closestBPId))
-    end
     return closestBPId, closestBPDist, direction
 end
 function CSB.closestBpTo(pos)
