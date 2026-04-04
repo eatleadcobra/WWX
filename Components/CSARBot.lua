@@ -1081,9 +1081,9 @@ function csb.wellnessCheck(coalitionId)
                             if m.sourceId and m.sourceId == ce.missionId then
                                 ce.lostCas = ce.lostCas + 1
                                 if math.fmod(ce.lostCas,2) == 0 then
-                                    env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",false)
+                                    env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " reporting friendlies are bleeding out while waiting for evac.",false)
                                     for _,csci in pairs(csarCheckIns[coalitionId]) do
-                                        trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " reporting further friendlies are KIA.",10,false)
+                                        trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " reporting friendlies are bleeding out while waiting for evac.",10,false)
                                     end
                                 end
                             end
@@ -1092,6 +1092,8 @@ function csb.wellnessCheck(coalitionId)
                         for _,ce in pairs(casEvacMissions[coalitionId]) do
                             if m.sourceId and m.sourceId == ce.missionId then
                                 ce.overrun = true
+                                ce.lostCas = ce.lostCas + ce.numCas + 1
+                                env.info("[csb.wellnessCheck] - (!) CASEVAC #" .. m.sourceId .. " has been overrun by hostile forces. Abort rescue.",false)
                                 for _,csci in pairs(csarCheckIns[coalitionId]) do
                                     trigger.action.outTextForGroup(csci.groupID,"(!) CASEVAC #" .. m.sourceId .. " has been overrun by hostile forces. Abort rescue.",10,false)
                                 end
