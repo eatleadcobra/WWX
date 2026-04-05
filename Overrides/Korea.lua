@@ -212,6 +212,10 @@ PlatoonGunCarrierTypeNames = {
 PlatoonGunTypeNames = {
     ["KS-19"] = "GUN"
 }
+RESPAWNGROUPS = {
+    ["Red-Battleship"] = 2700, --45 minutes
+    ["Blue-Battleship"] = 2700, --45 minutes
+}
 PltStrengths = {
     [1] = 10,
     [2] = 3,
