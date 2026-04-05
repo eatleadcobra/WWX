@@ -66,149 +66,145 @@ Platoons = {
         ["Armor"] = {
             [1] = "T-34-85",
             [2] = "T-34-85",
-            [3] = "Bedford_MWD"
+            [3] = "GAZ-66"
         },
         ["Mech"] = {
-            [1] = "M2A1_halftrack",
-            [2] = "M2A1_halftrack",
-            [3] = "Bedford_MWD",
-            [4] = "Land_Rover_101_FC"
+            [1] = "BTR-60",
+            [2] = "BTR-60",
+            [3] = "GAZ-66"
         },
         ["Inf"] = {
-            [1] = "Bedford_MWD",
+            [1] = "M2A1_halftrack",
+            [2] = "GAZ-66",
+            [3] = "GAZ-66",
+            [4] = "Land_Rover_101_FC"
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
             [2] = "Infantry AK ver2",
-            [3] = "Infantry AK ver2",
-            [4] = "Paratrooper RPG-16",
-            [5] = "Infantry AK ver2",
-            [6] = "2B11 mortar",
-        },
-        ["DeployedGun"] = {
-            [1] = "Infantry AK ver2",
-            [2] = "KS-19",
-            [3] = "Infantry AK ver2",
+            [3] = "Soldier M249",
+            [4] = "Infantry AK ver2",
+            [5] = "Paratrooper RPG-16",
+            [6] = "Infantry AK ver2",
+            [7] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "M2A1_halftrack",
+            [1] = "BTR-60",
             [2] = "ATZ-5",
             [3] = "ATZ-5",
             [4] = "ATZ-5",
             [5] = "ATZ-5",
             [6] = "ATZ-5",
-            [7] = "M2A1_halftrack",
+            [7] = "BTR-60",
             [8] = "ATZ-5",
         },
         ["AmmoConvoy"] = {
-            [1] = "M2A1_halftrack",
+            [1] = "BTR-60",
             [2] = "Ural-375",
             [3] = "Ural-375",
             [4] = "Ural-375",
             [5] = "Ural-375",
             [6] = "Ural-375",
-            [7] = "M2A1_halftrack",
+            [7] = "BTR-60",
             [8] = "Ural-375",
         },
         ["EquipmentConvoy"] = {
-            [1] = "M2A1_halftrack",
+            [1] = "BTR-60",
             [2] = "KAMAZ Truck",
             [3] = "KAMAZ Truck",
             [4] = "KAMAZ Truck",
             [5] = "KAMAZ Truck",
             [6] = "KAMAZ Truck",
-            [7] = "M2A1_halftrack",
+            [7] = "BTR-60",
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
             [1] = "Type_94_25mm_AA_Truck",
             [2] = "KAMAZ Truck"
         },
-        ["EmbeddedADhigh"] = {
-            [1] = "Type_94_25mm_AA_Truck",
+        ["EmbeddedADHigh"] = {
+            [1] = "HL_ZU-23",
             [2] = "KAMAZ Truck"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply",
-            [2] = "CastleClass_01"
+            [1] = "HandyWind",
         }
     },
     [2] = {
         ["Armor"] = {
             [1] = "M4_Sherman",
             [2] = "M4_Sherman",
-            [3] = "Blitz_36-6700A"
+            [3] = "M 818"
         },
         ["Mech"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "Sd_Kfz_251",
-            [3] = "Blitz_36-6700A",
-            [4] = "Land_Rover_101_FC",
+            [1] = "M-113",
+            [2] = "M-113",
+            [3] = "M1043 HMMWV Armament",
+            [4] = "M 818"
         },
         ["Inf"] = {
-            [1] = "Blitz_36-6700A",
+            [1] = "M2A1_halftrack",
+            [2] = "Bedford_MWD",
+            [3] = "Bedford_MWD",
+            [4] = "Land_Rover_101_FC",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver2",
             [2] = "Infantry AK ver2",
-            [3] = "Infantry AK ver2",
-            [4] = "Paratrooper RPG-16",
-            [5] = "Infantry AK ver2",
-            [6] = "2B11 mortar",
-        },
-        ["DeployedGun"] = {
-            [1] = "Infantry AK ver2",
-            [2] = "KS-19",
-            [3] = "Infantry AK ver2",
+            [3] = "Soldier M249",
+            [4] = "Infantry AK ver2",
+            [5] = "Paratrooper RPG-16",
+            [6] = "Infantry AK ver2",
+            [7] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
-            [1] = "Sd_Kfz_251",
+            [1] = "TPZ",
             [2] = "M978 HEMTT Tanker",
             [3] = "M978 HEMTT Tanker",
             [4] = "M978 HEMTT Tanker",
             [5] = "M978 HEMTT Tanker",
             [6] = "M978 HEMTT Tanker",
-            [7] = "Sd_Kfz_251",
+            [7] = "TPZ",
             [8] = "M978 HEMTT Tanker",
         },
         ["AmmoConvoy"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "GAZ-66",
-            [3] = "GAZ-66",
-            [4] = "GAZ-66",
-            [5] = "GAZ-66",
-            [6] = "GAZ-66",
-            [7] = "Sd_Kfz_251",
-            [8] = "GAZ-66",
+            [1] = "TPZ",
+            [2] = "Bedford_MWD",
+            [3] = "Bedford_MWD",
+            [4] = "Bedford_MWD",
+            [5] = "Bedford_MWD",
+            [6] = "Bedford_MWD",
+            [7] = "TPZ",
+            [8] = "Bedford_MWD",
         },
         ["EquipmentConvoy"] = {
-            [1] = "Sd_Kfz_251",
+            [1] = "TPZ",
             [2] = "M 818",
             [3] = "M 818",
             [4] = "M 818",
             [5] = "M 818",
             [6] = "M 818",
-            [7] = "Sd_Kfz_251",
+            [7] = "TPZ",
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
             [1] = "Type_94_25mm_AA_Truck",
-            [2] = "GAZ-66"
+            [2] = "KAMAZ Truck"
         },
         ["EmbeddedADHigh"] = {
-            [1] = "Type_94_25mm_AA_Truck",
-            [2] = "GAZ-66"
+            [1] = "HL_ZU-23",
+            [2] = "KAMAZ Truck"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply",
-            [2] = "CastleClass_01"
+            [1] = "HandyWind",
         }
     }
 }
-
 PlatoonUnitCarrierTypeNames = {
+    ["TPZ"] = "APC",
+    ["M-113"] = "IFV",
     ["Bedford_MWD"] = "APC",
-    ["Blitz_36-6700A"] =  "APC",
+    ["GAZ-66"] = "APC",
 }
 PlatoonGunCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "GUN"
@@ -223,36 +219,43 @@ PltStrengths = {
     [7] = 2,
     [9] = 2
 }
-
 CompanyCompTiers = {
     [0] = {composition = nil},
     [1] = {
-        --tank
-        composition = {1,2,7},
+        --tank, tank, apc, AD
+        composition = {3,1,1,7},
     },
     [2] = {
-        composition = {1,3,7},
+        --tank, ifv, apc, AD
+        composition = {2,1,3,7},
     },
     [3] = {
-        composition = {1,7},
+        --ifv, ifv, apc, AD
+        composition = {2,2,3,7},
     },
     [4] = {
-        composition = {1,2},
+        --ifv, apc, apc, AD
+        composition = {2,3,3,7},
     },
     [5] = {
-        composition = {2,2,7},
+        --tank, tank, apc
+        composition = {3,1,3,7},
     },
     [6] = {
-        composition = {2,2},
+        --tank, ifv, apc
+        composition = {3,1,2},
     },
     [7] = {
-        composition = {2,3},
+        -- ifv, ifv, apc
+        composition = {2,2,3},
     },
     [8] = {
-        composition = {3,3},
+        -- ifv, apc, apc
+        composition = {2,3,3},
     },
     [9] = {
-        composition = {3},
+        -- apc, apc, apc
+        composition = {3,3,3},
     },
 }
 CSARFreqs = {
@@ -308,16 +311,14 @@ CSARHunterOptions = {
     }
 }
 CSARHunterEliteOptions = {
-    [1] = {
-        [1] = "M2A1_halftrack",
-        [2] = "Type_94_25mm_AA_Truck",
-        [3] = "M2A1_halftrack",
-    },
-    [2] = {
-        [1] = "Type_94_25mm_AA_Truck",
-        [2] = "Sd_Kfz_251",
-        [3] = "Type_94_25mm_AA_Truck",
-    }
+[1] = {
+    [1] = "tt_DSHK",
+    [2] = "HL_DSHK",
+    [3] = "tt_DSHK",
+},
+[2] = {
+    [1] = "M1043 HMMWV Armament",
+}
 }
 CSARStackZones = {
     [1] = {

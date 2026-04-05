@@ -179,7 +179,7 @@ PlatoonUnitCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "APC",
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
-    ["Land_Rover_101_FCSd_Kfz_251"] = "IFV",
+    ["Sd_Kfz_251"] = "IFV",
     ["M2A1_halftrack"] =  "IFV",
     ["BTR-60"] = "IFV",
 }

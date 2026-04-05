@@ -652,118 +652,120 @@ function bc.drawAttackMsg(filedAttackPlan)
     end
 end
 function bc.main()
-    local redPositions = 0
-    local bluePositions = 0
-    local positionNotifications = {}
-    local checkTime = timer.getTime()
-    for k,v in pairs(battlePositions) do
-        local redUnits = 0
-        local blueUnits = 0
-        local volS = {
-            id = world.VolumeType.SPHERE,
-            params = {
-                point = v.point,
-                radius = v.radius
-            }
-        }
-        local ifFound = function(foundItem, val)
-            if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 2 then
-                if foundItem:getCoalition() == 1 then
-                    redUnits = redUnits + 1
-                elseif foundItem:getCoalition() == 2 then
-                    blueUnits = blueUnits + 1
-                end
-            end
-            return true
-        end
-        world.searchObjects(Object.Category.UNIT, volS, ifFound)
-        local ownedBy = 0
-        if blueUnits > redUnits then
-            local bpStrength = bc.getRealBpStrength(2, v.id)
-            env.info("Blue units ("..blueUnits ..") outnumber red (" .. redUnits .. ") in BP: " .. v.id.."\nBP Stregnth: " .. bpStrength, false)
-            if bpStrength > bpRequiredStrength then
-                ownedBy = 2
-            end
-        elseif redUnits > blueUnits then
-            local bpStrength = bc.getRealBpStrength(1, v.id)
-            env.info("Red units ("..redUnits ..") outnumber blue (" .. blueUnits .. ") in BP: " .. v.id.."\nBP Stregnth: " .. bpStrength, false)
-            if bpStrength > bpRequiredStrength then
-                ownedBy = 1
-            end
-        else
-            env.info("No units found in BP: " ..v.id, false)
-        end
-        if ownedBy == 1 then redPositions = redPositions + 1 end
-        if ownedBy == 2 then bluePositions = bluePositions + 1 end
-        if v.ownedBy ~= ownedBy then
-            local rcnMissionCltn = 1
-            if v.ownedBy == 1 then
-                rcnMissionCltn = 2
-            end
-            local bpReconMarkIds = reconnedBPMarkups[rcnMissionCltn][v.id]
-            if bpReconMarkIds then
-                for i = 1, #bpReconMarkIds do
-                    trigger.action.removeMark(bpReconMarkIds[i])
-                end
-            end
-            if v.reconMarkups.fillIds then
-                for i = 1, #v.reconMarkups.fillIds do
-                    trigger.action.removeMark(v.reconMarkups.fillIds[i])
-                end
-            end
-            if v.reconMissionId ~= -1 and v.ownedBy ~= 0 then
-                Recon.cleanmission(rcnMissionCltn, v.reconMissionId)
-            end
-            if ownedBy ~= 0 then
-                local reconCoalitionId = 1
-                if ownedBy == 1 then reconCoalitionId = 2 end
-                v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id, true)
-                if checkTime > 10 then
-                    table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true, prevCoalition = v.ownedBy})
-                    table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
-                end
-            else
-                if checkTime > 10 then
-                    table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
-                end
-            end
-            v.ownedBy = ownedBy
-        end
-        if junkRemoval then
-            local junkPoint = v.point
-            local junkRadius = v.radius
-            local junkSphere = {
-            id = world.VolumeType.SPHERE,
+    if not MissionOver then
+        local redPositions = 0
+        local bluePositions = 0
+        local positionNotifications = {}
+        local checkTime = timer.getTime()
+        for k,v in pairs(battlePositions) do
+            local redUnits = 0
+            local blueUnits = 0
+            local volS = {
+                id = world.VolumeType.SPHERE,
                 params = {
-                    point = junkPoint,
-                    radius = junkRadius
+                    point = v.point,
+                    radius = v.radius
                 }
             }
-            ---world.removeJunk(junkSphere)
-            timer.scheduleFunction(world.removeJunk, junkSphere, timer:getTime() + 300)
+            local ifFound = function(foundItem, val)
+                if foundItem:isExist() and foundItem:isActive() and foundItem:getDesc().category == 2 then
+                    if foundItem:getCoalition() == 1 then
+                        redUnits = redUnits + 1
+                    elseif foundItem:getCoalition() == 2 then
+                        blueUnits = blueUnits + 1
+                    end
+                end
+                return true
+            end
+            world.searchObjects(Object.Category.UNIT, volS, ifFound)
+            local ownedBy = 0
+            if blueUnits > redUnits then
+                local bpStrength = bc.getRealBpStrength(2, v.id)
+                env.info("Blue units ("..blueUnits ..") outnumber red (" .. redUnits .. ") in BP: " .. v.id.."\nBP Stregnth: " .. bpStrength, false)
+                if bpStrength > bpRequiredStrength then
+                    ownedBy = 2
+                end
+            elseif redUnits > blueUnits then
+                local bpStrength = bc.getRealBpStrength(1, v.id)
+                env.info("Red units ("..redUnits ..") outnumber blue (" .. blueUnits .. ") in BP: " .. v.id.."\nBP Stregnth: " .. bpStrength, false)
+                if bpStrength > bpRequiredStrength then
+                    ownedBy = 1
+                end
+            else
+                env.info("No units found in BP: " ..v.id, false)
+            end
+            if ownedBy == 1 then redPositions = redPositions + 1 end
+            if ownedBy == 2 then bluePositions = bluePositions + 1 end
+            if v.ownedBy ~= ownedBy then
+                local rcnMissionCltn = 1
+                if v.ownedBy == 1 then
+                    rcnMissionCltn = 2
+                end
+                local bpReconMarkIds = reconnedBPMarkups[rcnMissionCltn][v.id]
+                if bpReconMarkIds then
+                    for i = 1, #bpReconMarkIds do
+                        trigger.action.removeMark(bpReconMarkIds[i])
+                    end
+                end
+                if v.reconMarkups.fillIds then
+                    for i = 1, #v.reconMarkups.fillIds do
+                        trigger.action.removeMark(v.reconMarkups.fillIds[i])
+                    end
+                end
+                if v.reconMissionId ~= -1 and v.ownedBy ~= 0 then
+                    Recon.cleanmission(rcnMissionCltn, v.reconMissionId)
+                end
+                if ownedBy ~= 0 then
+                    local reconCoalitionId = 1
+                    if ownedBy == 1 then reconCoalitionId = 2 end
+                    v.reconMissionId = Recon.createBPScoutingMission(reconCoalitionId, v.point, v.id, true)
+                    if checkTime > 10 then
+                        table.insert(positionNotifications, {coalitionId = ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = true, prevCoalition = v.ownedBy})
+                        table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
+                    end
+                else
+                    if checkTime > 10 then
+                        table.insert(positionNotifications, {coalitionId = v.ownedBy, newCoalitionId = ownedBy, bpId = v.id, gained = false, prevCoalition = v.ownedBy})
+                    end
+                end
+                v.ownedBy = ownedBy
+            end
+            if junkRemoval then
+                local junkPoint = v.point
+                local junkRadius = v.radius
+                local junkSphere = {
+                id = world.VolumeType.SPHERE,
+                    params = {
+                        point = junkPoint,
+                        radius = junkRadius
+                    }
+                }
+                ---world.removeJunk(junkSphere)
+                timer.scheduleFunction(world.removeJunk, junkSphere, timer:getTime() + 300)
+            end
         end
-    end
-    DFS.status[1].health = redPositions
-    DFS.status[2].health = bluePositions
-    for i = 1, #positionNotifications do
-        local notification = positionNotifications[i]
-        if notification then
-            bc.notifyTeamofBPChange(notification.coalitionId, notification.newCoalitionId, notification.bpId, notification.gained, notification.prevCoalition)
-            if notification.gained == false and notification.coalitionId ~= 0 then
-                if CSAR then
-                    env.info("About to call CSB.createCasEvac from battlecontroller with coalitionId: " .. notification.coalitionId .. " | bpId: " .. notification.bpId .. " | newCoalitionId: " .. notification.newCoalitionId .. " | prevCoalition: " .. notification.prevCoalition,false)
-                    CSB.createCasEvac(notification.coalitionId, notification.bpId, notification.newCoalitionId)
+        DFS.status[1].health = redPositions
+        DFS.status[2].health = bluePositions
+        for i = 1, #positionNotifications do
+            local notification = positionNotifications[i]
+            if notification then
+                bc.notifyTeamofBPChange(notification.coalitionId, notification.newCoalitionId, notification.bpId, notification.gained, notification.prevCoalition)
+                if notification.gained == false and notification.coalitionId ~= 0 then
+                    if CSAR then
+                        env.info("About to call CSB.createCasEvac from battlecontroller with coalitionId: " .. notification.coalitionId .. " | bpId: " .. notification.bpId .. " | newCoalitionId: " .. notification.newCoalitionId .. " | prevCoalition: " .. notification.prevCoalition,false)
+                        CSB.createCasEvac(notification.coalitionId, notification.bpId, notification.newCoalitionId)
+                    end
                 end
             end
         end
+        if redPositions == #battlePositions then
+            DFS.endMission(1)
+        elseif bluePositions == #battlePositions then
+            DFS.endMission(2)
+        end
+        timer.scheduleFunction(bc.deployments, nil, timer:getTime() + 60)
+        timer.scheduleFunction(bc.main, nil, timer:getTime() + 30)
     end
-    if redPositions == #battlePositions then
-        DFS.endMission(1)
-    elseif bluePositions == #battlePositions then
-        DFS.endMission(2)
-    end
-    timer.scheduleFunction(bc.deployments, nil, timer:getTime() + 60)
-    timer.scheduleFunction(bc.main, nil, timer:getTime() + 30)
 end
 
 function bc.findCanCap(coalitionId)
