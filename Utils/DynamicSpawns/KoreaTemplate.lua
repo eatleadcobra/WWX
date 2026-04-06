@@ -23,6 +23,7 @@ Airframes = {
         carrier = {
         },
         forward = {
+            ["C-130J-30"] = true,
             --warbirds
             ["P-47D-30bl1"] = true,
             ["P-47D-30"] = true,
@@ -71,6 +72,7 @@ Airframes = {
             ["CH-47Fbl1"] = true,
         },
         forward = {
+            ["C-130J-30"] = true,
             --warbirds
             ["FW-190A8"] = true,
             ["FW-190D9"] = true,
