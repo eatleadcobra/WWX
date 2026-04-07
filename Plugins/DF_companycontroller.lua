@@ -388,6 +388,9 @@ function cpyctl.cpyStatusLoop()
                     break
                 end
                 if not cpy.assigned then
+                    if cpy.cpyType and cpy.cpyType == "INF" then
+                        cpyctl.cleanStragglers(cpy)
+                    end
                     if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
                         local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(cpy.point)
                         if Troopmarks and Troopmarks[cpy.droppingPlayerName] then
@@ -543,27 +546,33 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         end
     end
 end
-function cpyctl.getCompanyStrength(cpy)
-    local tankCount = 0
-    local carrierCount = 0
-    local cpyGroup = Group.getByName(cpy.groupName)
-    if cpyGroup then
-        local cpyUnits = cpyGroup:getUnits()
-        if cpyUnits then
-            for i = 1, #cpyUnits do
-                local evalUnit = cpyUnits[i]
-                if evalUnit then
-                    if evalUnit:hasAttribute("Tanks") then
-                        tankCount = tankCount + 1
-                    elseif evalUnit:hasAttribute("IFV") or evalUnit:hasAttribute("APC") then
-                        carrierCount = carrierCount+1
+function cpyctl.cleanStragglers(cpy)
+    if cpy then
+        cpy:savePosition()
+        local cpyGroup = Group.getByName(cpy.groupName)
+        if cpyGroup then
+            local cpyAvgPoint = cpy.point
+            local anyRemoved = false
+            for i = 1, cpyGroup:getSize() do
+                local checkUnit = cpyGroup:getUnit(i)
+                if checkUnit then
+                    local checkUnitPoint = checkUnit:getPoint()
+                    if checkUnitPoint then
+                        local unitDistance = Utils.PointDistance(checkUnitPoint, cpyAvgPoint)
+                        if unitDistance > 300 then
+                            env.info("Cpy straggler removed", false)
+                            checkUnit:destroy()
+                            anyRemoved = true
+                            break
+                        end
                     end
                 end
             end
+            if anyRemoved then
+                timer.scheduleFunction(cpyctl.cleanStragglers, cpy, timer:getTime() + 1)
+            end
         end
     end
-    local strengthscore = math.floor(tankCount * 16.6) + math.floor(carrierCount * 8.3)
-    return strengthscore
 end
 function cpyctl.reclaimCompany(company)
     if company then

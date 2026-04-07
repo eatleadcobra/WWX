@@ -2646,8 +2646,8 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proxi
                     elseif troopType == DFS.supplyType.SF then
                         local isWater = land.getSurfaceType({x = droppingPoint.x, y = droppingPoint.z})
                         local spawnPoints = {}
-                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 15))
-                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,8)))
+                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 20))
+                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,3)))
                             local platoonTable = {
                                 [1] = "Paratrooper RPG-16",
                                 [2] = "Paratrooper AKS-74",
