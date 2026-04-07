@@ -65,8 +65,7 @@ Platoons = {
     [1] = {
         ["Armor"] = {
             [1] = "T-34-85",
-            [2] = "T-34-85",
-            [3] = "GAZ-66"
+            [2] = "GAZ-66"
         },
         ["Mech"] = {
             [1] = "BTR-60",
@@ -211,6 +210,10 @@ PlatoonGunCarrierTypeNames = {
 }
 PlatoonGunTypeNames = {
     ["KS-19"] = "GUN"
+}
+RESPAWNGROUPS = {
+    ["Red-Battleship"] = 2700, --45 minutes
+    ["Blue-Battleship"] = 2700, --45 minutes
 }
 PltStrengths = {
     [1] = 10,
