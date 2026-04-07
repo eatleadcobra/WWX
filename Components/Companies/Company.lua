@@ -473,6 +473,9 @@ function Company.savePosition(self)
             local cpyPoint = cpyLead:getPoint()
             if cpyPoint then
                 self.point = cpyPoint
+                if self.cpyType and self.cpyType == "INF" then
+                    self.point = cm.getAvgPoint(self.groupName)
+                end
                 self.waypoints[1] = cpyPoint
             end
         end
@@ -528,4 +531,35 @@ function cm.newCallsign(coalitionId)
         end
     end
     return callsign
+end
+function cm.getAvgPoint(groupName)
+    local group = Group.getByName(groupName)
+    local avgPoint = {x = 0, y = 0, z = 0}
+    if group then
+        local points = {}
+        for i = 1, group:getSize() do
+            local unit = group:getUnit(i)
+            if unit then
+                local unitPoint = unit:getPoint()
+                if unitPoint then
+                    table.insert(points, unitPoint)
+                end
+            end
+        end
+        for i = 1, #points do
+            if i == 1 then
+                avgPoint.x = points[i].x
+                avgPoint.y = points[i].y
+                avgPoint.z = points[i].z
+            else
+                avgPoint.x = avgPoint.x + points[i].x
+                avgPoint.y = avgPoint.y + points[i].y
+                avgPoint.z = avgPoint.z + points[i].z
+            end
+        end
+        avgPoint.x = avgPoint.x / #points
+        avgPoint.y = avgPoint.y / #points
+        avgPoint.z = avgPoint.z / #points
+    end
+    return avgPoint
 end

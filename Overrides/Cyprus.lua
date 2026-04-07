@@ -13,6 +13,7 @@ BOMBERS = true
 ESCORT = true
 MISSILEBOATS = false
 CARGO = true
+DISABLEF10CARGOSTATUS = true
 CSAR = true
 CAS = true
 STRIKES = true

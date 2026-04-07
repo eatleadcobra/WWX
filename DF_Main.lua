@@ -2646,8 +2646,8 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proxi
                     elseif troopType == DFS.supplyType.SF then
                         local isWater = land.getSurfaceType({x = droppingPoint.x, y = droppingPoint.z})
                         local spawnPoints = {}
-                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 15))
-                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,8)))
+                            spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 20))
+                            spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,3)))
                             local platoonTable = {
                                 [1] = "Paratrooper RPG-16",
                                 [2] = "Paratrooper AKS-74",
@@ -2656,27 +2656,31 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proxi
                                 [5] = "Paratrooper AKS-74",
                                 [6] = "Paratrooper AKS-74",
                             }
+                            if CoalitionAirborne then
+                                platoonTable = CoalitionAirborne[droppingUnit:getCoalition()]
+                            end
                             if paratroopers then
-                                platoonTable = {
-                                    [1] = "Paratrooper RPG-16",
-                                    [2] = "Paratrooper AKS-74",
-                                    [3] = "Paratrooper AKS-74",
-                                    [4] = "Paratrooper AKS-74",
-                                    [5] = "Paratrooper AKS-74",
-                                    [6] = "Soldier M249",
-                                    [7] = "Paratrooper AKS-74",
-                                    [8] = "Paratrooper AKS-74",
-                                    [9] = "Paratrooper AKS-74",
-                                    [10] = "Paratrooper AKS-74",
-                                    [11] = "Paratrooper RPG-16",
-                                    [12] = "Paratrooper AKS-74",
-                                    [13] = "Paratrooper AKS-74",
-                                    [14] = "Paratrooper AKS-74",
-                                    [15] = "Paratrooper AKS-74",
-                                    [16] = "Soldier M249",
-                                    [17] = "Paratrooper AKS-74",
-                                    [18] = "Paratrooper AKS-74",
-                            }
+                                local paraplatoonTable = {
+                                    [1] = platoonTable[1],
+                                    [2] = platoonTable[2],
+                                    [3] = platoonTable[3],
+                                    [4] = platoonTable[4],
+                                    [5] = platoonTable[5],
+                                    [6] = platoonTable[6],
+                                    [7] = platoonTable[1],
+                                    [8] = platoonTable[2],
+                                    [9] = platoonTable[3],
+                                    [10] = platoonTable[4],
+                                    [11] = platoonTable[5],
+                                    [12] = platoonTable[6],
+                                    [13] = platoonTable[1],
+                                    [14] = platoonTable[2],
+                                    [15] = platoonTable[3],
+                                    [16] = platoonTable[4],
+                                    [17] = platoonTable[5],
+                                    [18] = platoonTable[6],
+                                }
+                                platoonTable = paraplatoonTable
                             end
                             local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, platoonTable, false, false, false, nil, false, true, "INF")
                             local sfGroup = nil

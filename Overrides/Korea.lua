@@ -27,6 +27,7 @@ MISSILEBOATS = false
 CARGO = true
 CSAR = true
 CAS = true
+DISABLEF10CARGOSTATUS = true
 STRIKES = true
 REAPER = false
 INTERCEPT = false
@@ -337,6 +338,25 @@ CSARCoverageZones = {
     },
     [2] = {
         [1] = "BlueCsarZone",
+    }
+}
+--should be six infantry, preferrably with at least one RPG. C-130s get 3x of these per squad
+CoalitionAirborne = {
+    [1] = {
+        [1] = "Paratrooper RPG-16",
+        [2] = "Paratrooper AKS-74",
+        [3] = "Paratrooper AKS-74",
+        [4] = "Soldier M249",
+        [5] = "Paratrooper AKS-74",
+        [6] = "Paratrooper AKS-74",
+    },
+    [2] = {
+        [1] = "Soldier RPG",
+        [2] = "Soldier M4 GRG",
+        [3] = "Soldier M4 GRG",
+        [4] = "Soldier M249",
+        [5] = "Soldier M4 GRG",
+        [6] = "Soldier M4 GRG",
     }
 }
 RandomNames = {}
