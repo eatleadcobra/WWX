@@ -1,6 +1,6 @@
 FR = {}
 local frEvents = {}
-local ropeLength = 8 --meters
+local ropeLength = 20 --meters
 local velocityThreshold = 0.5 --m/s
 local fastRopeCheckDuration = 60 --seconds
 local shipLengthDiff = 80 --meters
