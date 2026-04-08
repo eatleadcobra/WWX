@@ -50,7 +50,8 @@ local attackPlans = {
     [2] = nil
 }
 local maxCapAmount = 3
-local maxAttackDuration = 2700
+local maxAttackDuration = 5400
+local minAttackDelay = 600
 local positionsCountLimit = 20
 local bpRequiredStrength = 1
 local junkRemoval = true
@@ -369,7 +370,7 @@ function bc.prepareAttack(filedAttackPlan)
         [2] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[2] - requiredSupply[2],
         [3] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[3] - requiredSupply[3],
     }
-    local timePenalty = 1200
+    local timePenalty = minAttackDelay
     for i = 1, 3 do
         if supplyDelta[i] < 0 then
             -- if another convoy is needed, add 10 minutes
