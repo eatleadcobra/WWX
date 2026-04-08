@@ -2592,7 +2592,6 @@ function dfc.troopUnloadDirect(param)
     end
 end
 function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proximityOverride)
-    proximityOverride = true
     local droppingGroup = Group.getByName(droppingGroupName)
     if droppingGroup then
         local droppingUnit = droppingGroup:getUnit(1)
