@@ -10,7 +10,7 @@ DFS.supplyType = {
     GUN = 4,
     MORTAR_SQUAD = 5,
     SF = 6,
-    CE = 7,
+    RECON = 7,
     SMALL_MORTAR = 8
 }
 DFS.resupplyTypes = {
@@ -37,7 +37,7 @@ DFS.supplyNames = {
     [4] = "Equipment",
     [5] = "Mortar Squad",
     [6] = "Special Forces",
-    [7] = "Combat Engineers (Landmines)",
+    [7] = "Recon Troops",
     [8] = "Small Mortar Squad"
 }
 DFS.cargoMasses = {
@@ -83,22 +83,15 @@ DFS.reapers = {
 DFS.heloCapacities = {
     ["AV8BNA"] = {
         types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
-            ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
+            ["Recon Troops"] = 7,
         },
         volume = 5,
     },
     ["Mi-8MT"] = {
         types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
+            ["Recon Troops"] = 7,
             ["Small Mortar Squad"] = 8,
         },
         volume = 25,
@@ -106,12 +99,9 @@ DFS.heloCapacities = {
     },
     ["Mi-24P"] = {
         types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
+            ["Recon Troops"] = 7,
             ["Small Mortar Squad"] = 8,
         },
         volume = 8,
@@ -119,12 +109,9 @@ DFS.heloCapacities = {
     },
     ["UH-1H"] = {
         types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
+            ["Recon Troops"] = 7,
             ["Small Mortar Squad"] = 8,
         },
         volume = 14,
@@ -132,48 +119,30 @@ DFS.heloCapacities = {
     },
     ["C-130J-30"] = {
         types = {
-            ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
-            ["Small Mortar Squad"] = 8,
         },
         volume = 65,
         seats = 30
     },
     ["SA342L"] = {
         types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
-            ["Mortar Squad"] = 6,
-            ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
-            ["Small Mortar Squad"] = 8,
+            ["Recon Troops"] = 7,
         },
         volume = 3,
         seats = 3
     },
     ["SA342Minigun"] = {
         types = {
-            ["Fuel"] = 1,
-            ["Ammo"] = 2,
-            ["Equipment"] = 3,
-            ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
-            ["Small Mortar Squad"] = 8,
+            ["Recon Troops"] = 7,
         },
         volume = 2,
         seats = 2
     },
     ["CH-47Fbl1"] = {
         types = {
-            -- ["Fuel"] = 1,
-            -- ["Ammo"] = 2,
-            -- ["Equipment"] = 3,
             ["Mortar Squad"] = 5,
             ["Special Forces"] = 6,
-            ["Combat Engineers (Landmines)"] = 7,
-            ["Small Mortar Squad"] = 8,
+            ["Recon Troops"] = 7,
         },
         volume = 42,
         seats = 30
@@ -2378,17 +2347,23 @@ function dfc.loadInternalCargo(param)
                         if dfc.isTroops(param.type) then menuForDrop = transporterTable.troopsMenu end
                         if param.type == DFS.supplyType.SF then
                             if not troopTutoriald[param.groupName] then
-                                trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a SOF squad.\nWhen unloaded, SOF squads move to the closest Battle Position within 3km.\nTo send them to a specific point, place a map marker on the F10 map AFTER LOADING with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
+                                trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a SOF squad.\nWhen unloaded, SOF squads move to the closest Battle Position within 3km.\nTo send them to a specific point, place a map marker on the F10 map with the text 'SOF'.\nYou must unload them within 6km of this point for it to work.", 30, false)
                                 troopTutoriald[param.groupName] = true
                             end
                             missionCommands.addCommandForGroup(transporterGroup:getID(), "Begin Fast Rope (60s)", {}, FR.ropeLoop, {groupName = param.groupName, startTime = 0})
                         end
-                        missionCommands.addCommandForGroup(transporterGroup:getID(), "Drop " .. DFS.supplyNames[param.type], menuForDrop, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = param.type, country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Drop " .. DFS.supplyNames[param.type]})
+                        if param.type == DFS.supplyType.RECON then
+                            if not troopTutoriald[param.groupName] then
+                                trigger.action.outTextForGroup(transporterGroup:getID(), "You have loaded a Recon squad.\nRecon squads move to the closest ENEMY Battle Position within 18km, then return to where you unloaded them.\nWhile traveling, recon troops mark every spotted enemy on the map with a + icon.\nRecon troop communicate on the CAS frequency, but do not create smoke or radio markers.\nTo send them to a specific point place a map marker on the F10 map with the text 'RECON'.\nYou must unload them within 18km of this point for it to work.\nRecon troops will not be engaged by the enemy but they are not invulnerable.", 30, false)
+                                troopTutoriald[param.groupName] = true
+                            end
+                        end
+                        missionCommands.addCommandForGroup(transporterGroup:getID(), "Drop " .. DFS.supplyNames[param.type], menuForDrop, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = param.type, country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Drop " .. DFS.supplyNames[param.type], carrierTypeName = param.carrierTypeName})
                         if transporterTable.cargo.carrying == false then
-                            missionCommands.addCommandForGroup(transporterGroup:getID(), "Unload All Troops", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = "ALL", country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Unload All Troops"})
+                            missionCommands.addCommandForGroup(transporterGroup:getID(), "Unload All Troops", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = "ALL", country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Unload All Troops", carrierTypeName = param.carrierTypeName})
                         else
                             missionCommands.removeItemForGroup(transporterGroup:getID(), {[1] = "Unload All Troops"})
-                            missionCommands.addCommandForGroup(transporterGroup:getID(), "Unload All Troops", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = "ALL", country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Unload All Troops"})
+                            missionCommands.addCommandForGroup(transporterGroup:getID(), "Unload All Troops", transporterTable.dropMenu, dfc.unloadInternalCargo, {point = {x = pickupLocation.x + 6, y = pickupLocation.y, z = pickupLocation.z + 6}, groupName = param.groupName, type = "ALL", country = transporterUnit:getCountry(), seaPickup = seaPickup, frontPickup = frontPickup, groupId = transporterGroup:getID(), coalition = transporterCoalition, removeCommand = "Unload All Troops", carrierTypeName = param.carrierTypeName})
                         end
                         transporterTable.cargo.carrying = true
                         local decreaseType = param.type
@@ -2404,8 +2379,8 @@ function dfc.loadInternalCargo(param)
                         trigger.action.outTextForGroup(transporterGroup:getID(), "Loaded " .. DFS.supplyNames[param.type],5, false)
                     else
                         trigger.action.outTextForGroup(transporterGroup:getID(), "This depot does not have enough " .. DFS.supplyNames[param.type].. " to create a crate!", 5, false)
-                        if frontPickup  then
-                            trigger.action.outTextForGroup(transporterGroup:getID(), "Front depots only allow pickup for ammo and artillery.", 10, false)
+                        if frontPickup then
+                            trigger.action.outTextForGroup(transporterGroup:getID(), "Front depots only allow pickup for ammo, troops, and artillery.", 10, false)
                         end
                     end
                 else
@@ -2617,6 +2592,7 @@ function dfc.troopUnloadDirect(param)
     end
 end
 function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proximityOverride)
+    proximityOverride = true
     local droppingGroup = Group.getByName(droppingGroupName)
     if droppingGroup then
         local droppingUnit = droppingGroup:getUnit(1)
@@ -2706,9 +2682,25 @@ function dfc.troopUnload(droppingGroupName, troopType, ammo, paratroopers, proxi
                         }
                         local truckGroup = FirebaseGroups.spawnCustomGroup(droppingPoint, groups, droppingGroup:getCoalition(), heading)
                         timer.scheduleFunction(dfc.destroyGroup, truckGroup, timer:getTime() + 135)
-                    elseif troopType ==  DFS.supplyType.CE then
-                        local minePoint = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(droppingPos.x, 15))
-                        Mine.spawnPublic(minePoint, droppingPos)
+                    elseif troopType ==  DFS.supplyType.RECON then
+                        local spawnPoints = {}
+                        spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.1), 20))
+                        spawnPoints[2] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, 0.2), 20 + math.random(1,3)))
+                        local platoonTable = {
+                            [1] = "Soldier M4 GRG",
+                            [2] = "Soldier M4 GRG",
+                        }
+                        local newCpy = Company.newCustomPlt(droppingGroup:getCoalition(), true, platoonTable, false, false, false, nil, false, true, "RECON", droppingPoint)
+                        local reconGroup = nil
+                        if newCpy then
+                            newCpy:setWaypoints({spawnPoints[1], spawnPoints[2]}, -1, 12)
+                            newCpy:spawn()
+                            reconGroup = newCpy.groupName
+                            newCpy.droppingPlayerName = droppingPlayerName
+                            newCpy.droppingGroupID = droppingGroup:getID()
+                            timer.scheduleFunction(DFS.reconSetup, reconGroup, timer:getTime() + 1)
+                            DFS.deployedGroups[droppingGroup:getCoalition()][reconGroup] = {groupName = reconGroup, type = troopType, point = droppingPoint, cpyId = newCpy.id}
+                        end
                     elseif troopType == DFS.supplyType.SMALL_MORTAR then
                         local spawnPoints = {}
                         spawnPoints[1] = Utils.VectorAdd(droppingPoint, Utils.ScalarMult(Utils.RotateVector(droppingPos.x, -0.3), 10))
@@ -2746,6 +2738,28 @@ function dfc.embarkSet(groupName)
                         }
                     }
                     groupController:pushTask(EmbarkToTransport)
+               end
+            end
+        end
+    end
+end
+function DFS.reconSetup(groupName)
+    local group = Group.getByName(groupName)
+    if group then
+        local groupController = group:getController()
+        if groupController then
+            local leadUnit = group:getUnit(1)
+            if leadUnit then
+               local leadUnitPoint = leadUnit:getPoint()
+               if leadUnitPoint then
+                    local SetInvisible = {
+                        id = 'SetInvisible',
+                        params = {
+                            value = true
+                        }
+                    }
+                    groupController:setCommand(SetInvisible)
+                    groupController:setOption(AI.Option.Ground.id.ROE, AI.Option.Ground.val.ROE.WEAPON_HOLD)
                end
             end
         end
@@ -3356,8 +3370,13 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
                 if addType and addType == "C-130J-30" then
                     missionCommands.addCommandForGroup(addGroup:getID(), "Spawn Airborne Infantry Squad", troopsMenu, dfc.troopUnloadDirect, {droppingGroupName = groupName, troopType = DFS.supplyType.SF, c130 = true})
                 else
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Internal Troop Status", troopsMenu, dfc.internalCargoStatus, groupName)
+                    missionCommands.addCommandForGroup(addGroup:getID(), "Load Nearby Troops", troopsMenu, dfc.loadNearestTroops, {groupName = groupName})
                     missionCommands.addCommandForGroup(addGroup:getID(), "Carry Mortar Squad (Firebase)", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.MORTAR_SQUAD, groupName = groupName, modifier = "small"})
                     missionCommands.addCommandForGroup(addGroup:getID(), "Carry Special Forces Squad", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.SF, groupName = groupName, modifier = "small"})
+                    if addType then
+                        missionCommands.addCommandForGroup(addGroup:getID(), "Carry Recon Squad", troopsMenu, dfc.loadInternalCargo, {type = DFS.supplyType.RECON, groupName = groupName, modifier = "small", carrierTypeName = addType})
+                    end
                     -- Spawn Multiple Troops submenu: choose quantity then type
                     local multipleTroopMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation (Multiples)", cargoMenu)
                     local troopQuantities = {2, 3, 6}

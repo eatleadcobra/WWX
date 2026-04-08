@@ -29,7 +29,7 @@ local health = {
     width = 4000,
 }
 local xMark = {
-    size = 12
+    size = 15
 }
 local triangleMark = {
     size = 12

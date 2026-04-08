@@ -67,6 +67,7 @@ function cpyctl.saveCompanies()
             cpyType = v.cpyType,
             convoyParam = v.convoyParam,
             groupType = v.groupType,
+            insertPoint = v.insertPoint,
         }
         companiesData[v.id] = cpyData
     end
@@ -388,23 +389,52 @@ function cpyctl.cpyStatusLoop()
                     break
                 end
                 if not cpy.assigned then
-                    if cpy.cpyType and cpy.cpyType == "INF" then
-                        cpyctl.cleanStragglers(cpy)
-                    end
-                    if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
-                        local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(cpy.point)
-                        if Troopmarks and Troopmarks[cpy.droppingPlayerName] then
-                            if Utils.PointDistance(cpy.point, Troopmarks[cpy.droppingPlayerName].point) <= 6500 then
-                                cpy.assigned = true
-                                cpy:updateMission({cpy.point, Troopmarks[cpy.droppingPlayerName].point}, -1, 12)
-                                trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving to your mark point!", 10, false)
-                            else
-                                trigger.action.outTextForGroup(cpy.droppingGroupID, "Your mark point is too far away!", 10, false)
+                    if cpy.cpyType then
+                        if cpy.cpyType == "INF" then
+                            cpyctl.cleanStragglers(cpy)
+                            if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
+                                local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(cpy.point)
+                                if Troopmarks and Troopmarks[cpy.droppingPlayerName] then
+                                    if Utils.PointDistance(cpy.point, Troopmarks[cpy.droppingPlayerName].point) <= 6500 then
+                                        cpy.assigned = true
+                                        cpy:updateMission({cpy.point, Troopmarks[cpy.droppingPlayerName].point}, -1, 12)
+                                        trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving to your mark point!", 10, false)
+                                    else
+                                        trigger.action.outTextForGroup(cpy.droppingGroupID, "Your mark point is too far away!", 10, false)
+                                    end
+                                elseif closestBPdistance <= 3 then
+                                    cpy.assigned = true
+                                    cpy:updateMission({cpy.point, BattleControl.getBPPoint(closestBPID)}, -1, 12)
+                                    trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
+                                end
                             end
-                        elseif closestBPdistance <= 3 then
-                            cpy.assigned = true
-                            cpy:updateMission({cpy.point, BattleControl.getBPPoint(closestBPID)}, -1, 12)
-                            trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
+                        elseif cpy.cpyType == "RECON" then
+                            if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
+                                local closestBPID, closestBPdistance, bpdirection = CSB.closestEnemyBpTo(cpy.point, cpy.coaltionId)
+                                if Recontroopmarks and Recontroopmarks[cpy.droppingPlayerName] then
+                                    if Utils.PointDistance(cpy.point, Recontroopmarks[cpy.droppingPlayerName].point) <= 18000 then
+                                        cpy.assigned = true
+                                        cpy:updateMission({cpy.point, Recontroopmarks[cpy.droppingPlayerName].point}, -1, 99)
+                                        trigger.action.outTextForGroup(cpy.droppingGroupID, "Recon troops are moving to your mark point!", 10, false)
+                                    else
+                                        trigger.action.outTextForGroup(cpy.droppingGroupID, "Your mark point is too far away!", 10, false)
+                                    end
+                                elseif closestBPdistance <= 18 then
+                                    cpy.assigned = true
+                                    cpy:updateMission({cpy.point, BattleControl.getBPPoint(closestBPID)}, -1, 12)
+                                    trigger.action.outTextForGroup(cpy.droppingGroupID, "Recon troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
+                                end
+                            end
+                        end
+                    end
+                end
+                if (cpy.assigned or not cpy.droppingPlayerName) and cpy.cpyType and cpy.cpyType == "RECON" then
+                    if cpy.insertPoint and Utils.PointDistance(currentPoint, cpy.waypoints[#cpy.waypoints]) < 50 then
+                        if Utils.PointDistance(currentPoint, cpy.insertPoint) > 50 then
+                            cpy:updateMission({cpy.point, cpy.insertPoint}, -1, 99)
+                            if cpy.droppingGroupID then
+                                trigger.action.outTextForGroup(cpy.droppingGroupID, "Your recon patrol is returning to the insertion point!", 30, false)
+                            end
                         end
                     end
                 end

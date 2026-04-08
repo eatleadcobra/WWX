@@ -7,7 +7,6 @@ cm.status = {
     [4] = "Defeated"
 }
 
-
 cm.casFreqs = {
     [1] = 45,
     [2] = 155,
@@ -53,7 +52,7 @@ Company = {
     groupType = 2,
     spawnTime = 0,
 }
-function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit, closeDeploy, cpyType)
+function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit, closeDeploy, cpyType, insertPoint)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
     newCpy.coalitionId = coalitionId
@@ -85,6 +84,7 @@ function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, sh
         Companies[newCpy.id] = newCpy
         table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
     end
+    newCpy.insertPoint = insertPoint
     return newCpy
 end
 
@@ -156,6 +156,7 @@ function Company.newFromTable(cpyData)
     newCpy.groupType = cpyData.groupType
     newCpy.playerControllable = cpyData.playerControllable
     newCpy.spawnTime = 0
+    newCpy.insertPoint = cpyData.insertPoint
     return newCpy
 end
 function Company.setWaypoints(self, waypoints, bp, speed)
@@ -178,7 +179,7 @@ function Company.spawn(self, options)
     if self.isShip then
         points = self.waypoints
     end
-    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType ~= "INF" then
+    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType ~= "INF" and self.cpyType ~= "RECON" then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
         local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 1000))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
@@ -242,9 +243,15 @@ function Company.spawn(self, options)
         CpyControl.setShipCargo(self.groupName, loading)
         DFS.checkShip(self.convoyParam)
     else
-        if CAS and (self.cpyType == nil or self.cpyType ~= "INF") then
+        if CAS and (self.cpyType == nil) then
             CAS.followGroup(self.coalitionId, self.groupName, cm.newCallsign(self.coalitionId), math.random(1,3), cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
             self.casTracked = true
+        elseif CAS and self.cpyType and self.cpyType == "RECON" then
+            CAS.followReconGroup(self.coalitionId, self.groupName, cm.newReconCallsign(self.coalitionId), 3, cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
+            self.casTracked = true
+            if DFS then
+                timer.scheduleFunction(DFS.reconSetup, self.groupName, timer:getTime() + 1)
+            end
         end
     end
 end
@@ -530,6 +537,11 @@ function cm.newCallsign(coalitionId)
             CASCALLSIGNS.counts[coalitionId].alpha = 1
         end
     end
+    return callsign
+end
+function cm.newReconCallsign(coalitionId)
+    local callsign = "RECON-" .. CASCALLSIGNS.counts[coalitionId].number
+    CASCALLSIGNS.counts[coalitionId].number = CASCALLSIGNS.counts[coalitionId].number + 1
     return callsign
 end
 function cm.getAvgPoint(groupName)

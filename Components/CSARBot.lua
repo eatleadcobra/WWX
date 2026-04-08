@@ -2355,6 +2355,14 @@ function CSB.closestBpTo(pos)
     end
     return closestBPId, closestBPDist, direction
 end
+function CSB.closestEnemyBpTo(pos, coalitionId)
+    --this function gives the compass bearing in the opposite direction of the normal func because it's for deployed forces that are moving to the BPs
+    local closestBPId, closestBPDist, direction = csb.closestEnemyBpTo(pos, coalitionId)
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(BattleControl.getBPPoint(closestBPId), pos)
+    end
+    return closestBPId, closestBPDist, direction
+end
 function csb.closestEnemyBpTo(pos, coalitionId)
     local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
     bpCount = bpCount or 20
