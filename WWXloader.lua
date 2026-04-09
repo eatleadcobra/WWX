@@ -30,7 +30,7 @@ assert(loadfile(pathToWWX.."Components\\RocketTrackerFirebases.lua"))()
 assert(loadfile(pathToWWX.."Components\\BullsBot.lua"))()
 assert(loadfile(pathToWWX.."Components\\FastRope.lua"))()
 assert(loadfile(pathToWWX.."Components\\TroopDirector.lua"))()
-
+assert(loadfile(pathToWWX.."Components\\TimeManager.lua"))()
 if CAS then
    assert(loadfile(pathToWWX.."Components\\CasBot.lua"))()
    assert(loadfile(pathToWWX.."Components\\CAS2.lua"))()

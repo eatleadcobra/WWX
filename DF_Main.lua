@@ -3525,4 +3525,7 @@ dfc.saveLoop()
 if CARGO then
     dfc.drawSupplyMarks()
 end
+if TimeManager then
+    TimeManager.startUp()
+end
 dfc.isItSunset()
