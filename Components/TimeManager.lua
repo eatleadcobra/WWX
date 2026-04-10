@@ -46,7 +46,7 @@ function timeManager.loop()
             ttgMinString = "0"..ttgMinString
         end
     local ttgString = " Mission ends in " .. ttgHoursString .. ":" .. ttgMinString .. ":00 \n At " .. MissionEndTimeString .. " local time. "
-    if lastMessageTime == 0 or (timer:getTime() - lastMessageTime > (600 - timeMgmtInterval)) then
+    if (lastMessageTime == 0 or (timer:getTime() - lastMessageTime > (600 - timeMgmtInterval))) and timeToGo < 5400 then
         trigger.action.outText(ttgString, 30, false)
         lastMessageTime = timer:getTime()
     end

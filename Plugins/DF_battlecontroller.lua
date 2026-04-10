@@ -2,29 +2,29 @@
 BattleControl = {}
 PltCosts = {
     [1] = {
-        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]/8), --fuel
-        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]/10), --ammo
-        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/8), --equipment
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]/6), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]/8), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/6), --equipment
     },
     [2] = {
-        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --fuel
-        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --ammo
-        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --equipment
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/14), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/14), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/14), --equipment
     },
     [3] = {
-        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --fuel
-        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --ammo
-        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --equipment
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/20), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/20), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/20), --equipment
     },
     [7] = {
-        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --fuel
-        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --ammo
-        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --equipment
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/20), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/14), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/20), --equipment
     },
     [9] = {
-        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --fuel
-        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/16), --ammo
-        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/24), --equipment
+        [1] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/20), --fuel
+        [2] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/14), --ammo
+        [3] = math.floor(DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]/20), --equipment
     },
 }
 local attackPlan = {
@@ -328,8 +328,13 @@ function bc.prepareAttack(filedAttackPlan)
     env.info("preparing attack for team: " .. filedAttackPlan.attackingCoalition, false)
     -- determine amount of supplies needed for attack
     -- set attack time roughly based on how much supply is currently needed at the front depots
-    -- minimum attack start time is 20 minutes - 1200s
+    -- minimum attack start time is 10 minutes - 600s
     -- maximum attack start time is 50 minutes - 3000s
+    local totalFrontSupTable = {
+        [1] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[1],
+        [2] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[2],
+        [3] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[3],
+    }
     local requiredSupply = {
         [1] = 0,
         [2] = 0,
@@ -344,21 +349,52 @@ function bc.prepareAttack(filedAttackPlan)
                 targetBPString = targetBPString .. ","
             end
             targetBPString = targetBPString .. targetBP.id
-            if targetBP.state == "E" then
-                env.info("calc enemy cost", false)
-                local bpSupply = bc.companyToCost(CompanyCompTiers[1].composition)
-                bc.costAdd(requiredSupply, bpSupply)
-            elseif targetBP.state == "N" then
-                env.info("calc neutral cost", false)
-                local bpSupply = bc.companyToCost(CompanyCompTiers[5].composition)
-                bc.costAdd(requiredSupply, bpSupply)
+           if targetBP.state == "N" then
+                targetBP.attackWithTier = 5
+                targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
+                targetBP.canLower = true
+            elseif targetBP.state == "E" then
+                targetBP.attackWithTier = 1
+                targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
+                targetBP.canLower = true
             elseif targetBP.state == "F" then
-                env.info("calc reinforce cost", false)
-                local bpSupply = bc.companyToCost({1})
-                bc.costAdd(requiredSupply, bpSupply)
+                targetBP.attackWith = {1}
+                targetBP.canLower = true
             else
                 env.info("something is fucked up", false)
                 trigger.action.outText("Something is fucked up", 10, false)
+                break
+            end
+        end
+    end
+    requiredSupply = bc.attackSupCost(filedAttackPlan.targetBPs)
+    local canAffordAttack = bc.sufficientForPlan(requiredSupply)
+    local loopTries = 0
+    while canAffordAttack == false do
+        env.info("Cannot afford plan, lowering tiers", false)
+        loopTries = loopTries + 1
+        if loopTries > 100 then
+            trigger.action.outText("INFINITE LOOP REEEEEEEEE", 10, false)
+            return
+        end
+        for i = 1, #filedAttackPlan.targetBPs do
+            local canlowercount = 0
+            local targetBP = filedAttackPlan.targetBPs[i]
+            if targetBP and targetBP.canLower then
+                canlowercount = canlowercount + 1
+                if targetBP.attackWithTier then
+                    targetBP.attackWithTier = targetBP.attackWithTier + 1
+                    targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
+                    if targetBP.attackWithTier == 5 then
+                        targetBP.canLower = false
+                    end
+                end
+                requiredSupply = bc.attackSupCost(filedAttackPlan.targetBPs)
+                canAffordAttack = bc.sufficientForPlan(requiredSupply)
+                if canAffordAttack then break end
+            elseif canlowercount == 0 then
+                env.info("Plan lowered as much as we can, get supplies!",false)
+                canAffordAttack = true
                 break
             end
         end
@@ -408,6 +444,11 @@ function bc.executeAttack(filedAttackPlan)
     env.info("executing attack for team " .. filedAttackPlan.attackingCoalition, false)
     if filedAttackPlan.status == "PREP" then
         if #DFS.status[filedAttackPlan.attackingCoalition].spawns.fd > 0 then
+            local totalFrontSupTable = {
+                [1] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[1],
+                [2] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[2],
+                [3] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[3],
+            }
             local supplyRequiredForCurrentCompanies = {
                 [1] = 0,
                 [2] = 0,
@@ -420,20 +461,18 @@ function bc.executeAttack(filedAttackPlan)
                         targetBP.attackWithTier = 5
                         targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
                         targetBP.canLower = true
-                        bc.costAdd(supplyRequiredForCurrentCompanies, bc.companyToCost(targetBP.attackWith))
                     elseif targetBP.state == "E" then
                         targetBP.attackWithTier = 1
                         targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
                         targetBP.canLower = true
-                        bc.costAdd(supplyRequiredForCurrentCompanies, bc.companyToCost(targetBP.attackWith))
                     elseif targetBP.state == "F" then
                         targetBP.attackWith = {1}
                         targetBP.canLower = true
-                        bc.costAdd(supplyRequiredForCurrentCompanies, bc.companyToCost(targetBP.attackWith))
                     end
                 end
             end
-            local canAffordAttack = bc.sufficient(DFS.status[filedAttackPlan.attackingCoalition].supply.front, supplyRequiredForCurrentCompanies)
+            supplyRequiredForCurrentCompanies = bc.attackSupCost(filedAttackPlan.targetBPs)
+            local canAffordAttack = bc.sufficient(totalFrontSupTable, supplyRequiredForCurrentCompanies)
             local loopTries = 0
             while canAffordAttack == false do
                 env.info("Cannot afford attack, lowering tiers", false)
@@ -442,11 +481,6 @@ function bc.executeAttack(filedAttackPlan)
                     trigger.action.outText("INFINITE LOOP REEEEEEEEE", 10, false)
                     return
                 end
-                supplyRequiredForCurrentCompanies = {
-                    [1] = 0,
-                    [2] = 0,
-                    [3] = 0,
-                }
                 for i = 1, #filedAttackPlan.targetBPs do
                     local canlowercount = 0
                     local targetBP = filedAttackPlan.targetBPs[i]
@@ -464,14 +498,15 @@ function bc.executeAttack(filedAttackPlan)
                                 targetBP.canLower = false
                             end
                         end
-                        bc.costAdd(supplyRequiredForCurrentCompanies, bc.companyToCost(targetBP.attackWith))
+                        supplyRequiredForCurrentCompanies = bc.attackSupCost(filedAttackPlan.targetBPs)
+                        canAffordAttack = bc.sufficient(totalFrontSupTable, supplyRequiredForCurrentCompanies)
+                        if canAffordAttack then break end
                     elseif canlowercount == 0 then
                         trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because of insufficient materiel!\nProtect our convoys and deliver supplies to our front depots!", 10, false)
                         bc.rescheduleAttack(filedAttackPlan)
                         return
                     end
                 end
-                canAffordAttack = bc.sufficient(DFS.status[filedAttackPlan.attackingCoalition].supply.front, supplyRequiredForCurrentCompanies)
             end
             DFS.decreaseFrontSupply(({coalitionId = filedAttackPlan.attackingCoalition, type = DFS.supplyType.FUEL, amount = supplyRequiredForCurrentCompanies[DFS.supplyType.FUEL]}))
             DFS.decreaseFrontSupply(({coalitionId = filedAttackPlan.attackingCoalition, type = DFS.supplyType.AMMO, amount = supplyRequiredForCurrentCompanies[DFS.supplyType.AMMO]}))
@@ -506,6 +541,17 @@ function bc.executeAttack(filedAttackPlan)
             bc.rescheduleAttack(filedAttackPlan)
         end
     end
+end
+function bc.attackSupCost(targetBPs)
+    local attackCost = {
+        [1] = 0,
+        [2] = 0,
+        [3] = 0,
+    }
+    for i = 1, #targetBPs do
+        bc.costAdd(attackCost, bc.companyToCost(targetBPs[i].attackWith))
+    end
+    return attackCost
 end
 function bc.rescheduleAttack(filedAttackPlan)
     local startTime = timer:getTime() + 1200
@@ -626,6 +672,15 @@ function bc.sufficient(supplyTable, costTable)
     end
     return sufficient
 end
+function bc.sufficientForPlan(costTable)
+    local sufficient = true
+    for i = 1, 3 do
+        if costTable[i] > DFS.status.maxSuppliesFront[i] then
+            sufficient = false
+        end
+    end
+    return sufficient
+end
 function bc.drawRequiredSupplies(filedAttackPlan)
     local coalitionId = filedAttackPlan.attackingCoalition
     local requiredSupply = filedAttackPlan.requiredSupply
@@ -648,7 +703,7 @@ function bc.drawAttackMsg(filedAttackPlan)
     if drawingOriginFrontZone then
         local drawingOriginFront = drawingOriginFrontZone.point
         local markId = DrawingTools.newMarkId()
-        trigger.action.textToAll(filedAttackPlan.attackingCoalition, markId, {x = drawingOriginFront.x + 300, y = drawingOriginFront.y, z = drawingOriginFront.z}, {0,0,0,1}, {1,0.9,0.8,0.9}, 14, true, "  Attacking marked Battle Positions at " .. filedAttackPlan.startTimeString.."\n  Ensure all front supply meters are above the orange lines for an effective attack!  ")
+        trigger.action.textToAll(filedAttackPlan.attackingCoalition, markId, {x = drawingOriginFront.x + 300, y = drawingOriginFront.y, z = drawingOriginFront.z}, {0,0,0,1}, {1,0.9,0.8,0.9}, 14, true, "  Attacking marked Battle Positions at " .. filedAttackPlan.startTimeString.."\n  Ensure all front supply meters are above the orange lines for an effective attack!\n  Filling supply meters above orange lines can result in an upgraded attack, keep hauling! ")
         filedAttackPlan.markups.orders = markId
     end
 end
@@ -867,7 +922,7 @@ function bc.needsReinforcement(coalitionId, bpId)
             end
         end
     end
-    if tankCount < 2 and (ifvCount + apcCount) < 3 then
+    if tankCount < 1 and (ifvCount + apcCount) < 2 then
         return true
     else
         return false
