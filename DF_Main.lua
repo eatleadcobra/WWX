@@ -662,14 +662,11 @@ function DFS.decreaseFrontSupply(param)
 end
 local debug = false
 MissionOver = false
-local blueState = lfs.writedir() .. [[Logs/]] .. 'blueState.txt'
-local redState = lfs.writedir() .. [[Logs/]] ..'redState.txt'
-local redFront = lfs.writedir() .. [[Logs/]] .. 'redFront.txt'
-local blueFront = lfs.writedir() .. [[Logs/]] .. 'blueFront.txt'
+local redSupply = lfs.writedir() .. [[Logs/]] .. 'redSupply.lua'
+local blueSupply = lfs.writedir() .. [[Logs/]] .. 'blueSupply.lua'
 local redFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'redFbs.txt'
 local blueFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'blueFbs.txt'
 local deployedGroupsFile = lfs.writedir() .. [[Logs/]] .. 'deployedGroups.txt'
-local mapState = lfs.writedir() .. [[Logs/]] ..'mapState.txt'
 --Global event listener
 local dfcEvents = {}
 function dfcEvents:onEvent(event)
@@ -737,8 +734,8 @@ end
 function dfc.getMission()
     local missionName = env.mission["date"]["Year"]
     if missionName ~= nil then
-        blueState = lfs.writedir() .. [[Logs/]] .. 'blueState'..missionName..'.txt'
-        redState = lfs.writedir() .. [[Logs/]] ..'redState'..missionName..'.txt'
+        redSupply = lfs.writedir() .. [[Logs/]] .. 'redSupply' .. missionName..'.lua'
+        blueSupply = lfs.writedir() .. [[Logs/]] .. 'blueSupply' .. missionName..'.lua'
         redFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'redFbs'..missionName..'.lua'
         blueFbs = lfs.writedir() .. [[Logs/Firebases/]] .. 'blueFbs'..missionName..'.lua'
         deployedGroupsFile = lfs.writedir() .. [[Logs/]] .. 'deployedGroups'..missionName..'.txt'
@@ -753,43 +750,9 @@ function dfc.getData()
     if dfc.fileExists(blueFbs) == false or dfc.fileExists(redFbs) == false then
         lfs.mkdir(lfs.writedir() .. [[Logs/Firebases/]])
     end
-    if dfc.fileExists(redState) and dfc.fileExists(blueState) then
-        local f = io.open(redState, 'r')
-        if f ~= nil then
-            local lines = {}
-            for line in io.lines(f) do
-                lines[#lines+1] = line
-            end
-            DFS.status[1].health = tonumber(lines[1])
-            DFS.status[1].supply.front[DFS.supplyType.FUEL] = tonumber(lines[2])
-            DFS.status[1].supply.front[DFS.supplyType.AMMO] = tonumber(lines[3])
-            DFS.status[1].supply.front[DFS.supplyType.EQUIPMENT] = tonumber(lines[4])
-            DFS.status[1].supply.rear[DFS.supplyType.FUEL] = tonumber(lines[5])
-            DFS.status[1].supply.rear[DFS.supplyType.AMMO] = tonumber(lines[6])
-            DFS.status[1].supply.rear[DFS.supplyType.EQUIPMENT] = tonumber(lines[7])
-            DFS.status[1].supply.pirate[DFS.supplyType.FUEL] = tonumber(lines[8])
-            DFS.status[1].supply.pirate[DFS.supplyType.AMMO] = tonumber(lines[9])
-            DFS.status[1].supply.pirate[DFS.supplyType.EQUIPMENT] = tonumber(lines[10])
-            f:close()
-        end
-        f = io.open(blueState, 'r')
-        if f ~= nil then
-            local lines = {}
-            for line in io.lines(f) do
-                lines[#lines+1] = line
-            end
-            DFS.status[2].health = tonumber(lines[1])
-            DFS.status[2].supply.front[DFS.supplyType.FUEL] = tonumber(lines[2])
-            DFS.status[2].supply.front[DFS.supplyType.AMMO] = tonumber(lines[3])
-            DFS.status[2].supply.front[DFS.supplyType.EQUIPMENT] = tonumber(lines[4])
-            DFS.status[2].supply.rear[DFS.supplyType.FUEL] = tonumber(lines[5])
-            DFS.status[2].supply.rear[DFS.supplyType.AMMO] = tonumber(lines[6])
-            DFS.status[2].supply.rear[DFS.supplyType.EQUIPMENT] = tonumber(lines[7])
-            DFS.status[2].supply.pirate[DFS.supplyType.FUEL] = tonumber(lines[8])
-            DFS.status[2].supply.pirate[DFS.supplyType.AMMO] = tonumber(lines[9])
-            DFS.status[2].supply.pirate[DFS.supplyType.EQUIPMENT] = tonumber(lines[10])
-            f:close()
-        end
+    if dfc.fileExists(redSupply) and dfc.fileExists(blueSupply) then
+        DFS.status[1].supply = dofile(redSupply)
+        DFS.status[2].supply = dofile(blueSupply)
         if dfc.fileExists(deployedGroupsFile) then
             DFS.deployedGroups = dofile(deployedGroupsFile)
         end
@@ -832,32 +795,13 @@ function dfc.saveData()
     trigger.action.setUserFlag("FRONT_EQUIPMENT_MAX", DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT])
     trigger.action.setUserFlag("REAR_EQUIPMENT_MAX", DFS.status.maxSuppliesRear[DFS.supplyType.EQUIPMENT])
 
-    local f = io.open(redState, 'w')
-    f:write(DFS.status[1].health..'\n'..
-            DFS.status[1].supply.front[DFS.supplyType.FUEL]..'\n'..
-            DFS.status[1].supply.front[DFS.supplyType.AMMO]..'\n'..
-            DFS.status[1].supply.front[DFS.supplyType.EQUIPMENT]..'\n'..
-            DFS.status[1].supply.rear[DFS.supplyType.FUEL]..'\n'..
-            DFS.status[1].supply.rear[DFS.supplyType.AMMO]..'\n'..
-            DFS.status[1].supply.rear[DFS.supplyType.EQUIPMENT]..'\n'..
-            DFS.status[1].supply.pirate[DFS.supplyType.FUEL]..'\n'..
-            DFS.status[1].supply.pirate[DFS.supplyType.AMMO]..'\n'..
-            DFS.status[1].supply.pirate[DFS.supplyType.EQUIPMENT]..'\n'
-    )
+    local f = io.open(redSupply, 'w')
+    f:write("return " .. Utils.saveToString(DFS.status[1].supply))
     f:close()
-    f = io.open(blueState, 'w')
-    f:write(DFS.status[2].health..'\n'..
-            DFS.status[2].supply.front[DFS.supplyType.FUEL]..'\n'..
-            DFS.status[2].supply.front[DFS.supplyType.AMMO]..'\n'..
-            DFS.status[2].supply.front[DFS.supplyType.EQUIPMENT]..'\n'..
-            DFS.status[2].supply.rear[DFS.supplyType.FUEL]..'\n'..
-            DFS.status[2].supply.rear[DFS.supplyType.AMMO]..'\n'..
-            DFS.status[2].supply.rear[DFS.supplyType.EQUIPMENT]..'\n'..
-            DFS.status[2].supply.pirate[DFS.supplyType.FUEL]..'\n'..
-            DFS.status[2].supply.pirate[DFS.supplyType.AMMO]..'\n'..
-            DFS.status[2].supply.pirate[DFS.supplyType.EQUIPMENT]..'\n'
-    )
+    f = io.open(blueSupply, 'w')
+    f:write("return " .. Utils.saveToString(DFS.status[2].supply))
     f:close()
+
     for c = 1,2 do
         local fbFile = redFbs
         if c == 2 then fbFile = blueFbs end
@@ -1269,8 +1213,12 @@ function dfc.increaseFrontSupply(param)
     if DFS.status[param.coalitionId].supply.front[param.type] > (DFS.status.maxSuppliesFront[param.type] * 0.15) then
         WWEvents.latches[param.coalitionId].front[param.type] = false
     end
-    if surplus > 0 then
+    if surplus > 0 and param.playerDeliver then
         DFS.status[param.coalitionId].supply.frontsurplus[param.type] = DFS.status[param.coalitionId].supply.frontsurplus[param.type] + surplus
+        if DFS.status[param.coalitionId].supply.frontsurplus[param.type] >= (DFS.status.maxSuppliesFront[param.type]/4) then
+            DFS.status[param.coalitionId].supply.frontsurplus[param.type] = (DFS.status.maxSuppliesFront[param.type]/4)
+        end
+        trigger.action.outText("Front depot " .. DFS.supplyNames[param.type] .. " surplus: " .. DFS.status[param.coalitionId].supply.frontsurplus[param.type], 10, false)
     end
     dfc.updateSupplyDrawings("FRONT", param.coalitionId)
     --trigger.action.outTextForCoalition(param.coalitionId, 'Front ' ..supplyString..': ' .. DFS.status[param.coalitionId].supply.front[param.type], 5)
@@ -1311,6 +1259,9 @@ function dfc.increaseRearSupply(param)
     end
     if surplus > 0 then
         DFS.status[param.coalitionId].supply.rearsurplus[param.type] = DFS.status[param.coalitionId].supply.rearsurplus[param.type] + surplus
+        if DFS.status[param.coalitionId].supply.rearsurplus[param.type] > (math.floor(DFS.status.maxSuppliesRear[param.type]/4)) then
+            DFS.status[param.coalitionId].supply.rearsurplus[param.type] = math.floor(DFS.status.maxSuppliesRear[param.type]/4)
+        end
     end
     dfc.updateSupplyDrawings("REAR", param.coalitionId)
 end
@@ -1362,6 +1313,10 @@ function dfc.createSupplyDrawings()
                 local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
                 trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
+                local surplusBoxId = DrawingTools.newMarkId()
+                local surplusBoxOrigin = {x = boxOrigin.x + DFS.supplyDrawing.counterHeight, y = boxOrigin.y, z = drawingOriginFront.z - (DFS.supplyDrawing.counterOffeset*i)}
+                local surplusBoxTop = {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight) + (DFS.supplyDrawing.counterHeight/4), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                trigger.action.rectToAll(-1, surplusBoxId, surplusBoxTop, surplusBoxOrigin, {0,0,0,1}, {1,1,1,0.3}, 1, true, nil)
                 for j = 1, 3 do
                     local xOffset = (j*(DFS.supplyDrawing.counterHeight/4))/DFS.supplyDrawing.counterHeight * DFS.supplyDrawing.counterHeight
                     local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
@@ -1390,6 +1345,10 @@ function dfc.createSupplyDrawings()
                 local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.rearCounterHeight, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                 local supplyBoxId = DrawingTools.newMarkId()
                 trigger.action.rectToAll(-1, supplyBoxId, boxTop, boxOrigin, {0,0,0,1}, {0,0,0,0.3}, 1, true, nil)
+                local surplusBoxId = DrawingTools.newMarkId()
+                local surplusBoxOrigin = {x = boxOrigin.x + DFS.supplyDrawing.rearCounterHeight, y = boxOrigin.y, z = drawingOriginRear.z - (DFS.supplyDrawing.counterOffeset*i)}
+                local surplusBoxTop = {x = boxOrigin.x + (DFS.supplyDrawing.rearCounterHeight) + (DFS.supplyDrawing.rearCounterHeight/4), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
+                trigger.action.rectToAll(-1, surplusBoxId, surplusBoxTop, surplusBoxOrigin, {0,0,0,1}, {1,1,1,0.3}, 1, true, nil)
                 for j = 1, 5 do
                     local xOffset = (j*(DFS.supplyDrawing.rearCounterHeight/6))/DFS.supplyDrawing.rearCounterHeight * DFS.supplyDrawing.rearCounterHeight
                     local lineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxTop.z}
@@ -1453,11 +1412,11 @@ function dfc.updateSupplyDrawings(depot, coalitionId)
             for i = 1, 3 do
                 local boxOrigin = {x = drawingOriginRear.x, y = drawingOriginRear.y, z = drawingOriginRear.z - (DFS.supplyDrawing.counterOffeset*i)}
                 if DFS.supplyDrawing.fillIds.rear[coalitionId][i] and DFS.supplyDrawing.fillIds.rear[coalitionId][i] > 0 then
-                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.rearCounterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z})
-                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.rearCounterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
+                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.rearCounterHeight * ((DFS.status[coalitionId].supply.rear[i]+DFS.status[coalitionId].supply.rearsurplus[i])/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z})
+                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.rear[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.rearCounterHeight * ((DFS.status[coalitionId].supply.rear[i]+DFS.status[coalitionId].supply.rearsurplus[i])/DFS.status.maxSuppliesRear[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
                 else
                     --local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterWidth/4, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
-                    local xOffset = (DFS.supplyDrawing.rearCounterHeight * (DFS.status[coalitionId].supply.rear[i]/DFS.status.maxSuppliesRear[i]))
+                    local xOffset = (DFS.supplyDrawing.rearCounterHeight * ((DFS.status[coalitionId].supply.rear[i]+DFS.status[coalitionId].supply.rearsurplus[i])/DFS.status.maxSuppliesRear[i]))
                     local supplyCounterLineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z}
                     local supplyCounterLineEnd = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                     local fillId = DrawingTools.newMarkId()
@@ -1498,11 +1457,11 @@ function dfc.updateSupplyDrawings(depot, coalitionId)
             for i = 1, 3 do
                 local boxOrigin = {x = drawingOriginFront.x, y = drawingOriginFront.y, z = drawingOriginFront.z - (DFS.supplyDrawing.counterOffeset*i)}
                 if DFS.supplyDrawing.fillIds.front[coalitionId][i] and DFS.supplyDrawing.fillIds.front[coalitionId][i] > 0 then
-                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.front[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z})
-                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.front[i]/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
+                    trigger.action.setMarkupPositionStart(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * ((DFS.status[coalitionId].supply.front[i]+DFS.status[coalitionId].supply.frontsurplus[i])/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z})
+                    trigger.action.setMarkupPositionEnd(DFS.supplyDrawing.fillIds.front[coalitionId][i], {x = boxOrigin.x + (DFS.supplyDrawing.counterHeight * ((DFS.status[coalitionId].supply.front[i]+DFS.status[coalitionId].supply.frontsurplus[i])/DFS.status.maxSuppliesFront[i])), y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth})
                 else
                     --local boxTop = {x = boxOrigin.x + DFS.supplyDrawing.counterWidth/4, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
-                    local xOffset = (DFS.supplyDrawing.counterHeight * (DFS.status[coalitionId].supply.front[i]/DFS.status.maxSuppliesFront[i]))
+                    local xOffset = (DFS.supplyDrawing.counterHeight * ((DFS.status[coalitionId].supply.front[i]+DFS.status[coalitionId].supply.frontsurplus[i])/DFS.status.maxSuppliesFront[i]))
                     local supplyCounterLineStart = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z}
                     local supplyCounterLineEnd = {x = boxOrigin.x + xOffset, y = boxOrigin.y, z = boxOrigin.z - DFS.supplyDrawing.counterWidth}
                     local fillId = DrawingTools.newMarkId()
@@ -3066,11 +3025,11 @@ function dfc.deliverToDepot(isRear, coalition, supplyType, modifier, piratePicku
             resupType = DFS.supplyType.EQUIPMENT
         end
         if isRear then
-            dfc.increaseRearSupply({coalitionId = coalition, amount = math.floor(DFS.status.playerResupplyAmts[supplyType][modifier]), type = resupType})
+            dfc.increaseRearSupply({coalitionId = coalition, amount = math.floor(DFS.status.playerResupplyAmts[supplyType][modifier]), type = resupType, playerDeliver = true})
         elseif piratePickup then
             dfc.increasePirateSupply({coalitionId = coalition, amount = math.floor(DFS.status.playerResupplyAmts[supplyType][modifier]), type = resupType})
         else
-            dfc.increaseFrontSupply({coalitionId = coalition, amount = math.floor(DFS.status.playerResupplyAmts[supplyType][modifier]), type = resupType})
+            dfc.increaseFrontSupply({coalitionId = coalition, amount = math.floor(DFS.status.playerResupplyAmts[supplyType][modifier]), type = resupType, playerDeliver = true})
         end
     else
         env.info("Error delivering to depot. coalition nil: "..tostring(coalition==nil).." supplyType nil: "..tostring(supplyType==nil)" modifier nil: "..tostring(modifier==nil), false)
