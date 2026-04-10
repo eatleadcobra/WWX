@@ -794,6 +794,8 @@ function dfc.saveData()
     trigger.action.setUserFlag("REAR_FUEL_MAX", DFS.status.maxSuppliesRear[DFS.supplyType.FUEL])
     trigger.action.setUserFlag("FRONT_EQUIPMENT_MAX", DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT])
     trigger.action.setUserFlag("REAR_EQUIPMENT_MAX", DFS.status.maxSuppliesRear[DFS.supplyType.EQUIPMENT])
+    trigger.action.setUserFlag("MISSION_RUNTIME", 0)
+    if RUNTIME then trigger.action.setUserFlag("MISSION_RUNTIME", RUNTIME) end
 
     local f = io.open(redSupply, 'w')
     f:write("return " .. Utils.saveToString(DFS.status[1].supply))
