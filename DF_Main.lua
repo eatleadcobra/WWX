@@ -1218,7 +1218,6 @@ function dfc.increaseFrontSupply(param)
         if DFS.status[param.coalitionId].supply.frontsurplus[param.type] >= (DFS.status.maxSuppliesFront[param.type]/4) then
             DFS.status[param.coalitionId].supply.frontsurplus[param.type] = (DFS.status.maxSuppliesFront[param.type]/4)
         end
-        trigger.action.outText("Front depot " .. DFS.supplyNames[param.type] .. " surplus: " .. DFS.status[param.coalitionId].supply.frontsurplus[param.type], 10, false)
     end
     dfc.updateSupplyDrawings("FRONT", param.coalitionId)
     --trigger.action.outTextForCoalition(param.coalitionId, 'Front ' ..supplyString..': ' .. DFS.status[param.coalitionId].supply.front[param.type], 5)
