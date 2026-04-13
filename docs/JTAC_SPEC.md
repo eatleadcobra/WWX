@@ -548,6 +548,7 @@ Functions exposed on the global `JTAC` table (accessible by other modules):
 | `JTAC.deRegisterJtac(name)` | unit name | Deregister and destroy a JTAC |
 | `JTAC.spawnJtacAtPoint(point, coalitionId)` | Vec3 or nil, coalition (default 2) | Spawn a JTAC from template at point |
 | `JTAC.targetTypeList(targets)` | table of unit names | Categorise targets by type |
+| `JTAC.broadcastActiveJtacs()` | *(none)* | Broadcast active JTACs (callsign, frequency, nearest BP) on coalition CAS frequency |
 
 All other functions are local to the module (`jtac.*` on the local table).
 
@@ -574,6 +575,7 @@ All JTAC transmissions, listed by context:
 | Laser code change | `"[playerName], copy, laser code [code]."` | 10s |
 | JTAC death | `"[callsign] is out of action!"` | 15s |
 | Leave queue ack | `"[playerName], copy. Removed from stack."` | 10s |
+| Active JTAC broadcast | `"Active JTACs:\n  [callsign]  [frequency] AM  near [BP]\n  ..."` | 30s |
 
 ---
 
@@ -670,3 +672,43 @@ jtac.freqUpper = 399.975
 jtac.freqStep = 0.025
 jtac.guardFreq = 243.0
 ```
+
+---
+
+## 17. CAS Frequency Broadcast
+
+### 17.1 Purpose
+
+Provides situational awareness to all pilots on the CAS frequency by broadcasting a summary of active JTACs, including each JTAC's callsign, radio frequency, and nearest Battle Position.
+
+### 17.2 Behaviour
+
+`JTAC.broadcastActiveJtacs()` iterates all registered JTACs and groups them by coalition. For each coalition that has active JTACs and a configured CAS frequency (`BLUECASFREQ` / `REDCASFREQ`), a single `trigger.action.outTextForCoalition` message is displayed listing all active JTACs.
+
+**Message format:**
+```
+Active JTACs:
+  [callsign]  [frequency] AM  near [BP]
+  [callsign]  [frequency] AM  near [BP]
+  ...
+```
+
+The nearest BP is resolved via `BattleControl.getClosestBp(jtacPoint)`. If no BP is available, `"N/A"` is shown.
+
+### 17.3 Transmission Method
+
+Unlike JTAC-to-player radio messages (which use `TransmitMessage` on the JTAC's own frequency), this broadcast uses `trigger.action.outTextForCoalition` so it reaches all coalition members regardless of their tuned frequency. This is appropriate because it is a coordination/awareness message on the CAS common frequency, not a tactical radio transmission.
+
+### 17.4 Invocation
+
+The function is on the public `JTAC` API and can be called:
+- On a periodic timer (e.g., every 5 minutes) for continuous awareness.
+- On demand from other modules (e.g., when a new JTAC registers or a player requests a status update).
+- From mission scripts or override files.
+
+### 17.5 Nil Safety
+
+- Guards against nil `Unit.getByName` returns (JTAC may have been destroyed between registration and broadcast).
+- Guards against nil `jtacData.coalition`.
+- Guards against `BattleControl` module not being loaded.
+- Only broadcasts for coalitions where the CAS frequency global exists.

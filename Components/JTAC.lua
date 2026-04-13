@@ -1138,6 +1138,37 @@ function jtac.updateMenusForState(jtacName, groupName)
     end
 end
 
+-- ─── CAS Frequency Broadcast ────────────────────────────────────────────────
+
+function JTAC.broadcastActiveJtacs()
+    -- Collect active JTACs per coalition
+    local coalitionJtacs = { [1] = {}, [2] = {} }
+    for jtacName, jtacData in pairs(jtac.jtacs) do
+        local jtacUnit = Unit.getByName(jtacName)
+        if jtacUnit and jtacData.coalition then
+            local jtacPoint = jtacUnit:getPoint()
+            local bpStr = "N/A"
+            if jtacPoint and BattleControl and BattleControl.getClosestBp then
+                local bpId, dist = BattleControl.getClosestBp(jtacPoint)
+                if bpId and bpId > 0 then
+                    bpStr = "BP-" .. bpId
+                end
+            end
+            local entry = string.format("  %s  %s AM  near %s", jtacData.callsign, jtacData.frequency, bpStr)
+            local cid = jtacData.coalition
+            coalitionJtacs[cid][#coalitionJtacs[cid] + 1] = entry
+        end
+    end
+    -- Broadcast per coalition on CAS frequency
+    local casFreqs = { [1] = REDCASFREQ, [2] = BLUECASFREQ }
+    for cid = 1, 2 do
+        if #coalitionJtacs[cid] > 0 and casFreqs[cid] then
+            local msg = "Active JTACs:\n" .. table.concat(coalitionJtacs[cid], "\n")
+            trigger.action.outTextForCoalition(cid, msg, 30, false)
+        end
+    end
+end
+
 -- ─── Player Cleanup ─────────────────────────────────────────────────────────
 
 function jtac.cleanupPlayer(groupName)

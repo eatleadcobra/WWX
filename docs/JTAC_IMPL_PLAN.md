@@ -491,8 +491,23 @@ Verify only these functions are on the global `JTAC` table (§12):
 - `JTAC.deRegisterJtac(name)`
 - `JTAC.spawnJtacAtPoint(point, coalitionId)`
 - `JTAC.targetTypeList(targets)`
+- `JTAC.broadcastActiveJtacs()`
 
 All flow handlers, transmit functions, menu builders, queue functions remain on `jtac` (local).
+
+### 10.1a CAS Frequency Broadcast (§17)
+
+```lua
+function JTAC.broadcastActiveJtacs()
+```
+
+- Iterate all entries in `jtac.jtacs`.
+- For each JTAC: nil-check `Unit.getByName`, nil-check `jtacData.coalition`.
+- Get JTAC position, resolve nearest BP via `BattleControl.getClosestBp(jtacPoint)` (guard `BattleControl` module existence). Fall back to `"N/A"`.
+- Collect formatted entries per coalition: `"  [callsign]  [frequency] AM  near [BP]"`.
+- For each coalition with active JTACs and a CAS frequency global (`REDCASFREQ` / `BLUECASFREQ`): broadcast via `trigger.action.outTextForCoalition(cid, msg, 30, false)`.
+- Duration: 30 seconds.
+- No DCS radio transmission (`TransmitMessage`) — uses `outTextForCoalition` for coalition-wide visibility regardless of tuned frequency.
 
 ### 10.2 Nil-guard audit
 
@@ -518,6 +533,7 @@ Walk every function and verify nil checks per §1.2. Audit table:
 | `retransmitQueueStatus` | `jtac.jtacs[param.jtacName]`, session, queue entries |
 | `dequeueNext` | `jtac.jtacs[jtacName]`, session, `Group.getByName` for dequeued entry |
 | `cleanupPlayer` | All JTAC entries, sessions |
+| `broadcastActiveJtacs` | All JTAC entries, `Unit.getByName` (each JTAC), `jtacData.coalition`, `BattleControl` module, `BLUECASFREQ`/`REDCASFREQ` globals |
 | `detectAndPrioritise` | `Unit.getByName` (JTAC), getCoalition, getPoint |
 | `getUnitsInRadius` | Point validity, `foundItem:getCoalition`, `getDesc`, `getName`, `getPoint`, `land.isVisible` |
 | `build9Line` | `Unit.getByName` (JTAC), `Unit.getByName` (target), `getPoint` × 2, `getDesc`, `land.getHeight`, `coord` calls |
@@ -555,6 +571,7 @@ Walk every function and verify nil checks per §1.2. Audit table:
 | Abort during CLEARED_HOT | Laser destroyed + IDLE + dequeue |
 | Player dies during CLEARED_HOT | Cleanup + laser destroyed + dequeue |
 | JTAC dies during CLEARED_HOT | Coalition broadcast, all cleanup |
+| Broadcast active JTACs | Lists all JTACs per coalition with callsign, freq, nearest BP |
 | Change laser code during CLEARED_HOT | Laser destroyed + recreated with new code |
 | Leave Queue | Removed from queue, menu reverts |
 | No retransmit after player responds | State guard prevents stale retransmit |
@@ -575,7 +592,7 @@ Walk every function and verify nil checks per §1.2. Audit table:
 | 7 | §9 | Flight queue (entry, periodic, dequeue, leave) |
 | 8 | §8 | Menu system (5 menu states, laser code submenu) |
 | 9 | §10 | Event handling, player cleanup |
-| 10 | §1.2, §12 | Public API lockdown, nil-guard audit, perf audit, pattern audit, verification |
+| 10 | §1.2, §12, §17 | Public API lockdown, nil-guard audit, perf audit, pattern audit, CAS broadcast, verification |
 
 ---
 
