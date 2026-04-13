@@ -1062,7 +1062,8 @@ function jtac.smokeIp(param)
             local playerName = session.controlledFlightPlayerName or "Flight"
             local ipPoint = session.briefData and session.briefData.ipPoint
             if ipPoint then
-                trigger.action.smoke({x = ipPoint.x, y = 0, z = ipPoint.z}, 0)
+                local smokePoint = {x = ipPoint.x, y = land.getHeight({x = ipPoint.x, z = ipPoint.z}), z = ipPoint.z}
+                trigger.action.smoke(smokePoint, 2, param.groupName)
                 jtac.transmit(param.jtacName, playerName .. ", copy. Smoke on IP.", 10, false)
             else
                 jtac.transmit(param.jtacName, playerName .. ", unable to mark IP", 10, false)
