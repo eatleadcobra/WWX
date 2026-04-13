@@ -1998,6 +1998,7 @@ function csb.fakeExtractionTime(args)
 end
 function csb.cleanupCsarGroup(csarData)
     local targetGroup = Group.getByName(csarData.groupName)
+    trigger.action.stopRadioTransmission(csarData.groupName)
     if targetGroup and targetGroup:isExist() then Group.destroy(targetGroup) end
     if csarData.equipment ~= nil then
         local eq = Group.getByName(csarData.equipment)
@@ -2254,6 +2255,7 @@ end
 function csb.cleanupCasEvacGroup(ceMission)
     local targetGroup = Group.getByName(ceMission.groupName)
     if targetGroup and targetGroup:isExist() then Group.destroy(targetGroup) end
+    trigger.action.stopRadioTransmission(ceMission.groupName)
     if ceMission.equipment ~= nil then
         local eq = Group.getByName(ceMission.equipment)
         if eq and eq:isExist() then Group.destroy(eq) end
