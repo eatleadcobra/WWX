@@ -1678,7 +1678,7 @@ function csb.startTransmission(args)
     end
     local unitPoint = u:getPoint()
     if unitPoint == nil then return end
-    trigger.action.radioTransmission(soundFile, unitPoint, modulation, true, ndbFreq * 10000, signalPower, args.groupName)
+    trigger.action.radioTransmission(casEvacSoundFile, unitPoint, modulation, true, ndbFreq * 10000, signalPower, args.groupName)
 
     local cmd = {}
     if eqCtrllr and eqCtrllr.setCommand then
