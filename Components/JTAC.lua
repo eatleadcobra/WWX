@@ -109,7 +109,7 @@ function jtac.shuffleList(list)
 end
 
 function jtac.generateReadbackCode()
-    local letters = "1234569890"
+    local letters = "1234567890"
     local code = ""
     for i = 1, 4 do
         local idx = math.random(1, 10)
@@ -289,7 +289,7 @@ function jtac.findSpawnPointForBP(bpId)
         return false
     end
 
-    local minRadius = bpRadius + 1000
+    local minRadius = bpRadius + 2000
     local maxRadius = bpRadius + 5000
     local radiusStep = 250
     local bearingStep = 30
@@ -299,7 +299,7 @@ function jtac.findSpawnPointForBP(bpId)
             local candidateX = bpCenter.x + radius * math.cos(rad)
             local candidateZ = bpCenter.z + radius * math.sin(rad)
             local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
-            if distance > bpRadius + 1 and distance <= bpRadius + 2000 then
+            if distance >= minRadius and distance <= maxRadius then
                 local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
                 if groundHeight then
                     local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
@@ -310,7 +310,6 @@ function jtac.findSpawnPointForBP(bpId)
             end
         end
     end
-
     return nil
 end
 
@@ -437,7 +436,7 @@ function jtac.retransmitCheck(param)
                 local message = session.lastMessage
                 if param.expectedState == "CLEARED_HOT" then
                     if session.briefData and session.briefData.targetDesc then
-                        targetDesc = session.briefData.targetDesc
+                        local targetDesc = session.briefData.targetDesc
                         message = "LASER HOT on " .. targetDesc .. ". code " .. jtacData.code
                     else
                         message = "LASER HOT. code " .. jtacData.code
@@ -938,7 +937,7 @@ function jtac.confirmInboundYes(jtacName, groupName)
     jtac.transmit(jtacName, "Copy inbound. Continue mission.", 10, false)
     session.awaitingMissionConfirm = false
     jtac.updateMenusForState(jtacName, groupName)
-    jtac.scheduleMissionTimeout({jtacName = jtacName, groupName = groupName, state = session.state})
+    timer.scheduleFunction(jtac.missionTimeoutCheck, {jtacName = jtacName, groupName = groupName, state = session.state}, timer.getTime() + jtac.missionTimeout)
 end
 
 function jtac.confirmInboundNo(jtacName, groupName)
@@ -1475,8 +1474,8 @@ function jtac.updateMenusForState(jtacName, groupName)
                 jtac.jtacMenu[groupName][jtacName] = jtacSub
 
                 local session = jtacData.session
-                session.lastUpdateTime = timer.getTime() -- track last update time for timeout handling
                 if session then
+                    session.lastUpdateTime = timer.getTime() -- track last update time for timeout handling
                     local isControlled = session.controlledFlight == groupName
                     local isQueued = false
                     for i = 1, #session.flightQueue do
