@@ -842,18 +842,10 @@ function jtac.confirmInboundNo(jtacName, groupName)
 end
 
 -- player interaction
-
 function jtac.requestCheckIn(jtacName, groupName)
     local playerCallsign = jtac.getPlayerCallsign(groupName)
-    local playerUnit = Group.getByName(groupName):getUnit(1)
-    if playerUnit and playerCallsign then
-        local playerPoint = playerUnit:getPoint()
-        if playerPoint then
-            local ppll = mist.tostringLL(coord.LOtoLL(playerPoint))
-            jtac.transmitPlayer(jtacName, playerCallsign, "Check in, at " .. ppll, 10)
-            timer.scheduleFunction(jtac.scheduleCheckIn, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
-        end
-    end
+    jtac.transmitPlayer(jtacName, playerCallsign, "Check in", 10)
+    timer.scheduleFunction(jtac.scheduleCheckIn, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
 end
 
 function jtac.handleCheckIn(jtacName, groupName)
@@ -887,6 +879,7 @@ function jtac.handleCheckIn(jtacName, groupName)
                     if priorityList then
                         session.currentTarget = priorityList[1]
                         timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
+                        jtac.updateMenusForState(jtacName, groupName)
                     else
                         local msg = playerName .. ", " .. jtacData.callsign .. ". Copy check-in. No targets at this time. Hold and standby."
                         jtac.transmit(jtacName, msg, 15)
