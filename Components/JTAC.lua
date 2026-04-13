@@ -1,14 +1,6 @@
--- =============================================================================
--- JTAC Module — Full CAS terminal control with state machine, 9-line briefs,
--- flight queue, retransmit, and radio comms via TransmitMessage.
--- Spec: docs/JTAC_SPEC.md
--- =============================================================================
-
 JTAC = {}
 
 local DEBUG = true
-
--- ─── Configuration (§11) ────────────────────────────────────────────────────
 
 local jtac = {
     distanceLimit        = 10000,
@@ -18,7 +10,7 @@ local jtac = {
     vehicleHeight        = 2.5,
     queueStatusDuration  = 30,
     responseDelay        = 5,
-    laserTimeout         = 120,
+    missionTimeout       = 300,
     noTargetScanInterval = 30,
     freqLower            = 225.0,
     freqUpper            = 399.975,
@@ -37,11 +29,8 @@ local jtac = {
     jtacMenu             = {},
     laserCodes           = { 1688, 1111, 1511, 1522, 1533, 1544, 1555, 1566, 1577 },
 }
-
 local lasing = {}
 local jtacEvents = {}
-
--- ─── Session Factory (§3.1) ─────────────────────────────────────────────────
 
 function jtac.newSession()
     return {
@@ -58,26 +47,20 @@ function jtac.newSession()
         noTargetScanActive         = false,
     }
 end
-
--- ─── Callsign Generation (§15) ──────────────────────────────────────────────
-
+-- helpers and shit
 function jtac.generateCallsign()
     local pool = {}
     for i = 1, #jtac.callsignPool do
         pool[i] = jtac.callsignPool[i]
     end
-    -- Fisher-Yates shuffle
-    for i = #pool, 2, -1 do
-        local j = math.random(1, i)
-        pool[i], pool[j] = pool[j], pool[i]
-    end
+    jtac.shuffleList(pool)
     for i = 1, #pool do
         if not jtac.usedCallsigns[pool[i]] then
             jtac.usedCallsigns[pool[i]] = true
             return pool[i]
         end
     end
-    -- All exhausted — append numeric suffix
+    -- add numbers if no callsigns left
     local suffix = 2
     while true do
         local base = pool[math.random(1, #pool)]
@@ -89,9 +72,6 @@ function jtac.generateCallsign()
         suffix = suffix + 1
     end
 end
-
--- ─── Frequency Assignment (§16) ─────────────────────────────────────────────
-
 function jtac.generateFrequency(coalitionId)
     local excluded = {}
     excluded[jtac.guardFreq] = true
@@ -109,7 +89,7 @@ function jtac.generateFrequency(coalitionId)
     end
 
     local steps = math.floor((jtac.freqUpper - jtac.freqLower) / jtac.freqStep)
-    for attempt = 1, 100 do
+    for i = 1, 100 do
         local idx = math.random(0, steps)
         local freq = jtac.freqLower + idx * jtac.freqStep
         freq = math.floor(freq * 1000 + 0.5) / 1000 -- round to nearest kHz
@@ -118,20 +98,54 @@ function jtac.generateFrequency(coalitionId)
             return freq
         end
     end
-    -- Sequential fallback
-    for idx = 0, steps do
-        local freq = jtac.freqLower + idx * jtac.freqStep
-        freq = math.floor(freq * 1000 + 0.5) / 1000
-        if not excluded[freq] then
-            jtac.usedFrequencies[freq] = true
-            return freq
-        end
-    end
-    -- Should never happen — return a default
     return 250.0
 end
 
--- ─── Registration & Lifecycle (§2) ──────────────────────────────────────────
+function jtac.shuffleList(list)
+    for i = #list, 2, -1 do
+        local j = math.random(1, i)
+        list[i], list[j] = list[j], list[i]
+    end
+end
+
+function jtac.generateReadbackCode()
+    local letters = "1234569890"
+    local code = ""
+    for i = 1, 4 do
+        local idx = math.random(1, 10)
+        code = code .. letters:sub(idx, idx)
+    end
+    return code
+end
+function jtac.refreshReadbackCodes(jtacName)
+    local jtacData = jtac.jtacs[jtacName]
+    if jtacData then
+        local session = jtacData.session
+        if session then
+            local codes = {}
+            local correctCode = jtac.generateReadbackCode()
+            codes[#codes + 1] = correctCode
+            while #codes < 4 do
+                local code = jtac.generateReadbackCode()
+                local unique = true
+                for i = 1, #codes do
+                    if codes[i] == code then
+                        unique = false
+                        break
+                    end
+                end
+                if unique then
+                    codes[#codes + 1] = code
+                end
+            end
+            jtac.shuffleList(codes)
+            session.readbackCode = correctCode
+            session.readbackCodes = codes
+        end
+    end
+end
+
+-- spawning and managing
 
 function JTAC.registerJtac(name, coalitionId)
     local cid = coalitionId or 2
@@ -149,7 +163,6 @@ function JTAC.registerJtac(name, coalitionId)
             stopLasing = false,
             session    = jtac.newSession(),
         }
-        -- Set the JTAC group's radio frequency so TransmitMessage works
         local jtacGroup = jtacUnit:getGroup()
         if jtacGroup then
             local controller = jtacGroup:getController()
@@ -170,19 +183,18 @@ end
 function JTAC.deRegisterJtac(name)
     local jtacData = jtac.jtacs[name]
     if jtacData then
-        -- Destroy active laser
         if lasing[name] then
             if lasing[name].laser then
                 lasing[name].laser:destroy()
             end
             lasing[name] = nil
         end
-        -- Broadcast death
+
         trigger.action.outTextForCoalition(jtacData.coalition, "JTAC " .. jtacData.callsign .. " is out of action!", 15, false)
-        -- Release callsign and frequency
+
         jtac.usedCallsigns[jtacData.callsign] = nil
         jtac.usedFrequencies[jtacData.frequency] = nil
-        -- Destroy DCS group
+
         local jtacUnit = Unit.getByName(name)
         if jtacUnit then
             local jtacGroup = jtacUnit:getGroup()
@@ -190,7 +202,7 @@ function JTAC.deRegisterJtac(name)
                 jtacGroup:destroy()
             end
         end
-        -- Remove entry
+
         jtac.jtacs[name] = nil
     end
 end
@@ -217,7 +229,7 @@ function JTAC.spawnJtacAtPoint(point, coalitionId)
     end
 end
 
--- ─── Transmission (§4.1) ────────────────────────────────────────────────────
+-- radio shit
 
 function jtac.transmit(jtacName, message, duration, repeatMessage, sender)
     local jtacData = jtac.jtacs[jtacName]
@@ -288,8 +300,6 @@ function jtac.scheduleLaserCodeChange(param)
     jtac.handleLaserCodeChange(param.jtacName, param.groupName, param.newCode)
 end
 
--- ─── Retransmit (§4.2) ──────────────────────────────────────────────────────
-
 function jtac.scheduleRetransmit(jtacName, expectedState)
     local jtacData = jtac.jtacs[jtacName]
     if jtacData then
@@ -300,7 +310,6 @@ function jtac.scheduleRetransmit(jtacName, expectedState)
         end
     end
 end
-
 function jtac.retransmitCheck(param)
     local jtacData = jtac.jtacs[param.jtacName]
     if jtacData then
@@ -319,7 +328,6 @@ function jtac.retransmitCheck(param)
         end
     end
 end
-
 function jtac.performBrief(param)
     local jtacData = jtac.jtacs[param.jtacName]
     if jtacData then
@@ -329,7 +337,7 @@ function jtac.performBrief(param)
                 if session.currentTarget then
                     local briefText = jtac.build9Line(param.jtacName, session.currentTarget)
                     if briefText then
-                        session.state = "BRIEF_SENT"
+                        jtac.setSessionState(param.jtacName, param.groupName, "BRIEF_SENT")
                         local message = briefText
                         if param.prefix then
                             message = param.prefix .. "\n" .. briefText
@@ -343,7 +351,6 @@ function jtac.performBrief(param)
         end
     end
 end
-
 function jtac.performReadback(param)
     local jtacData = jtac.jtacs[param.jtacName]
     if jtacData then
@@ -351,7 +358,7 @@ function jtac.performReadback(param)
         if session then
             if session.state == "BRIEF_SENT" then
                 if session.controlledFlight == param.groupName then
-                    session.state = "CLEARED_HOT"
+                    jtac.setSessionState(param.jtacName, param.groupName, "CLEARED_HOT")
                     jtac.laseTarget(param.jtacName)
                     local playerName = session.controlledFlightPlayerName or "Flight"
                     local msg = playerName .. ", readback correct. CLEARED HOT. Laser code " .. jtacData.code .. "."
@@ -364,7 +371,7 @@ function jtac.performReadback(param)
     end
 end
 
--- ─── Target Detection & Prioritisation (§7) ─────────────────────────────────
+-- Targeting
 
 function jtac.getUnitsInRadius(coalitionId, point, radius)
     local findCoalition = 2
@@ -493,53 +500,8 @@ function jtac.detectAndPrioritise(jtacName)
     return nil
 end
 
--- ─── 9-Line CAS Brief (§5) ──────────────────────────────────────────────────
+-- flavour text
 
-function jtac.findNearestBP(jtacName)
-    local jtacData = jtac.jtacs[jtacName]
-    if jtacData then
-        local jtacUnit = Unit.getByName(jtacName)
-        if jtacUnit then
-            local jtacPoint = jtacUnit:getPoint()
-            if jtacPoint then
-                if BattleControl and BattleControl.getClosestBp then
-                    local bpId, dist = BattleControl.getClosestBp(jtacPoint)
-                    if bpId and bpId > 0 then
-                        local bpPoint = BattleControl.getBPPoint(bpId)
-                        if bpPoint then
-                            local bearing = Utils.GetBearingDeg(bpPoint, jtacPoint)
-                            local direction
-                            local offset
-                            if (bearing >= 315 or bearing < 45) then
-                                direction = "north"
-                                if bearing >= 315 then
-                                    offset = 360 - bearing
-                                else
-                                    offset = bearing
-                                end
-                            elseif bearing >= 45 and bearing < 135 then
-                                direction = "east"
-                                offset = bearing - 90
-                            elseif bearing >= 135 and bearing < 225 then
-                                direction = "south"
-                                offset = 180 - bearing
-                            else
-                                direction = "west"
-                                offset = bearing - 270
-                            end
-                            offset = math.floor(math.abs(offset) + 0.5)
-                            if offset == 0 then
-                                return string.format("BP-%d", bpId)
-                            end
-                            return string.format("IP %d degrees %s of BP-%d", offset, direction, bpId)
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return "N/A"
-end
 function jtac.calculateIP(targetPoint, playerGroupName)
     if targetPoint and playerGroupName then
         local playerGroup = Group.getByName(playerGroupName)
@@ -648,7 +610,7 @@ function jtac.build9Line(jtacName, targetName)
                         local tplat, tplong, tpalt = coord.LOtoLL(targetPoint)
                         local ipString = jtac.calculateVectorFromBulls(ip, session.controlledFlight)
                         local heading = string.format("%03d", Utils.GetBearingDeg(ip, targetPoint))
-                        local distance = string.format("%.1f", Utils.PointDistance(ip, targetPoint) / 1000)
+                        local distance = string.format("%.1f", Utils.PointDistance(ip, targetPoint) / 1852)
                         local elevM = land.getHeight({x = targetPoint.x, y = targetPoint.z})
                         local elevation = string.format("%d", math.floor(elevM * 3.28084)) -- convert to feet
                         local targetCoords = mist.tostringLL(tplat, tplong, 2)
@@ -656,10 +618,10 @@ function jtac.build9Line(jtacName, targetName)
                         local friendlies = jtac.findNearestFriendlies(jtacName, targetPoint)
                         local egress = jtac.computeEgress(jtacPoint, targetPoint)
 
-                        local session = jtacData.session
                         if session then
                             session.briefData = {
                                 ip = ipString or "N/A",
+                                ipPoint = ip,
                                 heading = heading,
                                 distance = distance,
                                 elevation = elevation,
@@ -675,19 +637,19 @@ function jtac.build9Line(jtacName, targetName)
                         if session and session.controlledFlightPlayerName then
                             playerName = session.controlledFlightPlayerName
                         end
-
+                        jtac.refreshReadbackCodes(jtacName)
                         local briefText = playerName .. ", " .. jtacData.callsign .. ", 9-LINE follows:\n"
-                            .. "1. IP/BP: " .. ipString .. "\n"
-                            .. "2. HDG: " .. heading .. "\n"
-                            .. "3. DIST: " .. distance .. " km\n"
-                            .. "4. ELEV: " .. elevation .. " ft MSL\n"
-                            .. "5. TGT: " .. targetDesc .. "\n"
-                            .. "6. COORDS: " .. tostring(targetCoords) .. "\n"
-                            .. "7. MARK: " .. markType .. "\n"
-                            .. "8. FRDLY: " .. friendlies .. "\n"
-                            .. "9. EGRESS: " .. egress .. "\n"
+                            .. "> IP/BP: " .. ipString .. "\n"
+                            .. "> HDG: " .. heading .. "\n"
+                            .. "> DIST: " .. distance .. " NM\n"
+                            .. "> ELEV: " .. elevation .. " ft MSL\n"
+                            .. "> TGT: " .. targetDesc .. "\n"
+                            .. "> COORDS: " .. tostring(targetCoords) .. "\n"
+                            .. "> MARK: " .. markType .. "\n"
+                            .. "> FRDLY: " .. friendlies .. "\n"
+                            .. "> EGRESS: " .. egress .. "\n"
                             .. "REMARKS: N/A\n"
-                            .. "\nREADBACK"
+                            .. "\nREADBACK CODE: " .. session.readbackCode
 
                         return briefText
                     end
@@ -698,7 +660,7 @@ function jtac.build9Line(jtacName, targetName)
     return nil
 end
 
--- ─── Laser Designation (§6) ──────────────────────────────────────────────────
+-- lasing
 
 function jtac.laseTarget(jtacName)
     local jtacData = jtac.jtacs[jtacName]
@@ -714,10 +676,8 @@ function jtac.laseTarget(jtacName)
                         lasing[jtacName] = {
                             laser = Spot.createLaser(jtacUnit, {x = 0, y = 1.8, z = 0}, targetPoint, jtacData.code),
                             targetName = session.currentTarget,
-                            expiry = timer.getTime() + jtac.laserTimeout,
                         }
                         timer.scheduleFunction(jtac.trackLaser, {jtacName = jtacName}, timer.getTime() + jtac.trackingInterval)
-                        timer.scheduleFunction(jtac.stopLaserTimeout, {jtacName = jtacName}, timer.getTime() + jtac.laserTimeout)
                     end
                 end
             end
@@ -781,28 +741,119 @@ function jtac.trackLaser(param)
     end
 end
 
-function jtac.stopLaserTimeout(param)
-    local lasingInfo = lasing[param.jtacName]
-    if lasingInfo then
-        local now = timer.getTime()
-        if lasingInfo.expiry and now >= lasingInfo.expiry then
-            local target = Unit.getByName(lasingInfo.targetName)
-            if target and target:getLife() and target:getLife() > 0 then
-                if lasingInfo.laser then
-                    jtac.jtacs[param.jtacName].stopLasing = true
-                end
-                lasing[param.jtacName] = nil
+-- state management
+
+function jtac.setSessionState(jtacName, groupName, newState)
+    local jtacData = jtac.jtacs[jtacName]
+    if jtacData then
+        local session = jtacData.session
+        if session then
+            session.state = newState
+            session.awaitingMissionConfirm = false
+            if newState == "BRIEF_SENT" or newState == "CLEARED_HOT" then
+                jtac.scheduleMissionTimeout({jtacName = jtacName, groupName = groupName, state = newState})
             end
         end
     end
 end
 
--- ─── State Machine Flow Handlers (§3) ───────────────────────────────────────
+function jtac.scheduleMissionTimeout(param)
+    timer.scheduleFunction(jtac.missionTimeoutCheck, param, timer.getTime() + jtac.missionTimeout)
+end
+
+function jtac.missionTimeoutCheck(param)
+    local jtacData = jtac.jtacs[param.jtacName]
+    if not jtacData then
+        return
+    end
+    local session = jtacData.session
+    if not session or session.awaitingMissionConfirm then
+        return
+    end
+    if session.state ~= param.state or session.controlledFlight ~= param.groupName then
+        return
+    end
+    local playerName = session.controlledFlightPlayerName or "Flight"
+    local msg = playerName .. ", still inbound? Reply on the JTAC menu: YES to continue, NO to abort."
+    jtac.transmit(param.jtacName, msg, 20, false)
+    session.awaitingMissionConfirm = true
+    jtac.updateMenusForState(param.jtacName, param.groupName)
+    timer.scheduleFunction(jtac.missionConfirmationTimeout, {jtacName = param.jtacName, groupName = param.groupName, state = param.state}, timer.getTime() + 60)
+end
+
+function jtac.missionConfirmationTimeout(param)
+    local jtacData = jtac.jtacs[param.jtacName]
+    if not jtacData then
+        return
+    end
+    local session = jtacData.session
+    if not session or not session.awaitingMissionConfirm then
+        return
+    end
+    if session.state ~= param.state or session.controlledFlight ~= param.groupName then
+        return
+    end
+    jtac.transmit(param.jtacName, "No confirmation received. Mission terminated. RTB.", 15, false)
+    if lasing[param.jtacName] and lasing[param.jtacName].laser then
+        lasing[param.jtacName].laser:destroy()
+    end
+    lasing[param.jtacName] = nil
+    jtacData.stopLasing = false
+    session.awaitingMissionConfirm = false
+    jtac.resetSession(param.jtacName)
+    jtac.updateMenusForState(param.jtacName, param.groupName)
+    jtac.dequeueNext(param.jtacName)
+end
+
+function jtac.confirmInboundYes(jtacName, groupName)
+    local jtacData = jtac.jtacs[jtacName]
+    if not jtacData then
+        return
+    end
+    local session = jtacData.session
+    if not session or not session.awaitingMissionConfirm or session.controlledFlight ~= groupName then
+        return
+    end
+    jtac.transmit(jtacName, "Copy inbound. Continue mission.", 10, false)
+    session.awaitingMissionConfirm = false
+    jtac.updateMenusForState(jtacName, groupName)
+    jtac.scheduleMissionTimeout({jtacName = jtacName, groupName = groupName, state = session.state})
+end
+
+function jtac.confirmInboundNo(jtacName, groupName)
+    local jtacData = jtac.jtacs[jtacName]
+    if not jtacData then
+        return
+    end
+    local session = jtacData.session
+    if not session or not session.awaitingMissionConfirm or session.controlledFlight ~= groupName then
+        return
+    end
+    jtac.transmit(jtacName, "Copy abort. Mission terminated. RTB.", 15, false)
+    if lasing[jtacName] and lasing[jtacName].laser then
+        lasing[jtacName].laser:destroy()
+    end
+    lasing[jtacName] = nil
+    jtacData.stopLasing = false
+    session.awaitingMissionConfirm = false
+    jtac.resetSession(jtacName)
+    jtac.updateMenusForState(jtacName, groupName)
+    jtac.dequeueNext(jtacName)
+end
+
+-- player interaction
 
 function jtac.requestCheckIn(jtacName, groupName)
     local playerCallsign = jtac.getPlayerCallsign(groupName)
-    jtac.transmitPlayer(jtacName, playerCallsign, "Check in", 10)
-    timer.scheduleFunction(jtac.scheduleCheckIn, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
+    local playerUnit = Group.getByName(groupName):getUnit(1)
+    if playerUnit and playerCallsign then
+        local playerPoint = playerUnit:getPoint()
+        if playerPoint then
+            local ppll = mist.tostringLL(coord.LOtoLL(playerPoint))
+            jtac.transmitPlayer(jtacName, playerCallsign, "Check in, at " .. ppll, 10)
+            timer.scheduleFunction(jtac.scheduleCheckIn, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
+        end
+    end
 end
 
 function jtac.handleCheckIn(jtacName, groupName)
@@ -837,7 +888,6 @@ function jtac.handleCheckIn(jtacName, groupName)
                         session.currentTarget = priorityList[1]
                         timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
                     else
-                        -- No targets — hold
                         local msg = playerName .. ", " .. jtacData.callsign .. ". Copy check-in. No targets at this time. Hold and standby."
                         jtac.transmit(jtacName, msg, 15)
                         session.noTargetScanActive = true
@@ -852,10 +902,24 @@ function jtac.handleCheckIn(jtacName, groupName)
     end
 end
 
-function jtac.requestReadback(jtacName, groupName)
+function jtac.requestReadbackCode(jtacName, groupName, selectedCode)
     local playerCallsign = jtac.getPlayerCallsign(groupName)
-    jtac.transmitPlayer(jtacName, playerCallsign, "Readback", 10)
-    timer.scheduleFunction(jtac.performReadback, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
+    jtac.transmitPlayer(jtacName, playerCallsign, "Readback " .. selectedCode, 10)
+    local jtacData = jtac.jtacs[jtacName]
+    if jtacData then
+        local session = jtacData.session
+        if session then
+            if session.state == "BRIEF_SENT" and session.controlledFlight == groupName then
+                if session.readbackCode == selectedCode then
+                    timer.scheduleFunction(jtac.performReadback, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
+                else
+                    jtac.refreshReadbackCodes(jtacName)
+                    timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = groupName, prefix = "Incorrect readback. 9-LINE follows:"}, timer.getTime() + jtac.responseDelay)
+                    jtac.updateMenusForState(jtacName, groupName)
+                end
+            end
+        end
+    end
 end
 
 function jtac.requestNewTarget(jtacName, groupName)
@@ -948,11 +1012,28 @@ function jtac.handleBDA(jtacName)
             -- Look for more targets
             local priorityList = jtac.detectAndPrioritise(jtacName)
             if priorityList then
-                session.currentTarget = priorityList[1]
-                local briefText = jtac.build9Line(jtacName, priorityList[1])
-                if briefText then
-                    jtac.transmit(jtacName, "Good hit on " .. targetDesc .. ". Target destroyed. New target detected. Stand by for 9-LINE.", 15)
-                    timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = session.controlledFlight}, timer.getTime()+16)
+                if #session.flightQueue > 0 and session.controlledFlight then
+                    local oldFlight = session.controlledFlight
+                    local oldPlayerName = session.controlledFlightPlayerName or "Flight"
+                    jtac.enqueueFlight(jtacName, oldFlight)
+                    session.controlledFlight = nil
+                    session.controlledFlightPlayerName = nil
+                    session.currentTarget = nil
+                    session.briefData = nil
+                    session.noTargetScanActive = false
+                    session.awaitingMissionConfirm = false
+                    session.readbackCode = nil
+                    session.readbackCodes = nil
+                    jtac.updateMenusForState(jtacName, oldFlight)
+                    jtac.transmit(jtacName, "Good hit on " .. targetDesc .. ". Target destroyed. Next flight up for tasking.", 15)
+                    jtac.dequeueNext(jtacName)
+                else
+                    session.currentTarget = priorityList[1]
+                    local briefText = jtac.build9Line(jtacName, priorityList[1])
+                    if briefText then
+                        jtac.transmit(jtacName, "Good hit on " .. targetDesc .. ". Target destroyed. New target detected. Stand by for 9-LINE.", 15)
+                        timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = session.controlledFlight}, timer.getTime()+16)
+                    end
                 end
             else
                 local msg = "Good hit on " .. targetDesc .. ". Target destroyed.\n" .. playerName .. ", no further targets. RTB."
@@ -972,6 +1053,29 @@ function jtac.requestLaserCodeChange(jtacName, groupName, newCode)
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "Request laser code " .. tostring(newCode), 10)
     timer.scheduleFunction(jtac.scheduleLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = newCode}, timer.getTime() + jtac.responseDelay)
+end
+
+function jtac.requestSmokeOnIp(jtacName, groupName)
+    local playerCallsign = jtac.getPlayerCallsign(groupName)
+    jtac.transmitPlayer(jtacName, playerCallsign, "Request smoke on IP", 10)
+    timer.scheduleFunction(jtac.smokeIp, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
+end
+
+function jtac.smokeIp(param)
+    local jtacData = jtac.jtacs[param.jtacName]
+    if jtacData then
+        local session = jtacData.session
+        if session and session.controlledFlight == param.groupName then
+            local playerName = session.controlledFlightPlayerName or "Flight"
+            local ipPoint = session.briefData and session.briefData.ipPoint
+            if ipPoint then
+                trigger.action.smoke({x = ipPoint.x, y = 0, z = ipPoint.z}, 0)
+                jtac.transmit(param.jtacName, playerName .. ", copy. Smoke on IP.", 10, false)
+            else
+                jtac.transmit(param.jtacName, playerName .. ", unable to mark IP", 10, false)
+            end
+        end
+    end
 end
 
 function jtac.handleLaserCodeChange(jtacName, groupName, newCode)
@@ -1006,8 +1110,6 @@ function jtac.handleLaserCodeChange(jtacName, groupName, newCode)
         end
     end
 end
-
--- ─── No-Target Re-scan (§4.4) ───────────────────────────────────────────────
 
 function jtac.noTargetScanCheck(param)
     local jtacData = jtac.jtacs[param.jtacName]
@@ -1045,16 +1147,20 @@ function jtac.noTargetScanCheck(param)
     end
 end
 
--- ─── Session Reset ──────────────────────────────────────────────────────────
-
 function jtac.resetSession(jtacName)
     local jtacData = jtac.jtacs[jtacName]
     if jtacData then
+        local oldQueue = {}
+        local oldQueueActive = false
+        if jtacData.session then
+            oldQueue = jtacData.session.flightQueue or {}
+            oldQueueActive = jtacData.session.queueStatusActive or false
+        end
         jtacData.session = jtac.newSession()
+        jtacData.session.flightQueue = oldQueue
+        jtacData.session.queueStatusActive = oldQueueActive
     end
 end
-
--- ─── Flight Queue (§9) ──────────────────────────────────────────────────────
 
 function jtac.enqueueFlight(jtacName, groupName)
     local jtacData = jtac.jtacs[jtacName]
@@ -1077,7 +1183,7 @@ function jtac.enqueueFlight(jtacName, groupName)
             local msg = jtacData.callsign .. ", standby. Currently controlling traffic. " .. playerName .. ", you are number " .. pos .. " in the stack."
             jtac.transmit(jtacName, msg, 30)
             jtac.updateMenusForState(jtacName, groupName)
-            -- Start periodic queue status if not running
+
             if not session.queueStatusActive then
                 session.queueStatusActive = true
                 timer.scheduleFunction(jtac.retransmitQueueStatus, {jtacName = jtacName}, timer.getTime() + jtac.queueStatusDuration)
@@ -1118,7 +1224,6 @@ function jtac.dequeueNext(jtacName)
                 local entry = table.remove(session.flightQueue, 1)
                 local grp = Group.getByName(entry.groupName)
                 if grp then
-                    -- Update remaining queue positions
                     if #session.flightQueue > 0 then
                         jtac.broadcastQueuePositions(jtacName)
                     else
@@ -1127,9 +1232,7 @@ function jtac.dequeueNext(jtacName)
                     jtac.handleCheckIn(jtacName, entry.groupName)
                     return
                 end
-                -- Group gone — skip and try next
             end
-            -- Queue empty
             session.queueStatusActive = false
         end
     end
@@ -1184,7 +1287,7 @@ function jtac.broadcastQueuePositions(jtacName)
     end
 end
 
--- ─── Menu System (§8) ───────────────────────────────────────────────────────
+-- menus
 
 function jtac.populateMenus(groupName)
     local group = Group.getByName(groupName)
@@ -1194,11 +1297,11 @@ function jtac.populateMenus(groupName)
             if not jtac.jtacMenu[groupName] then
                 jtac.jtacMenu[groupName] = {}
             end
-            -- Create root JTAC menu
+
             if not jtac.jtacMenu[groupName]["root"] then
                 jtac.jtacMenu[groupName]["root"] = missionCommands.addSubMenuForGroup(groupId, "JTAC")
             end
-            -- Create submenu for each active JTAC
+
             for jtacName, data in pairs(jtac.jtacs) do
                 jtac.updateMenusForState(jtacName, groupName)
             end
@@ -1234,20 +1337,19 @@ function jtac.updateMenusForState(jtacName, groupName)
                 if not jtac.jtacMenu[groupName]["root"] then
                     jtac.jtacMenu[groupName]["root"] = missionCommands.addSubMenuForGroup(groupId, "JTAC")
                 end
-                -- Remove existing JTAC-specific submenu for this group
+                -- remove jtac submenu
                 if jtac.jtacMenu[groupName][jtacName] then
                     missionCommands.removeItemForGroup(groupId, jtac.jtacMenu[groupName][jtacName])
                     jtac.jtacMenu[groupName][jtacName] = nil
                 end
 
-                -- Create JTAC submenu
+                -- create jtac submenu
                 local menuTitle = jtacData.frequency .. " AM - " .. jtacData.callsign
                 local jtacSub = missionCommands.addSubMenuForGroup(groupId, menuTitle, jtac.jtacMenu[groupName]["root"])
                 jtac.jtacMenu[groupName][jtacName] = jtacSub
 
                 local session = jtacData.session
                 if session then
-                    -- Determine player's relationship to this JTAC
                     local isControlled = session.controlledFlight == groupName
                     local isQueued = false
                     for i = 1, #session.flightQueue do
@@ -1258,15 +1360,25 @@ function jtac.updateMenusForState(jtacName, groupName)
                     end
 
                     if isQueued then
-                        -- Queue menu
                         missionCommands.addCommandForGroup(groupId, "Leave Queue", jtacSub, jtac.requestLeaveQueue, jtacName, groupName)
                     elseif isControlled then
-                        if session.state == "IDLE" and session.noTargetScanActive then
-                            -- Holding for targets
+                        if session.awaitingMissionConfirm then
+                            missionCommands.addCommandForGroup(groupId, "Yes, still inbound", jtacSub, jtac.confirmInboundYes, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "No, abort mission", jtacSub, jtac.confirmInboundNo, jtacName, groupName)
+                        elseif session.state == "IDLE" and session.noTargetScanActive then
                             missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, jtacName, groupName)
                         elseif session.state == "BRIEF_SENT" then
-                            missionCommands.addCommandForGroup(groupId, "Readback", jtacSub, jtac.requestReadback, jtacName, groupName)
-                            -- Laser code submenu
+                            if not session.readbackCodes then
+                                jtac.refreshReadbackCodes(jtacName)
+                            end
+                            local readbackSub = missionCommands.addSubMenuForGroup(groupId, "Readback", jtacSub)
+                            if session.readbackCodes then
+                                for _, code in ipairs(session.readbackCodes) do
+                                    missionCommands.addCommandForGroup(groupId, code, readbackSub, jtac.requestReadbackCode, jtacName, groupName, code)
+                                end
+                            else
+                                missionCommands.addCommandForGroup(groupId, "Readback", jtacSub, jtac.requestReadback, jtacName, groupName)
+                            end
                             local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
                             for _, code in ipairs(jtac.laserCodes) do
                                 missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, jtacName, groupName, code)
@@ -1274,18 +1386,16 @@ function jtac.updateMenusForState(jtacName, groupName)
                             missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, jtacName, groupName)
                         elseif session.state == "CLEARED_HOT" then
                             missionCommands.addCommandForGroup(groupId, "New Target", jtacSub, jtac.requestNewTarget, jtacName, groupName)
-                            -- Laser code submenu
+                        missionCommands.addCommandForGroup(groupId, "Smoke IP", jtacSub, jtac.requestSmokeOnIp, jtacName, groupName)
                             local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
                             for _, code in ipairs(jtac.laserCodes) do
                                 missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, jtacName, groupName, code)
                             end
                             missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, jtacName, groupName)
                         else
-                            -- IDLE with no scan active — shouldn't happen if controlled, but show Check In as fallback
                             missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, jtacName, groupName)
                         end
                     else
-                        -- Not controlled, not queued — show Check In
                         missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, jtacName, groupName)
                     end
                 end
@@ -1294,10 +1404,9 @@ function jtac.updateMenusForState(jtacName, groupName)
     end
 end
 
--- ─── CAS Frequency Broadcast ────────────────────────────────────────────────
+-- cas freq broadcaster
 
 function JTAC.broadcastActiveJtacs()
-    -- Collect active JTACs per coalition
     local coalitionJtacs = { [1] = {}, [2] = {} }
     for jtacName, jtacData in pairs(jtac.jtacs) do
         local jtacUnit = Unit.getByName(jtacName)
@@ -1315,7 +1424,7 @@ function JTAC.broadcastActiveJtacs()
             coalitionJtacs[cid][#coalitionJtacs[cid] + 1] = entry
         end
     end
-    -- Broadcast per coalition on CAS frequency
+
     local casFreqs = { [1] = REDCASFREQ, [2] = BLUECASFREQ }
     for cid = 1, 2 do
         if #coalitionJtacs[cid] > 0 and casFreqs[cid] then
@@ -1325,7 +1434,7 @@ function JTAC.broadcastActiveJtacs()
     end
 end
 
--- ─── Player Cleanup ─────────────────────────────────────────────────────────
+-- misc player cleanup funcs
 
 function jtac.cleanupPlayer(groupName)
     for jtacName, jtacData in pairs(jtac.jtacs) do
@@ -1355,7 +1464,7 @@ function jtac.cleanupPlayer(groupName)
     end
 end
 
--- ─── Event Handling (§10) ───────────────────────────────────────────────────
+-- events
 
 function jtacEvents:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF or (event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT and DEBUG) then
