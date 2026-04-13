@@ -5,7 +5,6 @@ local DEBUG = true
 local jtac = {
     distanceLimit        = 10000,
     trackingInterval     = 0.05,
-    CLONEGROUP           = "JTAC_TEMPLATE",
     jtacHeight           = 1.8,
     vehicleHeight        = 2.5,
     queueStatusDuration  = 30,
@@ -210,21 +209,21 @@ end
 
 function JTAC.spawnJtacAtPoint(point, coalitionId)
     local cid = coalitionId or 2
-    local result
-    if point then
-        result = mist.teleportToPoint({groupName = jtac.CLONEGROUP, point = point, action = "clone"})
-    else
-        result = mist.cloneGroup(jtac.CLONEGROUP, true)
-    end
-    if result then
-        local groupName = result.name
-        if groupName then
-            local jtacGroup = Group.getByName(groupName)
-            if jtacGroup then
-                local jtacUnit = jtacGroup:getUnit(1)
-                if jtacUnit then
-                    JTAC.registerJtac(jtacUnit:getName(), cid)
-                end
+    local platoonTable = {
+        [1] = "JTAC",
+    }
+    -- coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit
+    local newCpy = Company.newCustomPlt(cid, false, platoonTable, false, false, false, nil, false)
+    newCpy:setWaypoints({point, point}, -1, 12)
+    newCpy:spawn()
+    local jtacGroupName = newCpy.groupName
+
+    if jtacGroupName then
+        local jtacGroup = Group.getByName(jtacGroupName)
+        if jtacGroup then
+            local jtacUnit = jtacGroup:getUnit(1)
+            if jtacUnit then
+                JTAC.registerJtac(jtacUnit:getName(), cid)
             end
         end
     end
@@ -290,8 +289,8 @@ function jtac.findSpawnPointForBP(bpId)
         return false
     end
 
-    local minRadius = bpRadius + 100
-    local maxRadius = bpRadius + 2000
+    local minRadius = bpRadius + 1000
+    local maxRadius = bpRadius + 5000
     local radiusStep = 250
     local bearingStep = 30
     for radius = minRadius, maxRadius, radiusStep do
@@ -437,7 +436,12 @@ function jtac.retransmitCheck(param)
             if session.state == param.expectedState then
                 local message = session.lastMessage
                 if param.expectedState == "CLEARED_HOT" then
-                    message = "LASERS HOT"
+                    if session.briefData and session.briefData.targetDesc then
+                        targetDesc = session.briefData.targetDesc
+                        message = "LASER HOT on " .. targetDesc .. ". code " .. jtacData.code
+                    else
+                        message = "LASER HOT. code " .. jtacData.code
+                    end
                 end
                 if message then
                     jtac.transmit(param.jtacName, message, session.messageDuration or 15, false)
