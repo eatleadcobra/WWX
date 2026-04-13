@@ -230,6 +230,147 @@ function JTAC.spawnJtacAtPoint(point, coalitionId)
     end
 end
 
+function JTAC.getActiveJtacCount()
+    local count = 0
+    for _, _ in pairs(jtac.jtacs) do
+        count = count + 1
+    end
+    return count
+end
+
+function JTAC.getOldestJtac()
+    local oldestName = nil
+    local oldestTime = math.huge
+    for jtacName, jtacData in pairs(jtac.jtacs) do
+        if jtacData and jtacData.spawnTime and jtacData.spawnTime < oldestTime then
+            oldestName = jtacName
+            oldestTime = jtacData.spawnTime
+        end
+    end
+    return oldestName
+end
+
+local function getBPSamplePoints(bpCenter, bpRadius)
+    local points = {}
+    points[#points + 1] = {x = bpCenter.x, z = bpCenter.z}
+    local sampleRadius = math.max(bpRadius * 0.75, 1)
+    points[#points + 1] = {x = bpCenter.x + sampleRadius, z = bpCenter.z}
+    points[#points + 1] = {x = bpCenter.x - sampleRadius, z = bpCenter.z}
+    points[#points + 1] = {x = bpCenter.x, z = bpCenter.z + sampleRadius}
+    points[#points + 1] = {x = bpCenter.x, z = bpCenter.z - sampleRadius}
+    return points
+end
+
+local function buildBPPoint(point)
+    return {x = point.x, y = land.getHeight({x = point.x, y = point.z}) + jtac.jtacHeight, z = point.z}
+end
+
+function jtac.findSpawnPointForBP(bpId)
+    local zoneName = "BP-" .. tostring(bpId)
+    local zone = trigger.misc.getZone(zoneName)
+    if not zone or not zone.point then
+        return nil
+    end
+
+    local bpCenter = {x = zone.point.x, z = zone.point.z}
+    local bpRadius = zone.radius or 0
+    local bpPoints = getBPSamplePoints(bpCenter, bpRadius)
+
+    local function hasLoS(candidate)
+        for i = 1, #bpPoints do
+            local sample = bpPoints[i]
+            local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
+            if sampleHeight then
+                local target = {x = sample.x, y = sampleHeight + jtac.jtacHeight, z = sample.z}
+                if land.isVisible(candidate, target) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    local minRadius = bpRadius + 100
+    local maxRadius = bpRadius + 2000
+    local radiusStep = 250
+    local bearingStep = 30
+    for radius = minRadius, maxRadius, radiusStep do
+        for bearing = 0, 330, bearingStep do
+            local rad = math.rad(bearing)
+            local candidateX = bpCenter.x + radius * math.cos(rad)
+            local candidateZ = bpCenter.z + radius * math.sin(rad)
+            local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
+            if distance > bpRadius + 1 and distance <= bpRadius + 2000 then
+                local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
+                if groundHeight then
+                    local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
+                    if hasLoS(candidate) then
+                        return candidate
+                    end
+                end
+            end
+        end
+    end
+
+    return nil
+end
+
+function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
+    local cid = coalitionId or 2
+    if not bpId then
+        env.info("JTAC: spawn request missing BP id", false)
+        return
+    end
+
+    local spawnPoint = jtac.findSpawnPointForBP(bpId)
+    if not spawnPoint then
+        env.info("JTAC: no valid spawn point found for BP-" .. tostring(bpId), false)
+        return
+    end
+
+    if JTAC.getActiveJtacCount() >= 9 then
+        local oldest = JTAC.getOldestJtac()
+        if oldest then
+            env.info("JTAC: max active JTACs reached, deregistering oldest JTAC " .. oldest, false)
+            JTAC.deRegisterJtac(oldest)
+        end
+    end
+
+    env.info("JTAC: spawning near BP-" .. tostring(bpId) .. " for coalition " .. tostring(cid), false)
+    JTAC.spawnJtacAtPoint(spawnPoint, cid)
+end
+
+function JTAC.getAllBPIds()
+    local bpIds = {}
+    for i = 1, 20 do
+        if trigger.misc.getZone("BP-" .. tostring(i)) then
+            bpIds[#bpIds + 1] = i
+        end
+    end
+    return bpIds
+end
+
+function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
+    local bpIds = JTAC.getAllBPIds()
+    if #bpIds == 0 then
+        env.info("JTAC: no BP zones found for debug spawn", false)
+        return
+    end
+
+    local attempts = math.min(count, #bpIds)
+    for i = 1, attempts do
+        if #bpIds == 0 then
+            break
+        end
+        local idx = math.random(1, #bpIds)
+        local bpId = table.remove(bpIds, idx)
+        if bpId then
+            env.info("JTAC debug: attempting spawn at BP-" .. tostring(bpId), false)
+            JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
+        end
+    end
+end
+
 -- radio shit
 
 function jtac.transmit(jtacName, message, duration, repeatMessage, sender)
@@ -1482,6 +1623,5 @@ end
 world.addEventHandler(jtacEvents)
 
 if DEBUG then
-    local point = trigger.misc.getZone("JTAC_DEBUG_POINT").point
-    JTAC.spawnJtacAtPoint(point)
+    JTAC.spawnJtacsAtRandomBPs(4, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
 end
