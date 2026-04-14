@@ -9,7 +9,7 @@ local jtac = {
     vehicleHeight        = 2.5,
     queueStatusDuration  = 30,
     responseDelay        = 5,
-    missionTimeout       = 300,
+    missionTimeout       = 600,
     noTargetScanInterval = 30,
     visualCheckInterval  = 5,
     mapLabelRefreshInterval = 10,
@@ -443,6 +443,7 @@ function jtac.transmit(jtacName, message, duration, repeatMessage, sender)
             if jtacGroup then
                 local controller = jtacGroup:getController()
                 if controller then
+                    controller:setCommand({ id = "StopTransmission", params = {} })
                     local prefix = tostring(sender or jtacData.callsign) .. ":\n> "
                     controller:setCommand({
                         id = "TransmitMessage",
@@ -1014,6 +1015,7 @@ function jtac.missionTimeoutCheck(param)
                     local msg = playerName .. ", still inbound? Reply on the JTAC menu: YES to continue, NO to abort."
                     jtac.transmit(param.jtacName, msg, 20, false)
                     session.awaitingMissionConfirm = true
+                    session.confirmationDeadline = timer.getTime() + 60
                     jtac.updateMenusForState(param.jtacName, param.groupName)
                     timer.scheduleFunction(jtac.missionConfirmationTimeout, {jtacName = param.jtacName, groupName = param.groupName, state = param.state}, timer.getTime() + 60)
                 end
@@ -1027,7 +1029,7 @@ function jtac.missionConfirmationTimeout(param)
     if jtacData then
         local session = jtacData.session
         if session and session.awaitingMissionConfirm then
-            if session.controlledFlight == param.groupName then
+            if session.controlledFlight == param.groupName and session.confirmationDeadline and timer.getTime() >= session.confirmationDeadline then
                 jtac.transmit(param.jtacName, "No confirmation received. Mission terminated. RTB.", 15, false)
                 if lasing[param.jtacName] and lasing[param.jtacName].laser then
                     lasing[param.jtacName].laser:destroy()
@@ -1035,6 +1037,7 @@ function jtac.missionConfirmationTimeout(param)
                 lasing[param.jtacName] = nil
                 jtacData.stopLasing = false
                 session.awaitingMissionConfirm = false
+                session.confirmationDeadline = nil
                 jtac.resetSession(param.jtacName)
                 jtac.updateMenusForState(param.jtacName, param.groupName)
                 jtac.dequeueNext(param.jtacName)
@@ -1052,6 +1055,8 @@ function jtac.confirmInboundYes(param)
         if session and session.awaitingMissionConfirm and session.controlledFlight == groupName then
             jtac.transmit(jtacName, "Copy inbound. Continue mission.", 10, false)
             session.awaitingMissionConfirm = false
+            session.confirmationDeadline = nil
+            session.lastUpdateTime = timer.getTime()
             jtac.updateMenusForState(jtacName, groupName)
             timer.scheduleFunction(jtac.missionTimeoutCheck, {jtacName = jtacName, groupName = groupName, state = session.state}, timer.getTime() + jtac.missionTimeout)
         end
@@ -1072,6 +1077,7 @@ function jtac.confirmInboundNo(param)
             lasing[jtacName] = nil
             jtacData.stopLasing = false
             session.awaitingMissionConfirm = false
+            session.confirmationDeadline = nil
             jtac.resetSession(jtacName)
             jtac.updateMenusForState(jtacName, groupName)
             jtac.dequeueNext(jtacName)
@@ -1246,6 +1252,7 @@ function jtac.handleBDA(jtacName)
     if jtacData then
         local session = jtacData.session
         if session then
+            local playerGroup = session.controlledFlight
             local playerName = session.controlledFlightPlayerName or "Flight"
             local targetDesc = "target"
             if session.currentTarget then
@@ -1268,7 +1275,6 @@ function jtac.handleBDA(jtacName)
             if priorityList then
                 if #session.flightQueue > 0 and session.controlledFlight then
                     local oldFlight = session.controlledFlight
-                    local oldPlayerName = session.controlledFlightPlayerName or "Flight"
                     jtac.enqueueFlight(jtacName, oldFlight)
                     session.controlledFlight = nil
                     session.controlledFlightPlayerName = nil
@@ -1287,15 +1293,17 @@ function jtac.handleBDA(jtacName)
                     if briefText then
                         jtac.transmit(jtacName, "Good hit on " .. targetDesc .. ". Target destroyed. New target detected. Stand by for 9-LINE.", 15)
                         timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = session.controlledFlight}, timer.getTime()+16)
+                        if playerGroup then
+                            jtac.updateMenusForState(jtacName, playerGroup)
+                        end
                     end
                 end
             else
                 local msg = "Good hit on " .. targetDesc .. ". Target destroyed.\n" .. playerName .. ", no further targets. RTB."
                 jtac.transmit(jtacName, msg, 15)
-                local controlledFlight = session.controlledFlight
                 jtac.resetSession(jtacName)
-                if controlledFlight then
-                    jtac.updateMenusForState(jtacName, controlledFlight)
+                if playerGroup then
+                    jtac.updateMenusForState(jtacName, playerGroup)
                 end
                 jtac.dequeueNext(jtacName)
             end
