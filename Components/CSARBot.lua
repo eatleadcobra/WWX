@@ -1637,13 +1637,8 @@ function csb.refreshCsarTransmissions()
                     args.soundfile = m.soundFile
                     args.equipment = m.equipment
                     args.signalPower = m.signalPower
-                    local aiCtrllr = targetGroup:getController()
-                    if aiCtrllr and aiCtrllr.setCommand then
-                        cmd.params = {}
-                        cmd.id = "StopTransmission"
-                        aiCtrllr:setCommand(cmd)
-                        env.info("[csb.refreshCsarTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. args.groupName, false)
-                    end
+                    env.info("[csb.refreshCsarTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. m.groupName, false)
+                    trigger.action.stopRadioTransmission(m.groupName)
                     targetGroup = Group.getByName(args.equipment)
                     if targetGroup and targetGroup:isExist() then
                         local eqCtrllr = targetGroup:getController()
@@ -1674,7 +1669,6 @@ function csb.startTransmission(args)
     local u = targetGroup:getUnit(1)
     env.info("[csb.startTransmission] - about to test for unit...",false)
     if u == nil or not u:isExist() then return end
-    local aiCtrllr = targetGroup:getController()
     local eqCtrllr = nil
     if eq then
         targetGroup = Group.getByName(eq)
@@ -1682,25 +1676,11 @@ function csb.startTransmission(args)
             eqCtrllr = targetGroup:getController()
         end
     end
+    local unitPoint = u:getPoint()
+    if unitPoint == nil then return end
+    trigger.action.radioTransmission(casEvacSoundFile, unitPoint, modulation, true, ndbFreq * 10000, signalPower, args.groupName)
+
     local cmd = {}
-    if aiCtrllr and aiCtrllr.setCommand then
-        env.info("[csb.startTransmission] - about to set frequency to: " .. tostring(ndbFreq*10000) .. "...",false)
-        cmd.id = "SetFrequency"
-        cmd.params = {}
-        cmd.params.frequency = ndbFreq * 10000
-        cmd.params.modulation = modulation
-        cmd.params.power = signalPower
-        aiCtrllr:setCommand(cmd)
-        cmd = {}
-        cmd.id = "TransmitMessage"
-        cmd.params = {}
-        cmd.params.loop = true
-        cmd.params.file = soundFile
-        aiCtrllr:setCommand(cmd)
-        env.info("[csb.startTransmission] - TransmitMessage command sent...",false)
-    else
-        env.info("[csb.startTransmission] - controller for CSAR unit is not functional.",false)
-    end
     if eqCtrllr and eqCtrllr.setCommand then
         local chAdj = 64
         local baseFreq = 1151
@@ -2018,6 +1998,7 @@ function csb.fakeExtractionTime(args)
 end
 function csb.cleanupCsarGroup(csarData)
     local targetGroup = Group.getByName(csarData.groupName)
+    trigger.action.stopRadioTransmission(csarData.groupName)
     if targetGroup and targetGroup:isExist() then Group.destroy(targetGroup) end
     if csarData.equipment ~= nil then
         local eq = Group.getByName(csarData.equipment)
@@ -2274,6 +2255,7 @@ end
 function csb.cleanupCasEvacGroup(ceMission)
     local targetGroup = Group.getByName(ceMission.groupName)
     if targetGroup and targetGroup:isExist() then Group.destroy(targetGroup) end
+    trigger.action.stopRadioTransmission(ceMission.groupName)
     if ceMission.equipment ~= nil then
         local eq = Group.getByName(ceMission.equipment)
         if eq and eq:isExist() then Group.destroy(eq) end
@@ -2406,14 +2388,9 @@ function csb.refreshCasEvacTransmissions()
                     args.amfm = m.modulation
                     args.soundfile = m.soundFile
                     args.signalPower = m.signalPower
-                    local aiCtrllr = targetGroup:getController()
-                    if aiCtrllr and aiCtrllr.setCommand then
-                        cmd.params = {}
-                        cmd.id = "StopTransmission"
-                        aiCtrllr:setCommand(cmd)
-                        env.info("[csb.refreshCasEvacTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. args.groupName, false)
-                    end
                     targetGroup = Group.getByName(args.equipment)
+                    env.info("[csb.refreshCasEvacTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. m.groupName, false)
+                    trigger.action.stopRadioTransmission(m.groupName)
                     if targetGroup and targetGroup:isExist() then
                         local eqCtrllr = targetGroup:getController()
                         if eqCtrllr and eqCtrllr.setCommand then
