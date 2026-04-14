@@ -1052,12 +1052,19 @@ function jtac.handleNewTarget(param)
         if jtacUnit then
             local session = jtacData.session
             if session and session.state == "CLEARED_HOT" and session.controlledFlight == groupName then
-                jtacData.stopLasing = true
+                if lasing[jtacName] then
+                    if lasing[jtacName].laser then
+                        lasing[jtacName].laser:destroy()
+                    end
+                    lasing[jtacName] = nil
+                end
+                jtacData.stopLasing = false
                 local playerName = session.controlledFlightPlayerName or "Flight"
                 local priorityList = jtac.detectAndPrioritise(jtacName)
                 if priorityList then
                     session.currentTarget = priorityList[1]
-                    timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = groupName, prefix = playerName .. ", copy. New target, 9-LINE follows:"}, timer.getTime())
+                    jtac.updateMenusForState(jtacName, groupName)
+                    timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = groupName, prefix = playerName .. ", copy. New target, 9-LINE follows:"}, timer.getTime() + jtac.responseDelay)
                 else
                     local msg = playerName .. ", no further targets. RTB."
                     jtac.transmit(jtacName, msg, 15)
@@ -1188,8 +1195,8 @@ function jtac.smokeIp(param)
             local playerName = session.controlledFlightPlayerName or "Flight"
             local ipPoint = session.briefData and session.briefData.ipPoint
             if ipPoint then
-                local smokePoint = {x = ipPoint.x, y = land.getHeight({x = ipPoint.x, z = ipPoint.z}), z = ipPoint.z}
-                trigger.action.smoke(smokePoint, 2, param.groupName)
+                local smokePoint = {x = ipPoint.x, y = land.getHeight({x = ipPoint.x, y = ipPoint.z}), z = ipPoint.z}
+                trigger.action.smoke(smokePoint, 2)
                 jtac.transmit(param.jtacName, playerName .. ", copy. Smoke on IP.", 10, false)
             else
                 jtac.transmit(param.jtacName, playerName .. ", unable to mark IP", 10, false)
@@ -1505,14 +1512,14 @@ function jtac.updateMenusForState(jtacName, groupName)
                             else
                                 missionCommands.addCommandForGroup(groupId, "Readback & Report Established", jtacSub, jtac.requestReadback, jtacName, groupName)
                             end
+                            missionCommands.addCommandForGroup(groupId, "Smoke IP", jtacSub, jtac.requestSmokeOnIp, jtacName, groupName)
                             local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
                             for _, code in ipairs(jtac.laserCodes) do
                                 missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, jtacName, groupName, code)
                             end
                             missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, jtacName, groupName)
                         elseif session.state == "CLEARED_HOT" then
-                            --missionCommands.addCommandForGroup(groupId, "New Target", jtacSub, jtac.requestNewTarget, jtacName, groupName)
-                            --missionCommands.addCommandForGroup(groupId, "Smoke IP", jtacSub, jtac.requestSmokeOnIp, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "New Target", jtacSub, jtac.requestNewTarget, jtacName, groupName)
                             local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
                             for _, code in ipairs(jtac.laserCodes) do
                                 missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, jtacName, groupName, code)
