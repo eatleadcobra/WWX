@@ -944,89 +944,78 @@ function jtac.setSessionState(jtacName, groupName, newState)
 end
 function jtac.missionTimeoutCheck(param)
     local jtacData = jtac.jtacs[param.jtacName]
-    if not jtacData then
-        return
+    if jtacData then
+        local session = jtacData.session
+        if session and not session.awaitingMissionConfirm then
+            if not (session.lastUpdateTime and timer.getTime() - session.lastUpdateTime > jtac.missionTimeout) then
+                if session.controlledFlight == param.groupName then
+                    local playerName = session.controlledFlightPlayerName or "Flight"
+                    local msg = playerName .. ", still inbound? Reply on the JTAC menu: YES to continue, NO to abort."
+                    jtac.transmit(param.jtacName, msg, 20, false)
+                    session.awaitingMissionConfirm = true
+                    jtac.updateMenusForState(param.jtacName, param.groupName)
+                    timer.scheduleFunction(jtac.missionConfirmationTimeout, {jtacName = param.jtacName, groupName = param.groupName, state = param.state}, timer.getTime() + 60)
+                end
+            end
+        end
     end
-    local session = jtacData.session
-    if not session or session.awaitingMissionConfirm then
-        return
-    end
-    if session.lastUpdateTime and timer.getTime() - session.lastUpdateTime > jtac.missionTimeout then
-        return
-    end
-    if session.controlledFlight ~= param.groupName then
-        return
-    end
-    local playerName = session.controlledFlightPlayerName or "Flight"
-    local msg = playerName .. ", still inbound? Reply on the JTAC menu: YES to continue, NO to abort."
-    jtac.transmit(param.jtacName, msg, 20, false)
-    session.awaitingMissionConfirm = true
-    jtac.updateMenusForState(param.jtacName, param.groupName)
-    timer.scheduleFunction(jtac.missionConfirmationTimeout, {jtacName = param.jtacName, groupName = param.groupName, state = param.state}, timer.getTime() + 60)
 end
 
 function jtac.missionConfirmationTimeout(param)
     local jtacData = jtac.jtacs[param.jtacName]
-    if not jtacData then
-        return
+    if jtacData then
+        local session = jtacData.session
+        if session and session.awaitingMissionConfirm then
+            if session.controlledFlight == param.groupName then
+                jtac.transmit(param.jtacName, "No confirmation received. Mission terminated. RTB.", 15, false)
+                if lasing[param.jtacName] and lasing[param.jtacName].laser then
+                    lasing[param.jtacName].laser:destroy()
+                end
+                lasing[param.jtacName] = nil
+                jtacData.stopLasing = false
+                session.awaitingMissionConfirm = false
+                jtac.resetSession(param.jtacName)
+                jtac.updateMenusForState(param.jtacName, param.groupName)
+                jtac.dequeueNext(param.jtacName)
+            end
+        end
     end
-    local session = jtacData.session
-    if not session or not session.awaitingMissionConfirm then
-        return
-    end
-    if session.controlledFlight ~= param.groupName then
-        return
-    end
-    jtac.transmit(param.jtacName, "No confirmation received. Mission terminated. RTB.", 15, false)
-    if lasing[param.jtacName] and lasing[param.jtacName].laser then
-        lasing[param.jtacName].laser:destroy()
-    end
-    lasing[param.jtacName] = nil
-    jtacData.stopLasing = false
-    session.awaitingMissionConfirm = false
-    jtac.resetSession(param.jtacName)
-    jtac.updateMenusForState(param.jtacName, param.groupName)
-    jtac.dequeueNext(param.jtacName)
 end
 
 function jtac.confirmInboundYes(param)
     local jtacName = param.jtacName
     local groupName = param.groupName
     local jtacData = jtac.jtacs[jtacName]
-    if not jtacData then
-        return
+    if jtacData then
+        local session = jtacData.session
+        if session and session.awaitingMissionConfirm and session.controlledFlight == groupName then
+            jtac.transmit(jtacName, "Copy inbound. Continue mission.", 10, false)
+            session.awaitingMissionConfirm = false
+            jtac.updateMenusForState(jtacName, groupName)
+            timer.scheduleFunction(jtac.missionTimeoutCheck, {jtacName = jtacName, groupName = groupName, state = session.state}, timer.getTime() + jtac.missionTimeout)
+        end
     end
-    local session = jtacData.session
-    if not session or not session.awaitingMissionConfirm or session.controlledFlight ~= groupName then
-        return
-    end
-    jtac.transmit(jtacName, "Copy inbound. Continue mission.", 10, false)
-    session.awaitingMissionConfirm = false
-    jtac.updateMenusForState(jtacName, groupName)
-    timer.scheduleFunction(jtac.missionTimeoutCheck, {jtacName = jtacName, groupName = groupName, state = session.state}, timer.getTime() + jtac.missionTimeout)
 end
 
 function jtac.confirmInboundNo(param)
     local jtacName = param.jtacName
     local groupName = param.groupName
     local jtacData = jtac.jtacs[jtacName]
-    if not jtacData then
-        return
+    if jtacData then
+        local session = jtacData.session
+        if session and session.awaitingMissionConfirm and session.controlledFlight == groupName then
+            jtac.transmit(jtacName, "Copy abort. Mission terminated. RTB.", 15, false)
+            if lasing[jtacName] and lasing[jtacName].laser then
+                lasing[jtacName].laser:destroy()
+            end
+            lasing[jtacName] = nil
+            jtacData.stopLasing = false
+            session.awaitingMissionConfirm = false
+            jtac.resetSession(jtacName)
+            jtac.updateMenusForState(jtacName, groupName)
+            jtac.dequeueNext(jtacName)
+        end
     end
-    local session = jtacData.session
-    if not session or not session.awaitingMissionConfirm or session.controlledFlight ~= groupName then
-        return
-    end
-    jtac.transmit(jtacName, "Copy abort. Mission terminated. RTB.", 15, false)
-    if lasing[jtacName] and lasing[jtacName].laser then
-        lasing[jtacName].laser:destroy()
-    end
-    lasing[jtacName] = nil
-    jtacData.stopLasing = false
-    session.awaitingMissionConfirm = false
-    jtac.resetSession(jtacName)
-    jtac.updateMenusForState(jtacName, groupName)
-    jtac.dequeueNext(jtacName)
 end
 
 -- player interaction
