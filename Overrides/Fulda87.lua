@@ -13,6 +13,7 @@ BOMBERS = true
 MISSILEBOATS = false
 CARGO = true
 CSAR = true
+JTACS = true
 CAS = true
 STRIKES = true
 REAPER = false
