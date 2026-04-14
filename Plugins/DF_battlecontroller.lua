@@ -501,7 +501,7 @@ function bc.executeAttack(filedAttackPlan)
                         supplyRequiredForCurrentCompanies = bc.attackSupCost(filedAttackPlan.targetBPs)
                         canAffordAttack = bc.sufficient(totalFrontSupTable, supplyRequiredForCurrentCompanies)
                         if canAffordAttack then break end
-                    elseif canlowercount == 0 then
+                    elseif canlowercount == 0 and not canAffordAttack then
                         trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because of insufficient materiel!\nProtect our convoys and deliver supplies to our front depots!", 10, false)
                         bc.rescheduleAttack(filedAttackPlan)
                         return
