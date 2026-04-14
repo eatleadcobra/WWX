@@ -474,6 +474,7 @@ function bc.executeAttack(filedAttackPlan)
             supplyRequiredForCurrentCompanies = bc.attackSupCost(filedAttackPlan.targetBPs)
             local canAffordAttack = bc.sufficient(totalFrontSupTable, supplyRequiredForCurrentCompanies)
             local loopTries = 0
+            local canlowercount = 0
             while canAffordAttack == false do
                 env.info("Cannot afford attack, lowering tiers", false)
                 loopTries = loopTries + 1
@@ -482,30 +483,33 @@ function bc.executeAttack(filedAttackPlan)
                     return
                 end
                 for i = 1, #filedAttackPlan.targetBPs do
-                    local canlowercount = 0
                     local targetBP = filedAttackPlan.targetBPs[i]
-                    if targetBP and targetBP.canLower then
-                        canlowercount = canlowercount + 1
-                        if targetBP.attackWithTier then
+                    if targetBP.attackWithTier then
+                        if targetBP and targetBP.canLower then
+                            canlowercount = canlowercount + 1
                             targetBP.attackWithTier = targetBP.attackWithTier + 1
                             targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
                             if targetBP.attackWithTier == 10 then
                                 targetBP.canLower = false
                             end
-                        else
+                        end
+                    else
+                        if targetBP and targetBP.canLower then
+                            canlowercount = canlowercount + 1
                             targetBP.attackWith[1] = targetBP.attackWith[1] + 1
                             if targetBP.attackWith[1] == 3 then
                                 targetBP.canLower = false
                             end
                         end
-                        supplyRequiredForCurrentCompanies = bc.attackSupCost(filedAttackPlan.targetBPs)
-                        canAffordAttack = bc.sufficient(totalFrontSupTable, supplyRequiredForCurrentCompanies)
-                        if canAffordAttack then break end
-                    elseif canlowercount == 0 and not canAffordAttack then
-                        trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because of insufficient materiel!\nProtect our convoys and deliver supplies to our front depots!", 10, false)
-                        bc.rescheduleAttack(filedAttackPlan)
-                        return
                     end
+                    supplyRequiredForCurrentCompanies = bc.attackSupCost(filedAttackPlan.targetBPs)
+                    canAffordAttack = bc.sufficient(totalFrontSupTable, supplyRequiredForCurrentCompanies)
+                    if canAffordAttack then break end
+                end
+                if canlowercount == 0 and not canAffordAttack then
+                    trigger.action.outTextForCoalition(filedAttackPlan.attackingCoalition, "Our attack has been delayed because of insufficient materiel!\nProtect our convoys and deliver supplies to our front depots!", 10, false)
+                    bc.rescheduleAttack(filedAttackPlan)
+                    return
                 end
             end
             DFS.decreaseFrontSupply(({coalitionId = filedAttackPlan.attackingCoalition, type = DFS.supplyType.FUEL, amount = supplyRequiredForCurrentCompanies[DFS.supplyType.FUEL]}))
