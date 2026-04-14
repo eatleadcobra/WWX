@@ -60,7 +60,7 @@ local unitTypes = {
     ["Mirage-F1CE"] = "Fighter",
     ["Mirage-F1BE"] = "Fighter",
     ["Mirage-F1EE"] = "Fighter",
-    ["AJS37"] = "Attack",
+    ["AJS37"] = "Strike",
     ["JF-17"] = "Fighter",
     ["Su-25"] = "Attack",
     ["Su-25T"] = "Attack",
@@ -76,12 +76,14 @@ local unitTypes = {
     ["F-4E-45MC"] = "Fighter",
     ["F-5E-3"] = "Fighter",
     ["F-5E-3_FC"] = "Fighter",
-    ["F-15ESE"] = "Fighter",
+    ["F-15ESE"] = "Strike Fighter",
+    ["F-15C"] = "Fighter",
     ["F-16C_50"] = "Fighter",
     ["FA-18C_hornet"] = "Fighter",
     ["C-101EB"] = "Attack",
     ["F4U-1D"] = "Single-engine prop",
     ["P-47D-30bl1"] = "Single-engine prop",
+    ["P-47D-30"] = "Single-engine prop",
     ["P-47D-40"] = "Single-engine prop",
     ["P-51D"] = "Single-engine prop",
     ["P-51D-30-NA"] = "Single-engine prop",
@@ -94,8 +96,9 @@ local unitTypes = {
     ["B-1B"] = "Bomber",
     ["b-52H"] = "Large Bomber",
     ["Tu-22M3"] = "Bomber",
-    ["Tornado IDS"] = "Bomber",
-    ["Su-24M"] = "Bomber",
+    ["Tornado IDS"] = "Strike",
+    ["Tornado GR4"] = "Strike",
+    ["Su-24M"] = "Strike",
     ["A-20G"] = "Bomber",
     ["A6E"] = "Attack",
     ["SpitfireLFMkIX"] = "Single-engine prop",
@@ -491,7 +494,7 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targ
                     local bearingString = string.format("%.0f", bearingInDeg)
                     if string.len(bearingString) == 2 then
                         bearingString = "0"..bearingString
-                    elseif string.len(bearingString) == 2 then
+                    elseif string.len(bearingString) == 1 then
                         bearingString = "00"..bearingString
                     end
                     local bullsPrefix = ""
@@ -533,4 +536,9 @@ Bulls.loop()
 
 function Bulls.getTargetsOnScope(coalitionId)
     return groupsList[coalitionId]
+end
+function Bulls.getTargetType(targetTypeName)
+    local targetType = nil
+    if unitTypes[targetTypeName] then targetType = unitTypes[targetTypeName] end
+    return targetType
 end

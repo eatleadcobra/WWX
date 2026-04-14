@@ -20,21 +20,23 @@ COALITIONSHIPPINGMETHODS = {
     }
 }
 CAP = true
-PIRACY = true
+PIRACY = false
 BOMBERS = true
 ESCORT = false
 MISSILEBOATS = false
 CARGO = true
+DISABLEF10CARGOSTATUS = true
 CSAR = true
 CAS = true
-STRIKES = false
+STRIKES = true
 REAPER = false
 INTERCEPT = false
 SHIPPING = true
 TRAINS = true
 AIRCARGO = true
-AIRCARGOINTERVAL = 1600
+AIRCARGOINTERVAL = 7200
 CAPTURE = false
+DOUBLEBOMBERS = true
 COMPANIESIGNOREROADS = true
 CAVICS = {
     [1] = {
@@ -212,6 +214,9 @@ PlatoonUnitCarrierTypeNames = {
 PlatoonGunCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "GUN"
 }
+PlatoonGunTypeNames = {
+    ["KS-19"] = "GUN"
+}
 PltStrengths = {
     [1] = 10,
     [2] = 3,
@@ -259,16 +264,16 @@ CompanyCompTiers = {
         composition = {1,7},
     },
     [4] = {
-        composition = {2,7},
+        composition = {1,2},
     },
     [5] = {
-        composition = {2,2},
+        composition = {2,2,7},
     },
     [6] = {
-        composition = {2,3},
+        composition = {2,2},
     },
     [7] = {
-        composition = {2},
+        composition = {2,3},
     },
     [8] = {
         composition = {3,3},
@@ -357,6 +362,25 @@ CSARCoverageZones = {
         [1] = "BlueCsarZone",
     }
 }
+--should be six infantry, preferrably with at least one RPG. C-130s get 3x of these per squad
+CoalitionAirborne = {
+    [1] = {
+        [1] = "Paratrooper RPG-16",
+        [2] = "Paratrooper AKS-74",
+        [3] = "Paratrooper AKS-74",
+        [4] = "Soldier M249",
+        [5] = "Paratrooper AKS-74",
+        [6] = "Paratrooper AKS-74",
+    },
+    [2] = {
+        [1] = "Soldier RPG",
+        [2] = "Soldier M4 GRG",
+        [3] = "Soldier M4 GRG",
+        [4] = "Soldier M249",
+        [5] = "Soldier M4 GRG",
+        [6] = "Soldier M4 GRG",
+    }
+}
 RandomNames = {}
 RandomNames.firstNames = {
     [1] = {
@@ -408,4 +432,11 @@ CASCALLSIGNS = {
             number = 1,
         },
     }
+}
+INTERCEPTORS= {
+    interval = 1800,
+    interceptLimit = 1,
+}
+INTERCEPTORTARGETTYPES = {
+    ["Bomber"] = true,
 }

@@ -13,6 +13,7 @@ BOMBERS = true
 ESCORT = true
 MISSILEBOATS = false
 CARGO = true
+DISABLEF10CARGOSTATUS = true
 CSAR = true
 CAS = true
 STRIKES = true
@@ -31,7 +32,7 @@ NAVALCONVOY = {
     [2] = false,
 }
 SUNSET = 65130 -- 18:05:30 local time
-RUNTIME = 28800 -- 8 hours runtime
+RUNTIME = 57600 -- 16 hours runtime
 -- counts
 FDCount = 3
 AACount = 8
@@ -39,6 +40,7 @@ RDSubcount = 4
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
+COMPANIESIGNOREROADS = true
 BLUECASFREQ = 150
 REDCASFREQ = 150
 BLUECASMOD = 0
@@ -179,7 +181,7 @@ PlatoonUnitCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "APC",
     ["Bedford_MWD"] = "APC",
     ["Blitz_36-6700A"] =  "APC",
-    ["Land_Rover_101_FCSd_Kfz_251"] = "IFV",
+    ["Sd_Kfz_251"] = "IFV",
     ["M2A1_halftrack"] =  "IFV",
     ["BTR-60"] = "IFV",
 }

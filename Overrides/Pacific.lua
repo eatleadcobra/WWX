@@ -16,6 +16,8 @@ CSAR = true
 CAS = true
 SHIPPING = true
 CAPTURE = false
+COMPANIESIGNOREROADS = true
+DISABLEF10CARGOSTATUS = true
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 28800 -- 8 hours runtime
 NAVALCONVOY = {
@@ -37,19 +39,17 @@ REDCASMOD = 0
 Platoons = {
     [1] = {
         ["Armor"] = {
-            [1] = "Pz_IV_H",
-            [2] = "Type_98_Ke_Ni",
-            [3] = "Type_98_So_Da",
-            [4] = "Type_94_Truck"
+            [1] = "Type_89_I_Go",
+            [2] = "Type_89_I_Go",
+            [4] = "Type_94_Truck",
         },
         ["Mech"] = {
-            [1] = "Sd_Kfz_251",
-            [2] = "Type_98_So_Da",
+            [1] = "Type_98_Ke_Ni",
+            [2] = "Sd_Kfz_251",
             [3] = "Type_94_Truck"
         },
         ["Inf"] = {
             [1] = "Type_98_So_Da",
-            [2] = "Type_94_Truck"
         },
         ["DeployedInf"] = {
             [1] = "Paratrooper RPG-16",
@@ -57,6 +57,11 @@ Platoons = {
             [3] = "Paratrooper RPG-16",
             [4] = "Infantry AK ver2",
             [5] = "Infantry AK ver2",
+        },
+        ["DeployedGun"] = {
+            [1] = "Infantry AK ver2",
+            [2] = "L118_Unit",
+            [3] = "Infantry AK ver2",
         },
         ["FuelConvoy"] = {
             [1] = "ATZ-5",
@@ -83,6 +88,9 @@ Platoons = {
             [1] = "Type_94_25mm_AA_Truck",
             [2] = "Type_94_Truck"
         },
+        ["EmbeddedADHigh"] = {
+            [1] = "tt_DSHK"
+        },
         ["Shipping"] = {
             [1] = "HandyWind",
             [2] = "CastleClass_01"
@@ -91,12 +99,12 @@ Platoons = {
     [2] = {
         ["Armor"] = {
             [1] = "M4_Sherman",
-            [2] = "MTLB",
-            [3] = "Bedford_MWD"
+            [2] = "Bedford_MWD"
         },
         ["Mech"] = {
-            [1] = "MTLB",
-            [2] = "Bedford_MWD"
+            [1] = "M2A1_halftrack",
+            [2] = "M2A1_halftrack",
+            [3] = "Bedford_MWD"
         },
         ["Inf"] = {
             [1] = "Bedford_MWD",
@@ -108,6 +116,11 @@ Platoons = {
             [4] = "Infantry AK ver2",
             [5] = "Infantry AK ver2",
         },
+        ["DeployedGun"] = {
+            [1] = "Infantry AK ver2",
+            [2] = "KS-19",
+            [3] = "Infantry AK ver2",
+        },
         ["FuelConvoy"] = {
             [1] = "Dry-cargo ship-2"
         },
@@ -118,6 +131,9 @@ Platoons = {
             [1] = "Dry-cargo ship-2"
         },
         ["EmbeddedAD"] = {
+            [1] = "tt_DSHK"
+        },
+        ["EmbeddedADHigh"] = {
             [1] = "tt_DSHK"
         },
         ["Shipping"] = {
@@ -134,22 +150,27 @@ PlatoonUnitCarrierTypeNames = {
     ["Sd_Kfz_251"] = "APC",
 }
 
-PlatoonFlakCarrierTypeNames = {
-    [""] = "FLAK"
+PlatoonGunCarrierTypeNames = {
+    ["Land_Rover_101_FC"] = "GUN"
+}
+PlatoonGunTypeNames = {
+    ["KS-19"] = "GUN",
+    ["L118_Unit"] = "GUN"
 }
 
 
 PltStrengths = {
-    [1] = 8,
-    [2] = 3 + #Platoons[1]["DeployedInf"],
-    [3] = 2 + #Platoons[1]["DeployedInf"],
-    [7] = 1
+    [1] = 10,
+    [2] = 3,
+    [3] = 2,
+    [7] = 2,
+    [9] = 2
 }
 PltCosts = {
     [1] = {
         [1] = 5, --fuel
         [2] = 9, --ammo
-        [3] = 3, --equipment
+        [3] = 4, --equipment
     },
     [2] = {
         [1] = 3, --fuel
@@ -159,9 +180,14 @@ PltCosts = {
     [3] = {
         [1] = 1, --fuel
         [2] = 2, --ammo
-        [3] = 1, --equipment
+        [3] = 0, --equipment
     },
     [7] = {
+        [1] = 4, --fuel
+        [2] = 2, --ammo
+        [3] = 1, --equipment
+    },
+    [9] = {
         [1] = 4, --fuel
         [2] = 2, --ammo
         [3] = 1, --equipment
@@ -170,39 +196,31 @@ PltCosts = {
 CompanyCompTiers = {
     [0] = {composition = nil},
     [1] = {
-        --tank, apc, ifv, AD
-        composition = {1,2,3,7},
+        --tank
+        composition = {1,2,7},
     },
     [2] = {
-        --tank, ifv, AD
         composition = {1,3,7},
     },
     [3] = {
-        --ifv, apc, apc, AD
-        composition = {2,3,3,7},
+        composition = {1,7},
     },
     [4] = {
-        --apc, apc, apc, AD
-        composition = {3,3,3,7},
+        composition = {2,7},
     },
     [5] = {
-        --ifv, ifv, apc
-        composition = {2,2,3},
+        composition = {2,2},
     },
     [6] = {
-        --ifv, apc, apc
-        composition = {2,3,3},
-    },
-    [7] = {
-        -- ifv, apc
         composition = {2,3},
     },
+    [7] = {
+        composition = {2},
+    },
     [8] = {
-        -- apc, apc
         composition = {3,3},
     },
     [9] = {
-        -- apc
         composition = {3},
     },
 }

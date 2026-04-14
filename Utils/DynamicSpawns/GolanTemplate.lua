@@ -34,6 +34,7 @@ Airframes = {
             ["MiG-19P"] = true,
             ["MiG-21Bis"] = true,
             ["P-47D-40"] = true,
+            ["La-7"] = true,
             ["F4U-1D"] = true,
             ["MB-339A"] = true,
             ["Yak-52"] = true,
@@ -95,4 +96,12 @@ ForwardAirbases = {
 IgnoreAirbases = {
     ["CV59"] = true,
     ["LHA-1"] = true,
+}
+FARPAirfields = {
+    [1] = {},
+    [2] = {},
+}
+Carriers = {
+    [1] = {},
+    [2] = {},
 }

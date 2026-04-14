@@ -7,7 +7,7 @@ SUBTYPE =
     [1] = "santafe",
     [2] = "santafe",
 }
-CAP = false
+CAP = true
 PIRACY = false
 BOMBERS = true
 MISSILEBOATS = false
@@ -22,6 +22,17 @@ TRAINS = true
 AIRCARGO = true
 AIRCARGOINTERVAL = 3600
 CAPTURE = false
+CONTROLLABLE_COMPANIES = true
+INTERCEPTORS= {
+interval = 1800, --3600
+interceptLimit = 4,
+multipleZones = true,
+independantZones = true,
+linkedAirframes = {
+	[1] = {[1] = 1, [2] = 2},
+	[2] = {[1] = 1, [2] = 2},
+	},
+}
 CAVICS = {
     [1] = {
         [1] = {text = "AT - BRDM", typename = "BRDM-2_malyutka"},
@@ -39,6 +50,23 @@ NAVALCONVOY = {
     [1] = false,
     [2] = false,
 }
+RESPAWNGROUPS = {
+    ["Red-SA11-1"] = 14400, --4hr
+	["RED-SHORAD-SA-11-1"] = 7200, --2hr
+	["Red-SA2-1"] = 14400, --4hr
+	["RED-SHORAD-SA-2-1"] = 7200, --2hr
+	["Red-SA5-1"] = 21600, --6hr
+	["RED-SHORAD-SA-5-1"] = 7200, --2hr
+	["Red-KS19-1"] = 7200, --2hr
+	["Blue-HAWK-1"] = 14400, --4hr
+	["BLUE-SHORAD-HAWK-1"] = 7200, --2hr
+	["Blue-HAWK-2"] = 14400, --4hr
+	["BLUE-SHORAD-HAWK-2"] = 7200, --2hr
+	["Blue-Patriot-1"] = 21600, --6hr
+	["BLUE-SHORAD-PATRIOT-1"] = 7200, --2hr
+	["RED-SHORAD-FARP-1"] = 3600, --1hr
+	["BLUE-SHORAD-HFRG38"] = 3600, --1hr
+}
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
 -- counts
@@ -48,7 +76,7 @@ RDSubcount = 2
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
-BLUECASFREQ = 225
+BLUECASFREQ = 280
 REDCASFREQ = 130
 BLUECASMOD = 0
 REDCASMOD = 0
@@ -63,18 +91,22 @@ Platoons = {
             [5] = "Ural-375"
         },
         ["Mech"] = {
-            [1] = "BMP-2",
-            [2] = "BMP-2",
+            [1] = "T62M",
+            [2] = "T62M",
             [3] = "BMP-2",
 			[4] = "BMP-2",
-            [5] = "Ural-375"
+			[5] = "BMP-2",
+			[6] = "BMP-2",
+            [7] = "Ural-375"
         },
         ["Inf"] = {
             [1] = "BRDM-2_malyutka",
-            [2] = "MTLB",
-            [3] = "MTLB",
-			[4] = "MTLB",
-            [5] = "Ural-375",
+            [2] = "BRDM-2_malyutka",
+            [3] = "BTR-70",
+			[4] = "BTR-70",
+			[5] = "BTR-70",
+			[6] = "BTR-70",
+            [7] = "Ural-375",
         },
         ["DeployedInf"] = {
             [1] = "Infantry AK ver3",
@@ -143,10 +175,12 @@ Platoons = {
         },
         ["Inf"] = {
             [1] = "M1045 HMMWV TOW",
-            [2] = "M-113",
+			[2] = "M1045 HMMWV TOW",
             [3] = "M-113",
-			[4] = "M-113",
-            [5] = "M 818"
+            [4] = "M-113",
+			[5] = "M-113",
+			[6] = "M-113",
+            [7] = "M 818"
         },
         ["DeployedInf"] = {
             [1] = "Soldier M4",
@@ -204,7 +238,8 @@ Platoons = {
 PlatoonUnitCarrierTypeNames = {
     ["BMP-2"] = "IFV",
     ["M-2 Bradley"] = "IFV",
-    ["MTLB"] = "APC",
+    --["MTLB"] = "APC",
+	["BTR-70"] = "APC",
     ["M-113"] = "APC",
 }
 
@@ -310,6 +345,46 @@ CSARFreqCollisions = {
         ["TACAN"] = {
             14,17,25,77,81,84,88,89,108
         }
+    }
+}
+CSARHunterOptions = {
+    [1] = {
+        [1] = "Infantry AK ver3",
+        [2] = "Infantry AK ver3",
+        [3] = "Infantry AK ver3",
+        [4] = "Infantry AK ver3",
+        [5] = "Infantry AK ver3",
+    },
+    [2] = {
+        [1] = "Soldier M4",
+        [2] = "Soldier M4",
+        [3] = "Soldier M4",
+        [4] = "Soldier M4",
+        [5] = "Soldier M4",
+    }
+}
+CSARHunterEliteOptions = {
+    [1] = {
+        [1] = "BRDM-2",
+    },
+    [2] = {
+        [1] = "M1043 HMMWV Armament",
+    }
+}
+CSARStackZones = {
+    [1] = {
+        [1] = "RedCsarStack",
+    },
+    [2] = {
+        [1] = "BlueCsarStack",
+    }
+}
+CSARCoverageZones = {
+    [1] = {
+        [1] = "RedCsarZone",
+    },
+    [2] = {
+        [1] = "BlueCsarZone",
     }
 }
 RandomNames = {}

@@ -7,7 +7,6 @@ cm.status = {
     [4] = "Defeated"
 }
 
-
 cm.casFreqs = {
     [1] = 45,
     [2] = 155,
@@ -44,13 +43,51 @@ Company = {
     speed = nil,
     isDeployed = false,
     bp = 0,
+    playerControllable = false,
     isConvoy = false,
     isShip = false,
     casTracked = false,
+    cpyType = nil,
     convoyParam = {},
     groupType = 2,
     spawnTime = 0,
 }
+function Company.newCustomPlt(coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit, closeDeploy, cpyType, insertPoint)
+    local newCpy = Company:deepcopy()
+    newCpy.id = Utils.uuid()
+    newCpy.coalitionId = coalitionId
+    if navalUnit then
+        newCpy.groupType = 3
+    end
+    if cpyType then
+        newCpy.cpyType = cpyType
+    end
+    if convoy then
+        newCpy.isConvoy = true
+        newCpy.convoyParam = convoyParam
+    elseif ship then
+        newCpy.isShip = true
+        newCpy.convoyParam = convoyParam
+        newCpy.convoyParam.cpyId = newCpy.id
+    end
+    if onRoad == nil or onRoad == false then
+        newCpy.onRoad = false
+    else
+        newCpy.onRoad = true
+    end
+    newCpy.units = units
+    newCpy.initUnits = newCpy.units
+    if closeDeploy then
+        newCpy.closeDeploy = true
+    end
+    if persistent then
+        Companies[newCpy.id] = newCpy
+        table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
+    end
+    newCpy.insertPoint = insertPoint
+    return newCpy
+end
+
 function Company.new(coalitionId, persistent, platoons, onRoad, convoy, ship, convoyParam, navalUnit)
     local newCpy = Company:deepcopy()
     newCpy.id = Utils.uuid()
@@ -114,9 +151,12 @@ function Company.newFromTable(cpyData)
     newCpy.bp = cpyData.bp
     newCpy.isConvoy = cpyData.isConvoy
     newCpy.isShip = cpyData.isShip
+    newCpy.cpyType = cpyData.cpyType
     newCpy.convoyParam = cpyData.convoyParam
     newCpy.groupType = cpyData.groupType
+    newCpy.playerControllable = cpyData.playerControllable
     newCpy.spawnTime = 0
+    newCpy.insertPoint = cpyData.insertPoint
     return newCpy
 end
 function Company.setWaypoints(self, waypoints, bp, speed)
@@ -131,13 +171,15 @@ function Company.setWaypoints(self, waypoints, bp, speed)
     if speed then self.speed = speed end
     if self.isShip then env.info("set new waypoints for ship: " .. self.groupName, false) end
 end
-function Company.spawn(self)
+function Company.spawn(self, options)
+    local playerControllable = (options and options.playerControllable) or false
+    self.playerControllable = playerControllable
     self.spawnTime = timer.getTime()+1
     local points = {[1] = self.waypoints[1], [2] = self.waypoints[2]}
     if self.isShip then
         points = self.waypoints
     end
-    if self.onRoad == false and self.arrived == false and self.isShip == false then
+    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType ~= "INF" and self.cpyType ~= "RECON" then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
         local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 1000))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
@@ -149,7 +191,7 @@ function Company.spawn(self)
         end
     end
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points, self.speed)
-    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints)
+    local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints, playerControllable)
     if self.onRoad == false and self.isShip == false then
         for j = 1, #cpyGroupTable["units"] do
             local deployPoint = self.waypoints[1]
@@ -157,8 +199,20 @@ function Company.spawn(self)
             cpyGroupTable["units"][j].y = deployPoint.z + (12*(j-1))
             cpyGroupTable["units"][j].heading = self.heading
         end
+        if self.closeDeploy then
+            for j = 1, #cpyGroupTable["units"] do
+                local deployPoint = self.waypoints[1]
+                cpyGroupTable["units"][j].x = deployPoint.x + (1*(j-1))
+                cpyGroupTable["units"][j].y = deployPoint.z + (1*(j-1))
+                cpyGroupTable["units"][j].heading = self.heading
+            end
+        end
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
+        if self.closeDeploy then
+            cpyGroupTable["route"]["points"][2].action = "Cone"
+            cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Cone"
+        end
     elseif self.isShip == false and self.isConvoy == true then
         cpyGroupTable["route"]["points"][1].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "On Road"
@@ -189,9 +243,15 @@ function Company.spawn(self)
         CpyControl.setShipCargo(self.groupName, loading)
         DFS.checkShip(self.convoyParam)
     else
-        if CAS then
+        if CAS and (self.cpyType == nil) then
             CAS.followGroup(self.coalitionId, self.groupName, cm.newCallsign(self.coalitionId), math.random(1,3), cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
             self.casTracked = true
+        elseif CAS and self.cpyType and self.cpyType == "RECON" then
+            CAS.followReconGroup(self.coalitionId, self.groupName, cm.newReconCallsign(self.coalitionId), 3, cm.casFreqs[self.coalitionId], cm.casModulation[self.coalitionId])
+            self.casTracked = true
+            if DFS then
+                timer.scheduleFunction(DFS.reconSetup, self.groupName, timer:getTime() + 1)
+            end
         end
     end
 end
@@ -312,22 +372,78 @@ function Company.deploy(self)
             end
         end
     end
+    if self.cpyType and self.cpyType == "INF" then
+        local leadUnit = cpyGroup:getUnit(1)
+        if leadUnit then
+            local deployPoint = leadUnit:getPoint()
+            local deployPos = leadUnit:getPosition()
+            if deployPoint and deployPos and Utils.getAGL(deployPoint) <= 0.5 and self.assigned then
+                local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = deployPoint})
+                local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, {[1] = "2B11 mortar"}, groupWaypoints)
+                for j = 1, #deployedGroupTable["units"] do
+                    local mortarDeployPoint = Utils.VectorAdd(deployPoint, Utils.ScalarMult(Utils.RotateVector(deployPos.x, 0.52 + (0.14 * (j-1))), 4+(((j-1)/2))))
+                    local heading = 0
+                    heading = math.atan2(deployPos.x.z, deployPos.x.x)
+                    if heading < 0 then heading = heading + (2 * math.pi) end
+                    deployedGroupTable["units"][j].x = mortarDeployPoint.x
+                    deployedGroupTable["units"][j].y = mortarDeployPoint.z
+                    deployedGroupTable["units"][j].heading = heading
+                end
+                table.insert(self.deployedGroupNames, deployedGroupTable["name"])
+                --spawn group
+                coalition.addGroup(80+(2-self.coalitionId), 2, deployedGroupTable)
+                anyDeployed = true
+            end
+        end
+        local lastUnit = cpyGroup:getUnit(cpyGroup:getSize())
+        if lastUnit then
+            local deployPoint = lastUnit:getPoint()
+            local deployPos = lastUnit:getPosition()
+            if deployPoint and deployPos and Utils.getAGL(deployPoint) <= 0.5 and self.assigned then
+                local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = deployPoint})
+                local deployedGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, {[1] = "2B11 mortar"}, groupWaypoints)
+                for j = 1, #deployedGroupTable["units"] do
+                    local mortarDeployPoint = Utils.VectorAdd(deployPoint, Utils.ScalarMult(Utils.RotateVector(deployPos.x, 0.52 + (0.14 * (j-1))), 4+(((j-1)/2))))
+                    local heading = 0
+                    heading = math.atan2(deployPos.x.z, deployPos.x.x)
+                    if heading < 0 then heading = heading + (2 * math.pi) end
+                    deployedGroupTable["units"][j].x = mortarDeployPoint.x
+                    deployedGroupTable["units"][j].y = mortarDeployPoint.z
+                    deployedGroupTable["units"][j].heading = heading
+                end
+                table.insert(self.deployedGroupNames, deployedGroupTable["name"])
+                --spawn group
+                coalition.addGroup(80+(2-self.coalitionId), 2, deployedGroupTable)
+                anyDeployed = true
+            end
+        end
+    end
     self.isDeployed = anyDeployed
 end
 function Company.undeploy(self)
     if self.isDeployed then
         self.deployableGroups = {}
+        self.deployableGuns = {}
         for i = 1, #self.deployedGroupNames do
             local deployedGroup = Group.getByName(self.deployedGroupNames[i])
             if deployedGroup then
                 local listOfUnits = {}
+                local isGunUnit = false
                 for j = 1, deployedGroup:getSize() do
                     local unit = deployedGroup:getUnit(j)
                     if unit then
+                        local unitType = unit:getTypeName()
+                        if PlatoonGunTypeNames and PlatoonGunTypeNames[unitType] then
+                            isGunUnit = true
+                        end
                         table.insert(listOfUnits, unit:getTypeName())
                     end
                 end
-                table.insert(self.deployableGroups, listOfUnits)
+                if isGunUnit then
+                    table.insert(self.deployableGuns, listOfUnits)
+                else
+                    table.insert(self.deployableGroups, listOfUnits)
+                end
                 deployedGroup:destroy()
                 self.deployedGroupName = nil
                 self.isDeployed = false
@@ -364,6 +480,9 @@ function Company.savePosition(self)
             local cpyPoint = cpyLead:getPoint()
             if cpyPoint then
                 self.point = cpyPoint
+                if self.cpyType and self.cpyType == "INF" then
+                    self.point = cm.getAvgPoint(self.groupName)
+                end
                 self.waypoints[1] = cpyPoint
             end
         end
@@ -419,4 +538,40 @@ function cm.newCallsign(coalitionId)
         end
     end
     return callsign
+end
+function cm.newReconCallsign(coalitionId)
+    local callsign = "RECON-" .. CASCALLSIGNS.counts[coalitionId].number
+    CASCALLSIGNS.counts[coalitionId].number = CASCALLSIGNS.counts[coalitionId].number + 1
+    return callsign
+end
+function cm.getAvgPoint(groupName)
+    local group = Group.getByName(groupName)
+    local avgPoint = {x = 0, y = 0, z = 0}
+    if group then
+        local points = {}
+        for i = 1, group:getSize() do
+            local unit = group:getUnit(i)
+            if unit then
+                local unitPoint = unit:getPoint()
+                if unitPoint then
+                    table.insert(points, unitPoint)
+                end
+            end
+        end
+        for i = 1, #points do
+            if i == 1 then
+                avgPoint.x = points[i].x
+                avgPoint.y = points[i].y
+                avgPoint.z = points[i].z
+            else
+                avgPoint.x = avgPoint.x + points[i].x
+                avgPoint.y = avgPoint.y + points[i].y
+                avgPoint.z = avgPoint.z + points[i].z
+            end
+        end
+        avgPoint.x = avgPoint.x / #points
+        avgPoint.y = avgPoint.y / #points
+        avgPoint.z = avgPoint.z / #points
+    end
+    return avgPoint
 end

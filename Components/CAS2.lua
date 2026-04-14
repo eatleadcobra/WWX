@@ -11,6 +11,9 @@ local casGroups = {
     [1] = {},
     [2] = {},
 }
+local reconTargets = {
+
+}
 local groups = {
 
 }
@@ -107,6 +110,26 @@ function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, 
         end
     end
 end
+function CAS.followReconGroup(coalitionId, groupName, callsign, jtacType, frequency, modulation, band)
+    groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {}, isRecon = true}
+    local follwingGroup = Group.getByName(groupName)
+    local bandMult = 1000000
+    if band == "KHz" then
+        bandMult = 1000
+    end
+    if follwingGroup then
+        local followingController = follwingGroup:getController()
+        if followingController and frequency and modulation then
+            local cmd = {}
+            cmd.id = "SetFrequency"
+            cmd.params = {}
+            cmd.params.frequency = tonumber(frequency) * bandMult
+            cmd.params.modulation = modulation
+            cmd.params.power = 120
+            followingController:setCommand(cmd)
+        end
+    end
+end
 function CAS.checkGroup(groupName)
     local checkingGroup = Group.getByName(groupName)
     if checkingGroup then
@@ -114,6 +137,9 @@ function CAS.checkGroup(groupName)
         if checkingUnit then
             local checkingPoint = checkingUnit:getPoint()
             groups[groupName].isMoving = Utils.getSpeed(checkingUnit:getVelocity()) > 0.1
+            if groups[groupName].isRecon then
+                groups[groupName].targetGroups = {}
+            end
             if checkingPoint then
                 groups[groupName].currentPoint = checkingPoint
                 local cgController = checkingGroup:getController()
@@ -150,7 +176,16 @@ function CAS.checkGroup(groupName)
                                         local bearingToTgt = Utils.GetBearingDeg(checkingPoint, leadPoint)
                                         if detectedDistance <= cas.engagementDistance then
                                             groups[groupName].targetGroups[k] = { distanceToTgt = detectedDistance, bearingToTgt = bearingToTgt, onRoad = (land.getSurfaceType({x = leadPoint.x, y = leadPoint.z}) == 4)}
-                                            if detectedDistance < cas.dangerClose then
+                                            if not reconTargets[groupName] or not reconTargets[groupName][k] then
+                                                if not reconTargets[groupName] then
+                                                    reconTargets[groupName] = {}
+                                                end
+                                                reconTargets[groupName][k] = {tgtPoint = leadPoint}
+                                                local xMarkId1, xMarkId2 = DrawingTools.drawX(checkingGroup:getCoalition(), leadPoint)
+                                                timer.scheduleFunction(trigger.action.removeMark, xMarkId1, timer:getTime() + 1800)
+                                                timer.scheduleFunction(trigger.action.removeMark, xMarkId2, timer:getTime() + 1800)
+                                            end
+                                            if detectedDistance < cas.dangerClose and not groups[groupName].isRecon then
                                                 if stoppedGroups[groupName] == nil then
                                                     cas.stopGroup(groupName)
                                                     timer.scheduleFunction(cas.startGroup, groupName, timer:getTime() + 30)
@@ -204,19 +239,12 @@ function CAS.designateGroup(groupName)
     local desGroup = groups[groupName]
     if desGroup then
         local casMessage = "This is " .. desGroup.callsign .. ". We are in contact with enemy forces!"
-        local locationMessage = "\nWe are located at "
-        local groupLat, groupLong, groupAlt = coord.LOtoLL(desGroup.currentPoint)
-        local groupMGRS = coord.LLtoMGRS(groupLat, groupLong)
-        local eastingString = tostring(groupMGRS.Easting)
-        local northingString = tostring(groupMGRS.Northing)
-        for i = 1, 5 - #eastingString do
-            eastingString = tostring(0)..eastingString
+        local locationMessage = "\nWe are located "
+        local closestBpId, distance, direction = CSB.closestBpToCAS(desGroup.currentPoint)
+        if closestBpId and distance and direction then
+            local unitString = "m "
+            locationMessage = locationMessage .. distance .. unitString .. direction .. " of Battle Position " .. closestBpId
         end
-        for i = 1, 5 - #northingString do
-            northingString = tostring(0)..northingString
-        end
-        local location = groupMGRS.MGRSDigraph .. eastingString:sub(1,desGroup.jtacType)..northingString:sub(1,desGroup.jtacType)
-        locationMessage = locationMessage .. location
         if desGroup.isMoving then
                 locationMessage = locationMessage .. "\nWe are moving " .. Utils.degToCompass(desGroup.heading)
         end
@@ -237,11 +265,13 @@ function CAS.designateGroup(groupName)
                     if desGroup.smokeColor == -1 then
                             desGroup.smokeColor = smokeColors[math.random(1,3)]
                     end
-                    casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[desGroup.smokeColor] .."smoke."
-                    if desGroup.smokeTime == -1 or timer:getTime() - desGroup.smokeTime > 300 then
-                        trigger.action.smoke(Utils.VectorAdd(desGroup.currentPoint, Utils.ScalarMult(atmosphere.getWind(desGroup.currentPoint), 10 + math.random(5))), desGroup.smokeColor, groupName)
-                        timer.scheduleFunction(trigger.action.effectSmokeStop, groupName, timer:getTime()+300)
-                        desGroup.smokeTime = timer:getTime()
+                    if not desGroup.isRecon then
+                        casMessage = casMessage .. "\nEnemy is danger close! Our position is marked with".. smokeNames[desGroup.smokeColor] .."smoke."
+                        if desGroup.smokeTime == -1 or timer:getTime() - desGroup.smokeTime > 300 then
+                            trigger.action.smoke(Utils.VectorAdd(desGroup.currentPoint, Utils.ScalarMult(atmosphere.getWind(desGroup.currentPoint), 10 + math.random(5))), desGroup.smokeColor, groupName)
+                            timer.scheduleFunction(trigger.action.effectSmokeStop, groupName, timer:getTime()+300)
+                            desGroup.smokeTime = timer:getTime()
+                        end
                     end
                 end
                 desGroup.inContact = true
@@ -266,7 +296,9 @@ function CAS.designateGroup(groupName)
             if groupCount < 1 then desGroup.inContact = false end
             local casGroup = Group.getByName(groupName)
             if casGroup then
-                cas.groupMarkups(desGroup.currentPoint, groupName, desGroup.smokeColor)
+                if not desGroup.isRecon then
+                    cas.groupMarkups(desGroup.currentPoint, groupName, desGroup.smokeColor)
+                end
                 local casController = casGroup:getController()
                 if casController then
                     local msg = {
