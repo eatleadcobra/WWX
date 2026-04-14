@@ -11,6 +11,7 @@ local jtac = {
     responseDelay        = 5,
     missionTimeout       = 300,
     noTargetScanInterval = 30,
+    visualCheckInterval  = 5,
     freqLower            = 225.0,
     freqUpper            = 399.975,
     freqStep             = 0.025,
@@ -44,6 +45,7 @@ function jtac.newSession()
         lastMessage                = nil,
         messageDuration            = 15,
         noTargetScanActive         = false,
+        visualCalloutSent          = false,
         lastUpdateTime             = timer.getTime()
     }
 end
@@ -482,6 +484,8 @@ function jtac.performReadback(param)
                 if session.controlledFlight == param.groupName then
                     jtac.setSessionState(param.jtacName, param.groupName, "CLEARED_HOT")
                     jtac.laseTarget(param.jtacName)
+                    session.visualCalloutSent = false
+                    timer.scheduleFunction(jtac.visualCheck, {jtacName = param.jtacName}, timer.getTime() + 1)
                     local playerName = session.controlledFlightPlayerName or "Flight"
                     local msg = playerName .. ", readback correct. CLEARED HOT. Laser code " .. jtacData.code .. "."
                     jtac.transmit(param.jtacName, msg, 15)
@@ -708,6 +712,66 @@ function jtac.computeEgress(jtacPoint, targetPoint)
     local bearing = Utils.GetBearingDeg(targetPoint, jtacPoint)
     local compass = Utils.degToCompass(bearing)
     return "Egress " .. compass
+end
+
+function jtac.buildVectorFromJtac(jtacPoint, targetPoint)
+    if jtacPoint and targetPoint then
+        local bearing = Utils.GetBearingDeg(jtacPoint, targetPoint)
+        local distanceNm = Utils.PointDistance(jtacPoint, targetPoint) / 1852
+        return string.format("%03d for %.1f NM", bearing, distanceNm)
+    end
+    return "unknown"
+end
+
+function jtac.markJtacWithFlare(jtacName)
+    local jtacUnit = Unit.getByName(jtacName)
+    if jtacUnit then
+        local point = jtacUnit:getPoint()
+        if point then
+            local flarePoint = {
+                x = point.x,
+                y = land.getHeight({x = point.x, y = point.z}) + 1,
+                z = point.z,
+            }
+            trigger.action.signalFlare(flarePoint, 0, 0)
+        end
+    end
+end
+
+function jtac.visualCheck(param)
+    local nextRun = nil
+    local jtacData = jtac.jtacs[param.jtacName]
+    if jtacData then
+        local session = jtacData.session
+        if session and not session.visualCalloutSent and session.state == "CLEARED_HOT" then
+            if session.controlledFlight and session.currentTarget then
+                nextRun = timer.getTime() + jtac.visualCheckInterval
+                local playerGroup = Group.getByName(session.controlledFlight)
+                if playerGroup then
+                    local playerUnit = playerGroup:getUnit(1)
+                    local target = Unit.getByName(session.currentTarget)
+                    local jtacUnit = Unit.getByName(param.jtacName)
+                    if playerUnit and target and jtacUnit then
+                        local playerPoint = playerUnit:getPoint()
+                        local targetPoint = target:getPoint()
+                        local jtacPoint = jtacUnit:getPoint()
+                        if playerPoint and targetPoint and jtacPoint then
+                            local distToTarget = Utils.PointDistance(playerPoint, targetPoint)
+                            if distToTarget <= (5 * 1852) then
+                                local playerName = session.controlledFlightPlayerName or "Flight"
+                                local vector = jtac.buildVectorFromJtac(jtacPoint, targetPoint)
+                                local msg = playerName .. ", I have you visually! Marking my location with flare. Target is " .. vector .. " from my position."
+                                jtac.markJtacWithFlare(param.jtacName)
+                                jtac.transmit(param.jtacName, msg, 30, false)
+                                session.visualCalloutSent = true
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return nextRun
 end
 
 function jtac.build9Line(jtacName, targetName)
@@ -1063,6 +1127,7 @@ function jtac.handleNewTarget(param)
                 local priorityList = jtac.detectAndPrioritise(jtacName)
                 if priorityList then
                     session.currentTarget = priorityList[1]
+                    session.visualCalloutSent = false
                     jtac.updateMenusForState(jtacName, groupName)
                     timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = groupName, prefix = playerName .. ", copy. New target, 9-LINE follows:"}, timer.getTime() + jtac.responseDelay)
                 else
@@ -1265,6 +1330,7 @@ function jtac.noTargetScanCheck(param)
             if priorityList then
                 session.noTargetScanActive = false
                 session.currentTarget = priorityList[1]
+                session.visualCalloutSent = false
                 local briefText = jtac.build9Line(param.jtacName, priorityList[1])
                 if briefText then
                     local playerName = session.controlledFlightPlayerName or "Flight"
