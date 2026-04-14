@@ -27,6 +27,7 @@ local jtac = {
     usedFrequencies      = {},
     excludedFrequencies  = {},
     jtacs                = {},
+    jtacList             = {},
     jtacMenu             = {},
     laserCodes           = { 1688, 1111, 1511, 1522, 1533, 1544, 1555, 1566, 1577 },
 }
@@ -215,6 +216,7 @@ function JTAC.registerJtac(name, coalitionId)
             jtac.mapLabelsScheduled = true
             timer.scheduleFunction(jtac.updateMapLabels, {}, timer.getTime() + jtac.mapLabelRefreshInterval)
         end
+        jtac.jtacList[#jtac.jtacList + 1] = name
         jtac.updateMapLabel(name)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
@@ -240,6 +242,13 @@ function JTAC.deRegisterJtac(name)
             local jtacGroup = jtacUnit:getGroup()
             if jtacGroup then
                 jtacGroup:destroy()
+            end
+        end
+
+        for i = #jtac.jtacList, 1, -1 do
+            if jtac.jtacList[i] == name then
+                table.remove(jtac.jtacList, i)
+                break
             end
         end
 
@@ -1561,7 +1570,8 @@ function jtac.populateMenus(groupName)
                 jtac.jtacMenu[groupName]["root"] = missionCommands.addSubMenuForGroup(groupId, "JTAC")
             end
 
-            for jtacName, data in pairs(jtac.jtacs) do
+            for i = 1, #jtac.jtacList do
+                local jtacName = jtac.jtacList[i]
                 jtac.updateMenusForState(jtacName, groupName)
             end
         end
@@ -1596,65 +1606,68 @@ function jtac.updateMenusForState(jtacName, groupName)
                 if not jtac.jtacMenu[groupName]["root"] then
                     jtac.jtacMenu[groupName]["root"] = missionCommands.addSubMenuForGroup(groupId, "JTAC")
                 end
-                -- remove jtac submenu
+                -- remove jtac submenu if it already exists
                 if jtac.jtacMenu[groupName][jtacName] then
                     missionCommands.removeItemForGroup(groupId, jtac.jtacMenu[groupName][jtacName])
                     jtac.jtacMenu[groupName][jtacName] = nil
                 end
 
-                -- create jtac submenu
-                local menuTitle = jtacData.frequency .. " AM - " .. jtacData.callsign
-                local jtacSub = missionCommands.addSubMenuForGroup(groupId, menuTitle, jtac.jtacMenu[groupName]["root"])
-                jtac.jtacMenu[groupName][jtacName] = jtacSub
+                local playerCoalition = group:getCoalition()
+                if playerCoalition and (playerCoalition == jtacData.coalition) then
+                    -- create jtac submenu
+                    local menuTitle = jtacData.frequency .. " AM - " .. jtacData.callsign
+                    local jtacSub = missionCommands.addSubMenuForGroup(groupId, menuTitle, jtac.jtacMenu[groupName]["root"])
+                    jtac.jtacMenu[groupName][jtacName] = jtacSub
 
-                local session = jtacData.session
-                if session then
-                    session.lastUpdateTime = timer.getTime() -- track last update time for timeout handling
-                    local isControlled = session.controlledFlight == groupName
-                    local isQueued = false
-                    for i = 1, #session.flightQueue do
-                        if session.flightQueue[i].groupName == groupName then
-                            isQueued = true
-                            break
+                    local session = jtacData.session
+                    if session then
+                        session.lastUpdateTime = timer.getTime() -- track last update time for timeout handling
+                        local isControlled = session.controlledFlight == groupName
+                        local isQueued = false
+                        for i = 1, #session.flightQueue do
+                            if session.flightQueue[i].groupName == groupName then
+                                isQueued = true
+                                break
+                            end
                         end
-                    end
 
-                    if isQueued then
-                        missionCommands.addCommandForGroup(groupId, "Leave Queue", jtacSub, jtac.requestLeaveQueue, {jtacName = jtacName, groupName = groupName})
-                    elseif isControlled then
-                        if session.awaitingMissionConfirm then
-                            missionCommands.addCommandForGroup(groupId, "Yes, still inbound", jtacSub, jtac.confirmInboundYes, {jtacName = jtacName, groupName = groupName})
-                            missionCommands.addCommandForGroup(groupId, "No, abort mission", jtacSub, jtac.confirmInboundNo, {jtacName = jtacName, groupName = groupName})
-                        elseif session.state == "IDLE" and session.noTargetScanActive then
-                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
-                        elseif session.state == "BRIEF_SENT" then
-                            if not session.readbackCodes then
-                                jtac.refreshReadbackCodes(jtacName)
-                            end
-                            local readbackSub = missionCommands.addSubMenuForGroup(groupId, "Readback & Report Established", jtacSub)
-                            if session.readbackCodes then
-                                for _, code in ipairs(session.readbackCodes) do
-                                    missionCommands.addCommandForGroup(groupId, code, readbackSub, jtac.requestReadbackCode, {jtacName = jtacName, groupName = groupName, selectedCode = code})
+                        if isQueued then
+                            missionCommands.addCommandForGroup(groupId, "Leave Queue", jtacSub, jtac.requestLeaveQueue, {jtacName = jtacName, groupName = groupName})
+                        elseif isControlled then
+                            if session.awaitingMissionConfirm then
+                                missionCommands.addCommandForGroup(groupId, "Yes, still inbound", jtacSub, jtac.confirmInboundYes, {jtacName = jtacName, groupName = groupName})
+                                missionCommands.addCommandForGroup(groupId, "No, abort mission", jtacSub, jtac.confirmInboundNo, {jtacName = jtacName, groupName = groupName})
+                            elseif session.state == "IDLE" and session.noTargetScanActive then
+                                missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
+                            elseif session.state == "BRIEF_SENT" then
+                                if not session.readbackCodes then
+                                    jtac.refreshReadbackCodes(jtacName)
                                 end
+                                local readbackSub = missionCommands.addSubMenuForGroup(groupId, "Readback & Report Established", jtacSub)
+                                if session.readbackCodes then
+                                    for _, code in ipairs(session.readbackCodes) do
+                                        missionCommands.addCommandForGroup(groupId, code, readbackSub, jtac.requestReadbackCode, {jtacName = jtacName, groupName = groupName, selectedCode = code})
+                                    end
+                                end
+                                missionCommands.addCommandForGroup(groupId, "Smoke IP", jtacSub, jtac.requestSmokeOnIp, {jtacName = jtacName, groupName = groupName})
+                                local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
+                                for _, code in ipairs(jtac.laserCodes) do
+                                    missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = code})
+                                end
+                                missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
+                            elseif session.state == "CLEARED_HOT" then
+                                missionCommands.addCommandForGroup(groupId, "New Target", jtacSub, jtac.requestNewTarget, {jtacName = jtacName, groupName = groupName})
+                                local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
+                                for _, code in ipairs(jtac.laserCodes) do
+                                    missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = code})
+                                end
+                                missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
+                            else
+                                missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, {jtacName = jtacName, groupName = groupName})
                             end
-                            missionCommands.addCommandForGroup(groupId, "Smoke IP", jtacSub, jtac.requestSmokeOnIp, {jtacName = jtacName, groupName = groupName})
-                            local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
-                            for _, code in ipairs(jtac.laserCodes) do
-                                missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = code})
-                            end
-                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
-                        elseif session.state == "CLEARED_HOT" then
-                            missionCommands.addCommandForGroup(groupId, "New Target", jtacSub, jtac.requestNewTarget, {jtacName = jtacName, groupName = groupName})
-                            local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
-                            for _, code in ipairs(jtac.laserCodes) do
-                                missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = code})
-                            end
-                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
                         else
                             missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, {jtacName = jtacName, groupName = groupName})
                         end
-                    else
-                        missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, {jtacName = jtacName, groupName = groupName})
                     end
                 end
             end
