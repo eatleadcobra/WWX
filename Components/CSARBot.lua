@@ -1634,7 +1634,7 @@ function csb.refreshCsarTransmissions()
                     args.freq = m.freq
                     args.channel = m.channel
                     args.amfm = m.modulation
-                    args.soundfile = m.soundFile
+                    args.soundFile = m.soundFile
                     args.equipment = m.equipment
                     args.signalPower = m.signalPower
                     env.info("[csb.refreshCsarTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. m.groupName, false)
@@ -1678,7 +1678,7 @@ function csb.startTransmission(args)
     end
     local unitPoint = u:getPoint()
     if unitPoint == nil then return end
-    trigger.action.radioTransmission(casEvacSoundFile, unitPoint, modulation, true, ndbFreq * 10000, signalPower, args.groupName)
+    trigger.action.radioTransmission(soundFile, unitPoint, modulation, true, ndbFreq * 10000, signalPower, args.groupName)
 
     local cmd = {}
     if eqCtrllr and eqCtrllr.setCommand then
@@ -2078,6 +2078,10 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     local createTime = timer.getTime()
     local freq = csb.getClearFreq(coalitionId,"NDB",CSARFreqs[coalitionId]["NDB"][1], CSARFreqs[coalitionId]["NDB"][2])
     local channel = csb.getClearFreq(coalitionId, "TACAN", CSARFreqs[coalitionId]["TACAN"][1],CSARFreqs[coalitionId]["TACAN"][2])
+    if freq == 0 or channel == 0 then
+        env.info("[CSB.createCasEvac] - could not find a clear freq/channel for CASEVAC", false)
+        return
+    end
     local modulation = 0
     local coalitionName = "Red"
     if coalitionId == 2 then coalitionName = "Blue" end
@@ -2123,7 +2127,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     ceMission.freq = freq
     ceMission.channel = channel
     ceMission.modulation = modulation
-    ceMission.soundfile = casEvacSoundFile
+    ceMission.soundFile = casEvacSoundFile
     ceMission.missionId = genCasEvacCounter
     ceMission.signalPower = casEvacSignalPower
     ceMission.overrun = false
@@ -2147,7 +2151,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     args.equipment = ceMission.equipment
     args.channel = ceMission.channel
     args.amfm = ceMission.modulation
-    args.soundFile = ceMission.soundfile
+    args.soundFile = ceMission.soundFile
     args.signalPower = ceMission.signalPower
     timer.scheduleFunction(csb.startTransmission, args, timer.getTime() + mist.random(10,20))
     trigger.action.outTextForCoalition(coalitionId,"CASEVAC point set up approx " .. dist .. "km " .. dir .. " of BP-" .. nearestBp .. " | NDB on " .. freq * 10 .. "kHz | TCN on " .. channel .. "X\n" .. ceMission.numCas+1 .. " casualties being stabilized and prepped for evac over the next " .. math.floor((casEvacDuration/60)+0.5) .. " minutes approx.",20,false)
@@ -2386,7 +2390,7 @@ function csb.refreshCasEvacTransmissions()
                     args.freq = m.freq
                     args.channel = m.channel
                     args.amfm = m.modulation
-                    args.soundfile = m.soundFile
+                    args.soundFile = m.soundFile
                     args.signalPower = m.signalPower
                     targetGroup = Group.getByName(args.equipment)
                     env.info("[csb.refreshCasEvacTransmissions] - Stopping ".. m.freq*10000 .."kHz transmission by ".. m.groupName, false)
