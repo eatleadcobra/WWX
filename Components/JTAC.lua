@@ -1603,9 +1603,8 @@ function jtac.updateMenusForState(jtacName, groupName)
     end
 end
 
--- cas freq broadcaster
-
-function JTAC.broadcastActiveJtacs()
+-- use with CASbot to show active JTACs on cas freq --- NOT IMPLEMENTED YET
+function JTAC.getActiveJtacs(coalitionId)
     local coalitionJtacs = { [1] = {}, [2] = {} }
     for jtacName, jtacData in pairs(jtac.jtacs) do
         local jtacUnit = Unit.getByName(jtacName)
@@ -1618,22 +1617,19 @@ function JTAC.broadcastActiveJtacs()
                     bpStr = "BP-" .. bpId
                 end
             end
-            local entry = string.format("  %s  %s AM  near %s", jtacData.callsign, jtacData.frequency, bpStr)
+            local entry = string.format("> %s - %s AM  near %s", jtacData.callsign, jtacData.frequency, bpStr)
             local cid = jtacData.coalition
             coalitionJtacs[cid][#coalitionJtacs[cid] + 1] = entry
         end
     end
-
-    local casFreqs = { [1] = REDCASFREQ, [2] = BLUECASFREQ }
-    for cid = 1, 2 do
-        if #coalitionJtacs[cid] > 0 and casFreqs[cid] then
-            local msg = "Active JTACs:\n" .. table.concat(coalitionJtacs[cid], "\n")
-            trigger.action.outTextForCoalition(cid, msg, 30, false)
-        end
+    if coalitionJtacs[coalitionId] and #coalitionJtacs[coalitionId] > 0 then
+        return "JTACS are active:\n" .. table.concat(coalitionJtacs[coalitionId], "\n")
+    else
+        return "No JTACS are currently active..."
     end
 end
 
--- misc player cleanup funcs
+-- events
 
 function jtac.cleanupPlayer(groupName)
     for jtacName, jtacData in pairs(jtac.jtacs) do
@@ -1662,8 +1658,6 @@ function jtac.cleanupPlayer(groupName)
         end
     end
 end
-
--- events
 
 function jtacEvents:onEvent(event)
     if event.id == world.event.S_EVENT_TAKEOFF or (event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT and DEBUG) then
