@@ -12,6 +12,7 @@ local jtac = {
     missionTimeout       = 300,
     noTargetScanInterval = 30,
     visualCheckInterval  = 5,
+    mapLabelRefreshInterval = 10,
     freqLower            = 225.0,
     freqUpper            = 399.975,
     freqStep             = 0.025,
@@ -72,6 +73,37 @@ function jtac.generateCallsign()
             return candidate
         end
         suffix = suffix + 1
+    end
+end
+function jtac.updateMapLabel(jtacName)
+    local jtacData = jtac.jtacs[jtacName]
+    if jtacData then
+        local jtacUnit = Unit.getByName(jtacName)
+        if jtacUnit then
+            local point = jtacUnit:getPoint()
+            if point and jtacData.mapMarkId then
+                local displayCallsign = jtacData.callsign
+                local labelPoint = {x = point.x, y = point.y + 20, z = point.z}
+                trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
+                return
+            end
+        end
+    end
+    jtac.clearMapLabel(jtacName)
+end
+function jtac.updateMapLabels()
+    for jtacName, jtacData in pairs(jtac.jtacs) do
+        if jtacName and jtacData then
+            jtac.updateMapLabel(jtacName)
+        end
+    end
+end
+function jtac.clearMapLabel(jtacName)
+    local jtacData = jtac.jtacs[jtacName]
+    if jtacData then
+        if jtacData.mapMarkId then
+            trigger.action.removeMark(jtacData.mapMarkId)
+        end
     end
 end
 function jtac.generateFrequency(coalitionId)
@@ -156,14 +188,15 @@ function JTAC.registerJtac(name, coalitionId)
         local callsign = jtac.generateCallsign()
         local frequency = jtac.generateFrequency(cid)
         jtac.jtacs[name] = {
-            spawnTime  = timer.getTime(),
-            code       = 1688,
-            callsign   = callsign,
-            frequency  = frequency,
-            modulation = "AM",
-            coalition  = cid,
-            stopLasing = false,
-            session    = jtac.newSession(),
+            spawnTime      = timer.getTime(),
+            code           = 1688,
+            callsign       = callsign,
+            mapMarkId      = DrawingTools.newMarkId(),
+            frequency      = frequency,
+            modulation     = "AM",
+            coalition      = cid,
+            stopLasing     = false,
+            session        = jtac.newSession(),
         }
         local jtacGroup = jtacUnit:getGroup()
         if jtacGroup then
@@ -178,6 +211,11 @@ function JTAC.registerJtac(name, coalitionId)
                 })
             end
         end
+        if not jtac.mapLabelsScheduled then
+            jtac.mapLabelsScheduled = true
+            timer.scheduleFunction(jtac.updateMapLabels, {}, timer.getTime() + jtac.mapLabelRefreshInterval)
+        end
+        jtac.updateMapLabel(name)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
 end
@@ -205,6 +243,7 @@ function JTAC.deRegisterJtac(name)
             end
         end
 
+        jtac.clearMapLabel(name)
         jtac.jtacs[name] = nil
     end
 end
@@ -216,7 +255,19 @@ function JTAC.spawnJtacAtPoint(point, coalitionId)
     }
     -- coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit
     local newCpy = Company.newCustomPlt(cid, false, platoonTable, false, false, false, nil, false)
-    newCpy:setWaypoints({point, point}, -1, 12)
+    local waypoints = {
+        [1] = {
+            x = point.x,
+            y = point.y,
+            z = point.z,
+        },
+        [2] = {
+            x = point.x + 1,
+            y = point.y,
+            z = point.z + 1,
+        }
+    }
+    newCpy:setWaypoints({waypoints[1], waypoints[2]}, -1, 12)
     newCpy:spawn()
     local jtacGroupName = newCpy.groupName
 
@@ -306,6 +357,7 @@ function jtac.findSpawnPointForBP(bpId)
                 if groundHeight then
                     local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
                     if hasLoS(candidate) then
+                        candidate.y = candidate.y + - jtac.jtacHeight
                         return candidate
                     end
                 end
@@ -1624,7 +1676,8 @@ function JTAC.getActiveJtacs(coalitionId)
                     bpStr = "BP-" .. bpId
                 end
             end
-            local entry = string.format("> %s - %s AM  near %s", jtacData.callsign, jtacData.frequency, bpStr)
+            local displayCallsign = jtacData.callsign
+            local entry = string.format("> %s - %s AM  near %s", displayCallsign, jtacData.frequency, bpStr)
             local cid = jtacData.coalition
             coalitionJtacs[cid][#coalitionJtacs[cid] + 1] = entry
         end
