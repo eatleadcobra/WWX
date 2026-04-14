@@ -989,7 +989,9 @@ function jtac.missionConfirmationTimeout(param)
     jtac.dequeueNext(param.jtacName)
 end
 
-function jtac.confirmInboundYes(jtacName, groupName)
+function jtac.confirmInboundYes(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
     local jtacData = jtac.jtacs[jtacName]
     if not jtacData then
         return
@@ -1004,7 +1006,9 @@ function jtac.confirmInboundYes(jtacName, groupName)
     timer.scheduleFunction(jtac.missionTimeoutCheck, {jtacName = jtacName, groupName = groupName, state = session.state}, timer.getTime() + jtac.missionTimeout)
 end
 
-function jtac.confirmInboundNo(jtacName, groupName)
+function jtac.confirmInboundNo(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
     local jtacData = jtac.jtacs[jtacName]
     if not jtacData then
         return
@@ -1026,7 +1030,9 @@ function jtac.confirmInboundNo(jtacName, groupName)
 end
 
 -- player interaction
-function jtac.requestCheckIn(jtacName, groupName)
+function jtac.requestCheckIn(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "Check in", 10)
     timer.scheduleFunction(jtac.handleCheckIn, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
@@ -1081,7 +1087,10 @@ function jtac.handleCheckIn(param)
     end
 end
 
-function jtac.requestReadbackCode(jtacName, groupName, selectedCode)
+function jtac.requestReadbackCode(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
+    local selectedCode = param.selectedCode
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "Readback " .. selectedCode, 10)
     local jtacData = jtac.jtacs[jtacName]
@@ -1101,7 +1110,9 @@ function jtac.requestReadbackCode(jtacName, groupName, selectedCode)
     end
 end
 
-function jtac.requestNewTarget(jtacName, groupName)
+function jtac.requestNewTarget(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "Request new target", 10)
     timer.scheduleFunction(jtac.handleNewTarget, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
@@ -1144,7 +1155,9 @@ function jtac.handleNewTarget(param)
     end
 end
 
-function jtac.requestAbort(jtacName, groupName)
+function jtac.requestAbort(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "No longer avilable for tasking", 10)
     timer.scheduleFunction(jtac.handleAbort, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
@@ -1240,13 +1253,18 @@ function jtac.handleBDA(jtacName)
     end
 end
 
-function jtac.requestLaserCodeChange(jtacName, groupName, newCode)
+function jtac.requestLaserCodeChange(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
+    local newCode = param.newCode
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "Request laser code " .. tostring(newCode), 10)
     timer.scheduleFunction(jtac.handleLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = newCode}, timer.getTime() + jtac.responseDelay)
 end
 
-function jtac.requestSmokeOnIp(jtacName, groupName)
+function jtac.requestSmokeOnIp(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "Request smoke on IP", 10)
     timer.scheduleFunction(jtac.smokeIp, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
@@ -1434,7 +1452,9 @@ function jtac.dequeueNext(jtacName)
     end
 end
 
-function jtac.requestLeaveQueue(jtacName, groupName)
+function jtac.requestLeaveQueue(param)
+    local jtacName = param.jtacName
+    local groupName = param.groupName
     local playerCallsign = jtac.getPlayerCallsign(groupName)
     jtac.transmitPlayer(jtacName, playerCallsign, "Leave queue", 10)
     timer.scheduleFunction(jtac.handleLeaveQueue, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
@@ -1559,13 +1579,13 @@ function jtac.updateMenusForState(jtacName, groupName)
                     end
 
                     if isQueued then
-                        missionCommands.addCommandForGroup(groupId, "Leave Queue", jtacSub, jtac.requestLeaveQueue, jtacName, groupName)
+                        missionCommands.addCommandForGroup(groupId, "Leave Queue", jtacSub, jtac.requestLeaveQueue, {jtacName = jtacName, groupName = groupName})
                     elseif isControlled then
                         if session.awaitingMissionConfirm then
-                            missionCommands.addCommandForGroup(groupId, "Yes, still inbound", jtacSub, jtac.confirmInboundYes, jtacName, groupName)
-                            missionCommands.addCommandForGroup(groupId, "No, abort mission", jtacSub, jtac.confirmInboundNo, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "Yes, still inbound", jtacSub, jtac.confirmInboundYes, {jtacName = jtacName, groupName = groupName})
+                            missionCommands.addCommandForGroup(groupId, "No, abort mission", jtacSub, jtac.confirmInboundNo, {jtacName = jtacName, groupName = groupName})
                         elseif session.state == "IDLE" and session.noTargetScanActive then
-                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
                         elseif session.state == "BRIEF_SENT" then
                             if not session.readbackCodes then
                                 jtac.refreshReadbackCodes(jtacName)
@@ -1573,29 +1593,27 @@ function jtac.updateMenusForState(jtacName, groupName)
                             local readbackSub = missionCommands.addSubMenuForGroup(groupId, "Readback & Report Established", jtacSub)
                             if session.readbackCodes then
                                 for _, code in ipairs(session.readbackCodes) do
-                                    missionCommands.addCommandForGroup(groupId, code, readbackSub, jtac.requestReadbackCode, jtacName, groupName, code)
+                                    missionCommands.addCommandForGroup(groupId, code, readbackSub, jtac.requestReadbackCode, {jtacName = jtacName, groupName = groupName, selectedCode = code})
                                 end
-                            else
-                                missionCommands.addCommandForGroup(groupId, "Readback & Report Established", jtacSub, jtac.requestReadback, jtacName, groupName)
                             end
-                            missionCommands.addCommandForGroup(groupId, "Smoke IP", jtacSub, jtac.requestSmokeOnIp, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "Smoke IP", jtacSub, jtac.requestSmokeOnIp, {jtacName = jtacName, groupName = groupName})
                             local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
                             for _, code in ipairs(jtac.laserCodes) do
-                                missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, jtacName, groupName, code)
+                                missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = code})
                             end
-                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
                         elseif session.state == "CLEARED_HOT" then
-                            missionCommands.addCommandForGroup(groupId, "New Target", jtacSub, jtac.requestNewTarget, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "New Target", jtacSub, jtac.requestNewTarget, {jtacName = jtacName, groupName = groupName})
                             local laserSub = missionCommands.addSubMenuForGroup(groupId, "Request Laser Code", jtacSub)
                             for _, code in ipairs(jtac.laserCodes) do
-                                missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, jtacName, groupName, code)
+                                missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = code})
                             end
-                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
                         else
-                            missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, jtacName, groupName)
+                            missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, {jtacName = jtacName, groupName = groupName})
                         end
                     else
-                        missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, jtacName, groupName)
+                        missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, {jtacName = jtacName, groupName = groupName})
                     end
                 end
             end
