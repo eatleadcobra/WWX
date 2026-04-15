@@ -13,6 +13,7 @@ local jtac = {
     noTargetScanInterval = 30,
     visualCheckInterval  = 5,
     mapLabelRefreshInterval = 10,
+    maxActivePerCoalition = 9,
     freqLower            = 225.0,
     freqUpper            = 399.975,
     freqStep             = 0.025,
@@ -93,9 +94,36 @@ function jtac.updateMapLabel(jtacName)
     jtac.clearMapLabel(jtacName)
 end
 function jtac.updateMapLabels()
+    local deadJtacs = {}
     for jtacName, jtacData in pairs(jtac.jtacs) do
         if jtacName and jtacData then
-            jtac.updateMapLabel(jtacName)
+            local jtacUnit = Unit.getByName(jtacName)
+            if jtacUnit then
+                jtac.updateMapLabel(jtacName)
+            else
+                deadJtacs[#deadJtacs + 1] = jtacName
+            end
+        end
+    end
+    for i = 1, #deadJtacs do
+        JTAC.deRegisterJtac(deadJtacs[i])
+    end
+    return timer.getTime() + jtac.mapLabelRefreshInterval
+end
+
+function jtac.removeJtacMenus(jtacName)
+    for groupName, menuData in pairs(jtac.jtacMenu) do
+        if groupName and menuData then
+            if menuData[jtacName] then
+                local group = Group.getByName(groupName)
+                if group then
+                    local groupId = group:getID()
+                    if groupId then
+                        missionCommands.removeItemForGroup(groupId, menuData[jtacName])
+                    end
+                end
+                menuData[jtacName] = nil
+            end
         end
     end
 end
@@ -252,6 +280,7 @@ function JTAC.deRegisterJtac(name)
             end
         end
 
+        jtac.removeJtacMenus(name)
         jtac.clearMapLabel(name)
         jtac.jtacs[name] = nil
     end
@@ -299,6 +328,16 @@ function JTAC.getActiveJtacCount()
     return count
 end
 
+function JTAC.getActiveJtacCountByCoalition(coalitionId)
+    local count = 0
+    for _, jtacData in pairs(jtac.jtacs) do
+        if jtacData and jtacData.coalition == coalitionId then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 function JTAC.getOldestJtac()
     local oldestName = nil
     local oldestTime = math.huge
@@ -306,6 +345,20 @@ function JTAC.getOldestJtac()
         if jtacData and jtacData.spawnTime and jtacData.spawnTime < oldestTime then
             oldestName = jtacName
             oldestTime = jtacData.spawnTime
+        end
+    end
+    return oldestName
+end
+
+function JTAC.getOldestJtacByCoalition(coalitionId)
+    local oldestName = nil
+    local oldestTime = math.huge
+    for jtacName, jtacData in pairs(jtac.jtacs) do
+        if jtacData and jtacData.coalition == coalitionId then
+            if jtacData.spawnTime and jtacData.spawnTime < oldestTime then
+                oldestName = jtacName
+                oldestTime = jtacData.spawnTime
+            end
         end
     end
     return oldestName
@@ -389,10 +442,10 @@ function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
         return
     end
 
-    if JTAC.getActiveJtacCount() >= 9 then
-        local oldest = JTAC.getOldestJtac()
+    if JTAC.getActiveJtacCountByCoalition(cid) >= jtac.maxActivePerCoalition then
+        local oldest = JTAC.getOldestJtacByCoalition(cid)
         if oldest then
-            env.info("JTAC: max active JTACs reached, deregistering oldest JTAC " .. oldest, false)
+            env.info("JTAC: coalition " .. tostring(cid) .. " max active JTACs reached, deregistering oldest JTAC " .. oldest, false)
             JTAC.deRegisterJtac(oldest)
         end
     end
@@ -537,12 +590,34 @@ function jtac.performBrief(param)
         end
     end
 end
+
+function jtac.performIncorrectReadbackBrief(param)
+    local jtacData = jtac.jtacs[param.jtacName]
+    if jtacData then
+        local session = jtacData.session
+        if session then
+            if session.controlledFlight == param.groupName then
+                if session.currentTarget then
+                    local briefText = jtac.build9Line(param.jtacName, session.currentTarget)
+                    if briefText then
+                        jtac.setSessionState(param.jtacName, param.groupName, "READBACK_INCORRECT")
+                        local message = "Incorrect readback. 9-LINE follows:\n" .. briefText
+                        jtac.transmit(param.jtacName, message, 30)
+                        jtac.scheduleRetransmit(param.jtacName, "READBACK_INCORRECT")
+                        jtac.updateMenusForState(param.jtacName, param.groupName)
+                    end
+                end
+            end
+        end
+    end
+end
+
 function jtac.performReadback(param)
     local jtacData = jtac.jtacs[param.jtacName]
     if jtacData then
         local session = jtacData.session
         if session then
-            if session.state == "BRIEF_SENT" then
+            if session.state == "BRIEF_SENT" or session.state == "READBACK_INCORRECT" then
                 if session.controlledFlight == param.groupName then
                     jtac.setSessionState(param.jtacName, param.groupName, "CLEARED_HOT")
                     jtac.laseTarget(param.jtacName)
@@ -998,7 +1073,7 @@ function jtac.setSessionState(jtacName, groupName, newState)
         if session then
             session.state = newState
             session.awaitingMissionConfirm = false
-            if newState == "BRIEF_SENT" or newState == "CLEARED_HOT" then
+            if newState == "BRIEF_SENT" or newState == "READBACK_INCORRECT" or newState == "CLEARED_HOT" then
                 timer.scheduleFunction(jtac.missionTimeoutCheck, {jtacName = jtacName, groupName = groupName, state = newState}, timer.getTime() + jtac.missionTimeout)
             end
         end
@@ -1153,12 +1228,11 @@ function jtac.requestReadbackCode(param)
     if jtacData then
         local session = jtacData.session
         if session then
-            if session.state == "BRIEF_SENT" and session.controlledFlight == groupName then
+            if (session.state == "BRIEF_SENT" or session.state == "READBACK_INCORRECT") and session.controlledFlight == groupName then
                 if session.readbackCode == selectedCode then
                     timer.scheduleFunction(jtac.performReadback, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
                 else
-                    jtac.refreshReadbackCodes(jtacName)
-                    timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = groupName, prefix = "Incorrect readback. 9-LINE follows:"}, timer.getTime() + jtac.responseDelay)
+                    timer.scheduleFunction(jtac.performIncorrectReadbackBrief, {jtacName = jtacName, groupName = groupName}, timer.getTime() + jtac.responseDelay)
                     jtac.updateMenusForState(jtacName, groupName)
                 end
             end
@@ -1228,7 +1302,7 @@ function jtac.handleAbort(param)
         if jtacUnit then
             local session = jtacData.session
             if session and session.controlledFlight == groupName then
-                if session.state == "BRIEF_SENT" or session.state == "CLEARED_HOT" or session.noTargetScanActive then
+                if session.state == "BRIEF_SENT" or session.state == "READBACK_INCORRECT" or session.state == "CLEARED_HOT" or session.noTargetScanActive then
                     if session.state == "CLEARED_HOT" then
                         jtacData.stopLasing = true
                     end
@@ -1647,7 +1721,7 @@ function jtac.updateMenusForState(jtacName, groupName)
                                 missionCommands.addCommandForGroup(groupId, "No, abort mission", jtacSub, jtac.confirmInboundNo, {jtacName = jtacName, groupName = groupName})
                             elseif session.state == "IDLE" and session.noTargetScanActive then
                                 missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
-                            elseif session.state == "BRIEF_SENT" then
+                            elseif session.state == "BRIEF_SENT" or session.state == "READBACK_INCORRECT" then
                                 if not session.readbackCodes then
                                     jtac.refreshReadbackCodes(jtacName)
                                 end
