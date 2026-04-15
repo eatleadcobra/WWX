@@ -512,8 +512,10 @@ function jtac.countDetectedTargets(param)
     if targets then
         targetCount = #targets
     end
-    jtac.jtacs[jtacName].session.targetCount = targetCount
-    timer.scheduleFunction(jtac.countDetectedTargets, {jtacName = jtacName}, timer.getTime() + 120)
+    if jtac.jtacs[jtacName] and jtac.jtacs[jtacName].session then
+        jtac.jtacs[jtacName].session.targetCount = targetCount
+        timer.scheduleFunction(jtac.countDetectedTargets, {jtacName = jtacName}, timer.getTime() + 120)
+    end
 end
 
 function jtac.buildIdleStatusMessage(jtacName)
