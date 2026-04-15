@@ -30,6 +30,7 @@ local jtac = {
     jtacs                = {},
     jtacList             = {},
     jtacMenu             = {},
+    idleBroadcastInterval = 16,
     laserCodes           = { 1688, 1111, 1511, 1522, 1533, 1544, 1555, 1566, 1577 },
 }
 local lasing = {}
@@ -245,6 +246,7 @@ function JTAC.registerJtac(name, coalitionId)
         end
         jtac.jtacList[#jtac.jtacList + 1] = name
         jtac.updateMapLabel(name)
+        timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
 end
@@ -461,6 +463,84 @@ function JTAC.getAllBPIds()
         end
     end
     return bpIds
+end
+
+function jtac.getNearestBpInfo(jtacName)
+    local result = nil
+    local jtacUnit = Unit.getByName(jtacName)
+    if jtacUnit then
+        local jtacPoint = jtacUnit:getPoint()
+        if jtacPoint then
+            local bpIds = JTAC.getAllBPIds()
+            local bestBp = nil
+            local bestDist = math.huge
+            local bestBpPoint = nil
+
+            for i = 1, #bpIds do
+                local zone = trigger.misc.getZone("BP-" .. tostring(bpIds[i]))
+                if zone and zone.point then
+                    local bpPoint = {x = zone.point.x, y = 0, z = zone.point.z}
+                    local dist = Utils.PointDistance(bpPoint, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
+                    if dist < bestDist then
+                        bestDist = dist
+                        bestBp = bpIds[i]
+                        bestBpPoint = bpPoint
+                    end
+                end
+            end
+
+            if bestBp and bestBpPoint then
+                local bearing = Utils.GetBearingDeg(bestBpPoint, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
+                if bearing >= 360 then
+                    bearing = bearing - 360
+                end
+                local distanceNm = tonumber(string.format("%.0f", bestDist / 1852))
+                result = {bpId = bestBp, bearing = math.floor(bearing + 0.5), distanceNm = distanceNm}
+            end
+        end
+    end
+    return result
+end
+
+function jtac.countDetectedTargets(jtacName)
+    local targetCount = 0
+    local targets = jtac.detectUnits(jtacName)
+    if targets then
+        targetCount = #targets
+    end
+    return targetCount
+end
+
+function jtac.buildIdleStatusMessage(jtacName)
+    local message = nil
+    local jtacData = jtac.jtacs[jtacName]
+    if jtacData then
+        local bpInfo = jtac.getNearestBpInfo(jtacName)
+        local targetCount = jtac.countDetectedTargets(jtacName)
+        local targetText = targetCount == 0 and "no targets" or tostring(targetCount) .. " target" .. (targetCount == 1 and "" or "s")
+
+        if bpInfo then
+            message = string.format("%s available for laser. Nearest BP-%d, %03d° at %d NM. %s.", jtacData.callsign, bpInfo.bpId, bpInfo.bearing, bpInfo.distanceNm, targetText)
+        else
+            message = string.format("%s available for laser. %s.", jtacData.callsign, targetText)
+        end
+    end
+    return message
+end
+
+function jtac.idleStatusBroadcast(param)
+    local jtacData = jtac.jtacs[param.jtacName]
+    if jtacData then
+        local session = jtacData.session
+        if session and session.state == "IDLE" and not session.controlledFlight then
+            local message = jtac.buildIdleStatusMessage(param.jtacName)
+            if message then
+                jtac.transmit(param.jtacName, message, 15, false)
+            end
+        end
+    end
+
+    timer.scheduleFunction(jtac.idleStatusBroadcast, param, timer.getTime() + jtac.idleBroadcastInterval)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
