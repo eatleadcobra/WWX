@@ -49,6 +49,7 @@ function jtac.newSession()
         messageDuration            = 15,
         noTargetScanActive         = false,
         visualCalloutSent          = false,
+        targetCount                = 0,
         lastUpdateTime             = timer.getTime()
     }
 end
@@ -246,6 +247,7 @@ function JTAC.registerJtac(name, coalitionId)
         end
         jtac.jtacList[#jtac.jtacList + 1] = name
         jtac.updateMapLabel(name)
+        timer.scheduleFunction(jtac.countDetectedTargets, {jtacName = name}, timer.getTime() + 1)
         timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
@@ -502,13 +504,16 @@ function jtac.getNearestBpInfo(jtacName)
     return result
 end
 
-function jtac.countDetectedTargets(jtacName)
+-- TODO merge this into the noTargetScanInterval function
+function jtac.countDetectedTargets(param)
+    local jtacName = param.jtacName
     local targetCount = 0
     local targets = jtac.detectUnits(jtacName)
     if targets then
         targetCount = #targets
     end
-    return targetCount
+    jtac.jtacs[jtacName].session.targetCount = targetCount
+    timer.scheduleFunction(jtac.countDetectedTargets, {jtacName = jtacName}, timer.getTime() + 120)
 end
 
 function jtac.buildIdleStatusMessage(jtacName)
@@ -516,7 +521,7 @@ function jtac.buildIdleStatusMessage(jtacName)
     local jtacData = jtac.jtacs[jtacName]
     if jtacData then
         local bpInfo = jtac.getNearestBpInfo(jtacName)
-        local targetCount = jtac.countDetectedTargets(jtacName)
+        local targetCount = jtacData.session.targetCount or 0
         local targetText = targetCount == 0 and "no targets" or tostring(targetCount) .. " target" .. (targetCount == 1 and "" or "s")
 
         if bpInfo then
