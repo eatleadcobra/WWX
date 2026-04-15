@@ -8,7 +8,7 @@ local jtac = {
     jtacHeight           = 1.8,
     vehicleHeight        = 2.5,
     queueStatusDuration  = 30,
-    responseDelay        = 5,
+    responseDelay        = 3,
     missionTimeout       = 900,
     noTargetScanInterval = 30,
     visualCheckInterval  = 5,
@@ -433,7 +433,7 @@ function jtac.findSpawnPointForBP(bpId)
 end
 
 function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
-    local cid = coalitionId or 2
+    local cid = coalitionId
     if not bpId then
         env.info("JTAC: spawn request missing BP id", false)
         return
@@ -945,8 +945,34 @@ function jtac.buildVectorFromJtac(jtacPoint, targetPoint)
     end
     return "unknown"
 end
+function jtac.requestMarkJtacWithFlare(param)
+    local jtacName = param.jtacName
+    if param.groupName then
+        local playerCallsign = jtac.getPlayerCallsign(param.groupName)
+        jtac.transmitPlayer(jtacName, playerCallsign, "Request Flare", 30)
 
-function jtac.markJtacWithFlare(jtacName)
+        local colour = math.random(0, 3)
+        local flareColour               
+        if colour == 0 then
+            flareColour = "green"
+        elseif colour == 1 then
+            flareColour = "red"
+        elseif colour == 2 then
+            flareColour = "white"
+        elseif colour == 3 then
+            flareColour = "yellow"
+        end
+        local msg = "Affirm, Marking my location with " .. flareColour .. " flare."
+        jtac.markJtacWithFlare({jtacName = jtacName, colour = colour})
+        jtac.transmit(param.jtacName, msg, 30, false)
+    end
+end
+function jtac.markJtacWithFlare(param)
+    local jtacName = param.jtacName
+    local colour = param.colour
+    if not colour then
+        colour = 0
+    end
     local jtacUnit = Unit.getByName(jtacName)
     if jtacUnit then
         local point = jtacUnit:getPoint()
@@ -956,11 +982,15 @@ function jtac.markJtacWithFlare(jtacName)
                 y = land.getHeight({x = point.x, y = point.z}) + 1,
                 z = point.z,
             }
-            trigger.action.signalFlare(flarePoint, 0, 0)
+            timer.scheduleFunction(jtac.scheduleFlare, {point = flarePoint, colour = colour , azimuth = 0}, timer.getTime() + 1.5)
+            timer.scheduleFunction(jtac.scheduleFlare, {point = flarePoint, colour = colour , azimuth = 120}, timer.getTime() + 2)
+            timer.scheduleFunction(jtac.scheduleFlare, {point = flarePoint, colour = colour , azimuth = 240}, timer.getTime() + 2.5)
         end
     end
 end
-
+function jtac.scheduleFlare(param)
+    trigger.action.signalFlare(param.point, param.colour, param.azimuth)
+end
 function jtac.visualCheck(param)
     local nextRun = nil
     local jtacData = jtac.jtacs[param.jtacName]
@@ -983,8 +1013,19 @@ function jtac.visualCheck(param)
                             if distToTarget <= (5 * 1852) then
                                 local playerName = session.controlledFlightPlayerName or "Flight"
                                 local vector = jtac.buildVectorFromJtac(jtacPoint, targetPoint)
-                                local msg = playerName .. ", I have you visually! Marking my location with flare. Target is " .. vector .. " from my position."
-                                jtac.markJtacWithFlare(param.jtacName)
+                                local colour = math.random(0, 3)
+                                local flareColour               
+                                if colour == 0 then
+                                    flareColour = "green"
+                                elseif colour == 1 then
+                                    flareColour = "red"
+                                elseif colour == 2 then
+                                    flareColour = "white"
+                                elseif colour == 3 then
+                                    flareColour = "yellow"
+                                end
+                                local msg = playerName .. ", I have you visually! Marking my location with " .. flareColour .. " flare. Target is " .. vector .. " from my position."
+                                jtac.markJtacWithFlare({jtacName = param.jtacName, colour = colour})
                                 jtac.transmit(param.jtacName, msg, 30, false)
                                 session.visualCalloutSent = true
                             end
@@ -1794,6 +1835,7 @@ function jtac.createJtacSubmenu(groupName, groupId, jtacName)
                         for _, code in ipairs(jtac.laserCodes) do
                             missionCommands.addCommandForGroup(groupId, tostring(code), laserSub, jtac.requestLaserCodeChange, {jtacName = jtacName, groupName = groupName, newCode = code})
                         end
+                        missionCommands.addCommandForGroup(groupId, "Mark JTAC with flare", jtacSub, jtac.requestMarkJtacWithFlare, {jtacName = jtacName, groupName = groupName})
                         missionCommands.addCommandForGroup(groupId, "Abort", jtacSub, jtac.requestAbort, {jtacName = jtacName, groupName = groupName})
                     else
                         missionCommands.addCommandForGroup(groupId, "Check In", jtacSub, jtac.requestCheckIn, {jtacName = jtacName, groupName = groupName})
