@@ -44,7 +44,6 @@ function jtac.newSession()
         queueStatusActive          = false,
         currentTarget              = nil,
         briefData                  = nil,
-        retransmitTimer            = nil,
         lastMessage                = nil,
         messageDuration            = 15,
         noTargetScanActive         = false,
@@ -135,7 +134,7 @@ function jtac.clearMapLabel(jtacName)
         end
     end
 end
-function jtac.generateFrequency(coalitionId)
+function jtac.generateFrequency(coalitionId) -- coalitionid is to support different coalition ranges in future
     local excluded = {}
     excluded[jtac.guardFreq] = true
     if BLUECASFREQ then
@@ -1084,7 +1083,7 @@ function jtac.missionTimeoutCheck(param)
     if jtacData then
         local session = jtacData.session
         if session and not session.awaitingMissionConfirm then
-            if not (session.lastUpdateTime and timer.getTime() - session.lastUpdateTime > jtac.missionTimeout) then
+            if session.lastUpdateTime and ((timer.getTime() - session.lastUpdateTime) > jtac.missionTimeout) then
                 if session.controlledFlight == param.groupName then
                     local playerName = session.controlledFlightPlayerName or "Flight"
                     local msg = playerName .. ", still inbound? Reply on the JTAC menu: YES to continue, NO to abort."
