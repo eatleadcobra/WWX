@@ -963,9 +963,12 @@ function jtac.requestMarkJtacWithFlare(param)
             flareColour = "yellow"
         end
         local msg = "Affirm, Marking my location with " .. flareColour .. " flare."
-        jtac.markJtacWithFlare({jtacName = jtacName, colour = colour})
-        jtac.transmit(param.jtacName, msg, 30, false)
+        timer.scheduleFunction(jtac.scheduleTransmit, {jtacName = param.jtacName, message = msg, duration = 30}, timer.getTime() + jtac.responseDelay)
+        timer.scheduleFunction(jtac.markJtacWithFlare, {jtacName = jtacName, colour = colour}, timer.getTime() + jtac.responseDelay)
     end
+end
+function jtac.scheduleTransmit(param)
+    jtac.transmit(param.jtacName, param.message, param.duration, false)
 end
 function jtac.markJtacWithFlare(param)
     local jtacName = param.jtacName
