@@ -1157,6 +1157,7 @@ function jtac.trackLaser(param)
                     local tp = target:getPoint()
                     if tp then
                         if lasingInfo.laser then
+                            tp.y = tp.y + 1 -- laser seems to be on the very bottom of the vehicle, adjustment to hopefully make it hit the middle
                             lasingInfo.laser:setPoint(tp)
                         end
                         timer.scheduleFunction(jtac.trackLaser, param, timer.getTime() + jtac.trackingInterval)
