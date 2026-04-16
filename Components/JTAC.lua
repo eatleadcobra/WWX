@@ -422,9 +422,10 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
             local bearStart = 0
             local bearStop = 330
             if depotBearing then
-                bearStart = depotBearing - 110
-                bearStop = depotBearing + 110
+                bearStart = depotBearing - 80
+                bearStop = depotBearing + 80
             end
+            env.info("Jtac spawning between bearing " .. tostring(bearStart) .. " and " .. tostring(bearStop) .. " from BP-" .. tostring(bpId), false)
             for radius = minRadius, maxRadius, radiusStep do
                 for bearing = bearStart, bearStop, bearingStep do
                     local rad = math.rad(bearing)
@@ -1992,4 +1993,5 @@ world.addEventHandler(jtacEvents)
 
 if DEBUG then
     JTAC.spawnJtacsAtRandomBPs(4, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
+    JTAC.spawnJtacsAtRandomBPs(4, 1)
 end
