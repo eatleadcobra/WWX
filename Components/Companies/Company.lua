@@ -179,7 +179,7 @@ function Company.spawn(self, options)
     if self.isShip then
         points = self.waypoints
     end
-    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType ~= "INF" and self.cpyType ~= "RECON" then
+    if self.onRoad == false and self.arrived == false and self.isShip == false and self.cpyType ~= "INF" and self.cpyType ~= "RECON" and self.cpyType ~= "JTAC" then
         local vector = Utils.VecNormalize({x = self.waypoints[1].x - self.waypoints[2].x, y = self.waypoints[1].y - self.waypoints[2].y, z = self.waypoints[1].z - self.waypoints[2].z})
         local formPoint = Utils.VectorAdd(self.waypoints[2], Utils.ScalarMult(vector, 1000))
         local roadPointx, roadPointy = land.getClosestPointOnRoads("roads", formPoint.x, formPoint.z)
@@ -251,6 +251,15 @@ function Company.spawn(self, options)
             self.casTracked = true
             if DFS then
                 timer.scheduleFunction(DFS.reconSetup, self.groupName, timer:getTime() + 1)
+            end
+        end
+        if Companies[self.id] and JTAC and self.cpyType and self.cpyType == "JTAC" then
+            local cpyGroup = Group.getByName(self.groupName)
+            if cpyGroup then
+                local leadUnit = cpyGroup:getUnit(1)
+                if leadUnit then
+                    JTAC.registerJtac(leadUnit:getName(), self.coalitionId)
+                end
             end
         end
     end

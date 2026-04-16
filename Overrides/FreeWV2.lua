@@ -30,6 +30,7 @@ CSAR = true
 CAS = true
 STRIKES = true
 REAPER = false
+JTACS = true
 INTERCEPT = false
 SHIPPING = true
 TRAINS = true

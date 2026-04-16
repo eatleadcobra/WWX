@@ -1,5 +1,6 @@
 Troopmarks = {}
 Recontroopmarks = {}
+Jtactroopmarks = {}
 local tdEvents = {}
 function tdEvents:onEvent(event)
     --on mark change
@@ -18,6 +19,9 @@ function tdEvents:onEvent(event)
                 elseif (string.upper(event.text) == 'RECON') then
                     Recontroopmarks[playerName] = {point = event.pos, id = event.idx}
                     trigger.action.outTextForCoalition(playerCoalition, "RECON marker added for " .. playerName, 5, false)
+                elseif (string.upper(event.text) == 'JTAC') then
+                    Jtactroopmarks[playerName] = {point = event.pos, id = event.idx}
+                    trigger.action.outTextForCoalition(playerCoalition, "JTAC marker added for " .. playerName, 5, false)
                 end
             end
         end
@@ -37,6 +41,9 @@ function tdEvents:onEvent(event)
             elseif playerName and playerCoalition and Recontroopmarks[playerName] and Recontroopmarks[playerName].id == event.idx then
                 Recontroopmarks[playerName] = nil
                 trigger.action.outTextForCoalition(playerCoalition, "RECON marker removed for " .. playerName, 5, false)
+            elseif playerName and playerCoalition and Jtactroopmarks[playerName] and Jtactroopmarks[playerName].id == event.idx then
+                Jtactroopmarks[playerName] = nil
+                trigger.action.outTextForCoalition(playerCoalition, "JTAC marker removed for " .. playerName, 5, false)
             end
         end
     end
