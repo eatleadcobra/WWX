@@ -663,12 +663,14 @@ function cpyctl.getShipPoints(coalitionId, overrideStartPoint)
     end
     return shipPoints
 end
-
-cpyctl.getCompanies()
-cpyctl.spawnCompanies()
-cpyctl.saveLoop()
-cpyctl.cpyStatusLoop()
-cpyctl.teamFuelConsumptionLoop()
-if CONTROLLABLE_COMPANIES then
-    cpyctl.babysitter()
+function cpyctl.startup()
+   cpyctl.getCompanies()
+    cpyctl.spawnCompanies()
+    cpyctl.saveLoop()
+    cpyctl.cpyStatusLoop()
+    cpyctl.teamFuelConsumptionLoop()
+    if CONTROLLABLE_COMPANIES then
+        cpyctl.babysitter()
+    end
 end
+timer.scheduleFunction(cpyctl.startup, nil, timer:getTime() + 1)
