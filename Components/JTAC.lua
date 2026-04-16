@@ -397,10 +397,10 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
             local bpCenter = {x = zone.point.x, z = zone.point.z}
             local bpRadius = zone.radius or 0
             local bpPoints = jtac.getBPSamplePoints(bpCenter, bpRadius)
-            local depot = Utils.getNearestDepotFromBP(bpId, coalitionId)
+            local depot = BattleControl.getNearestDepotFromBP(bpId, coalitionId)
             local depotBearing = nil
             if depot then
-                depotBearing = Utils.getBearingToDepotFromBP(bpId, depot)
+                depotBearing = BattleControl.getBearingToDepotFromBP(bpId, depot)
             end
             local function hasLoS(candidate)
                 for i = 1, #bpPoints do
@@ -473,40 +473,21 @@ function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
     env.info("JTAC: invalid BP ID " .. tostring(bpId) .. ", skipping spawn", false)
 end
 
-function jtac.getNearestBp(point)
-    local bpIds = Utils.getAllBPIds()
-    local bestBp = nil
-    local bestDist = math.huge
-
-    for i = 1, #bpIds do
-        local zone = trigger.misc.getZone("BP-" .. tostring(bpIds[i]))
-        if zone and zone.point then
-            local bpPoint = {x = zone.point.x, y = 0, z = zone.point.z}
-            local dist = Utils.PointDistance(bpPoint, {x = point.x, y = 0, z = point.z})
-            if dist < bestDist then
-                bestDist = dist
-                bestBp = bpIds[i]
-            end
-        end
-    end
-    return bestBp
-end
 function jtac.getNearestBpInfo(jtacName)
     local result = nil
     local jtacUnit = Unit.getByName(jtacName)
     if jtacUnit then
         local jtacPoint = jtacUnit:getPoint()
         if jtacPoint then
-            local bestBp = jtac.getNearestBp(jtacPoint)
+            local bestBp, distToBp = BattleControl.getClosestBp(jtacPoint)
             if bestBp then
-                local zone = trigger.misc.getZone("BP-" .. tostring(bestBp))
-                if zone and zone.point then
-                    local bearing = Utils.GetBearingDeg(zone.point, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
-                    local dist = Utils.PointDistance(zone.point, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
+                local bpPoint = BattleControl.getBPPoint(bestBp)
+                if bpPoint then
+                    local bearing = Utils.GetBearingDeg(bpPoint, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
                     if bearing >= 360 then
                         bearing = bearing - 360
                     end
-                    local distanceNm = tonumber(string.format("%.0f", dist / 1852))
+                    local distanceNm = tonumber(string.format("%.0f", distToBp / 1852))
                     result = {bpId = bestBp, bearing = math.floor(bearing + 0.5), distanceNm = distanceNm}
                 end
             end
@@ -562,7 +543,7 @@ function jtac.idleStatusBroadcast(param)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
-    local bpIds = Utils.getAllBPIds()
+    local bpIds = BattleControl.getAllBPIds()
     if #bpIds == 0 then
         env.info("JTAC: no BP zones found for debug spawn", false)
         return
@@ -871,7 +852,7 @@ function jtac.calculateIP(targetPoint, playerGroupName)
                 local playerPoint = playerUnit:getPoint()
                 if playerPoint then
                     local bearingToAircraft = Utils.GetBearingDeg(targetPoint, playerPoint)
-                    local ipDistance = jtac.ipRange                    
+                    local ipDistance = jtac.ipRange
                     local rad = math.rad(bearingToAircraft)
                     local ipPoint = {
                         x = targetPoint.x + math.cos(rad) * ipDistance,
