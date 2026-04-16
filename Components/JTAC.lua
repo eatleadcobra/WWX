@@ -388,76 +388,69 @@ end
 function jtac.findSpawnPointForBP(bpId)
     local zoneName = "BP-" .. tostring(bpId)
     local zone = trigger.misc.getZone(zoneName)
-    if not zone or not zone.point then
-        return nil
-    end
+    if zone and zone.point then
+        local bpCenter = {x = zone.point.x, z = zone.point.z}
+        local bpRadius = zone.radius or 0
+        local bpPoints = getBPSamplePoints(bpCenter, bpRadius)
 
-    local bpCenter = {x = zone.point.x, z = zone.point.z}
-    local bpRadius = zone.radius or 0
-    local bpPoints = getBPSamplePoints(bpCenter, bpRadius)
-
-    local function hasLoS(candidate)
-        for i = 1, #bpPoints do
-            local sample = bpPoints[i]
-            local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
-            if sampleHeight then
-                local target = {x = sample.x, y = sampleHeight + jtac.jtacHeight, z = sample.z}
-                if land.isVisible(candidate, target) then
-                    return true
+        local function hasLoS(candidate)
+            for i = 1, #bpPoints do
+                local sample = bpPoints[i]
+                local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
+                if sampleHeight then
+                    local target = {x = sample.x, y = sampleHeight + jtac.jtacHeight, z = sample.z}
+                    if land.isVisible(candidate, target) then
+                        return true
+                    end
                 end
             end
+            return false
         end
-        return false
-    end
 
-    local minRadius = bpRadius + 2000
-    local maxRadius = bpRadius + 5000
-    local radiusStep = 250
-    local bearingStep = 30
-    for radius = minRadius, maxRadius, radiusStep do
-        for bearing = 0, 330, bearingStep do
-            local rad = math.rad(bearing)
-            local candidateX = bpCenter.x + radius * math.cos(rad)
-            local candidateZ = bpCenter.z + radius * math.sin(rad)
-            local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
-            if distance >= minRadius and distance <= maxRadius then
-                local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
-                if groundHeight then
-                    local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
-                    if hasLoS(candidate) then
-                        candidate.y = candidate.y + - jtac.jtacHeight
-                        return candidate
+        local minRadius = bpRadius + 2000
+        local maxRadius = bpRadius + 5000
+        local radiusStep = 250
+        local bearingStep = 30
+        for radius = minRadius, maxRadius, radiusStep do
+            for bearing = 0, 330, bearingStep do
+                local rad = math.rad(bearing)
+                local candidateX = bpCenter.x + radius * math.cos(rad)
+                local candidateZ = bpCenter.z + radius * math.sin(rad)
+                local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
+                if distance >= minRadius and distance <= maxRadius then
+                    local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
+                    if groundHeight then
+                        local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
+                        if hasLoS(candidate) then
+                            candidate.y = candidate.y + - jtac.jtacHeight
+                            return candidate
+                        end
                     end
                 end
             end
         end
     end
-    return nil
 end
 
 function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
     local cid = coalitionId
-    if not bpId then
-        env.info("JTAC: spawn request missing BP id", false)
-        return
-    end
-
-    local spawnPoint = jtac.findSpawnPointForBP(bpId)
-    if not spawnPoint then
-        env.info("JTAC: no valid spawn point found for BP-" .. tostring(bpId), false)
-        return
-    end
-
-    if JTAC.getActiveJtacCountByCoalition(cid) >= jtac.maxActivePerCoalition then
-        local oldest = JTAC.getOldestJtacByCoalition(cid)
-        if oldest then
-            env.info("JTAC: coalition " .. tostring(cid) .. " max active JTACs reached, deregistering oldest JTAC " .. oldest, false)
-            JTAC.deRegisterJtac(oldest)
+    if bpId then
+        local spawnPoint = jtac.findSpawnPointForBP(bpId)
+        if spawnPoint then
+            if JTAC.getActiveJtacCountByCoalition(cid) >= jtac.maxActivePerCoalition then
+                local oldest = JTAC.getOldestJtacByCoalition(cid)
+                if oldest then
+                    env.info("JTAC: coalition " .. tostring(cid) .. " max active JTACs reached, deregistering oldest JTAC " .. oldest, false)
+                    JTAC.deRegisterJtac(oldest)
+                end
+            end
+            env.info("JTAC: spawning near BP-" .. tostring(bpId) .. " for coalition " .. tostring(cid), false)
+            JTAC.spawnJtacAtPoint(spawnPoint, cid)
+            return
         end
+        env.info("JTAC: failed to find spawn point for BP-" .. tostring(bpId) .. ", skipping spawn", false)
     end
-
-    env.info("JTAC: spawning near BP-" .. tostring(bpId) .. " for coalition " .. tostring(cid), false)
-    JTAC.spawnJtacAtPoint(spawnPoint, cid)
+    env.info("JTAC: invalid BP ID " .. tostring(bpId) .. ", skipping spawn", false)
 end
 
 function JTAC.getAllBPIds()
