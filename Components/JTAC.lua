@@ -291,13 +291,14 @@ function JTAC.deRegisterJtac(name)
     end
 end
 
-function JTAC.spawnJtacAtPoint(point, coalitionId)
+function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
+    if not persistent then persistent = false end
     local cid = coalitionId or 2
     local platoonTable = {
         [1] = "JTAC",
     }
     -- coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit
-    local newCpy = Company.newCustomPlt(cid, false, platoonTable, false, false, false, nil, false)
+    local newCpy = Company.newCustomPlt(coalitionId, persistent, platoonTable, false, false, false, nil, false, false, "JTAC")
     local waypoints = {
         [1] = {
             x = point.x,
