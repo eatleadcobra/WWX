@@ -955,8 +955,26 @@ function jtac.requestMarkJtacWithFlare(param)
         elseif colour == 3 then
             flareColour = "yellow"
         end
-        local msg = "Affirm, Marking my location with " .. flareColour .. " flare."
-        timer.scheduleFunction(jtac.scheduleTransmit, {jtacName = param.jtacName, message = msg, duration = 30}, timer.getTime() + jtac.responseDelay)
+        local msg = "Affirm, marking my location with " .. flareColour .. " flare."
+        local jtacData = jtac.jtacs[jtacName]
+        if jtacData then
+            local session = jtacData.session
+            if session and session.currentTarget then
+                local target = Unit.getByName(session.currentTarget)
+                local jtacUnit = Unit.getByName(jtacName)
+                if target and jtacUnit then
+                    local targetPoint = target:getPoint()
+                    local jtacPoint = jtacUnit:getPoint()
+                    if targetPoint and jtacPoint then
+                        local vector = jtac.buildVectorFromJtac(jtacPoint, targetPoint)
+                        if vector then
+                            msg = "Affirm, marking my location with " .. flareColour .. " flare. Target is " .. vector .. " from my position."
+                        end
+                    end
+                end
+            end
+        end
+        timer.scheduleFunction(jtac.scheduleTransmit, {jtacName = jtacName, message = msg, duration = 30}, timer.getTime() + jtac.responseDelay)
         timer.scheduleFunction(jtac.markJtacWithFlare, {jtacName = jtacName, colour = colour}, timer.getTime() + jtac.responseDelay)
     end
 end
