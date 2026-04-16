@@ -7,7 +7,7 @@ local jtac = {
     distanceLimit        = 10000,
     trackingInterval     = 0.05,
     visualRange          = 5 * NM,
-    ipRange              = 7.5 * NM,
+    ipRange              = 10 * NM,
     jtacHeight           = 1.8,
     vehicleHeight        = 2.5,
     queueStatusDuration  = 30,
@@ -216,6 +216,13 @@ end
 function JTAC.registerJtac(name, coalitionId)
     local cid = coalitionId or 2
     local jtacUnit = Unit.getByName(name)
+    if JTAC.getActiveJtacCountByCoalition(cid) >= jtac.maxActivePerCoalition then
+        local oldest = JTAC.getOldestJtacByCoalition(cid)
+        if oldest then
+            env.info("JTAC: coalition " .. tostring(cid) .. " max active JTACs reached, deregistering oldest JTAC " .. oldest, false)
+            JTAC.deRegisterJtac(oldest)
+        end
+    end
     if jtacUnit then
         local callsign = jtac.generateCallsign()
         local frequency = jtac.generateFrequency(cid)
@@ -457,13 +464,6 @@ function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
     if bpId then
         local spawnPoint = jtac.findSpawnPointForBP(bpId, coalitionId)
         if spawnPoint then
-            if JTAC.getActiveJtacCountByCoalition(cid) >= jtac.maxActivePerCoalition then
-                local oldest = JTAC.getOldestJtacByCoalition(cid)
-                if oldest then
-                    env.info("JTAC: coalition " .. tostring(cid) .. " max active JTACs reached, deregistering oldest JTAC " .. oldest, false)
-                    JTAC.deRegisterJtac(oldest)
-                end
-            end
             env.info("JTAC: spawning near BP-" .. tostring(bpId) .. " for coalition " .. tostring(cid), false)
             JTAC.spawnJtacAtPoint(spawnPoint, cid)
             return
