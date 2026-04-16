@@ -1,10 +1,13 @@
 JTAC = {}
 
 local DEBUG = true
-
+M_TO_NM = 1 / 1852
+NM = 1852
 local jtac = {
     distanceLimit        = 10000,
     trackingInterval     = 0.05,
+    visualRange          = 5 * NM,
+    ipRange              = 7.5 * NM,
     jtacHeight           = 1.8,
     vehicleHeight        = 2.5,
     queueStatusDuration  = 30,
@@ -860,12 +863,12 @@ function jtac.calculateIP(targetPoint, playerGroupName)
                 local playerPoint = playerUnit:getPoint()
                 if playerPoint then
                     local bearingToAircraft = Utils.GetBearingDeg(targetPoint, playerPoint)
-                    local ipDistance = 15 * 1852
+                    local ipDistance = jtac.ipRange                    
                     local rad = math.rad(bearingToAircraft)
                     local ipPoint = {
-                        x = targetPoint.x + math.sin(rad) * ipDistance,
+                        x = targetPoint.x + math.cos(rad) * ipDistance,
                         y = targetPoint.y,
-                        z = targetPoint.z + math.cos(rad) * ipDistance,
+                        z = targetPoint.z + math.sin(rad) * ipDistance,
                     }
                     return ipPoint
                 end
@@ -1013,7 +1016,7 @@ function jtac.visualCheck(param)
                         local jtacPoint = jtacUnit:getPoint()
                         if playerPoint and targetPoint and jtacPoint then
                             local distToTarget = Utils.PointDistance(playerPoint, targetPoint)
-                            if distToTarget <= (5 * 1852) then
+                            if distToTarget <= jtac.visualRange then
                                 local playerName = session.controlledFlightPlayerName or "Flight"
                                 local vector = jtac.buildVectorFromJtac(jtacPoint, targetPoint)
                                 local colour = math.random(0, 3)
@@ -1493,12 +1496,15 @@ function jtac.handleBDA(jtacName)
                     jtac.dequeueNext(jtacName)
                 else
                     session.currentTarget = priorityList[1]
-                    local briefText = jtac.build9Line(jtacName, priorityList[1])
-                    if briefText then
-                        jtac.transmit(jtacName, "Good hit on " .. targetDesc .. ". Target destroyed. New target detected. Stand by for 9-LINE.", 15)
-                        timer.scheduleFunction(jtac.performBrief, {jtacName = jtacName, groupName = session.controlledFlight}, timer.getTime()+16)
-                        if playerGroup then
-                            jtac.updateMenusForState(jtacName, playerGroup)
+                    local target = Unit.getByName(session.currentTarget)
+                    local jtacUnit = Unit.getByName(jtacName)
+                    if target and jtacUnit then
+                        local targetPoint = target:getPoint()
+                        local jtacPoint = jtacUnit:getPoint()
+                        if targetPoint and jtacPoint then
+                            local vector = jtac.buildVectorFromJtac(jtacPoint, targetPoint)
+                            jtac.transmit(jtacName, "Good hit on " .. targetDesc .. ". Target destroyed. New target detected. " .. vector .. " from my position", 15)
+                            jtac.laseTarget(jtacName)
                         end
                     end
                 end
