@@ -30,15 +30,14 @@ local jtac = {
     usedCallsigns        = {},
     usedFrequencies      = {},
     excludedFrequencies  = {},
-    jtacs                = {},
-    jtacList             = {},
+    jtacs                = {}, -- Use this for actual functional use
+    jtacList             = {}, -- Used to preserve menu order, yes this is poorly named
     jtacMenu             = {},
     idleBroadcastInterval = 16,
     laserCodes           = { 1688, 1111, 1511, 1522, 1533, 1544, 1555, 1566, 1577 },
 }
 local lasing = {}
 local jtacEvents = {}
-
 function jtac.newSession()
     return {
         state                      = "IDLE",
@@ -369,8 +368,18 @@ function JTAC.getOldestJtacByCoalition(coalitionId)
     end
     return oldestName
 end
-
-local function getBPSamplePoints(bpCenter, bpRadius)
+function jtac.isBpWatched(bpId, coalitionId)
+    for jtacName, jtacData in pairs(jtac.jtacs) do
+        if jtacData and jtacData.coalition == coalitionId then
+            local bpinfo = jtac.getNearestBpInfo(jtacName)
+            if bpinfo and bpinfo.bpId == bpId then
+                return true
+            end
+        end
+    end
+    return false
+end
+function jtac.getBPSamplePoints(bpCenter, bpRadius)
     local points = {}
     points[#points + 1] = {x = bpCenter.x, z = bpCenter.z}
     local sampleRadius = math.max(bpRadius * 0.75, 1)
@@ -380,62 +389,71 @@ local function getBPSamplePoints(bpCenter, bpRadius)
     points[#points + 1] = {x = bpCenter.x, z = bpCenter.z - sampleRadius}
     return points
 end
-
-local function buildBPPoint(point)
-    return {x = point.x, y = land.getHeight({x = point.x, y = point.z}) + jtac.jtacHeight, z = point.z}
-end
-
-function jtac.findSpawnPointForBP(bpId)
-    local zoneName = "BP-" .. tostring(bpId)
-    local zone = trigger.misc.getZone(zoneName)
-    if zone and zone.point then
-        local bpCenter = {x = zone.point.x, z = zone.point.z}
-        local bpRadius = zone.radius or 0
-        local bpPoints = getBPSamplePoints(bpCenter, bpRadius)
-
-        local function hasLoS(candidate)
-            for i = 1, #bpPoints do
-                local sample = bpPoints[i]
-                local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
-                if sampleHeight then
-                    local target = {x = sample.x, y = sampleHeight + jtac.jtacHeight, z = sample.z}
-                    if land.isVisible(candidate, target) then
-                        return true
+function jtac.findSpawnPointForBP(bpId, coalitionId)
+    if not jtac.isBpWatched(bpId, coalitionId) then
+        local zoneName = "BP-" .. tostring(bpId)
+        local zone = trigger.misc.getZone(zoneName)
+        if zone and zone.point then
+            local bpCenter = {x = zone.point.x, z = zone.point.z}
+            local bpRadius = zone.radius or 0
+            local bpPoints = jtac.getBPSamplePoints(bpCenter, bpRadius)
+            local depot = Utils.getNearestDepotFromBP(bpId, coalitionId)
+            local depotBearing = nil
+            if depot then
+                depotBearing = Utils.getBearingToDepotFromBP(bpId, depot)
+            end
+            local function hasLoS(candidate)
+                for i = 1, #bpPoints do
+                    local sample = bpPoints[i]
+                    local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
+                    if sampleHeight then
+                        local target = {x = sample.x, y = sampleHeight + (jtac.jtacHeight/2), z = sample.z} -- add some height to avoid bushes and low cover, but not too much or we will get a bad sample
+                        if land.isVisible(candidate, target) then
+                            return true
+                        end
                     end
                 end
+                return false
             end
-            return false
-        end
-
-        local minRadius = bpRadius + 2000
-        local maxRadius = bpRadius + 5000
-        local radiusStep = 250
-        local bearingStep = 30
-        for radius = minRadius, maxRadius, radiusStep do
-            for bearing = 0, 330, bearingStep do
-                local rad = math.rad(bearing)
-                local candidateX = bpCenter.x + radius * math.cos(rad)
-                local candidateZ = bpCenter.z + radius * math.sin(rad)
-                local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
-                if distance >= minRadius and distance <= maxRadius then
-                    local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
-                    if groundHeight then
-                        local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
-                        if hasLoS(candidate) then
-                            candidate.y = candidate.y + - jtac.jtacHeight
-                            return candidate
+            local minRadius = bpRadius + 2000
+            local maxRadius = bpRadius + 5000
+            local radiusStep = 250
+            local bearingStep = 20
+            local bearStart = 0
+            local bearStop = 330
+            if depotBearing then
+                bearStart = depotBearing - 110
+                bearStop = depotBearing + 110
+            end
+            for radius = minRadius, maxRadius, radiusStep do
+                for bearing = bearStart, bearStop, bearingStep do
+                    local rad = math.rad(bearing)
+                    local candidateX = bpCenter.x + radius * math.cos(rad)
+                    local candidateZ = bpCenter.z + radius * math.sin(rad)
+                    local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
+                    if distance >= minRadius and distance <= maxRadius then
+                        local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
+                        if groundHeight then
+                            local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
+                            if hasLoS(candidate) then
+                                candidate.y = candidate.y + - jtac.jtacHeight
+                                return candidate
+                            end
                         end
                     end
                 end
             end
         end
+        env.info("Failed to find spawn point for BP-" .. tostring(bpId) .. " for coalition " .. tostring(coalitionId), false)
+        return
     end
+    env.info("BP " .. tostring(bpId) .. " is already being watched by a JTAC of coalition " .. tostring(coalitionId) .. " or no valid spawn point found, skipping JTAC spawn", false)
 end
 
 function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
     local cid = coalitionId
     if bpId then
-        local spawnPoint = jtac.findSpawnPointForBP(bpId)
+        local spawnPoint = jtac.findSpawnPointForBP(bpId, coalitionId)
         if spawnPoint then
             if JTAC.getActiveJtacCountByCoalition(cid) >= jtac.maxActivePerCoalition then
                 local oldest = JTAC.getOldestJtacByCoalition(cid)
@@ -449,51 +467,47 @@ function JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
             return
         end
         env.info("JTAC: failed to find spawn point for BP-" .. tostring(bpId) .. ", skipping spawn", false)
+        return
     end
     env.info("JTAC: invalid BP ID " .. tostring(bpId) .. ", skipping spawn", false)
 end
 
-function JTAC.getAllBPIds()
-    local bpIds = {}
-    for i = 1, 20 do
-        if trigger.misc.getZone("BP-" .. tostring(i)) then
-            bpIds[#bpIds + 1] = i
+function jtac.getNearestBp(point)
+    local bpIds = Utils.getAllBPIds()
+    local bestBp = nil
+    local bestDist = math.huge
+
+    for i = 1, #bpIds do
+        local zone = trigger.misc.getZone("BP-" .. tostring(bpIds[i]))
+        if zone and zone.point then
+            local bpPoint = {x = zone.point.x, y = 0, z = zone.point.z}
+            local dist = Utils.PointDistance(bpPoint, {x = point.x, y = 0, z = point.z})
+            if dist < bestDist then
+                bestDist = dist
+                bestBp = bpIds[i]
+            end
         end
     end
-    return bpIds
+    return bestBp
 end
-
 function jtac.getNearestBpInfo(jtacName)
     local result = nil
     local jtacUnit = Unit.getByName(jtacName)
     if jtacUnit then
         local jtacPoint = jtacUnit:getPoint()
         if jtacPoint then
-            local bpIds = JTAC.getAllBPIds()
-            local bestBp = nil
-            local bestDist = math.huge
-            local bestBpPoint = nil
-
-            for i = 1, #bpIds do
-                local zone = trigger.misc.getZone("BP-" .. tostring(bpIds[i]))
+            local bestBp = jtac.getNearestBp(jtacPoint)
+            if bestBp then
+                local zone = trigger.misc.getZone("BP-" .. tostring(bestBp))
                 if zone and zone.point then
-                    local bpPoint = {x = zone.point.x, y = 0, z = zone.point.z}
-                    local dist = Utils.PointDistance(bpPoint, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
-                    if dist < bestDist then
-                        bestDist = dist
-                        bestBp = bpIds[i]
-                        bestBpPoint = bpPoint
+                    local bearing = Utils.GetBearingDeg(zone.point, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
+                    local dist = Utils.PointDistance(zone.point, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
+                    if bearing >= 360 then
+                        bearing = bearing - 360
                     end
+                    local distanceNm = tonumber(string.format("%.0f", dist / 1852))
+                    result = {bpId = bestBp, bearing = math.floor(bearing + 0.5), distanceNm = distanceNm}
                 end
-            end
-
-            if bestBp and bestBpPoint then
-                local bearing = Utils.GetBearingDeg(bestBpPoint, {x = jtacPoint.x, y = 0, z = jtacPoint.z})
-                if bearing >= 360 then
-                    bearing = bearing - 360
-                end
-                local distanceNm = tonumber(string.format("%.0f", bestDist / 1852))
-                result = {bpId = bestBp, bearing = math.floor(bearing + 0.5), distanceNm = distanceNm}
             end
         end
     end
@@ -547,7 +561,7 @@ function jtac.idleStatusBroadcast(param)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
-    local bpIds = JTAC.getAllBPIds()
+    local bpIds = Utils.getAllBPIds()
     if #bpIds == 0 then
         env.info("JTAC: no BP zones found for debug spawn", false)
         return
@@ -795,10 +809,10 @@ end
 function jtac.getPriorityList(targets)
     local priorityTable = {
         [1] = "SAM",
-        [2] = "HeavyArmoredUnits",
-        [3] = "LightArmoredUnits",
-        [4] = "Armed vehicles",
-        [5] = "AAA",
+        [2] = "AAA",
+        [3] = "HeavyArmoredUnits",
+        [4] = "LightArmoredUnits",
+        [5] = "Armed vehicles",
     }
     local targetList = {}
     for i = 1, #priorityTable do
@@ -1911,33 +1925,6 @@ function jtac.updateMenusForState(jtacName, groupName)
     end
 
     jtac.buildJtacSubmenusForGroup(groupName)
-end
-
--- use with CASbot to show active JTACs on cas freq --- NOT IMPLEMENTED YET
-function JTAC.getActiveJtacs(coalitionId)
-    local coalitionJtacs = { [1] = {}, [2] = {} }
-    for jtacName, jtacData in pairs(jtac.jtacs) do
-        local jtacUnit = Unit.getByName(jtacName)
-        if jtacUnit and jtacData.coalition then
-            local jtacPoint = jtacUnit:getPoint()
-            local bpStr = "N/A"
-            if jtacPoint and BattleControl and BattleControl.getClosestBp then
-                local bpId, dist = BattleControl.getClosestBp(jtacPoint)
-                if bpId and bpId > 0 then
-                    bpStr = "BP-" .. bpId
-                end
-            end
-            local displayCallsign = jtacData.callsign
-            local entry = string.format("> %s - %s AM  near %s", displayCallsign, jtacData.frequency, bpStr)
-            local cid = jtacData.coalition
-            coalitionJtacs[cid][#coalitionJtacs[cid] + 1] = entry
-        end
-    end
-    if coalitionJtacs[coalitionId] and #coalitionJtacs[coalitionId] > 0 then
-        return "JTACS are active:\n" .. table.concat(coalitionJtacs[coalitionId], "\n")
-    else
-        return "No JTACS are currently active..."
-    end
 end
 
 -- events
