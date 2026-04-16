@@ -72,4 +72,7 @@ assert(loadfile(pathToWWX.."Plugins\\DF_stats.lua"))()
 if STRIKES then
    assert(loadfile(pathToWWX.."Plugins\\DF_airstrikes.lua"))()
 end
+if JTACS then
+   assert(loadfile(pathToWWX.."Components\\JTAC.lua"))() -- dependant on Utils, DF_Main, and Recon, so must be loaded after those
+end
 env.info("Finished loading WWX", false)

@@ -227,3 +227,42 @@ Utils.getlengthOfTable = function(table)
     for _ in pairs(table) do count = count + 1 end
     return count
 end
+function Utils.getNearestDepotFromBP(bpId, c)
+    local zoneName = "BP-" .. tostring(bpId)
+    local zone = trigger.misc.getZone(zoneName)
+    local closerDepot = nil
+    if zone and zone.point then
+        local bpPoint = zone.point
+        local closerDistance = math.huge
+        for j = 1, #DFS.status[c].spawns.fd do
+            local depotZone = trigger.misc.getZone(DFS.spawnNames[c].depot..DFS.status[c].spawns.fd[j].spawnZone)
+            if depotZone and depotZone.point then
+                local depotDist = Utils.PointDistance(depotZone.point, bpPoint)
+                if depotDist < closerDistance then
+                    closerDepot = DFS.spawnNames[c].depot..DFS.status[c].spawns.fd[j].spawnZone -- Depot zone name i.e Blue-FrontDepot-3
+                    closerDistance = depotDist
+                end
+            end
+        end
+    end
+    return closerDepot
+end
+function Utils.getBearingToDepotFromBP(bpId, depotZoneName)
+    local zoneName = "BP-" .. tostring(bpId)
+    local bpZone = trigger.misc.getZone(zoneName)
+    local depotZone = trigger.misc.getZone(depotZoneName)
+    if bpZone and bpZone.point and depotZone and depotZone.point then
+        local bpPoint = bpZone.point
+        local depotPoint = depotZone.point
+        return Utils.GetBearingDeg(bpPoint, depotPoint)
+    end
+end
+function Utils.getAllBPIds()
+    local bpIds = {}
+    local i = 1
+    while trigger.misc.getZone("BP-"..i) do
+        bpIds[#bpIds + 1] = i
+        i = i + 1
+    end
+    return bpIds
+end
