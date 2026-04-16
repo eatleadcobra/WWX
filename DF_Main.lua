@@ -132,6 +132,14 @@ DFS.heloCapacities = {
         volume = 3,
         seats = 3
     },
+    ["OH58D"] = {
+        types = {
+            ["Recon Troops"] = 7,
+            ["JTAC"] = 8,
+        },
+        volume = 2,
+        seats = 2
+    },
     ["SA342Minigun"] = {
         types = {
             ["Recon Troops"] = 7,
