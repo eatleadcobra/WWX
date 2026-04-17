@@ -291,7 +291,7 @@ function JTAC.deRegisterJtac(name)
                 break
             end
         end
-
+        env.info("JTAC deregistered: " .. tostring(name), false)
         jtac.removeJtacMenus(name)
         jtac.clearMapLabel(name)
         jtac.jtacs[name] = nil
@@ -322,7 +322,7 @@ function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
     newCpy:spawn()
     local jtacGroupName = newCpy.groupName
 
-    if jtacGroupName then
+    if jtacGroupName and not persistent then
         local jtacGroup = Group.getByName(jtacGroupName)
         if jtacGroup then
             local jtacUnit = jtacGroup:getUnit(1)
