@@ -1706,6 +1706,8 @@ function jtac.dequeueNext(jtacName)
     local jtacData = jtac.jtacs[jtacName]
     if jtacData then
         local session = jtacData.session
+        session.controlledFlight = nil
+        session.controlledFlightPlayerName = nil
         if session then
             while #session.flightQueue > 0 do
                 local entry = table.remove(session.flightQueue, 1)
