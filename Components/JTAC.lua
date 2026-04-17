@@ -1,6 +1,7 @@
 JTAC = {}
-
-local DEBUG = true
+JTAC.enableInitSpawn = JTACS.spawnOnMissionStart or false
+JTAC.enableSpawnOnBpCapture = JTACS.spawnOnBpCapture or false
+local DEBUG = false
 M_TO_NM = 1 / 1852
 NM = 1852
 local jtac = {
@@ -21,7 +22,7 @@ local jtac = {
     freqUpper            = 399.975,
     freqStep             = 0.025,
     guardFreq            = 243.0,
-    callsignPool         = {
+    callsignPool         = JTACS.callsignOverride or {
         "PLAYBOY", "WARRIOR", "REAPER", "HAMMER", "DAGGER",
         "FALCON", "PHANTOM", "VIPER", "SPARTAN", "RAIDER",
         "SHADOW", "COBRA", "TALON", "WARHOG", "ANVIL",
@@ -29,7 +30,7 @@ local jtac = {
     },
     usedCallsigns        = {},
     usedFrequencies      = {},
-    excludedFrequencies  = {},
+    excludedFrequencies  = JTACS.excludedFrequencies or {},
     jtacs                = {}, -- Use this for actual functional use
     jtacList             = {}, -- Used to preserve menu order, yes this is poorly named
     jtacMenu             = {},
@@ -1996,8 +1997,7 @@ function jtacEvents:onEvent(event)
     end
 end
 world.addEventHandler(jtacEvents)
-
-if DEBUG then
-    JTAC.spawnJtacsAtRandomBPs(4, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
-    JTAC.spawnJtacsAtRandomBPs(4, 1)
+if JTAC.enableInitSpawn then
+    JTAC.spawnJtacsAtRandomBPs(2, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
+    JTAC.spawnJtacsAtRandomBPs(2, 1)
 end

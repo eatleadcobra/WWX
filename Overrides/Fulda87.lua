@@ -13,7 +13,12 @@ BOMBERS = true
 MISSILEBOATS = false
 CARGO = true
 CSAR = true
-JTACS = true
+JTACS = {
+    spawnOnBpCapture = false,
+    spawnOnMissionStart = true,
+--    avoidFrequencies = {},
+--    callsignOverride = {}
+}
 CAS = true
 STRIKES = true
 REAPER = false
