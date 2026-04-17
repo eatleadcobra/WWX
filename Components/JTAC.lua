@@ -1,6 +1,7 @@
 JTAC = {}
-
-local DEBUG = true
+JTAC.enableInitSpawn = JTACS.spawnOnMissionStart or false
+JTAC.enableSpawnOnBpCapture = JTACS.spawnOnBpCapture or false
+local DEBUG = false
 M_TO_NM = 1 / 1852
 NM = 1852
 local jtac = {
@@ -21,7 +22,7 @@ local jtac = {
     freqUpper            = 399.975,
     freqStep             = 0.025,
     guardFreq            = 243.0,
-    callsignPool         = {
+    callsignPool         = JTACS.callsignOverride or {
         "PLAYBOY", "WARRIOR", "REAPER", "HAMMER", "DAGGER",
         "FALCON", "PHANTOM", "VIPER", "SPARTAN", "RAIDER",
         "SHADOW", "COBRA", "TALON", "WARHOG", "ANVIL",
@@ -29,11 +30,11 @@ local jtac = {
     },
     usedCallsigns        = {},
     usedFrequencies      = {},
-    excludedFrequencies  = {},
+    excludedFrequencies  = JTACS.excludedFrequencies or {},
     jtacs                = {}, -- Use this for actual functional use
     jtacList             = {}, -- Used to preserve menu order, yes this is poorly named
     jtacMenu             = {},
-    idleBroadcastInterval = 16,
+    idleBroadcastInterval = 30,
     laserCodes           = { 1688, 1111, 1511, 1522, 1533, 1544, 1555, 1566, 1577 },
 }
 local lasing = {}
@@ -256,7 +257,6 @@ function JTAC.registerJtac(name, coalitionId)
         end
         jtac.jtacList[#jtac.jtacList + 1] = name
         jtac.updateMapLabel(name)
-        timer.scheduleFunction(jtac.countDetectedTargets, {jtacName = name}, timer.getTime() + 1)
         timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
@@ -515,10 +515,16 @@ function jtac.buildIdleStatusMessage(jtacName)
     local message = nil
     local jtacData = jtac.jtacs[jtacName]
     if jtacData then
+        local priorityList = jtac.detectAndPrioritise(jtacName)
+        local targetCount
+        if priorityList and #priorityList > 0 then
+            targetCount = #priorityList
+        else
+            targetCount = 0
+        end
+        jtacData.session.targetCount = targetCount
         local bpInfo = jtac.getNearestBpInfo(jtacName)
-        local targetCount = jtacData.session.targetCount or 0
         local targetText = targetCount == 0 and "no targets" or tostring(targetCount) .. " target" .. (targetCount == 1 and "" or "s")
-
         if bpInfo then
             message = string.format("%s available for laser. Nearest BP-%d, %03d° at %d NM. %s.", jtacData.callsign, bpInfo.bpId, bpInfo.bearing, bpInfo.distanceNm, targetText)
         else
@@ -955,8 +961,26 @@ function jtac.requestMarkJtacWithFlare(param)
         elseif colour == 3 then
             flareColour = "yellow"
         end
-        local msg = "Affirm, Marking my location with " .. flareColour .. " flare."
-        timer.scheduleFunction(jtac.scheduleTransmit, {jtacName = param.jtacName, message = msg, duration = 30}, timer.getTime() + jtac.responseDelay)
+        local msg = "Affirm, marking my location with " .. flareColour .. " flare."
+        local jtacData = jtac.jtacs[jtacName]
+        if jtacData then
+            local session = jtacData.session
+            if session and session.currentTarget then
+                local target = Unit.getByName(session.currentTarget)
+                local jtacUnit = Unit.getByName(jtacName)
+                if target and jtacUnit then
+                    local targetPoint = target:getPoint()
+                    local jtacPoint = jtacUnit:getPoint()
+                    if targetPoint and jtacPoint then
+                        local vector = jtac.buildVectorFromJtac(jtacPoint, targetPoint)
+                        if vector then
+                            msg = "Affirm, marking my location with " .. flareColour .. " flare. Target is " .. vector .. " from my position."
+                        end
+                    end
+                end
+            end
+        end
+        timer.scheduleFunction(jtac.scheduleTransmit, {jtacName = jtacName, message = msg, duration = 30}, timer.getTime() + jtac.responseDelay)
         timer.scheduleFunction(jtac.markJtacWithFlare, {jtacName = jtacName, colour = colour}, timer.getTime() + jtac.responseDelay)
     end
 end
@@ -1157,6 +1181,7 @@ function jtac.trackLaser(param)
                     local tp = target:getPoint()
                     if tp then
                         if lasingInfo.laser then
+                            tp.y = tp.y + 1 -- laser seems to be on the very bottom of the vehicle, adjustment to hopefully make it hit the middle
                             lasingInfo.laser:setPoint(tp)
                         end
                         timer.scheduleFunction(jtac.trackLaser, param, timer.getTime() + jtac.trackingInterval)
@@ -1972,8 +1997,7 @@ function jtacEvents:onEvent(event)
     end
 end
 world.addEventHandler(jtacEvents)
-
-if DEBUG then
-    JTAC.spawnJtacsAtRandomBPs(4, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
-    JTAC.spawnJtacsAtRandomBPs(4, 1)
+if JTAC.enableInitSpawn then
+    JTAC.spawnJtacsAtRandomBPs(3, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
+    JTAC.spawnJtacsAtRandomBPs(3, 1)
 end
