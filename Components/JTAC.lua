@@ -1697,7 +1697,7 @@ function jtac.retransmitQueueStatus(param)
                 end
             end
             jtac.transmit(param.jtacName, msg, jtac.queueStatusDuration)
-            timer.scheduleFunction(jtac.retransmitQueueStatus, param, timer.getTime() + jtac.queueStatusDuration)
+            timer.scheduleFunction(jtac.retransmitQueueStatus, param, timer.getTime() + jtac.queueStatusDuration*2)
         end
     end
 end
