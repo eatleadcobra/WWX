@@ -302,7 +302,7 @@ function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
     if not persistent then persistent = false end
     local cid = coalitionId or 2
     local platoonTable = {
-        [1] = "JTAC",
+        [1] = "Soldier M4 GRG",
     }
     -- coalitionId, persistent, units, onRoad, convoy, ship, convoyParam, navalUnit
     local newCpy = Company.newCustomPlt(coalitionId, persistent, platoonTable, false, false, false, nil, false, false, "JTAC")
@@ -331,6 +331,7 @@ function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
             end
         end
     end
+    return newCpy
 end
 
 function JTAC.getActiveJtacCount()
