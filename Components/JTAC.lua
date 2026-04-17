@@ -33,7 +33,7 @@ local jtac = {
     jtacs                = {}, -- Use this for actual functional use
     jtacList             = {}, -- Used to preserve menu order, yes this is poorly named
     jtacMenu             = {},
-    idleBroadcastInterval = 16,
+    idleBroadcastInterval = 30,
     laserCodes           = { 1688, 1111, 1511, 1522, 1533, 1544, 1555, 1566, 1577 },
 }
 local lasing = {}
@@ -256,7 +256,6 @@ function JTAC.registerJtac(name, coalitionId)
         end
         jtac.jtacList[#jtac.jtacList + 1] = name
         jtac.updateMapLabel(name)
-        timer.scheduleFunction(jtac.countDetectedTargets, {jtacName = name}, timer.getTime() + 1)
         timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
@@ -515,10 +514,16 @@ function jtac.buildIdleStatusMessage(jtacName)
     local message = nil
     local jtacData = jtac.jtacs[jtacName]
     if jtacData then
+        local priorityList = jtac.detectAndPrioritise(jtacName)
+        local targetCount
+        if priorityList and #priorityList > 0 then
+            targetCount = #priorityList
+        else
+            targetCount = 0
+        end
+        jtacData.session.targetCount = targetCount
         local bpInfo = jtac.getNearestBpInfo(jtacName)
-        local targetCount = jtacData.session.targetCount or 0
         local targetText = targetCount == 0 and "no targets" or tostring(targetCount) .. " target" .. (targetCount == 1 and "" or "s")
-
         if bpInfo then
             message = string.format("%s available for laser. Nearest BP-%d, %03d° at %d NM. %s.", jtacData.callsign, bpInfo.bpId, bpInfo.bearing, bpInfo.distanceNm, targetText)
         else
