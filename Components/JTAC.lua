@@ -320,17 +320,6 @@ function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
     }
     newCpy:setWaypoints({waypoints[1], waypoints[2]}, -1, 12)
     newCpy:spawn()
-    local jtacGroupName = newCpy.groupName
-
-    if jtacGroupName and not persistent then
-        local jtacGroup = Group.getByName(jtacGroupName)
-        if jtacGroup then
-            local jtacUnit = jtacGroup:getUnit(1)
-            if jtacUnit then
-                JTAC.registerJtac(jtacUnit:getName(), cid)
-            end
-        end
-    end
     return newCpy
 end
 
