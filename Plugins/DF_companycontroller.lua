@@ -408,6 +408,18 @@ function cpyctl.cpyStatusLoop()
                                     trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed troops are moving " .. bpdirection .. " to BP#"..closestBPID .."!", 10, false)
                                 end
                             end
+                        elseif cpy.cpyType == "JTAC" then
+                            if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
+                                if Jtactroopmarks and Jtactroopmarks[cpy.droppingPlayerName] then
+                                    if Utils.PointDistance(cpy.point, Jtactroopmarks[cpy.droppingPlayerName].point) <= 6500 then
+                                        cpy.assigned = true
+                                        cpy:updateMission({cpy.point, Jtactroopmarks[cpy.droppingPlayerName].point}, -1, 12)
+                                        trigger.action.outTextForGroup(cpy.droppingGroupID, "Deployed JTAC is moving to your mark point!", 10, false)
+                                    else
+                                        trigger.action.outTextForGroup(cpy.droppingGroupID, "Your mark point is too far away!", 10, false)
+                                    end
+                                end
+                            end
                         elseif cpy.cpyType == "RECON" then
                             if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
                                 local closestBPID, closestBPdistance, bpdirection = CSB.closestEnemyBpTo(cpy.point, cpy.coaltionId)
