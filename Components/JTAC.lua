@@ -521,6 +521,7 @@ function jtac.buildIdleStatusMessage(jtacName)
             message = string.format("%s available for laser. %s.", jtacData.callsign, targetText)
         end
     end
+    env.info("JTAC " .. jtacName .. " idle status: " .. tostring(message), false)
     return message
 end
 
@@ -587,10 +588,13 @@ function jtac.transmit(jtacName, message, duration, repeatMessage, sender)
                         session.lastMessage = message
                         session.messageDuration = duration
                     end
+                    return
                 end
             end
         end
     end
+    env.info("JTAC " .. tostring(jtacName) .. " not found for transmission, likely dead, de registering", false)
+    jtac.deRegisterJtac(jtacName)
 end
 function jtac.getPlayerCallsign(groupName)
     local callsign = "Flight"
@@ -1198,6 +1202,7 @@ function jtac.trackLaser(param)
         end
     else
         -- JTAC dead
+        env.info("JTAC " .. param.jtacName .. " is no longer alive, stopping lasing", false)
         JTAC.deRegisterJtac(param.jtacName)
     end
 end
@@ -1351,6 +1356,7 @@ function jtac.handleCheckIn(param)
                 end
             end
         else
+            env.info("JTAC " .. jtacName .. " unit not found during check in, de-registering JTAC", false)
             JTAC.deRegisterJtac(jtacName)
         end
     end
