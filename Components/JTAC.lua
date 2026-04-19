@@ -300,7 +300,6 @@ end
 
 function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
     if not persistent then persistent = false end
-    local cid = coalitionId or 2
     local platoonTable = {
         [1] = "Soldier M4 GRG",
     }
