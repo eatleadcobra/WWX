@@ -254,7 +254,7 @@ function Company.spawn(self, options)
             end
         end
         if Companies[self.id] and JTAC and self.cpyType and self.cpyType == "JTAC" then
-            env.info("Registering JTAC for group: " .. self.groupName, false)
+            env.info("Company manager Registering JTAC for group: " .. self.groupName, false)
             local cpyGroup = Group.getByName(self.groupName)
             if cpyGroup then
                 local leadUnit = cpyGroup:getUnit(1)
