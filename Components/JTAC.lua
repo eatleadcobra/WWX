@@ -551,6 +551,7 @@ function jtac.idleStatusBroadcast(param)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
+    env.info("JTAC: Spawning " .. tostring(count) .. " JTACs at random BPs for coalition " .. tostring(coalitionId), false)
     local bpIds = BattleControl.getAllBPIds()
     if #bpIds == 0 then
         env.info("JTAC: no BP zones found for debug spawn", false)

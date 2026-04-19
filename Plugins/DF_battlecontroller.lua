@@ -1055,6 +1055,7 @@ function bc.notifyTeamofBPChange(coalitionId, newOwnerCoalition, bpId, gained, p
         if coalitionId == 2 then teamString = "Blue" end
         if WWEvents then WWEvents.battlePositionCapture(bpId, " captured by " .. teamString, prevCoalition, newOwnerCoalition) end
         if JTAC and JTAC.spawnJtacNearCapturedBP and JTAC.enableSpawnOnBpCapture then
+            env.info("Battle Controller spawning JTAC for coalition " .. coalitionId .. " near captured BP: " .. bpId, false)
             JTAC.spawnJtacNearCapturedBP(bpId, coalitionId)
         end
         message = "We have captured battle position " .. bpIdString .. "!"
