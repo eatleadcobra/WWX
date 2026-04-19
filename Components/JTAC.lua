@@ -36,7 +36,7 @@ local jtac = {
     jtacList             = {}, -- Used to preserve menu order, yes this is poorly named
     jtacMenu             = {},
     idleBroadcastInterval = 30,
-    laserCodes           = { 1688, 1113, 1776, 1522, 1533, 1544, 1555, 1566, 1577 },
+    laserCodes           = { 1688, 1113, 1776, 1511, 1522, 1533, 1544, 1555, 1566 },
 }
 local lasing = {}
 local jtacEvents = {}
