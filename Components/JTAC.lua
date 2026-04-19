@@ -88,11 +88,17 @@ function jtac.updateMapLabel(jtacName)
         local jtacUnit = Unit.getByName(jtacName)
         if jtacUnit then
             local point = jtacUnit:getPoint()
-            if point and jtacData.mapMarkId then
-                local displayCallsign = jtacData.callsign
+            if point then
                 local labelPoint = {x = point.x, y = point.y + 20, z = point.z}
-                trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
-                return
+                local displayCallsign = jtacData.callsign
+                if displayCallsign then
+                    if not jtacData.mapMarkId then
+                        jtacData.mapMarkId = DrawingTools.newMarkId()
+                        trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
+                    else
+                        trigger.action.setMarkupPositionStart(jtacData.mapMarkId, labelPoint)
+                    end
+                end
             end
         end
     end
@@ -232,7 +238,7 @@ function JTAC.registerJtac(name, coalitionId)
             spawnTime      = timer.getTime(),
             code           = 1688,
             callsign       = callsign,
-            mapMarkId      = DrawingTools.newMarkId(),
+            mapMarkId      = nil,
             frequency      = frequency,
             modulation     = "AM",
             coalition      = cid,
@@ -282,7 +288,16 @@ function JTAC.deRegisterJtac(name)
         if jtacUnit then
             local jtacGroup = jtacUnit:getGroup()
             if jtacGroup then
-                jtacGroup:destroy()
+                local unit1 = jtacGroup:getUnit(1)
+                if unit1 then
+                    local player = unit1:getPlayerName()
+                    if not player then
+                        jtacGroup:destroy()
+                    else
+                        env.info("JTAC " .. name .. " is player controlled by " .. player .. ", not destroying group on deregister", false)
+                        trigger.action.outTextForGroup(jtacGroup:getID(), "You have landed and your JTAC is no longer active...\nYou can still deploy them to be used as a standalone JTAC", 15, false)
+                    end
+                end
             end
         end
 
@@ -1976,7 +1991,7 @@ function jtac.cleanupPlayer(groupName)
 end
 
 function jtacEvents:onEvent(event)
-    if event.id == world.event.S_EVENT_TAKEOFF or (event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT and DEBUG) then
+    if event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
