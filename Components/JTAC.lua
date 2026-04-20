@@ -238,7 +238,7 @@ function JTAC.registerJtac(name, coalitionId)
             spawnTime      = timer.getTime(),
             code           = 1688,
             callsign       = callsign,
-            mapMarkId      = nil,
+            mapMarkId      = false,
             frequency      = frequency,
             modulation     = "AM",
             coalition      = cid,
@@ -1991,7 +1991,7 @@ function jtac.cleanupPlayer(groupName)
 end
 
 function jtacEvents:onEvent(event)
-    if event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
+    if event.id == world.event.S_EVENT_TAKEOFF or event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
@@ -2016,45 +2016,6 @@ function jtacEvents:onEvent(event)
                 if groupName then
                     jtac.cleanupPlayer(groupName)
                     jtac.removeMenus(groupName)
-                end
-            end
-        end
-    end
-    if (event.id == world.event.S_EVENT_TAKEOFF) then
-        if event.initiator and event.initiator.getGroup then
-            local group = event.initiator:getGroup()
-            if group then
-                local groupName = group:getName()
-                if groupName then
-                    local transporterTable = DFS.helos[groupName]
-                    if transporterTable then
-                        for key, value in pairs(transporterTable) do
-                            if value == DFS.supplyType.JTAC then
-                                trigger.action.outTextForGroup(group:getID(), "You have taken off with a JTAC! it is now active and searching for units outside the window.\n You can also redeploy them to be used as a standalone JTAC if needed.", 15, false)
-                                JTAC.registerJtac(groupName, group:getCoalition())
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    if (event.id == world.event.S_EVENT_LAND) then
-        if event.initiator and event.initiator.getGroup then
-            local group = event.initiator:getGroup()
-            if group then
-                local groupName = group:getName()
-                if groupName then
-                    local transporterTable = DFS.helos[groupName]
-                    if transporterTable then
-                        for key, value in pairs(transporterTable) do
-                            if value == DFS.supplyType.JTAC then
-                                JTAC.deRegisterJtac(groupName)
-                                break
-                            end
-                        end
-                    end
                 end
             end
         end
