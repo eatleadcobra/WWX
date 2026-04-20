@@ -2007,8 +2007,7 @@ function jtacEvents:onEvent(event)
     end
     if event.id == world.event.S_EVENT_PILOT_DEAD
         or event.id == world.event.S_EVENT_EJECTION
-        or event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT
-        or event.id == world.event.S_EVENT_LAND then
+        or event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT then
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
@@ -2037,11 +2036,21 @@ function jtacEvents:onEvent(event)
                                     JTAC.registerJtac(unitName, group:getCoalition())
                                     break
                                 end
+                                env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit has no name, unable to register JTAC", false)
                             end
+                            env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit not found, unable to register JTAC", false)
+                            return
                         end
+                        env.info(tostring(value) .. " is not a JTAC skipping JTAC registration", false)
+                        return
                     end
+                    env.info("Group " .. groupName .. " does not have a JTAC, skipping JTAC registration", false)
+                    return
                 end
+                env.info("Group " .. groupName .. " does not have a transporter entry, skipping JTAC registration", false)
+                return
             end
+            env.info("Event initiator does not have a group or group name, skipping JTAC registration", false)
         end
     end
     if event.id == world.event.S_EVENT_LAND then
