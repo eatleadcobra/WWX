@@ -2064,14 +2064,17 @@ function jtacEvents:onEvent(event)
             if group and groupName then
                 local transporterTable = DFS.helos[groupName]
                 if transporterTable then
-                    for key, value in pairs(transporterTable) do
-                        if value == DFS.supplyType.JTAC then
-                            local jtacUnit = group:getUnit(1)
-                            if jtacUnit then
-                                local unitName = jtacUnit:getName()
-                                if unitName then
-                                    JTAC.deRegisterJtac(unitName)
-                                    break
+                    local manifest = transporterTable.cargo.manifest
+                    if manifest then
+                        for key, value in pairs(manifest) do
+                            if value == DFS.supplyType.JTAC then
+                                local jtacUnit = group:getUnit(1)
+                                if jtacUnit then
+                                    local unitName = jtacUnit:getName()
+                                    if unitName then
+                                        JTAC.deRegisterJtac(unitName)
+                                        break
+                                    end
                                 end
                             end
                         end
