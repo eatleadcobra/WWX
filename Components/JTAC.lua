@@ -1930,7 +1930,7 @@ function jtac.buildJtacSubmenusForGroup(groupName)
     else
         env.info("Attempted to build JTAC menu for group " .. groupName .. " but group not found", false)
         if jtac.valueInTable(groupName, enrolledPlayers) then
-            table.remove(enrolledPlayers, groupName)
+            jtac.removePlayerFromEnrolled(groupName)
             env.info("removed group " .. groupName .. " from enrolled players list", false)
         end
     end
@@ -1961,12 +1961,21 @@ end
 function jtac.updateMenusForState(jtacName, groupName)
     jtac.buildJtacSubmenusForGroup(groupName)
 end
-
+function jtac.removePlayerFromEnrolled(groupName)
+    if jtac.valueInTable(groupName, enrolledPlayers) then
+        for key, value in pairs(enrolledPlayers) do
+            if value == groupName then
+                table.remove(enrolledPlayers, key)
+                return
+            end
+        end
+    end
+end
 -- events
 
 function jtac.cleanupPlayer(groupName)
     if jtac.valueInTable(groupName, enrolledPlayers) then
-        table.remove(enrolledPlayers, groupName)
+        jtac.removePlayerFromEnrolled(groupName)
     end
     for jtacName, jtacData in pairs(jtac.jtacs) do
         if jtacData then
