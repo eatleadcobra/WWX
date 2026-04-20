@@ -1991,7 +1991,7 @@ function jtac.cleanupPlayer(groupName)
 end
 
 function jtacEvents:onEvent(event)
-    if event.id == world.event.S_EVENT_TAKEOFF or event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
+    if event.id == world.event.S_EVENT_BIRTH or event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
