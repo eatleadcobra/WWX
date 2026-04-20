@@ -742,9 +742,9 @@ function dfcEvents:onEvent(event)
         end
     end
     -- on takeoff
-    if JTACS then
-        if event.id == world.event.S_EVENT_TAKEOFF then
-            if event.initiator and event.initiator.getGroup then
+    if event.id == world.event.S_EVENT_TAKEOFF then
+        if event.initiator and event.initiator.getGroup then
+            if JTACS then
                 local group = event.initiator:getGroup()
                 if group then
                     local groupName = group:getName()
@@ -763,8 +763,10 @@ function dfcEvents:onEvent(event)
                 end
             end
         end
-        if event.id == world.event.world.event.S_EVENT_LAND then
-            if event.initiator and event.initiator.getGroup then
+    end
+    if event.id == world.event.world.event.S_EVENT_LAND then
+        if event.initiator and event.initiator.getGroup then
+            if JTACS then
                 local group = event.initiator:getGroup()
                 if group then
                     local groupName = group:getName()
