@@ -2041,8 +2041,7 @@ function jtacEvents:onEvent(event)
                             env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit not found, unable to register JTAC", false)
                             return
                         end
-                        env.info(tostring(value) .. " is not a JTAC skipping JTAC registration", false)
-                        return
+                        env.info(Utils.dump(value) .. " is not a JTAC skipping JTAC registration", false)
                     end
                     env.info("Group " .. groupName .. " does not have a JTAC, skipping JTAC registration", false)
                     return
