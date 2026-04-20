@@ -623,7 +623,7 @@ function jtac.transmit(jtacName, message, duration, repeatMessage, sender)
         end
     end
     env.info("JTAC " .. tostring(jtacName) .. " not found for transmission, likely dead, de registering", false)
-    jtac.deRegisterJtac(jtacName)
+    JTAC.deRegisterJtac(jtacName)
 end
 function jtac.getPlayerCallsign(groupName)
     local callsign = "Flight"
