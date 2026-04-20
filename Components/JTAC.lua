@@ -2026,24 +2026,29 @@ function jtacEvents:onEvent(event)
             if group and groupName then
                 local transporterTable = DFS.helos[groupName]
                 if transporterTable then
-                    for key, value in pairs(transporterTable) do
-                        if value.typeName == DFS.supplyType.JTAC then
-                            local jtacUnit = group:getUnit(1)
-                            if jtacUnit then
-                                local unitName = jtacUnit:getName()
-                                if unitName then
-                                    trigger.action.outTextForGroup(group:getID(), "You have taken off with a JTAC! it is now active and searching for units outside the window.\n You can also redeploy them to be used as a standalone JTAC if needed.", 15, false)
-                                    JTAC.registerJtac(unitName, group:getCoalition())
-                                    break
+                    local manifest = transporterTable.manifest
+                    if manifest then
+                        for key, value in pairs(manifest) do
+                            if value == DFS.supplyType.JTAC then
+                                local jtacUnit = group:getUnit(1)
+                                if jtacUnit then
+                                    local unitName = jtacUnit:getName()
+                                    if unitName then
+                                        trigger.action.outTextForGroup(group:getID(), "You have taken off with a JTAC! it is now active and searching for units outside the window.\n You can also redeploy them to be used as a standalone JTAC if needed.", 15, false)
+                                        JTAC.registerJtac(unitName, group:getCoalition())
+                                        break
+                                    end
+                                    env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit has no name, unable to register JTAC", false)
                                 end
-                                env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit has no name, unable to register JTAC", false)
+                                env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit not found, unable to register JTAC", false)
+                                return
                             end
-                            env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit not found, unable to register JTAC", false)
-                            return
+                            env.info(Utils.dump(value) .. " is not a JTAC skipping JTAC registration", false)
                         end
-                        env.info(Utils.dump(value) .. " is not a JTAC skipping JTAC registration", false)
+                        env.info("Group " .. groupName .. " does not have a JTAC, skipping JTAC registration", false)
+                        return
                     end
-                    env.info("Group " .. groupName .. " does not have a JTAC, skipping JTAC registration", false)
+                    env.info("Group " .. groupName .. " does not have a manifest entry, skipping JTAC registration", false)
                     return
                 end
                 env.info("Group " .. groupName .. " does not have a transporter entry, skipping JTAC registration", false)
