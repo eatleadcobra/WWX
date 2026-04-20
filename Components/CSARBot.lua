@@ -632,8 +632,7 @@ function csb.setupHunterGroup(rescue)
     end
 end
 function csb.triggerHunterGroup(rescue)
-    if not rescue.hunters then return end
-    if rescue.huntTriggered then return end
+    if #rescue.hunters == 0 or rescue.huntTriggered then return end
     local targetPoint = csb.getGroupLocation(rescue.groupName)
     local wetFeet = false
     if not targetPoint then return end
@@ -817,7 +816,6 @@ function csb.checkHunterCapture(rescue)
     local closestHunterName, closestHunterDist = csb.closestHunterName(rescue.hunterNames,targetPoint)
     if closestHunterName then
         if closestHunterDist <= csarHunterCaptureDistance then return false end
-    else
         if closestHunterDist <= 25 then
             local rescueGroup = Group.getByName(rescue.groupName)
             if rescueGroup then
@@ -1043,6 +1041,12 @@ function csb.wellnessCheck(coalitionId)
             if not (rescueGroup and rescueGroup:isExist()) then isAlive = false end
             if m.huntTriggered then notHunted = csb.checkHunterCapture(m) end
             if isAlive and timeLeft and notHunted then
+                if m.source == "casevac" and #m.hunters > 0 and BattleControl.getBPOwner(csb.closestBpTo(m.point)) == coalitionId then
+                    env.info("[csb.wellnessCheck] - CASEVAC #" .. m.sourceId .. " secured. Removing hunters for " .. m.displayName,false)
+                    csb.cleanupHunterGroups(m.hunters)
+                    m.hunters = {}
+                    m.hunterNames = {}
+                end
                 table.insert(safeAsHouses,m)
             else
                 if not m.source == "casevac" then
@@ -1103,7 +1107,7 @@ function csb.wellnessCheck(coalitionId)
                     end
                 end
                 csb.cleanupCsarGroup(m)
-                if m.hunters then timer.scheduleFunction(csb.cleanupHunterGroups, m.hunters, timer.getTime() + expiryHunterCleanupDelay) end
+                if #m.hunters > 0 then timer.scheduleFunction(csb.cleanupHunterGroups, m.hunters, timer.getTime() + expiryHunterCleanupDelay) end
             end
         else
             m.skipWellness = nil
@@ -1257,7 +1261,7 @@ function csb.trackCsar()
                                                                     table.insert(v.onBoard,m)
                                                                     csb.updateMedicalMenuCommands(v.groupID,m.displayName,rescueMenu,m.treatments, m.onBoardTimeRemaining)
                                                                     csb.cleanupCsarGroup(m)
-                                                                    if m.hunters then timer.scheduleFunction(csb.cleanupHunterGroups, m.hunters, timer.getTime() + pickupHunterCleanupDelay) end
+                                                                    if #m.hunters > 0 then timer.scheduleFunction(csb.cleanupHunterGroups, m.hunters, timer.getTime() + pickupHunterCleanupDelay) end
                                                                     m.status = 1
                                                                     didYouEvenLift = true
                                                                     transporterTable.addedMass = transporterTable.addedMass + csarTroopMass
@@ -1972,7 +1976,7 @@ function csb.fakeExtractionTime(args)
                 trigger.action.setUnitInternalCargo(pUnitName, transporterTable.addedMass)
             end
             csb.cleanupCsarGroup(args)
-            if args.mission.hunters then timer.scheduleFunction(csb.cleanupHunterGroups, args.mission.hunters, timer.getTime() + pickupHunterCleanupDelay) end
+            if #args.mission.hunters > 0 then timer.scheduleFunction(csb.cleanupHunterGroups, args.mission.hunters, timer.getTime() + pickupHunterCleanupDelay) end
             local filtered = {}
             for _,m in pairs(csarMissions[args.pSide]) do
                 if m ~= args.mission then
