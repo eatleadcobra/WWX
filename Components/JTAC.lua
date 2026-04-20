@@ -88,18 +88,16 @@ function jtac.updateMapLabel(jtacName)
         local jtacUnit = Unit.getByName(jtacName)
         if jtacUnit then
             local point = jtacUnit:getPoint()
-            if point then
-                local labelPoint = {x = point.x, y = point.y + 20, z = point.z}
+            if point and jtacData.mapMarkId and not jtacData.markDrawn then
                 local displayCallsign = jtacData.callsign
-                if displayCallsign then
-                    if not jtacData.mapMarkId then
-                        jtacData.mapMarkId = DrawingTools.newMarkId()
-                        trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
-                    else
-                        trigger.action.removeMark(jtacData.mapMarkId)
-                        trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
-                    end
-                end
+                local labelPoint = {x = point.x, y = point.y + 20, z = point.z}
+                trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
+                jtacData.markDrawn = true
+                return
+            elseif point and jtacData.mapMarkId and jtacData.markDrawn then
+                local labelPoint = {x = point.x, y = point.y + 20, z = point.z}
+                trigger.action.setMarkupPositionStart(jtacData.mapMarkId, labelPoint)
+                return
             end
         end
     end
@@ -239,7 +237,8 @@ function JTAC.registerJtac(name, coalitionId)
             spawnTime      = timer.getTime(),
             code           = 1688,
             callsign       = callsign,
-            mapMarkId      = false,
+            mapMarkId      = DrawingTools.newMarkId(),
+            markDrawn      = false,
             frequency      = frequency,
             modulation     = "AM",
             coalition      = cid,
