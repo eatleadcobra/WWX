@@ -1923,17 +1923,26 @@ function jtac.buildJtacSubmenusForGroup(groupName)
             for i = 1, #jtac.jtacList do
                 jtac.createJtacSubmenu(groupName, groupId, jtac.jtacList[i])
             end
-            table.insert(enrolledPlayers, groupName)
+            if not jtac.valueInTable(groupName, enrolledPlayers) then
+                table.insert(enrolledPlayers, groupName)
+            end
         end
     else
         env.info("Attempted to build JTAC menu for group " .. groupName .. " but group not found", false)
-        if enrolledPlayers[groupName] then
+        if jtac.valueInTable(groupName, enrolledPlayers) then
             table.remove(enrolledPlayers, groupName)
             env.info("removed group " .. groupName .. " from enrolled players list", false)
         end
     end
 end
-
+function jtac.valueInTable(value, tbl)
+    for _, v in pairs(tbl) do
+        if v == value then
+            return true
+        end
+    end
+    return false
+end
 function jtac.removeMenus(groupName)
     local group = Group.getByName(groupName)
     if group then
@@ -1956,7 +1965,7 @@ end
 -- events
 
 function jtac.cleanupPlayer(groupName)
-    if enrolledPlayers[groupName] then
+    if jtac.valueInTable(groupName, enrolledPlayers) then
         table.remove(enrolledPlayers, groupName)
     end
     for jtacName, jtacData in pairs(jtac.jtacs) do
