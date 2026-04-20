@@ -6,6 +6,7 @@ M_TO_NM = 1 / 1852
 NM = 1852
 KM = 1000
 local jtac = {
+    menuTimeout          = 30,
     distanceLimit        = 15 * KM,
     trackingInterval     = 0.05,
     visualRange          = 5 * NM,
@@ -40,6 +41,7 @@ local jtac = {
 }
 local lasing = {}
 local jtacEvents = {}
+local enrolledPlayers = {}
 function jtac.newSession()
     return {
         state                      = "IDLE",
@@ -1896,7 +1898,14 @@ function jtac.createJtacSubmenu(groupName, groupId, jtacName)
         end
     end
 end
-
+function jtac.menuRefresher()
+    for k, value in pairs(enrolledPlayers) do
+        if value then
+            jtac.buildJtacSubmenusForGroup(value)
+        end
+    end
+    timer.scheduleFunction(jtac.menuRefresher, {}, timer.getTime() + jtac.menuTimeout)
+end
 function jtac.buildJtacSubmenusForGroup(groupName)
     local group = Group.getByName(groupName)
     if group then
@@ -1914,6 +1923,13 @@ function jtac.buildJtacSubmenusForGroup(groupName)
             for i = 1, #jtac.jtacList do
                 jtac.createJtacSubmenu(groupName, groupId, jtac.jtacList[i])
             end
+            table.insert(enrolledPlayers, groupName)
+        end
+    else
+        env.info("Attempted to build JTAC menu for group " .. groupName .. " but group not found", false)
+        if enrolledPlayers[groupName] then
+            table.remove(enrolledPlayers, groupName)
+            env.info("removed group " .. groupName .. " from enrolled players list", false)
         end
     end
 end
@@ -1940,6 +1956,9 @@ end
 -- events
 
 function jtac.cleanupPlayer(groupName)
+    if enrolledPlayers[groupName] then
+        table.remove(enrolledPlayers, groupName)
+    end
     for jtacName, jtacData in pairs(jtac.jtacs) do
         if jtacData then
             local session = jtacData.session
@@ -2062,6 +2081,7 @@ function jtacEvents:onEvent(event)
     end
 end
 world.addEventHandler(jtacEvents)
+timer.scheduleFunction(jtac.menuRefresher, {}, timer.getTime() + jtac.menuTimeout) -- test funtion to refresh menus every 30 seconds in case of menu desync
 if JTAC.enableInitSpawn then
     JTAC.spawnJtacsAtRandomBPs(3, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
     JTAC.spawnJtacsAtRandomBPs(3, 1)
