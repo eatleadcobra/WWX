@@ -381,7 +381,7 @@ function cpyctl.cpyStatusLoop()
                 --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
-                if CONTROLLABLE_COMPANIES and (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable then
+                if CONTROLLABLE_COMPANIES and (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable and not cpy.cpyType == "JTAC" then
                     cpy:savePosition()
                     cpy:despawn()
                     cpy:spawn({playerControllable = true})
