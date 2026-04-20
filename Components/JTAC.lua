@@ -104,6 +104,7 @@ function jtac.updateMapLabel(jtacName)
         end
     end
     jtac.clearMapLabel(jtacName)
+    JTAC.deRegisterJtac(jtacName)
 end
 function jtac.updateMapLabels()
     local deadJtacs = {}
