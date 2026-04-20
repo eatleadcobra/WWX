@@ -2026,7 +2026,7 @@ function jtacEvents:onEvent(event)
             if group and groupName then
                 local transporterTable = DFS.helos[groupName]
                 if transporterTable then
-                    local manifest = transporterTable.manifest
+                    local manifest = transporterTable.cargo.manifest
                     if manifest then
                         for key, value in pairs(manifest) do
                             if value == DFS.supplyType.JTAC then
