@@ -2027,7 +2027,7 @@ function jtacEvents:onEvent(event)
                 local transporterTable = DFS.helos[groupName]
                 if transporterTable then
                     for key, value in pairs(transporterTable) do
-                        if value == DFS.supplyType.JTAC then
+                        if value.typeName == DFS.supplyType.JTAC then
                             local jtacUnit = group:getUnit(1)
                             if jtacUnit then
                                 local unitName = jtacUnit:getName()
