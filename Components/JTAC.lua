@@ -1918,24 +1918,6 @@ function jtac.buildJtacSubmenusForGroup(groupName)
     end
 end
 
-function jtac.populateMenus(groupName)
-    local group = Group.getByName(groupName)
-    if group then
-        local groupId = group:getID()
-        if groupId then
-            if not jtac.jtacMenu[groupName] then
-                jtac.jtacMenu[groupName] = {}
-            end
-
-            if not jtac.jtacMenu[groupName]["root"] then
-                jtac.jtacMenu[groupName]["root"] = missionCommands.addSubMenuForGroup(groupId, "JTAC")
-            end
-
-            jtac.buildJtacSubmenusForGroup(groupName)
-        end
-    end
-end
-
 function jtac.removeMenus(groupName)
     local group = Group.getByName(groupName)
     if group then
@@ -1952,11 +1934,6 @@ function jtac.removeMenus(groupName)
 end
 
 function jtac.updateMenusForState(jtacName, groupName)
-    if not jtac.jtacMenu[groupName] or not jtac.jtacMenu[groupName]["root"] then
-        jtac.populateMenus(groupName)
-        return
-    end
-
     jtac.buildJtacSubmenusForGroup(groupName)
 end
 
@@ -1999,7 +1976,7 @@ function jtacEvents:onEvent(event)
                 if playerName then
                     local groupName = group:getName()
                     if groupName then
-                        jtac.populateMenus(groupName)
+                        jtac.buildJtacSubmenusForGroup(groupName)
                     end
                 end
             end
