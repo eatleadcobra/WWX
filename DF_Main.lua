@@ -741,50 +741,6 @@ function dfcEvents:onEvent(event)
             end
         end
     end
-    -- on takeoff
-    if (event.id == world.event.S_EVENT_TAKEOFF) then
-        if event.initiator and event.initiator.getGroup then
-            if JTACS then
-                local group = event.initiator:getGroup()
-                if group then
-                    local groupName = group:getName()
-                    if groupName then
-                        local transporterTable = DFS.helos[groupName]
-                        if transporterTable then
-                            for key, value in pairs(transporterTable) do
-                                if value == DFS.supplyType.JTAC then
-                                    trigger.action.outTextForGroup(group:getID(), "You have taken off with a JTAC! it is now active and searching for units outside the window.\n You can also redeploy them to be used as a standalone JTAC if needed.", 15, false)
-                                    JTAC.registerJtac(groupName, group:getCoalition())
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    if (event.id == world.event.S_EVENT_LAND) then
-        if event.initiator and event.initiator.getGroup then
-            if JTACS then
-                local group = event.initiator:getGroup()
-                if group then
-                    local groupName = group:getName()
-                    if groupName then
-                        local transporterTable = DFS.helos[groupName]
-                        if transporterTable then
-                            for key, value in pairs(transporterTable) do
-                                if value == DFS.supplyType.JTAC then
-                                    JTAC.deRegisterJtac(groupName)
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
 end
 function dfc.getMission()
     local missionName = env.mission["date"]["Year"]
