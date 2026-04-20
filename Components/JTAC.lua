@@ -96,7 +96,8 @@ function jtac.updateMapLabel(jtacName)
                         jtacData.mapMarkId = DrawingTools.newMarkId()
                         trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
                     else
-                        trigger.action.setMarkupPositionStart(jtacData.mapMarkId, labelPoint)
+                        trigger.action.removeMark(jtacData.mapMarkId)
+                        trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
                     end
                 end
             end
