@@ -2029,9 +2029,15 @@ function jtacEvents:onEvent(event)
                 if transporterTable then
                     for key, value in pairs(transporterTable) do
                         if value == DFS.supplyType.JTAC then
-                            trigger.action.outTextForGroup(group:getID(), "You have taken off with a JTAC! it is now active and searching for units outside the window.\n You can also redeploy them to be used as a standalone JTAC if needed.", 15, false)
-                            JTAC.registerJtac(groupName, group:getCoalition())
-                            break
+                            local jtacUnit = group:getUnit(1)
+                            if jtacUnit then
+                                local unitName = jtacUnit:getName()
+                                if unitName then
+                                    trigger.action.outTextForGroup(group:getID(), "You have taken off with a JTAC! it is now active and searching for units outside the window.\n You can also redeploy them to be used as a standalone JTAC if needed.", 15, false)
+                                    JTAC.registerJtac(unitName, group:getCoalition())
+                                    break
+                                end
+                            end
                         end
                     end
                 end
@@ -2047,8 +2053,14 @@ function jtacEvents:onEvent(event)
                 if transporterTable then
                     for key, value in pairs(transporterTable) do
                         if value == DFS.supplyType.JTAC then
-                            JTAC.deRegisterJtac(groupName)
-                            break
+                            local jtacUnit = group:getUnit(1)
+                            if jtacUnit then
+                                local unitName = jtacUnit:getName()
+                                if unitName then
+                                    JTAC.deRegisterJtac(unitName)
+                                    break
+                                end
+                            end
                         end
                     end
                 end
