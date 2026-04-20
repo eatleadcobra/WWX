@@ -267,6 +267,7 @@ function JTAC.registerJtac(name, coalitionId)
         end
         jtac.jtacList[#jtac.jtacList + 1] = name
         jtac.updateMapLabel(name)
+        jtac.menuRefresher()
         timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
@@ -1904,7 +1905,6 @@ function jtac.menuRefresher()
             jtac.buildJtacSubmenusForGroup(value)
         end
     end
-    timer.scheduleFunction(jtac.menuRefresher, {}, timer.getTime() + jtac.menuTimeout)
 end
 function jtac.buildJtacSubmenusForGroup(groupName)
     local group = Group.getByName(groupName)
@@ -2099,7 +2099,6 @@ function jtacEvents:onEvent(event)
     end
 end
 world.addEventHandler(jtacEvents)
-timer.scheduleFunction(jtac.menuRefresher, {}, timer.getTime() + jtac.menuTimeout) -- test funtion to refresh menus every 30 seconds in case of menu desync
 if JTAC.enableInitSpawn then
     JTAC.spawnJtacsAtRandomBPs(3, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
     JTAC.spawnJtacsAtRandomBPs(3, 1)
