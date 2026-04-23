@@ -4,8 +4,10 @@ JTAC.enableSpawnOnBpCapture = JTACS.spawnOnBpCapture or false
 local DEBUG = false
 M_TO_NM = 1 / 1852
 NM = 1852
+KM = 1000
 local jtac = {
-    distanceLimit        = 10000,
+    menuTimeout          = 30,
+    distanceLimit        = 15 * KM,
     trackingInterval     = 0.05,
     visualRange          = 5 * NM,
     ipRange              = 10 * NM,
@@ -16,7 +18,7 @@ local jtac = {
     missionTimeout       = 900,
     noTargetScanInterval = 30,
     visualCheckInterval  = 5,
-    mapLabelRefreshInterval = 10,
+    mapLabelRefreshInterval = 120,
     maxActivePerCoalition = 9,
     freqLower            = 225.0,
     freqUpper            = 399.975,
@@ -35,10 +37,11 @@ local jtac = {
     jtacList             = {}, -- Used to preserve menu order, yes this is poorly named
     jtacMenu             = {},
     idleBroadcastInterval = 30,
-    laserCodes           = { 1688, 1111, 1511, 1522, 1533, 1544, 1555, 1566, 1577 },
+    laserCodes           = { 1688, 1113, 1776, 1511, 1522, 1533, 1544, 1555, 1566 },
 }
 local lasing = {}
 local jtacEvents = {}
+local enrolledPlayers = {}
 function jtac.newSession()
     return {
         state                      = "IDLE",
@@ -87,15 +90,21 @@ function jtac.updateMapLabel(jtacName)
         local jtacUnit = Unit.getByName(jtacName)
         if jtacUnit then
             local point = jtacUnit:getPoint()
-            if point and jtacData.mapMarkId then
+            if point and jtacData.mapMarkId and not jtacData.markDrawn then
                 local displayCallsign = jtacData.callsign
                 local labelPoint = {x = point.x, y = point.y + 20, z = point.z}
                 trigger.action.textToAll(jtacData.coalition, jtacData.mapMarkId, labelPoint, {0,0,0,1}, {1,1,1,1}, 8, true, displayCallsign)
+                jtacData.markDrawn = true
+                return
+            elseif point and jtacData.mapMarkId and jtacData.markDrawn then
+                local labelPoint = {x = point.x, y = point.y + 20, z = point.z}
+                trigger.action.setMarkupPositionStart(jtacData.mapMarkId, labelPoint)
                 return
             end
         end
     end
     jtac.clearMapLabel(jtacName)
+    JTAC.deRegisterJtac(jtacName)
 end
 function jtac.updateMapLabels()
     local deadJtacs = {}
@@ -232,6 +241,7 @@ function JTAC.registerJtac(name, coalitionId)
             code           = 1688,
             callsign       = callsign,
             mapMarkId      = DrawingTools.newMarkId(),
+            markDrawn      = false,
             frequency      = frequency,
             modulation     = "AM",
             coalition      = cid,
@@ -257,6 +267,7 @@ function JTAC.registerJtac(name, coalitionId)
         end
         jtac.jtacList[#jtac.jtacList + 1] = name
         jtac.updateMapLabel(name)
+        jtac.menuRefresher()
         timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
         env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
@@ -281,7 +292,16 @@ function JTAC.deRegisterJtac(name)
         if jtacUnit then
             local jtacGroup = jtacUnit:getGroup()
             if jtacGroup then
-                jtacGroup:destroy()
+                local unit1 = jtacGroup:getUnit(1)
+                if unit1 then
+                    local player = unit1:getPlayerName()
+                    if not player then
+                        jtacGroup:destroy()
+                    else
+                        env.info("JTAC " .. name .. " is player controlled by " .. player .. ", not destroying group on deregister", false)
+                        trigger.action.outTextForGroup(jtacGroup:getID(), "You have landed and your JTAC is no longer active...\nYou can still deploy them to be used as a standalone JTAC", 15, false)
+                    end
+                end
             end
         end
 
@@ -300,7 +320,6 @@ end
 
 function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
     if not persistent then persistent = false end
-    local cid = coalitionId or 2
     local platoonTable = {
         [1] = "Soldier M4 GRG",
     }
@@ -320,14 +339,14 @@ function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
     }
     newCpy:setWaypoints({waypoints[1], waypoints[2]}, -1, 12)
     newCpy:spawn()
-    local jtacGroupName = newCpy.groupName
 
+    local jtacGroupName = newCpy.groupName
     if jtacGroupName and not persistent then
         local jtacGroup = Group.getByName(jtacGroupName)
         if jtacGroup then
             local jtacUnit = jtacGroup:getUnit(1)
             if jtacUnit then
-                JTAC.registerJtac(jtacUnit:getName(), cid)
+                JTAC.registerJtac(jtacUnit:getName(), coalitionId)
             end
         end
     end
@@ -532,6 +551,7 @@ function jtac.buildIdleStatusMessage(jtacName)
             message = string.format("%s available for laser. %s.", jtacData.callsign, targetText)
         end
     end
+    env.info("JTAC " .. jtacName .. " idle status: " .. tostring(message), false)
     return message
 end
 
@@ -551,6 +571,7 @@ function jtac.idleStatusBroadcast(param)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
+    env.info("JTAC: Spawning " .. tostring(count) .. " JTACs at random BPs for coalition " .. tostring(coalitionId), false)
     local bpIds = BattleControl.getAllBPIds()
     if #bpIds == 0 then
         env.info("JTAC: no BP zones found for debug spawn", false)
@@ -598,10 +619,12 @@ function jtac.transmit(jtacName, message, duration, repeatMessage, sender)
                         session.lastMessage = message
                         session.messageDuration = duration
                     end
+                    return
                 end
             end
         end
     end
+    env.info("JTAC " .. tostring(jtacName) .. " not found for transmission, likely dead", false)
 end
 function jtac.getPlayerCallsign(groupName)
     local callsign = "Flight"
@@ -1209,6 +1232,7 @@ function jtac.trackLaser(param)
         end
     else
         -- JTAC dead
+        env.info("JTAC " .. param.jtacName .. " is no longer alive, stopping lasing", false)
         JTAC.deRegisterJtac(param.jtacName)
     end
 end
@@ -1362,6 +1386,7 @@ function jtac.handleCheckIn(param)
                 end
             end
         else
+            env.info("JTAC " .. jtacName .. " unit not found during check in, de-registering JTAC", false)
             JTAC.deRegisterJtac(jtacName)
         end
     end
@@ -1708,7 +1733,7 @@ function jtac.retransmitQueueStatus(param)
                 end
             end
             jtac.transmit(param.jtacName, msg, jtac.queueStatusDuration)
-            timer.scheduleFunction(jtac.retransmitQueueStatus, param, timer.getTime() + jtac.queueStatusDuration)
+            timer.scheduleFunction(jtac.retransmitQueueStatus, param, timer.getTime() + jtac.queueStatusDuration*2)
         end
     end
 end
@@ -1717,6 +1742,8 @@ function jtac.dequeueNext(jtacName)
     local jtacData = jtac.jtacs[jtacName]
     if jtacData then
         local session = jtacData.session
+        session.controlledFlight = nil
+        session.controlledFlightPlayerName = nil
         if session then
             while #session.flightQueue > 0 do
                 local entry = table.remove(session.flightQueue, 1)
@@ -1872,7 +1899,13 @@ function jtac.createJtacSubmenu(groupName, groupId, jtacName)
         end
     end
 end
-
+function jtac.menuRefresher()
+    for k, value in pairs(enrolledPlayers) do
+        if value then
+            jtac.buildJtacSubmenusForGroup(value)
+        end
+    end
+end
 function jtac.buildJtacSubmenusForGroup(groupName)
     local group = Group.getByName(groupName)
     if group then
@@ -1890,28 +1923,26 @@ function jtac.buildJtacSubmenusForGroup(groupName)
             for i = 1, #jtac.jtacList do
                 jtac.createJtacSubmenu(groupName, groupId, jtac.jtacList[i])
             end
+            if not jtac.valueInTable(groupName, enrolledPlayers) then
+                table.insert(enrolledPlayers, groupName)
+            end
+        end
+    else
+        env.info("Attempted to build JTAC menu for group " .. groupName .. " but group not found", false)
+        if jtac.valueInTable(groupName, enrolledPlayers) then
+            jtac.removePlayerFromEnrolled(groupName)
+            env.info("removed group " .. groupName .. " from enrolled players list", false)
         end
     end
 end
-
-function jtac.populateMenus(groupName)
-    local group = Group.getByName(groupName)
-    if group then
-        local groupId = group:getID()
-        if groupId then
-            if not jtac.jtacMenu[groupName] then
-                jtac.jtacMenu[groupName] = {}
-            end
-
-            if not jtac.jtacMenu[groupName]["root"] then
-                jtac.jtacMenu[groupName]["root"] = missionCommands.addSubMenuForGroup(groupId, "JTAC")
-            end
-
-            jtac.buildJtacSubmenusForGroup(groupName)
+function jtac.valueInTable(value, tbl)
+    for _, v in pairs(tbl) do
+        if v == value then
+            return true
         end
     end
+    return false
 end
-
 function jtac.removeMenus(groupName)
     local group = Group.getByName(groupName)
     if group then
@@ -1928,17 +1959,24 @@ function jtac.removeMenus(groupName)
 end
 
 function jtac.updateMenusForState(jtacName, groupName)
-    if not jtac.jtacMenu[groupName] or not jtac.jtacMenu[groupName]["root"] then
-        jtac.populateMenus(groupName)
-        return
-    end
-
     jtac.buildJtacSubmenusForGroup(groupName)
 end
-
+function jtac.removePlayerFromEnrolled(groupName)
+    if jtac.valueInTable(groupName, enrolledPlayers) then
+        for key, value in pairs(enrolledPlayers) do
+            if value == groupName then
+                table.remove(enrolledPlayers, key)
+                return
+            end
+        end
+    end
+end
 -- events
 
 function jtac.cleanupPlayer(groupName)
+    if jtac.valueInTable(groupName, enrolledPlayers) then
+        jtac.removePlayerFromEnrolled(groupName)
+    end
     for jtacName, jtacData in pairs(jtac.jtacs) do
         if jtacData then
             local session = jtacData.session
@@ -1967,7 +2005,7 @@ function jtac.cleanupPlayer(groupName)
 end
 
 function jtacEvents:onEvent(event)
-    if event.id == world.event.S_EVENT_TAKEOFF or (event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT and DEBUG) then
+    if event.id == world.event.S_EVENT_BIRTH or event.id == world.event.S_EVENT_PLAYER_ENTER_UNIT then
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
@@ -1975,7 +2013,7 @@ function jtacEvents:onEvent(event)
                 if playerName then
                     local groupName = group:getName()
                     if groupName then
-                        jtac.populateMenus(groupName)
+                        jtac.buildJtacSubmenusForGroup(groupName)
                     end
                 end
             end
@@ -1983,8 +2021,7 @@ function jtacEvents:onEvent(event)
     end
     if event.id == world.event.S_EVENT_PILOT_DEAD
         or event.id == world.event.S_EVENT_EJECTION
-        or event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT
-        or event.id == world.event.S_EVENT_LAND then
+        or event.id == world.event.S_EVENT_PLAYER_LEAVE_UNIT then
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
@@ -1992,6 +2029,70 @@ function jtacEvents:onEvent(event)
                 if groupName then
                     jtac.cleanupPlayer(groupName)
                     jtac.removeMenus(groupName)
+                end
+            end
+        end
+    end
+    if event.id == world.event.S_EVENT_TAKEOFF then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            local groupName = group:getName()
+            if group and groupName then
+                local transporterTable = DFS.helos[groupName]
+                if transporterTable then
+                    local manifest = transporterTable.cargo.manifest
+                    if manifest then
+                        for key, value in pairs(manifest) do
+                            if value == DFS.supplyType.JTAC then
+                                local jtacUnit = group:getUnit(1)
+                                if jtacUnit then
+                                    local unitName = jtacUnit:getName()
+                                    if unitName then
+                                        trigger.action.outTextForGroup(group:getID(), "You have taken off with a JTAC! it is now active and searching for units outside the window.\n You can also redeploy them to be used as a standalone JTAC if needed.", 15, false)
+                                        JTAC.registerJtac(unitName, group:getCoalition())
+                                        break
+                                    end
+                                    env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit has no name, unable to register JTAC", false)
+                                end
+                                env.info("JTAC transporter detected for group " .. groupName .. " but JTAC unit not found, unable to register JTAC", false)
+                                return
+                            end
+                            env.info(Utils.dump(value) .. " is not a JTAC skipping JTAC registration", false)
+                        end
+                        env.info("Group " .. groupName .. " does not have a JTAC, skipping JTAC registration", false)
+                        return
+                    end
+                    env.info("Group " .. groupName .. " does not have a manifest entry, skipping JTAC registration", false)
+                    return
+                end
+                env.info("Group " .. groupName .. " does not have a transporter entry, skipping JTAC registration", false)
+                return
+            end
+            env.info("Event initiator does not have a group or group name, skipping JTAC registration", false)
+        end
+    end
+    if event.id == world.event.S_EVENT_LAND then
+        if event.initiator and event.initiator.getGroup then
+            local group = event.initiator:getGroup()
+            local groupName = group:getName()
+            if group and groupName then
+                local transporterTable = DFS.helos[groupName]
+                if transporterTable then
+                    local manifest = transporterTable.cargo.manifest
+                    if manifest then
+                        for key, value in pairs(manifest) do
+                            if value == DFS.supplyType.JTAC then
+                                local jtacUnit = group:getUnit(1)
+                                if jtacUnit then
+                                    local unitName = jtacUnit:getName()
+                                    if unitName then
+                                        JTAC.deRegisterJtac(unitName)
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
                 end
             end
         end
