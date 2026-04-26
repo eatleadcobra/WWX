@@ -115,7 +115,7 @@ FARPAirfields = {
     }
 }
 --carrier names are the UNIT name, NOT the group name
-Carrier = {
+Carriers = {
     [1] = {
     },
     [2] = {
