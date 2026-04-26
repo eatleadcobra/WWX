@@ -191,6 +191,38 @@ local groupTemplate =
     ["name"] = nil,
     ["start_time"] = 0,
 }
+local staticTemplates = {
+    ["fortification"] = {
+        ["mass"] = 1400,
+        ["heading"] = 0,
+        ["shape_name"] = "M92_Sandbag_05",
+        ["type"] = "Sandbag_05",
+        ["canCargo"] = false,
+        ["name"] = "",
+        ["category"] = "Fortifications",
+        ["y"] = 0,
+        ["x"] = 0,
+    },
+    ["netting"] = {
+        ["mass"] = 1400,
+        ["heading"] = 0,
+        ["shape_name"] = "M92_Camouflage07",
+        ["type"] = "Camouflage07",
+        ["name"] = "",
+        ["category"] = "Fortifications",
+        ["y"] = 0,
+        ["x"] = 0,
+    },
+    ["helipad"] = {
+        ["category"] = "Heliports",
+        ["shape_name"] = "FARP_SINGLE_01",
+	    ["type"] = "FARP_SINGLE_01",
+        ["heading"] = 0,
+        ["name"] = "",
+        ["y"] = 0,
+        ["x"] = 0,
+    }
+}
 local unitTemplates = {
     ["MORTAR"] = {
         ["skill"] = "Excellent",
@@ -537,6 +569,20 @@ function FirebaseGroups.spawn(unitType, location, unitCoalition, heading)
     groupTable["units"] = unitsTable
     local groupName = coalition.addGroup(countryId, type, groupTable):getName()
     return groupName
+end
+function FirebaseGroups.spawnStatic(location, unitCoalition, heading, staticType)
+    local countryId = country.id.CJTF_BLUE
+    if unitCoalition == 1 then countryId = country.id.CJTF_RED end
+    local staticName = nil
+    local id = fbg.newGroupId()
+    local staticTemplate = fbg.copyTemplate(staticTemplates[staticType])
+    staticTemplate["name"] = staticType.."-"..countryId.."-"..id
+    staticName = staticTemplate["name"]
+    staticTemplate["y"] = location.z
+    staticTemplate["x"] = location.x
+    staticTemplate["heading"] = heading
+    coalition.addStaticObject(countryId, staticTemplate)
+    return staticName
 end
 function fbg.newGroupId()
     local newId = nextGroupId

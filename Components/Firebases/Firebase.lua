@@ -10,7 +10,8 @@ Firebase = {
         heading = 0,
         spawnPoints = {
             groups = {},
-            truck = {}
+            truck = {},
+            statics = {}
         },
     },
     contents = {

@@ -9,6 +9,59 @@ Firebases.fbTypes = {
     ["HOWITZER"] = 2,
     ["SPG"] = 3,
 }
+local fbNameCounter = 1
+local firebaseNames = {
+    "Firebase Airborne",
+    "Firebase Anzio",
+    "Firebase Arrow",
+    "Firebase Arsenal",
+    "Firebase Barbara",
+    "Firebase Bastogne",
+    "Firebase Bertesgaden",
+    "Firebase Birmingham",
+    "Firebase Blaze",
+    "Firebase Blitz",
+    "Firebase Boise",
+    "Firebase Boxer",
+    "Firebase Boyde",
+    "Firebase Bradley",
+    "Firebase Brick",
+    "Firebase Bullet",
+    "Firebase Cannon",
+    "Firebase Charlie 2",
+    "Firebase Checkmate",
+    "Firebase Cureless",
+    "Firebase Currahee",
+    "Firebase Destiny",
+    "Firebase Eagles Nest",
+    "Firebase Falcon",
+    "Firebase Fury",
+    "Firebase Georgia",
+    "Firebase Geronimo",
+    "Firebase Gladiator",
+    "Firebase Goodman",
+    "Firebase Granite",
+    "Firebase Helen",
+    "Firebase Henderson",
+    "Firebase Jack",
+    "Firebase Kathryn",
+    "Firebase Kerry Lou",
+    "Firebase Los Banos",
+    "Firebase Lyon",
+    "Firebase Maureen",
+    "Firebase Meredith",
+    "Firebase Nancy",
+    "Firebase Normandy",
+    "Firebase O'Reilly",
+    "Firebase Pepper",
+    "Firebase Pinky",
+    "Firebase Pistol",
+    "Firebase Rakkasan",
+    "Firebase Rifle",
+    "Firebase Ripcord",
+    "Firebase Roy",
+    "Firebase Satan"
+}
 local gunAssignments = {
 
 }
@@ -49,7 +102,7 @@ local firebaseExpendQtys = {
 }
 local firebaseMaxAmmos = {
     ["MORTAR"] = 140,
-    ["HOWITZER"] = 100,
+    ["HOWITZER"] = 200,
     ["SPG"] = 120,
 }
 local supplyTypes = {
@@ -312,6 +365,9 @@ function Firebases.destroyFirebase(firebase)
     trigger.action.removeMark(firebase.markups.ammoCounter.ammoAmt)
     trigger.action.removeMark(firebase.markups.firing.line)
     trigger.action.removeMark(firebase.markups.firing.circle)
+    if firebase.markups.name then
+        trigger.action.removeMark(firebase.markups.firing.name)
+    end
     for i = 1, #firebase.markups.symbol do
         trigger.action.removeMark(firebase.markups.symbol[i])
     end
@@ -354,30 +410,34 @@ function fbFuncs.drawNewBase(firebase)
     fbFuncs.createAmmoCounter(firebase)
     fbFuncs.createGroupCounter(firebase)
 end
-function fbFuncs.drawSymbol(type, location, firebase, coalition)
+function fbFuncs.drawSymbol(type, location, firebase, coalitionId)
     local rangeId = DrawingTools.newMarkId()
-    trigger.action.circleToAll(coalition, rangeId, location, firebaseRanges[type], {0,0,0,1}, {0,0,0,0}, 2, true)
+    trigger.action.circleToAll(coalitionId, rangeId, location, firebaseRanges[type], {0,0,0,1}, {0,0,0,0}, 2, true)
     firebase.markups.range = rangeId
     if type == "MORTAR" then
         local circlePoint = { x = location.x - 75, y = location.y, z = location.z}
         local circleId = DrawingTools.newMarkId()
-        trigger.action.circleToAll(coalition, circleId, circlePoint, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,1}, 1, true)
+        trigger.action.circleToAll(coalitionId, circleId, circlePoint, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,1}, 1, true)
         firebase.markups.symbol[#firebase.markups.symbol+1] = circleId
         local lineEnd = {x = location.x + 75, y = location.y, z = location.z}
         local lineId = DrawingTools.newMarkId()
-        trigger.action.lineToAll(coalition, lineId, circlePoint, lineEnd, {0,0,0,1}, 1, true)
+        trigger.action.lineToAll(coalitionId, lineId, circlePoint, lineEnd, {0,0,0,1}, 1, true)
         firebase.markups.symbol[#firebase.markups.symbol+1] = lineId
         local triangleLeft = {x = lineEnd.x, y = lineEnd.y, z = lineEnd.z - 10}
         local triangleRight = {x = lineEnd.x, y = lineEnd.y, z = lineEnd.z + 10}
         local triangleTop = {x = lineEnd.x + 10, y = lineEnd.y, z = lineEnd.z}
         local triangleId = DrawingTools.newMarkId()
-        trigger.action.quadToAll(coalition, triangleId, triangleLeft, triangleTop, triangleTop, triangleRight, {0,0,0,1}, {0,0,0,1}, 1, true) 
+        trigger.action.quadToAll(coalitionId, triangleId, triangleLeft, triangleTop, triangleTop, triangleRight, {0,0,0,1}, {0,0,0,1}, 1, true) 
         firebase.markups.symbol[#firebase.markups.symbol+1] = triangleId
     elseif type == "HOWITZER" or type == "SPG" then
         local circlePoint = { x = location.x, y = location.y, z = location.z}
         local circleId = DrawingTools.newMarkId()
-        trigger.action.circleToAll(coalition, circleId, circlePoint, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,1}, 1, true)
+        trigger.action.circleToAll(coalitionId, circleId, circlePoint, drawing.groupCountRadius, {0,0,0,1}, {0,0,0,1}, 1, true)
         firebase.markups.symbol[#firebase.markups.symbol+1] = circleId
+        firebase.markups.name = DrawingTools.newMarkId()
+        trigger.action.textToAll(coalitionId, firebase.markups.name, {x =  circlePoint.x + 100, y = 0, z = circlePoint.z}, {0,0,0,1}, {1,1,1,1}, 10, true, firebaseNames[fbNameCounter])
+        fbNameCounter = fbNameCounter + 1
+        if fbNameCounter > #firebaseNames then fbNameCounter = 1 end
     elseif type == "MLRS" then
         
     end
@@ -499,6 +559,7 @@ end
 function fbFuncs.getSpawnPoints(point, pos, type)
     local spawnPoints = {}
     local groups = {}
+    local statics = {}
     local truck = point
     if type == "MORTAR" then
         groups[1] = Utils.VectorAdd(point, Utils.ScalarMult(pos.x, 10))
@@ -507,16 +568,26 @@ function fbFuncs.getSpawnPoints(point, pos, type)
         groups[2] = Utils.VectorAdd(point, Utils.ScalarMult(pos.x, 15))
         groups[3] = Utils.VectorAdd(point, Utils.ScalarMult(Utils.RotateVector(pos.x, 0.9), 15))
     elseif type == "HOWITZER" then
-        groups[1] = Utils.VectorAdd(point, Utils.ScalarMult(Utils.RotateVector(pos.x, -0.7), 15))
-        groups[2] = Utils.VectorAdd(point, Utils.ScalarMult(Utils.RotateVector(pos.x, 0.7), 15))
+        groups[1] = Utils.VectorAdd(point, Utils.ScalarMult(Utils.RotateVector(pos.x, -1.25), 20))
+        groups[2] = Utils.VectorAdd(point, Utils.ScalarMult(Utils.RotateVector(pos.x, -0.9), 15))
+        groups[3] = Utils.VectorAdd(point, Utils.ScalarMult(pos.x, 15))
+        groups[4] = Utils.VectorAdd(point, Utils.ScalarMult(Utils.RotateVector(pos.x, 0.9), 15))
+        statics[1] = Utils.VectorAdd(point, Utils.ScalarMult(pos.x, 25))
+        statics[2] = Utils.VectorAdd(point, Utils.ScalarMult(pos.x, -50))
     end
     spawnPoints.groups = groups
+    spawnPoints.statics = statics
     spawnPoints.truck = truck
     return spawnPoints
 end
 function fbFuncs.spawnTruck(firebase)
     firebase.contents.truck = nil
     local newTruck = FirebaseGroups.spawn("TRUCK", firebase.positions.spawnPoints.truck, firebase.coalition, firebase.positions.heading)
+    FirebaseGroups.spawnStatic(firebase.positions.spawnPoints.truck, firebase.coalition, firebase.positions.heading - 1.5, "netting")
+    if firebase.fbType == "HOWITZER" and firebase.positions.spawnPoints.statics and #firebase.positions.spawnPoints.statics > 1 then
+        FirebaseGroups.spawnStatic(firebase.positions.spawnPoints.statics[2], firebase.coalition, firebase.positions.heading - 1.5, "helipad")
+        FirebaseGroups.spawnStatic(firebase.positions.spawnPoints.statics[1], firebase.coalition, firebase.positions.heading - 1.5, "fortification")
+    end
     firebase.contents.truck = newTruck
 end
 function fbFuncs.spawnGroup(firebase, type)
