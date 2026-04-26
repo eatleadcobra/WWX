@@ -366,7 +366,7 @@ function Firebases.destroyFirebase(firebase)
     trigger.action.removeMark(firebase.markups.firing.line)
     trigger.action.removeMark(firebase.markups.firing.circle)
     if firebase.markups.name then
-        trigger.action.removeMark(firebase.markups.firing.name)
+        trigger.action.removeMark(firebase.markups.name)
     end
     for i = 1, #firebase.markups.symbol do
         trigger.action.removeMark(firebase.markups.symbol[i])
