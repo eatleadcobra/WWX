@@ -786,6 +786,7 @@ function fbFuncs.firebaseFire(firebase, targetmark)
     end
     fbFuncs.firingDraw(firebase, {x = mission.x, y = mission.y})
     timer.scheduleFunction(fbFuncs.cleanFireMission, {firebase = firebase, assignedArtyNames = assignedArtyNames}, timer:getTime() + missionTime + gracePeriod)
+    timer.scheduleFunction(fbFuncs.cleanFireMissionLine, {firebase = firebase, assignedArtyNames = assignedArtyNames}, timer:getTime() + missionTime*3)
 end
 function fbFuncs.firingMarkUpdate(targetmarkId, point, coalitionId, fbType, shots)
     trigger.action.removeMark(targetmarkId)
@@ -819,7 +820,7 @@ end
 function fbFuncs.cleanFireMission(param)
     --trigger.action.removeMark(param.circleId)
     trigger.action.setMarkupColorFill(param.firebase.markups.firing.circle, {0,0,0,0.1})
-    trigger.action.setMarkupPositionEnd(param.firebase.markups.firing.line, param.firebase.positions.location)
+    --trigger.action.setMarkupPositionEnd(param.firebase.markups.firing.line, param.firebase.positions.location)
     if param.assignedArtyNames then
         local missionPlayer = gunAssignments[param.assignedArtyNames[1]]
         for i = 1, #param.assignedArtyNames do
@@ -846,6 +847,9 @@ function fbFuncs.cleanFireMission(param)
         end
     end
     param.firebase:unassign()
+end
+function fbFuncs.cleanFireMissionLine(param)
+    trigger.action.setMarkupPositionEnd(param.firebase.markups.firing.line, param.firebase.positions.location)
 end
 function fbFuncs.checkFirebases()
     for c = 1, 2 do
