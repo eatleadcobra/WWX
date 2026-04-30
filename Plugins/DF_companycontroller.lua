@@ -216,6 +216,7 @@ end
 function cpyctl.babysitter()
     for _, cpy in pairs(Companies) do
         if cpy.playerControllable then
+            env.info("Babysitter checking player controllable company " .. cpy.id, false)
             local cpyGroup = Group.getByName(cpy.groupName)
             if cpyGroup then
                 local units = cpyGroup:getUnits()
