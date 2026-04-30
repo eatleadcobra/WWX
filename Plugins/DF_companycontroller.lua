@@ -381,12 +381,17 @@ function cpyctl.cpyStatusLoop()
                 --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
-                if CONTROLLABLE_COMPANIES and (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable and not cpy.cpyType == "JTAC" then
-                    cpy:savePosition()
-                    cpy:despawn()
-                    cpy:spawn({playerControllable = true})
-                    cpy.playerControllable = true
-                    break
+                if CONTROLLABLE_COMPANIES and (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable then
+                    env.info("Company " .. cpy.id .. " is within controllable distance.", false)
+                    if not cpy.cpyType == "JTAC" then
+                        env.info("Company " .. cpy.id .. " is now player controllable.", false)
+                        cpy:savePosition()
+                        cpy:despawn()
+                        cpy:spawn({playerControllable = true})
+                        cpy.playerControllable = true
+                        break
+                    end
+                    env.info("Company " .. cpy.id .. " is a JTAC company and cannot be player controlled.", false)
                 end
                 if not cpy.assigned then
                     if cpy.cpyType then
