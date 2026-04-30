@@ -383,16 +383,18 @@ function cpyctl.cpyStatusLoop()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
                 if CONTROLLABLE_COMPANIES and (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable then
-                    env.info("Company " .. cpy.id .. " is within controllable distance.", false)
-                    if not cpy.cpyType == "JTAC" then
-                        env.info("Company " .. cpy.id .. " is now player controllable.", false)
-                        cpy:savePosition()
-                        cpy:despawn()
-                        cpy:spawn({playerControllable = true})
-                        cpy.playerControllable = true
-                        break
+                    if cpy.cpyType then
+                        if cpy.cpyType == "JTAC" then
+                            env.info("Company " .. cpy.id .. " of type " .. cpy.cpyType .. " is within controllable distance but is a JTAC company and cannot be player controlled.", false)
+                            break -- a bit against WWX repo style but an early exit is a lot easier here because of how lua handles logic checks against nil values.
+                        end
                     end
-                    env.info("Company " .. cpy.id .. " is a JTAC company and cannot be player controlled.", false)
+                    env.info("Company " .. cpy.id .. " is within controllable distance and is now player controllable.", false)
+                    cpy:savePosition()
+                    cpy:despawn()
+                    cpy:spawn({playerControllable = true})
+                    cpy.playerControllable = true
+                    break
                 end
                 if not cpy.assigned then
                     if cpy.cpyType then
