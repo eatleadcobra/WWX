@@ -143,6 +143,10 @@ function csb.setupHospitals()
     for c = 1, 2 do
         for z = 1, #CSARBases[c] do
             DrawingTools.drawHealth(trigger.misc.getZone(CSARBases[c][z]).point, c, 500)
+            if NAMED_CSAR_DROPZONES then
+                local namepoint = {x = trigger.misc.getZone(CSARBases[c][z]).point.x, y = trigger.misc.getZone(CSARBases[c][z]).point.y, z = trigger.misc.getZone(CSARBases[c][z]).point.z}
+                trigger.action.textToAll(c, DrawingTools.newMarkId(), namepoint, zoneColours[c], {1,1,1,0.9}, 10, true, "CSAR Hospital")
+            end
         end
     end
 end

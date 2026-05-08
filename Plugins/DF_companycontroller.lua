@@ -216,6 +216,7 @@ end
 function cpyctl.babysitter()
     for _, cpy in pairs(Companies) do
         if cpy.playerControllable then
+            env.info("Babysitter checking player controllable company " .. cpy.id, false)
             local cpyGroup = Group.getByName(cpy.groupName)
             if cpyGroup then
                 local units = cpyGroup:getUnits()
@@ -381,7 +382,14 @@ function cpyctl.cpyStatusLoop()
                 --cpy:updateMarks()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 local currentPoint = cpy.point
-                if CONTROLLABLE_COMPANIES and (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable and not cpy.cpyType == "JTAC" then
+                if CONTROLLABLE_COMPANIES and (Utils.PointDistance(currentPoint, destinationPoint) < controllableDistance) and not cpy.playerControllable then
+                    if cpy.cpyType then
+                        if cpy.cpyType == "JTAC" then
+                            env.info("Company " .. cpy.id .. " of type " .. cpy.cpyType .. " is within controllable distance but is a JTAC company and cannot be player controlled.", false)
+                            break -- a bit against WWX repo style but an early exit is a lot easier here because of how lua handles logic checks against nil values.
+                        end
+                    end
+                    env.info("Company " .. cpy.id .. " is within controllable distance and is now player controllable.", false)
                     cpy:savePosition()
                     cpy:despawn()
                     cpy:spawn({playerControllable = true})
