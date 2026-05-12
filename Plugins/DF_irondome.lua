@@ -20,7 +20,10 @@ function ironDome:onEvent(event)
                                     if target:hasAttribute("Helicopters") then
                                         env.info("CAP Missile target is a Helicopter", false)
                                         -- blow up the missile
-                                        event.weapon:destroy()
+                                        if event.weapon and event.weapon.destroy then
+                                            env.info("Destroying missile", false)
+                                            event.weapon:destroy()
+                                        end
                                         ironDome.resetROE(groupName)
                                     end
                                 end
