@@ -2027,6 +2027,7 @@ function dfc.spawnFighter(coalitionId)
     if coalitionId == 2 then cloneGroupName = 'Blue-CAP' end
     local groupName = mist.cloneGroup(cloneGroupName, true).name
     DFS.status[coalitionId].lastFighterTime = timer:getTime()
+    DFS.status[coalitionId].capGroup = groupName
     dfc.checkFighter({groupName = groupName, coalitionId = coalitionId})
 end
 function dfc.checkFighter(param)

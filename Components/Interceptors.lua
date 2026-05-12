@@ -89,7 +89,7 @@ function intr.spawnInterceptor(coalitionId, target, number)
             point = targetUnit:getPoint(),
             speed = 200,
             altitude = 8000,
-        } 
+        }
     }
     local interceptTask = {
         id = "EngageUnit",
