@@ -4,7 +4,7 @@ local ewrRadius = 90000
 local mergedRange = 300
 local maxBullsUnits = 5
 local maxEWRZones = 5
-local mergeRange = 3 * 1852 --3 NM in meters
+local mergeRange = 5 * 1852 --5 NM in meters
 local mergeDecayTime = 60 -- seconds before a merge callout can repeat
 local activeMerges = {} -- track active merges: key -> expiry time
 local bullsUnitPrefixes = {
@@ -532,15 +532,11 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targ
         end
     end
 end
-bulls.getBulls()
-bulls.getUnits()
-bulls.getEWRs()
-bulls.cleanCallsignsLoop()
-Bulls.loop()
 
 function Bulls.getTargetsOnScope(coalitionId)
     return groupsList[coalitionId]
 end
+
 function Bulls.getTargetType(targetTypeName)
     local targetType = nil
     if unitTypes[targetTypeName] then targetType = unitTypes[targetTypeName] end
@@ -559,14 +555,14 @@ function bulls.checkForMergedContacts()
                 local friendlyPlayer = Unit.getPlayerName(friendlyUnit)
                 local friendlyPos = friendlyUnit:getPoint()
                 if friendlyPos then
-                    for _, enemy in ipairs(groupsList[1]) do -- only calculate merges if one of the groups has a player in it, to save on performance and avoid spamming about AI only merges
+                    for _, enemy in ipairs(groupsList[1]) do 
                         local enemyGroup = Group.getByName(enemy.groupName)
                         if enemyGroup then
                             local enemyUnit = enemyGroup:getUnit(1)
                             if enemyUnit then
                                 local enemyPlayer = Unit.getPlayerName(enemyUnit)
                                 local enemyPos = enemyUnit:getPoint()
-                                if enemyPos and (friendlyPlayer or enemyPlayer) then
+                                if enemyPos and (friendlyPlayer or enemyPlayer or true) then -- or true for debug -- only calculate merges if one of the groups has a player in it, to save on performance and avoid spamming about AI only merges
                                     local dist = Utils.PointDistance(friendlyPos, enemyPos)
                                     if dist <= mergeRange then
                                         if not distanceCache[friendly.groupName] or dist < distanceCache[friendly.groupName].distance then
@@ -587,7 +583,7 @@ function bulls.checkForMergedContacts()
             end
         end
     end
-    
+
     for _, data in pairs(distanceCache) do
         for coalitionId = 1, 2 do
             local friendlyGroupName, enemyGroupName, friendlyCallsign, enemyCallsign
@@ -621,9 +617,13 @@ function bulls.checkForMergedContacts()
                                 distStr = braa.distanceToTargetStringI .. "nm"
                                 altStr  = braa.altStringI
                             end
-                            local message = friendlyCallsign .. " MERGED with " .. enemyCallsign ..
+                            local playerName = Unit.getPlayerName(friendlyUnit)
+                            if playerName then
+                                friendlyCallsign = playerName .. " (" .. friendlyCallsign .. ")"
+                            end
+                            local message = "\n> " .. friendlyCallsign .. " MERGED with " .. enemyCallsign ..
                                 " BRAA " .. bearingStr .. " for " .. distStr .. ", " .. altStr .. ", " .. braa.aspectString
-                            bulls.transmit(coalitionId, message)
+                            bulls.transmit({coalitionId = coalitionId, message = message})
                             env.info(friendlyCallsign .. " merged with " .. enemyCallsign, false)
                             activeMerges[mergeKey] = timer:getTime() + mergeDecayTime
                             bulls.alertNearbyFriendlies(coalitionId, friendlyGroupName, friendlyCallsign, enemyGroupName, enemyCallsign)
@@ -639,6 +639,7 @@ function bulls.checkForMergedContacts()
             activeMerges[key] = nil
         end
     end
+    timer.scheduleFunction(bulls.checkForMergedContacts, nil, timer:getTime() + 5)
 end
 -- coalitionId, friendlyGroupName, friendlyCallsign, enemyGroupName, enemyCallsign
 function bulls.alertNearbyFriendlies(coalitionId, friendlyGroupName, friendlyCallsign, enemyGroupName, enemyCallsign)
@@ -648,7 +649,7 @@ function bulls.alertNearbyFriendlies(coalitionId, friendlyGroupName, friendlyCal
     local enemyUnit = enemyGroupObj:getUnit(1)
     if not enemyUnit then return end
     local enemyPos = enemyUnit:getPoint()
-
+    env.info("Checking for friendlies within " .. (nearbyAlertRange/1852) .. " NM of merged contact to alert...", false)
     for _, nearbyFriendly in ipairs(friendliesList[coalitionId]) do
         if nearbyFriendly.groupName ~= friendlyGroupName then
             local nearbyGroup = Group.getByName(nearbyFriendly.groupName)
@@ -669,17 +670,23 @@ function bulls.alertNearbyFriendlies(coalitionId, friendlyGroupName, friendlyCal
                                 nearbyDistStr = nearbyBraa.distanceToTargetStringI .. "nm"
                                 nearbyAltStr  = nearbyBraa.altStringI
                             end
-                            local alertMsg = nearbyFriendlyPlayer .. ": Friendly " .. friendlyCallsign .. " near you is under attack by " .. enemyCallsign ..
+                            local alertMsg = "\n> " .. nearbyFriendlyPlayer .. ": Friendly " .. friendlyCallsign .. " near you is under attack by " .. enemyCallsign ..
                                 " BRAA " .. nearbyBearingStr .. " for " .. nearbyDistStr .. ", " .. nearbyAltStr .. ", " .. nearbyBraa.aspectString
-                            bulls.transmit(coalitionId, alertMsg)
+
+                            env.info("Alerting " .. nearbyFriendlyPlayer .. " of merged contact engaging nearby friendly " .. friendlyCallsign .. " with enemy " .. enemyCallsign, false)
+                            timer.scheduleFunction(bulls.transmit, {coalitionId = coalitionId, message = alertMsg}, timer:getTime() + 2)
+                            return
                         end
                     end
+                    env.info("Nearby friendly " .. nearbyFriendly.groupName .. " is not within alert range of enemy contact, no alert sent.", false)
                 end
             end
         end
     end
 end
-function bulls.transmit(coalitionId, message)
+function bulls.transmit(params)
+    local coalitionId = params.coalitionId
+    local message = params.message
     for _, radioUnitName in ipairs(radioUnits[coalitionId]) do
         local radioGroup = Group.getByName(radioUnitName)
         if radioGroup then
@@ -696,3 +703,10 @@ function bulls.transmit(coalitionId, message)
         end
     end
 end
+
+bulls.getBulls()
+bulls.getUnits()
+bulls.getEWRs()
+bulls.cleanCallsignsLoop()
+Bulls.loop()
+bulls.checkForMergedContacts() -- runs outside of the main loop to update more frequently
