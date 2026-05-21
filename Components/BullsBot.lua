@@ -562,7 +562,7 @@ function bulls.checkForMergedContacts()
                             if enemyUnit then
                                 local enemyPlayer = Unit.getPlayerName(enemyUnit)
                                 local enemyPos = enemyUnit:getPoint()
-                                if enemyPos and (friendlyPlayer or enemyPlayer or true) then -- or true for debug -- only calculate merges if one of the groups has a player in it, to save on performance and avoid spamming about AI only merges
+                                if enemyPos and (friendlyPlayer or enemyPlayer) then -- only calculate merges if one of the groups has a player in it, to save on performance and avoid spamming about AI only merges
                                     local dist = Utils.PointDistance(friendlyPos, enemyPos)
                                     if dist <= mergeRange then
                                         if not distanceCache[friendly.groupName] or dist < distanceCache[friendly.groupName].distance then
