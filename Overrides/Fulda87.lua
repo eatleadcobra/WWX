@@ -33,14 +33,14 @@ CAPTURE = false
 CONTROLLABLE_COMPANIES = true
 NAMED_CSAR_DROPZONES = true
 INTERCEPTORS= {
-interval = 1800, --3600
-interceptLimit = 4,
-multipleZones = true,
-independantZones = true,
-linkedAirframes = {
-	[1] = {[1] = 1, [2] = 2},
-	[2] = {[1] = 1, [2] = 2},
-	},
+    interval = 1800, --3600
+    interceptLimit = 4,
+    multipleZones = true,
+    independantZones = true,
+    linkedAirframes = {
+        [1] = {[1] = 1, [2] = 2},
+        [2] = {[1] = 1, [2] = 2},
+        },
 }
 CAVICS = {
     [1] = {

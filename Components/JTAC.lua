@@ -353,14 +353,6 @@ function JTAC.spawnJtacAtPoint(point, coalitionId, persistent)
     return newCpy
 end
 
-function JTAC.getActiveJtacCount()
-    local count = 0
-    for _, _ in pairs(jtac.jtacs) do
-        count = count + 1
-    end
-    return count
-end
-
 function JTAC.getActiveJtacCountByCoalition(coalitionId)
     local count = 0
     for _, jtacData in pairs(jtac.jtacs) do
@@ -369,18 +361,6 @@ function JTAC.getActiveJtacCountByCoalition(coalitionId)
         end
     end
     return count
-end
-
-function JTAC.getOldestJtac()
-    local oldestName = nil
-    local oldestTime = math.huge
-    for jtacName, jtacData in pairs(jtac.jtacs) do
-        if jtacData and jtacData.spawnTime and jtacData.spawnTime < oldestTime then
-            oldestName = jtacName
-            oldestTime = jtacData.spawnTime
-        end
-    end
-    return oldestName
 end
 
 function JTAC.getOldestJtacByCoalition(coalitionId)
