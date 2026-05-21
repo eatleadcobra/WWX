@@ -622,7 +622,7 @@ function bulls.checkForMergedContacts()
                                 friendlyCallsign = playerName .. " (" .. friendlyCallsign .. ")"
                             end
                             local message = "\n> " .. friendlyCallsign .. " MERGED with (" .. enemyCallsign ..
-                                ")\n  BRAA: " .. bearingStr .. " for " .. distStr .. ", " .. altStr .. ", " .. braa.aspectString
+                                ")\n   BRAA: " .. bearingStr .. " for " .. distStr .. ", " .. altStr .. ", " .. braa.aspectString
                             bulls.transmit({coalitionId = coalitionId, message = message})
                             env.info(friendlyCallsign .. " merged with " .. enemyCallsign, false)
                             activeMerges[mergeKey] = timer:getTime() + mergeDecayTime
@@ -670,7 +670,7 @@ function bulls.alertNearbyFriendlies(coalitionId, friendlyGroupName, friendlyCal
                                 nearbyAltStr  = nearbyBraa.altStringI
                             end
                             local alertMsg = "\n> " .. nearbyFriendlyPlayer .. ": Friendly " .. friendlyCallsign .. " near you is under attack by (" .. enemyCallsign ..
-                                ")\n  BRAA " .. nearbyBearingStr .. " for " .. nearbyDistStr .. ", " .. nearbyAltStr .. ", " .. nearbyBraa.aspectString
+                                ")\n   BRAA " .. nearbyBearingStr .. " for " .. nearbyDistStr .. ", " .. nearbyAltStr .. ", " .. nearbyBraa.aspectString
 
                             env.info("Alerting " .. nearbyFriendlyPlayer .. " of merged contact engaging nearby friendly " .. friendlyCallsign .. " with enemy " .. enemyCallsign, false)
                             timer.scheduleFunction(bulls.transmit, {coalitionId = coalitionId, message = alertMsg}, timer:getTime() + 2)
