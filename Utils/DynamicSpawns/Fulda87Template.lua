@@ -52,6 +52,7 @@ Airframes = {
             ["F-5E-3"] = true,
 			["F-14A-135-GR-Early"] = true,
 			["F-14A-135-GR"] = true,
+			["F-15C"] = true,
 			["F-15ESE"] = true,
 			["F-16C_50"] = true,
 			["FA-18C_hornet"] = true,
@@ -93,6 +94,7 @@ Airframes = {
             ["OH58D"] = true,
             ["AH-64D_BLK_II"] = true,
             ["CH-47Fbl1"] = true,
+			["C-101CC"] = true,
 			["MB-339A"] = true,
         }
     }
@@ -110,7 +112,7 @@ FARPAirfields = {
         ["Fulda"] = true,
     },
     [2] = {
-        ["Langenselbold"] = true,
+        ["Gelnhausen"] = true,
 		["H FRG 38"] = true,
     }
 }
