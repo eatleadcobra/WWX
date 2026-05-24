@@ -522,7 +522,7 @@ function bc.executeAttack(filedAttackPlan)
                             canlowercount = canlowercount + 1
                             targetBP.attackWithTier = targetBP.attackWithTier + 1
                             targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
-                            if targetBP.attackWithTier == 10 then
+                            if targetBP.attackWithTier == (#CompanyCompTiers-1) then
                                 targetBP.canLower = false
                             end
                         end
