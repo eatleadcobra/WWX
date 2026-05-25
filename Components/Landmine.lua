@@ -66,11 +66,7 @@ function mineEvents:onEvent(event)
             local okExists, exists = pcall(function()
                 return event.weapon:isExist()
             end)
-            if not okExists then
-                env.info("Error checking weapon existence", false)
-                env.info("Category (Object.getCategory): " .. tostring(Object.getCategory(event.weapon)), false)
-                env.info("Category (weapon:getCategory): " .. tostring(event.weapon:getCategory()), false)
-            end
+            
             if okExists and exists then
                 local okType, weaponType = pcall(function()
                     return event.weapon:getTypeName()
