@@ -63,9 +63,11 @@ function mineEvents:onEvent(event)
      if event and event.id then
         --on weapon fire
         if (event.id == world.event.S_EVENT_SHOT and event.initiator and event.weapon) then
-            if string.find(event.weapon:getTypeName(), 'BDU') or event.weapon:getTypeName() == 'FAB_50' or event.weapon:getTypeName() == 'AN_M30A1' or event.weapon:getTypeName() == 'FAB_100' then
-                env.info("tracking mine: " .. event.weapon:getTypeName(), false)
-                mine.trackBomb(event.weapon)
+            if event.weapon:isExist() and event.initiator:isExist() then
+                if string.find(event.weapon:getTypeName(), 'BDU') or event.weapon:getTypeName() == 'FAB_50' or event.weapon:getTypeName() == 'AN_M30A1' or event.weapon:getTypeName() == 'FAB_100' then
+                    env.info("tracking mine: " .. event.weapon:getTypeName(), false)
+                    mine.trackBomb(event.weapon)
+                end
             end
         end
     end
