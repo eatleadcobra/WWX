@@ -63,20 +63,16 @@ function mineEvents:onEvent(event)
      if event and event.id then
         --on weapon fire
         if (event.id == world.event.S_EVENT_SHOT and event.initiator and event.weapon) then
-            local okExists, exists = pcall(function()
-                return event.weapon:isExist()
-            end)
+            local okExists, exists = pcall(event.weapon.isExist, event.weapon)
             
             if okExists and exists then
-                local okType, weaponType = pcall(function()
-                    return event.weapon:getTypeName()
-                end)
+                local okType, weaponType = pcall(event.weapon.getTypeName, event.weapon)
 
                 if okType and (string.find(weaponType, 'BDU') or weaponType == 'FAB_50' or weaponType == 'AN_M30A1' or weaponType == 'FAB_100') then
                     env.info("tracking mine: " .. weaponType, false)
                     mine.trackBomb(event.weapon)
-                end
-            end
+                elseif not okType then Utils.logWeaponFailure(event.weapon) end
+            elseif not okExists then Utils.logWeaponFailure(event.weapon) end
         end
     end
 end

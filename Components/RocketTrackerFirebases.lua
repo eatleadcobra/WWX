@@ -12,17 +12,12 @@ local smokeEvents = {}
 function smokeEvents:onEvent(event)
     if usingSmoke and event and event.id == world.event.S_EVENT_SHOT and event.initiator and event.initiator.getPlayerName and event.weapon and event.weapon.getCategory then
         local playerName = event.initiator:getPlayerName()
-        local okExists, exists = pcall(function()
-            return event.weapon:isExist()
-        end)
-        local okCategory, category = pcall(function()
-            return event.weapon:getCategory()
-        end)
-        local okDesc, weaponDesc = pcall(function()
-            return event.weapon:getDesc()["displayName"]
-        end)
+        local okExists, exists = pcall(event.weapon.isExist, event.weapon)
+        local okCategory, category = pcall(event.weapon.getCategory, event.weapon)
+        local okDesc, weaponDesc = pcall(event.weapon.getDesc, event.weapon)
+        weaponDesc = (okDesc and weaponDesc) and weaponDesc["displayName"]
 
-        if playerName and okExists and exists and okCategory and (category == 2 or category == 3) and okDesc and smokeTracker.isSmokeRocket(weaponDesc) then
+        if playerName and okExists and exists and okCategory and (category == 2 or category == 3) and weaponDesc and smokeTracker.isSmokeRocket(weaponDesc) then
             if targetMarks[playerName] == nil or (targetMarks[playerName] and targetMarks[playerName].startTime and timer:getTime() - targetMarks[playerName].startTime >= delayTime) then
                 targetMarks[playerName] = {
                     tracking = true,
@@ -32,7 +27,7 @@ function smokeEvents:onEvent(event)
                 timer.scheduleFunction(smokeTracker.fire, {playerName = playerName, coalition = event.initiator:getCoalition()}, timer:getTime() + delayTime)
             end
             smokeTracker.trackWeapon({weapon = event.weapon, playerName = event.initiator:getPlayerName()})
-        end
+        elseif not okExists or not okCategory or not okDesc then Utils.logWeaponFailure(event.weapon) end
     end
 end
 function smokeTracker.isSmokeRocket(weaponDesc)

@@ -16,12 +16,8 @@ local subTypes = {
 }
 function torpEvents:onEvent(event)
     if event.id == 1 and event.weapon and event.weapon.getTypeName then
-        local okExists, exists = pcall(function()
-            return event.weapon:isExist()
-        end)
-        local okType, weaponType = pcall(function()
-            return event.weapon:getTypeName()
-        end)
+        local okExists, exists = pcall(event.weapon.isExist, event.weapon)
+        local okType, weaponType = pcall(event.weapon.getTypeName, event.weapon)
 
         if okExists and exists and okType and (weaponType == "LTF_5B" or (not ACTIVETORP and weaponType == "Mark_46")) then
             local torpedoPlayerName = ""
@@ -41,7 +37,7 @@ function torpEvents:onEvent(event)
             if torpedoPlayerName and torpedoPlayerName ~= "" then
                 torp.trackActiveTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerGroupId = torpedoPlayerGroupID, playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
             end
-        end
+        elseif not okExists or not okType then Utils.logWeaponFailure(event.weapon) end
     end
 end
 function torp.trackActiveTorpedo(param)
