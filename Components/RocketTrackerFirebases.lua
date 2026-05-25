@@ -12,18 +12,26 @@ local smokeEvents = {}
 function smokeEvents:onEvent(event)
     if usingSmoke and event and event.id == world.event.S_EVENT_SHOT and event.initiator and event.initiator.getPlayerName and event.weapon and event.weapon.getCategory then
         local playerName = event.initiator:getPlayerName()
-        if playerName and (event.weapon:getCategory() == 2 or event.weapon:getCategory() == 3 )then
-            if smokeTracker.isSmokeRocket(event.weapon:getDesc()["displayName"]) then
-                if targetMarks[playerName] == nil or (targetMarks[playerName] and targetMarks[playerName].startTime and timer:getTime() - targetMarks[playerName].startTime >= delayTime) then
-                    targetMarks[playerName] = {
-                        tracking = true,
-                        startTime = timer:getTime(),
-                        points = {},
-                    }
-                    timer.scheduleFunction(smokeTracker.fire, {playerName = playerName, coalition = event.initiator:getCoalition()}, timer:getTime() + delayTime)
-                end
-                smokeTracker.trackWeapon({weapon = event.weapon, playerName = event.initiator:getPlayerName()})
+        local okExists, exists = pcall(function()
+            return event.weapon:isExist()
+        end)
+        local okCategory, category = pcall(function()
+            return event.weapon:getCategory()
+        end)
+        local okDesc, weaponDesc = pcall(function()
+            return event.weapon:getDesc()["displayName"]
+        end)
+
+        if playerName and okExists and exists and okCategory and (category == 2 or category == 3) and okDesc and smokeTracker.isSmokeRocket(weaponDesc) then
+            if targetMarks[playerName] == nil or (targetMarks[playerName] and targetMarks[playerName].startTime and timer:getTime() - targetMarks[playerName].startTime >= delayTime) then
+                targetMarks[playerName] = {
+                    tracking = true,
+                    startTime = timer:getTime(),
+                    points = {},
+                }
+                timer.scheduleFunction(smokeTracker.fire, {playerName = playerName, coalition = event.initiator:getCoalition()}, timer:getTime() + delayTime)
             end
+            smokeTracker.trackWeapon({weapon = event.weapon, playerName = event.initiator:getPlayerName()})
         end
     end
 end
