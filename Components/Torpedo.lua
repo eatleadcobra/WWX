@@ -16,7 +16,7 @@ local subTypes = {
 }
 function torpEvents:onEvent(event)
     if event.id == 1 and event.weapon and event.weapon.getTypeName then
-        if event.weapon:getTypeName() == "LTF_5B" or (not ACTIVETORP and event.weapon:getTypeName() == "Mark_46") then
+        if event.weapon:isExist() and (event.weapon:getTypeName() == "LTF_5B" or (not ACTIVETORP and event.weapon:getTypeName() == "Mark_46")) then
             local torpedoPlayerName = ""
             if event.initiator and event.initiator.getPlayerName then
                 torpedoPlayerName = event.initiator:getPlayerName()
@@ -24,7 +24,7 @@ function torpEvents:onEvent(event)
             if torpedoPlayerName and torpedoPlayerName ~= "" then
                 torp.TrackTorpedo({torpedo = event.weapon, startTime = timer.getTime(), playerName = torpedoPlayerName, coalitionId = event.weapon:getCoalition()})
             end
-        elseif (ACTIVETORP and event.weapon:getTypeName() == "Mark_46") then
+        elseif event.weapon:isExist() and (ACTIVETORP and event.weapon:getTypeName() == "Mark_46") then
             local torpedoPlayerName = ""
             local torpedoPlayerGroupID = 0
             if event.initiator and event.initiator.getPlayerName and event.initiator:getGroup() then
@@ -75,7 +75,7 @@ function torp.simulateTorpedo(param)
         }
         local foundSubs = {}
         local ifFound = function(foundItem, val)
-            if foundItem:getDesc().category == 3 and foundItem:getPoint().y <=0 and subTypes[foundItem:getTypeName()] then
+            if foundItem:isExist() and foundItem:getDesc().category == 3 and foundItem:getPoint().y <=0 and subTypes[foundItem:getTypeName()] then
                 table.insert(foundSubs, foundItem)
             end
         end
