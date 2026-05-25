@@ -44,70 +44,6 @@ local interceptors = {
     [1] = {},
     [2] = {}
 }
-local unitTypes = {
-    ["An-26B"] = "Transport",
-    ["An-30M"] = "Transport",
-    ["C-17A"] = "Transport",
-    ["il-76md"] = "Transport",
-    ["il-78m"] = "Transport",
-    ["C-130J-30"] = "Transport",
-    ["Bf-109K-4"] = "Single-engine prop",
-    ["FW-190A8"] = "Single-engine prop",
-    ["FW-190D9"] = "Single-engine prop",
-    ["MiG-15Bis"] = "Fighter",
-    ["MiG-19P"] = "Fighter",
-    ["MiG-21Bis"] = "Fighter",
-    ["MB-339A"] = "Attack",
-    ["MiG-29 Fulcrum"] = "Fighter",
-    ["M-2000C"] = "Fighter",
-    ["Mirage-F1CE"] = "Fighter",
-    ["Mirage-F1BE"] = "Fighter",
-    ["Mirage-F1EE"] = "Fighter",
-    ["AJS37"] = "Strike",
-    ["JF-17"] = "Fighter",
-    ["Su-25"] = "Attack",
-    ["Su-25T"] = "Attack",
-    ["Yak-52"] = "Single-engine prop",
-    ["I-16"] = "Single-engine prop",
-    ["L-39C"] = "Attack",
-    ["L-39ZA"] = "Attack",
-    ["A-10A"] = "Attack",
-    ["A-10C"] = "Attack",
-    ["A-10C_2"] = "Attack",
-    ["AV8BNA"] = "Attack",
-    ["C-101CC"] = "Attack",
-    ["F-4E-45MC"] = "Fighter",
-    ["F-5E-3"] = "Fighter",
-    ["F-5E-3_FC"] = "Fighter",
-    ["F-15ESE"] = "Strike Fighter",
-    ["F-15C"] = "Fighter",
-    ["F-16C_50"] = "Fighter",
-    ["FA-18C_hornet"] = "Fighter",
-    ["C-101EB"] = "Attack",
-    ["F4U-1D"] = "Single-engine prop",
-    ["P-47D-30bl1"] = "Single-engine prop",
-    ["P-47D-30"] = "Single-engine prop",
-    ["P-47D-40"] = "Single-engine prop",
-    ["P-51D"] = "Single-engine prop",
-    ["P-51D-30-NA"] = "Single-engine prop",
-    ["MosquitoFBMkVI"] = "Multi-engine prop",
-    ["F-86F Sabre"] = "Fighter",
-    ["F-86F_FC"] = "Fighter",
-    ["F-14A-135-GR-Early"] = "Fighter",
-    ["F-14A-135-GR"] = "Fighter",
-    ["F-14B"] = "Fighter",
-    ["B-1B"] = "Bomber",
-    ["b-52H"] = "Large Bomber",
-    ["Tu-22M3"] = "Bomber",
-    ["Tornado IDS"] = "Strike",
-    ["Tornado GR4"] = "Strike",
-    ["Su-24M"] = "Strike",
-    ["A-20G"] = "Bomber",
-    ["A6E"] = "Attack",
-    ["SpitfireLFMkIX"] = "Single-engine prop",
-    ["SpitfireLFMkIXCW"] = "Single-engine prop",
-
-}
 local contactCallsigns = {
 
 }
@@ -447,7 +383,7 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targ
         if targetIndex <= targetGroup:getSize() then
             local leadUnit = targetGroup:getUnit(targetIndex)
             if leadUnit then
-                local targetType = unitTypes[leadUnit:getTypeName()]
+                local targetType = DF_UTILS.unitTypes[leadUnit:getTypeName()]
                 if targetType == nil then
                     targetType = "Unknown"
                 end
@@ -539,7 +475,7 @@ end
 
 function Bulls.getTargetType(targetTypeName)
     local targetType = nil
-    if unitTypes[targetTypeName] then targetType = unitTypes[targetTypeName] end
+    if DF_UTILS.unitTypes[targetTypeName] then targetType = DF_UTILS.unitTypes[targetTypeName] end
     return targetType
 end
 

@@ -63,10 +63,16 @@ function mineEvents:onEvent(event)
      if event and event.id then
         --on weapon fire
         if (event.id == world.event.S_EVENT_SHOT and event.initiator and event.weapon) then
-            if string.find(event.weapon:getTypeName(), 'BDU') or event.weapon:getTypeName() == 'FAB_50' or event.weapon:getTypeName() == 'AN_M30A1' or event.weapon:getTypeName() == 'FAB_100' then
-                env.info("tracking mine: " .. event.weapon:getTypeName(), false)
-                mine.trackBomb(event.weapon)
-            end
+            local okExists, exists = pcall(event.weapon.isExist, event.weapon)
+            
+            if okExists and exists then
+                local okType, weaponType = pcall(event.weapon.getTypeName, event.weapon)
+
+                if okType and (string.find(weaponType, 'BDU') or weaponType == 'FAB_50' or weaponType == 'AN_M30A1' or weaponType == 'FAB_100') then
+                    env.info("tracking mine: " .. weaponType, false)
+                    mine.trackBomb(event.weapon)
+                elseif not okType then Utils.logWeaponFailure(event.weapon) end
+            elseif not okExists then Utils.logWeaponFailure(event.weapon) end
         end
     end
 end
@@ -85,6 +91,7 @@ function mine.trackBomb(weapon)
                             local position = weapon:getPosition()
                             if position then
                                 weapon:destroy()
+                                env.info("spawning mine at: " .. impactPoint.x .. ", " .. impactPoint.z, false)
                                 timer.scheduleFunction(mine.spawn, {impactPoint = impactPoint, position = position}, timer:getTime() + 2)
                             end
                         end

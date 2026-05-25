@@ -14,24 +14,36 @@ function ironDome:onEvent(event)
                             -- misile shot
                             if event.id == world.event.S_EVENT_SHOT then
                                 env.info("CAP Missile shot event", false)
-                                if event.weapon and event.weapon:getTarget() then
-                                    local target = event.weapon:getTarget()
-                                    env.info("CAP Missile target: " .. target:getName(), false)
-                                    if target:hasAttribute("Helicopters") then
+                                local okWeaponExists, weaponExists = pcall(event.weapon.isExist, event.weapon)
+                                local okTarget, target = pcall(event.weapon.getTarget, event.weapon)
+
+                                if event.weapon and okWeaponExists and weaponExists and okTarget and target then
+                                    local okTargetName, targetName = pcall(target.getName, target)
+                                    local okHelicopter, isHelicopter = pcall(target.hasAttribute, target, "Helicopters")
+
+                                    if okTargetName then
+                                        env.info("CAP Missile target: " .. targetName, false)
+                                    end
+
+                                    if okHelicopter and isHelicopter then
                                         env.info("CAP Missile target is a Helicopter", false)
                                         -- blow up the missile
                                         if event.weapon and event.weapon.destroy then
-                                            env.info("Destroying missile", false)
-                                            event.weapon:destroy()
+                                            local okDestroy = pcall(event.weapon.destroy, event.weapon)
+                                            if okDestroy then
+                                                env.info("Destroying missile", false)
+                                            end
                                         end
                                         ironDome.resetROE(groupName)
                                     end
-                                end
+                                elseif not okWeaponExists or not okTarget then Utils.logWeaponFailure(event.weapon) end
                             end
                             -- gunshot
                             if event.id == world.event.S_EVENT_SHOOTING_START then
                                 env.info("CAP Gunshot event", false)
-                                if event.target and event.target:hasAttribute("Helicopters") then
+                                local okTarget, isHelicopter = pcall(event.target.hasAttribute, event.target, "Helicopters")
+
+                                if event.target and okTarget and isHelicopter then
                                     env.info("CAP Gunshot target is a Helicopter", false)
                                     ironDome.resetROE(groupName)
                                 end

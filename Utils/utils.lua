@@ -183,6 +183,14 @@ function Utils.pointInCircleTriggerZone(pp,zp)
     end
     return false
 end
+function Utils.logWeaponFailure(w)
+    env.info("Event failed: weapon pcall error", false)
+    local _,c1 = pcall(Object.getCategory, w)
+    local _,c2 = pcall(w.getCategory, w)
+    local _,d  = pcall(w.getDesc, w)
+    if d then d = d.category end
+    env.info("  Weapon category - Object.getCategory:"..tostring(c1)..", :getCategory:"..tostring(c2)..", :getDesc().category:"..tostring(d), false)
+end
 function Utils.getHdgFromPosition(pos)
     if not pos then return 0 end
     local hdg = math.atan2(pos.x.z, pos.x.x)
