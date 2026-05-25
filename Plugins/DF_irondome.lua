@@ -14,13 +14,13 @@ function ironDome:onEvent(event)
                             -- misile shot
                             if event.id == world.event.S_EVENT_SHOT then
                                 env.info("CAP Missile shot event", false)
-                                if event.weapon and event.weapon:getTarget() then
+                                if event.weapon and event.weapon:isExist() and event.weapon:getTarget() then
                                     local target = event.weapon:getTarget()
                                     env.info("CAP Missile target: " .. target:getName(), false)
                                     if target:hasAttribute("Helicopters") then
                                         env.info("CAP Missile target is a Helicopter", false)
                                         -- blow up the missile
-                                        if event.weapon and event.weapon.destroy then
+                                        if event.weapon and event.weapon:isExist() and event.weapon.destroy then
                                             env.info("Destroying missile", false)
                                             event.weapon:destroy()
                                         end
