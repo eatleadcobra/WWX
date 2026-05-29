@@ -1,4 +1,4 @@
-trigger.action.setUserFlag("MISSION_ID", 10)
+trigger.action.setUserFlag("MISSION_ID", 15)
 -- enabled features
 SUBS = false
 ACTIVETORP = false
