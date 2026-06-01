@@ -8,6 +8,10 @@ SUBTYPE =
     [2] = "santafe",
 }
 CAP = true
+BULLS_OVERRIDES = {
+    ["AJS37"] = "Interceptor",
+    ["Mirage-F1BE"] = "Interceptor",
+}
 PROTECT_HELICOPTERS = true
 PIRACY = false
 BOMBERS = true

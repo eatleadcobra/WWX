@@ -387,6 +387,9 @@ function bulls.pointsVector(bullsPoint, targetGroupName, units, isFriendly, targ
                 if targetType == nil then
                     targetType = "Unknown"
                 end
+                if BULLS_OVERRIDES and BULLS_OVERRIDES[leadUnit:getTypeName()] then
+                    targetType = BULLS_OVERRIDES[leadUnit:getTypeName()]
+                end
                 local targetPoint = leadUnit:getPoint()
                 local targetPos = leadUnit:getPosition()
                 if targetPoint and targetPos then
@@ -476,6 +479,9 @@ end
 function Bulls.getTargetType(targetTypeName)
     local targetType = nil
     if DF_UTILS.unitTypes[targetTypeName] then targetType = DF_UTILS.unitTypes[targetTypeName] end
+    if BULLS_OVERRIDES and BULLS_OVERRIDES[targetTypeName] then
+        targetType = BULLS_OVERRIDES[targetTypeName]
+    end
     return targetType
 end
 
