@@ -44,6 +44,12 @@ NAVALCONVOY = {
     [1] = false,
     [2] = false,
 }
+JTACS = {
+    spawnOnBpCapture = false,
+    spawnOnMissionStart = true,
+--    avoidFrequencies = {},
+--    callsignOverride = {}
+}
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
 -- counts
