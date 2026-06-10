@@ -7,6 +7,7 @@ local maxEWRZones = 5
 local mergeRange = 5 * 1852 --5 NM in meters
 local mergeDecayTime = 60 -- seconds before a merge callout can repeat
 local activeMerges = {} -- track active merges: key -> expiry time
+local mergeCalledThisCycle = {} -- track merges called in current cycle to prevent duplicates
 local bullsUnitPrefixes = {
     [1] = "RedBulls-",
     [2] = "BlueBulls-"
@@ -527,6 +528,7 @@ function bulls.checkForMergedContacts()
     end
 
     for _, data in pairs(distanceCache) do
+        mergeCalledThisCycle = {}
         for coalitionId = 1, 2 do
             local friendlyGroupName, enemyGroupName, friendlyCallsign, enemyCallsign
             if coalitionId == 1 then
@@ -541,7 +543,7 @@ function bulls.checkForMergedContacts()
                 enemyCallsign     = data.friendlyCallsign
             end
             local mergeKey = coalitionId .. "|" .. friendlyGroupName .. "|" .. enemyGroupName
-            if not activeMerges[mergeKey] or timer:getTime() >= activeMerges[mergeKey] then
+            if not activeMerges[mergeKey] or timer:getTime() >= activeMerges[mergeKey] and not mergeCalledThisCycle[friendlyCallsign] then
                 local braa = DF_UTILS.calculateBRAA({from = friendlyGroupName, to = enemyGroupName})
                 if braa then
                     local bearingStr = string.format("%03d", math.floor(braa.bearingInDeg + 0.5))
@@ -569,6 +571,7 @@ function bulls.checkForMergedContacts()
                             env.info(friendlyCallsign .. " merged with " .. enemyCallsign, false)
                             activeMerges[mergeKey] = timer:getTime() + mergeDecayTime
                             bulls.alertNearbyFriendlies(coalitionId, friendlyGroupName, friendlyCallsign, enemyGroupName, enemyCallsign)
+                            mergeCalledThisCycle[friendlyCallsign] = true
                         end
                     end
                 end
