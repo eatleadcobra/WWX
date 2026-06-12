@@ -53,6 +53,7 @@ Airframes = {
     [2] = {
         main = {
             ["C-130J-30"] = true,
+			["F-100D"] = true,
 			["AJS37"] = true,
 			["F-4E-45MC"] = true,
 			["F-86F Sabre"] = true,
