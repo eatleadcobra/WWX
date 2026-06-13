@@ -88,6 +88,7 @@ Airframes = {
             ["FW-190D9"] = true,
             ["Bf-109K-4"] = true,
 			["F4U-1D"] = true,
+			["F-100D"] = true,
         }
     }
 }
