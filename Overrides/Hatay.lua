@@ -52,7 +52,7 @@ RDSubcount = 4
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
 BLUECASFREQ = 225
-REDCASFREQ = 45
+REDCASFREQ = 140
 BLUECASMOD = 0
 REDCASMOD = 1
 
@@ -119,13 +119,12 @@ Platoons = {
             [8] = "KAMAZ Truck",
         },
         ["EmbeddedAD"] = {
-            [1] = "ZSU-23-4 Shilka",
+            [1] = "Type_94_25mm_AA_Truck",
             [2] = "GAZ-66"
         },
         ["EmbeddedADHigh"] = {
-            [1] = "Strela-1 9P31",
-            [2] = "ZSU-23-4 Shilka",
-            [3] = "GAZ-66"
+            [1] = "HL_ZU-23",
+            [2] = "GAZ-66"
         },
         ["Shipping"] = {
             [1] = "HandyWind",
@@ -195,13 +194,12 @@ Platoons = {
             [8] = "M 818",
         },
         ["EmbeddedAD"] = {
-            [1] = "Vulcan",
+            [1] = "Type_94_25mm_AA_Truck",
             [2] = "M 818"
         },
         ["EmbeddedADHigh"] = {
-            [1] = "Strela-1 9P31",
-            [2] = "Vulcan",
-            [3] = "M 818"
+            [1] = "HL_ZU-23",
+            [2] = "M 818"
         },
         ["Shipping"] = {
             [1] = "HandyWind",

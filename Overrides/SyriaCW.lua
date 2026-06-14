@@ -50,6 +50,9 @@ JTACS = {
 --    avoidFrequencies = {},
 --    callsignOverride = {}
 }
+RESPAWNGROUPS = {
+	["BlueTanker"] = 1800, --30m
+}
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
 -- counts
