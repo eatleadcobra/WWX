@@ -21,8 +21,8 @@ local jtac = {
     mapLabelRefreshInterval = 120,
     maxActivePerCoalition = 9,
     freqLower            = 225.0,
-    freqUpper            = 399.975,
-    freqStep             = 0.025,
+    freqUpper            = 399.9,
+    freqStep             = 0.1,
     guardFreq            = 243.0,
     callsignPool         = JTACS.callsignOverride or {
         "PLAYBOY", "WARRIOR", "REAPER", "HAMMER", "DAGGER",
@@ -33,9 +33,9 @@ local jtac = {
     usedCallsigns        = {},
     usedFrequencies      = {},
     excludedFrequencies  = JTACS.excludedFrequencies or {},
-    jtacs                = {}, -- Use this for actual functional use
-    jtacList             = {}, -- Used to preserve menu order, yes this is poorly named
-    jtacMenu             = {},
+    jtacs                = {}, -- List of JTAC units and their data, primary data structure for JTAC management
+    jtacList             = {}, -- Ordered list of JTACS used to preserve menu order when rebuilding the JTAC menu, yes this is poorly named
+    jtacMenu             = {}, -- The actual JTAC menu structure in F10.
     idleBroadcastInterval = 30,
     laserCodes           = { 1688, 1113, 1776, 1511, 1522, 1533, 1544, 1555, 1566 },
 }
