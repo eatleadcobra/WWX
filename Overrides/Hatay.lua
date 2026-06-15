@@ -40,7 +40,6 @@ NAVALCONVOY = {
 }
 RESPAWNGROUPS = {
     ["Red-RD-SA2"] = 7200, -- 2 hours
-    ["Blue-RD-AAA"] = 7200, -- 2 hours
 }
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
