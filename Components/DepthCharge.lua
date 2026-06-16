@@ -6,9 +6,10 @@ local dcKillRange = 50
 local subTypes = {["santafe"] = 1, ["Type_093"] = 2, ["KILO"] = 3, ["IMPROVED_KILO"] = 4}
 function dcEvents:onEvent(event)
 	--on weapon release
-	if event.id == 1 then
-        -- Dont need to use pcall here because for some reason event.weapon:getDesc().category dosn't cause an error when the weapon is nil but :getCategory does...
-        if event.weapon and event.weapon:isExist() and event.initiator and event.weapon:getDesc().category == 3 and event.initiator.getPlayerName then
+	if event.id == 1 and event.weapon then
+        local okExists, exists = pcall(event.weapon.isExist, event.weapon)
+        local okDesc, desc = pcall(event.weapon.getDesc, event.weapon)
+        if okExists and exists and okDesc and desc and event.initiator and desc.category == 3 and event.initiator.getPlayerName then
             local playerName = event.initiator:getPlayerName()
             if playerName then
                 depthCharge.trackBomb({weapon = event.weapon, initiator = event.initiator, playerName = playerName, coalition = event.initiator:getCoalition()})
