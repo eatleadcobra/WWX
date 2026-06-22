@@ -64,7 +64,9 @@ ForwardAirbases = {
     [1] = {
         ["Hatay"] = true
     },
-    [2] = {},
+    [2] = {
+        ["Hatay"] = true
+    },
 }
 FARPAirfields = {
     [1] = {
