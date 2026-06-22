@@ -1517,6 +1517,10 @@ function dfc.newConvoyLoop()
                     end
                 end
             end
+            if #activeFDs < 1 then
+                break
+            end
+            local deliverZone = activeFDs[math.random(#activeFDs)]
             local fueltime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.FUEL] > DFS.status.convoyBaseTime
             local ammotime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.AMMO] > DFS.status.convoyBaseTime
             local equiptime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.EQUIPMENT] > DFS.status.convoyBaseTime
@@ -1529,76 +1533,24 @@ function dfc.newConvoyLoop()
             local hasEquipmentAmt = DFS.status[ctln].supply.rear[DFS.supplyType.EQUIPMENT] > DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]
             local anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
            --fuel check
-            if anytime and fueltime and hasConvoyFuel and needsFuel and hasFuelAmt then
-                local deliverZone = activeFDs[math.random(#activeFDs)]
+            if deliverZone and anytime and fueltime and hasConvoyFuel and needsFuel and hasFuelAmt then
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
             end
             --ammo check
-            if anytime and ammotime and hasConvoyFuel and needsAmmo and hasAmmoAmt then
-                local deliverZone = activeFDs[math.random(#activeFDs)]
+            if deliverZone and anytime and ammotime and hasConvoyFuel and needsAmmo and hasAmmoAmt then
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
             end
             --equipment check 
-            if anytime and equiptime and hasConvoyFuel and needsEquipment and hasEquipmentAmt then
-                local deliverZone = activeFDs[math.random(#activeFDs)]
+            if deliverZone and anytime and equiptime and hasConvoyFuel and needsEquipment and hasEquipmentAmt then
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
-            end
-        end
-    end
-end
-function dfc.sendConvoyLoop()
-    for a = 1, 2 do
-        local i = 1
-        local depotPct = 0
-        for j = 1, DFS.status.rdSpawnSubDepots do
-            for k = 1, #DFS.status[a].spawns.rd do
-                local currentGroup = DFS.status[a].spawns.rd[k]
-                if currentGroup == nil then break end
-                if currentGroup.spawnZone == i and currentGroup.subDepot == j then
-                    local subDepotGroup = Group.getByName(currentGroup.groupName)
-                    if subDepotGroup then
-                        depotPct = depotPct + ((subDepotGroup:getSize() / subDepotGroup:getInitialSize())*100 / DFS.status.rdSpawnSubDepots)
-                    end
-                end
-            end
-        end
-        for j = 1, DFS.status.fdSpawnTotal do
-            local deliverZone = j
-            if depotPct > 1 and dfc.depotActive({coalitionId = a, zone = deliverZone}) then
-                local fueltime = timer.getTime() - DFS.status[a].lastConvoyTimes[deliverZone][DFS.supplyType.FUEL] > DFS.status.convoyBaseTime
-                local ammotime = timer.getTime() - DFS.status[a].lastConvoyTimes[deliverZone][DFS.supplyType.AMMO] > DFS.status.convoyBaseTime
-                local equiptime = timer.getTime() - DFS.status[a].lastConvoyTimes[deliverZone][DFS.supplyType.EQUIPMENT] > DFS.status.convoyBaseTime
-                local hasConvoyFuel = DFS.status[a].supply.rear[DFS.supplyType.FUEL] > 1
-                local needsAmmo = DFS.status[a].supply.front[DFS.supplyType.AMMO] < DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]
-                local needsFuel = DFS.status[a].supply.front[DFS.supplyType.FUEL] < DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]
-                local needsEquipment = DFS.status[a].supply.front[DFS.supplyType.EQUIPMENT] < DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
-                local anytime = timer.getTime() - DFS.status[a].anyConvoyTime > DFS.status.convoySeparationTime
-                if anytime then
-                    if needsFuel and fueltime and DFS.status[a].supply.rear[DFS.supplyType.FUEL] > (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2) then
-                        dfc.decreaseRearSupply({coalitionId = a,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
-                        dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
-                    end
-
-                    if needsAmmo and ammotime and DFS.status[a].supply.rear[DFS.supplyType.AMMO] > DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO] and hasConvoyFuel then
-                        dfc.decreaseRearSupply({coalitionId = a,  amount = 2, type = DFS.supplyType.FUEL})
-                        dfc.decreaseRearSupply({coalitionId = a,  amount = DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO], type = DFS.supplyType.AMMO})
-                        dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
-                    end
-
-                    if needsEquipment and equiptime and DFS.status[a].supply.rear[DFS.supplyType.EQUIPMENT] > 10 and hasConvoyFuel then
-                        dfc.decreaseRearSupply({coalitionId = a,  amount = 2, type = DFS.supplyType.FUEL})
-                        dfc.decreaseRearSupply({coalitionId = a,  amount = DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
-                        dfc.startConvoy({coalitionId = a, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
-                    end
-                end
             end
         end
     end
@@ -2073,7 +2025,6 @@ function dfc.mainLoop()
         dfc.checkFDHealth()
         dfc.checkRDHealth()
         dfc.checkDeployedGroups()
-        --dfc.sendConvoyLoop()
         dfc.newConvoyLoop()
         dfc.checkNoFlyZones()
         timer.scheduleFunction(dfc.mainLoop, nil, timer.getTime() + 10)

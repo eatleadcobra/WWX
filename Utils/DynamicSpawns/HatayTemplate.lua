@@ -61,7 +61,9 @@ Airframes = {
     }
 }
 ForwardAirbases = {
-    [1] = {},
+    [1] = {
+        ["Hatay"] = true
+    },
     [2] = {},
 }
 FARPAirfields = {
