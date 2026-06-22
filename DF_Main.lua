@@ -1517,6 +1517,8 @@ function dfc.newConvoyLoop()
                     end
                 end
             end
+            env.info("Coalition " .. ctln .. " has " .. #activeFDs .. " active forward depots.", false)
+            env.info("active depots for coalition " .. ctln .. ": " .. table.concat(activeFDs, ", "), false)
             local fueltime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.FUEL] > DFS.status.convoyBaseTime
             local ammotime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.AMMO] > DFS.status.convoyBaseTime
             local equiptime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.EQUIPMENT] > DFS.status.convoyBaseTime
@@ -1530,14 +1532,20 @@ function dfc.newConvoyLoop()
             local anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
            --fuel check
             if anytime and fueltime and hasConvoyFuel and needsFuel and hasFuelAmt then
-                local deliverZone = activeFDs[math.random(#activeFDs)]
+                local deliverIndex = math.random(#activeFDs)
+                env.info("Deliver depot index: " .. deliverIndex .. ", depots: " .. table.concat(activeFDs, ", "), false)
+                local deliverZone = activeFDs[deliverIndex]
+                env.info("Convoying fuel to depot " .. deliverZone, false)
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2), type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.FUEL})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
             end
             --ammo check
             if anytime and ammotime and hasConvoyFuel and needsAmmo and hasAmmoAmt then
-                local deliverZone = activeFDs[math.random(#activeFDs)]
+                local deliverIndex = math.random(#activeFDs)
+                env.info("Deliver depot index: " .. deliverIndex .. ", depots: " .. table.concat(activeFDs, ", "), false)
+                local deliverZone = activeFDs[deliverIndex]
+                env.info("Convoying ammo to depot " .. deliverZone, false)
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
@@ -1545,7 +1553,10 @@ function dfc.newConvoyLoop()
             end
             --equipment check 
             if anytime and equiptime and hasConvoyFuel and needsEquipment and hasEquipmentAmt then
-                local deliverZone = activeFDs[math.random(#activeFDs)]
+                local deliverIndex = math.random(#activeFDs)
+                env.info("Deliver depot index: " .. deliverIndex .. ", depots: " .. table.concat(activeFDs, ", "), false)
+                local deliverZone = activeFDs[deliverIndex]
+                env.info("Convoying equipment to depot " .. deliverZone, false)
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
