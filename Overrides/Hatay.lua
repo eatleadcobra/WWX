@@ -33,7 +33,9 @@ CAVICS = {
         [3] = {text = "Ammo Truck", typename = "Bedford"},
     }
 }
-CAPTUREBASES = { }
+CAPTUREBASES = {
+    ["Hatay"] = true
+}
 NAVALCONVOY = {
     [1] = false,
     [2] = false,

@@ -3,6 +3,7 @@ local dsm = {}
 local dsmEvents = {}
 function dsmEvents:onEvent(event)
     if event.id == world.event.S_EVENT_BASE_CAPTURED then
+        env.info("Airbase Capture event fired", false)
         dsm.loop()
     end
 end
