@@ -573,10 +573,11 @@ function cpyctl.sendHomeArmoredGroup(coalitionId)
         end
     end
     if cpyToReturn then
-        local returnDepot = math.random(1,2)
+        local returnDepot = math.random(1,FDCount)
         cpyToReturn:setStatus(companyStatuses["Defeated"])
         cpyToReturn.arrived = false
         local startPoint = cpyToReturn.point
+        env.info("Company " .. cpyToReturn.id .. " is out of fuel and is returning to depot " .. returnDepot, false)
         local destination = trigger.misc.getZone(DFS.spawnNames[coalitionId].depot..returnDepot).point
         cpyToReturn:updateMission({startPoint, destination}, -1)
         if cpyToReturn.callsign ~= nil then
