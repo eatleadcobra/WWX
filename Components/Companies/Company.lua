@@ -214,7 +214,7 @@ function Company.spawn(self, options)
         end
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
-        if EXTRACOMPANYROADS then
+        if EXTRACOMPANYROADS and #cpyGroupTable["route"]["points"] > 3 then
             cpyGroupTable["route"]["points"][3].action = "On Road"
         end
         if self.closeDeploy then
