@@ -189,6 +189,11 @@ function Company.spawn(self, options)
         if COMPANIESIGNOREROADS then
             points = {[1] = self.waypoints[1], [2] = formPoint, [3] = self.waypoints[2]}
         end
+        if EXTRACOMPANYROADS then
+            local startRoadX, startRoadY = land.getClosestPointOnRoads("roads", self.waypoints[1].x, self.waypoints[1].z)
+            local startRoadPoint = {x = startRoadX, y = 0, z = startRoadY}
+            points = {[1] = self.waypoints[1], [2] = startRoadPoint, [3] = roadPoint, [4] = formPoint, [5] = self.waypoints[2]}
+        end
     end
     local groupWaypoints = SpawnFuncs.createWPListFromPoints(points, self.speed)
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(Company.coalitionId, 2, self.units, groupWaypoints, playerControllable)
@@ -209,6 +214,9 @@ function Company.spawn(self, options)
         end
         cpyGroupTable["route"]["points"][2].action = "On Road"
         cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Rank"
+        if EXTRACOMPANYROADS then
+            cpyGroupTable["route"]["points"][3].action = "On Road"
+        end
         if self.closeDeploy then
             cpyGroupTable["route"]["points"][2].action = "Cone"
             cpyGroupTable["route"]["points"][#cpyGroupTable["route"]["points"]].action = "Cone"
