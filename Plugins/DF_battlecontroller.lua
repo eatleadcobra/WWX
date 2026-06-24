@@ -959,12 +959,12 @@ function bc.needsReinforcement(coalitionId, bpId)
             end
         end
     end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
     if tankCount < 1 and (ifvCount + apcCount) < 2 then
         return true
     else
         return false
     end
-    world.searchObjects(Object.Category.UNIT, volS, ifFound)
 end
 
 function bc.getRealBpStrength(coalitionId, bpId)
