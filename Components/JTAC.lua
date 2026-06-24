@@ -32,6 +32,7 @@ local jtac = {
     },
     usedCallsigns        = {},
     usedFrequencies      = {},
+    defaultRedFreqs      = JTACS.redFreqs or {[11] = 268.0, [12] = 269.0, [13] = 260.0, [14] = 263.0, [15] = 261.0, [16] = 267.0, [17] = 258.0, [18] = 253.0, [19] = 266.0},  -- last 9 channels of the mig29 radio.
     excludedFrequencies  = JTACS.excludedFrequencies or {},
     jtacs                = {}, -- List of JTAC units and their data, primary data structure for JTAC management
     jtacList             = {}, -- Ordered list of JTACS used to preserve menu order when rebuilding the JTAC menu, yes this is poorly named
@@ -148,7 +149,33 @@ function jtac.clearMapLabel(jtacName)
         end
     end
 end
+function jtac.getPresetFrequency()
+    local excluded = {}
+    excluded[jtac.guardFreq] = true
+    for freq, _ in pairs(jtac.usedFrequencies) do
+        excluded[freq] = true
+    end
+    for preset, freq in pairs(jtac.defaultRedFreqs) do
+        if not excluded[freq] then
+            jtac.usedFrequencies[freq] = true
+            return freq
+        end
+    end
+end
+function jtac.getPresetForFrequency(cid, freq)
+    if cid == 1 then -- Only return presets for red coalition
+        for preset, f in pairs(jtac.defaultRedFreqs) do
+            if f == freq then
+                return preset
+            end
+        end
+    end
+    return nil
+end
 function jtac.generateFrequency(coalitionId) -- coalitionid is to support different coalition ranges in future
+    if coalitionId == 1 then -- red coalition has presets, try to get one before randomizing
+        return jtac.getPresetFrequency()
+    end
     local excluded = {}
     excluded[jtac.guardFreq] = true
     if BLUECASFREQ then
@@ -156,6 +183,9 @@ function jtac.generateFrequency(coalitionId) -- coalitionid is to support differ
     end
     if REDCASFREQ then
         excluded[REDCASFREQ] = true
+    end
+    for preset, freq in pairs(jtac.defaultRedFreqs) do
+        excluded[freq] = true -- stop blue jtacs stealing red jtac freqs
     end
     for freq, _ in pairs(jtac.usedFrequencies) do
         excluded[freq] = true
@@ -236,6 +266,7 @@ function JTAC.registerJtac(name, coalitionId)
     if jtacUnit then
         local callsign = jtac.generateCallsign()
         local frequency = jtac.generateFrequency(cid)
+        local preset = jtac.getPresetForFrequency(cid, frequency) or -1
         jtac.jtacs[name] = {
             spawnTime      = timer.getTime(),
             code           = 1688,
@@ -243,6 +274,7 @@ function JTAC.registerJtac(name, coalitionId)
             mapMarkId      = DrawingTools.newMarkId(),
             markDrawn      = false,
             frequency      = frequency,
+            preset         = preset,
             modulation     = "AM",
             coalition      = cid,
             stopLasing     = false,
@@ -1822,6 +1854,9 @@ function jtac.createJtacSubmenu(groupName, groupId, jtacName)
         local playerCoalition = group:getCoalition()
         if playerCoalition and playerCoalition == jtacData.coalition then
             local menuTitle = jtacData.frequency .. " AM - " .. jtacData.callsign
+            if jtacData.preset and jtacData.preset ~= -1 then
+                menuTitle = jtacData.frequency .. "AM (preset: " .. jtacData.preset .. ") - " .. jtacData.callsign
+            end
             local jtacSub = missionCommands.addSubMenuForGroup(groupId, menuTitle, jtac.jtacMenu[groupName]["root"])
             jtac.jtacMenu[groupName][jtacName] = jtacSub
 
@@ -2077,6 +2112,36 @@ function jtacEvents:onEvent(event)
             end
         end
     end
+--    maybe some day...
+--    if event and event.id then
+--        --on weapon release, check for LGB and if so, stop lasing and start again when the weapon is terminal. This is to stop the bomb wasting all its energy pulling onto the laser
+--        if (event.id == world.event.S_EVENT_SHOT and event.initiator and event.weapon) then
+--            if event.initiator.getGroup then
+--                local group = event.initiator:getGroup()
+--                if group then
+--                    local groupName = group:getName()
+--                    if groupName then
+--                        local okExists, exists = pcall(event.weapon.isExist, event.weapon)
+--                        if okExists and exists then
+--                            for jtacName, jtacData in pairs(jtac.jtacs) do
+--                                if jtacData then
+--                                    local session = jtacData.session
+--                                    if session and session.controlledFlight == groupName and session.state == "CLEARED_HOT" then
+--                                        local okType, weaponType = pcall(event.weapon.getTypeName, event.weapon)
+--                                        if okType and (string.find(weaponType, 'GBU') or weaponType == 'BOLT-117') then
+--                                            env.info("LGB released: " .. weaponType, false)
+--                                            jtacData.stopLasing = true
+--                                            jtac.trackBombToGround({jtacName = jtacName, weapon = event.weapon})
+--                                        end
+--                                    end
+--                                end
+--                            end
+--                        end
+--                    end
+--                end
+--            end
+--        end
+--    end
 end
 world.addEventHandler(jtacEvents)
 if JTAC.enableInitSpawn then
