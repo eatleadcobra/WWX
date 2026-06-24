@@ -632,9 +632,10 @@ function jtac.idleStatusBroadcast(param)
                 jtac.transmit(param.jtacName, message, 15, false)
             end
         end
+        timer.scheduleFunction(jtac.idleStatusBroadcast, param, timer.getTime() + jtac.idleBroadcastInterval)
     end
-
-    timer.scheduleFunction(jtac.idleStatusBroadcast, param, timer.getTime() + jtac.idleBroadcastInterval)
+    env.info("JTAC " .. param.jtacName .. " not found, deregistering", false)
+    jtac.deRegisterJtac(param.jtacName)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
