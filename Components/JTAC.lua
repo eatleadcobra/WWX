@@ -174,7 +174,24 @@ function jtac.getPresetForFrequency(cid, freq)
     end
     return nil
 end
+function jtac.clearStaleFrequencies()
+    for freq, _ in pairs(jtac.usedFrequencies) do
+        local found = false
+        for jtacName, jtacData in pairs(jtac.jtacs) do
+            if jtacData and jtacData.frequency == freq then
+                found = true
+                break
+            end
+        end
+        if not found then
+            env.info("JTAC: clearing stale frequency " .. tostring(freq), false)
+            env.info("JTAC: active frequencies:\n" .. Utils.dump(jtac.usedFrequencies) .. "\nactive JTACs:\n" .. Utils.dump(jtac.jtacs), false)
+            jtac.usedFrequencies[freq] = nil
+        end
+    end
+end
 function jtac.generateFrequency(coalitionId) -- coalitionid is to support different coalition ranges in future
+    jtac.clearStaleFrequencies()
     if coalitionId == 1 then -- red coalition has presets, try to get one before randomizing
         return jtac.getPresetFrequency()
     end
