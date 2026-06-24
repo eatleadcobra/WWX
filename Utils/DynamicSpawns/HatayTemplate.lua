@@ -42,6 +42,7 @@ Airframes = {
             ["MB-339A"] = true,
             ["F-86F Sabre"] = true,
             ["F-100D"] = true,
+            ["F-4E-45MC"] = true,
             ["F-5E-3"] = true,
         },
         carrier = {},
