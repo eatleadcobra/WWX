@@ -161,6 +161,8 @@ function jtac.getPresetFrequency()
             return freq
         end
     end
+    env.info("JTAC: no preset frequencies available\n" .. Utils.dump(jtac.usedFrequencies) .. "\n" .. Utils.dump(jtac.defaultRedFreqs), false)
+    return nil
 end
 function jtac.getPresetForFrequency(cid, freq)
     if cid == 1 then -- Only return presets for red coalition
@@ -267,41 +269,45 @@ function JTAC.registerJtac(name, coalitionId)
         local callsign = jtac.generateCallsign()
         local frequency = jtac.generateFrequency(cid)
         local preset = jtac.getPresetForFrequency(cid, frequency) or -1
-        jtac.jtacs[name] = {
-            spawnTime      = timer.getTime(),
-            code           = 1688,
-            callsign       = callsign,
-            mapMarkId      = DrawingTools.newMarkId(),
-            markDrawn      = false,
-            frequency      = frequency,
-            preset         = preset,
-            modulation     = "AM",
-            coalition      = cid,
-            stopLasing     = false,
-            session        = jtac.newSession(),
-        }
-        local jtacGroup = jtacUnit:getGroup()
-        if jtacGroup then
-            local controller = jtacGroup:getController()
-            if controller then
-                controller:setCommand({
-                    id = "SetFrequency",
-                    params = {
-                        frequency = frequency * 1000000,
-                        modulation = 0, -- AM
-                    }
-                })
+        if frequency then
+            jtac.jtacs[name] = {
+                spawnTime      = timer.getTime(),
+                code           = 1688,
+                callsign       = callsign,
+                mapMarkId      = DrawingTools.newMarkId(),
+                markDrawn      = false,
+                frequency      = frequency,
+                preset         = preset,
+                modulation     = "AM",
+                coalition      = cid,
+                stopLasing     = false,
+                session        = jtac.newSession(),
+            }
+            local jtacGroup = jtacUnit:getGroup()
+            if jtacGroup then
+                local controller = jtacGroup:getController()
+                if controller then
+                    controller:setCommand({
+                        id = "SetFrequency",
+                        params = {
+                            frequency = frequency * 1000000,
+                            modulation = 0, -- AM
+                        }
+                    })
+                end
             end
+            if not jtac.mapLabelsScheduled then
+                jtac.mapLabelsScheduled = true
+                timer.scheduleFunction(jtac.updateMapLabels, {}, timer.getTime() + jtac.mapLabelRefreshInterval)
+            end
+            jtac.jtacList[#jtac.jtacList + 1] = name
+            jtac.updateMapLabel(name)
+            jtac.menuRefresher()
+            timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
+            env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
+        else
+            env.info("JTAC " .. name .. " failed to register due to frequency assignment failure", false)
         end
-        if not jtac.mapLabelsScheduled then
-            jtac.mapLabelsScheduled = true
-            timer.scheduleFunction(jtac.updateMapLabels, {}, timer.getTime() + jtac.mapLabelRefreshInterval)
-        end
-        jtac.jtacList[#jtac.jtacList + 1] = name
-        jtac.updateMapLabel(name)
-        jtac.menuRefresher()
-        timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
-        env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
 end
 
