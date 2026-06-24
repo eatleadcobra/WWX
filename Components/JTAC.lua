@@ -2145,6 +2145,7 @@ function jtacEvents:onEvent(event)
 end
 world.addEventHandler(jtacEvents)
 if JTAC.enableInitSpawn then
-    JTAC.spawnJtacsAtRandomBPs(3, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
-    JTAC.spawnJtacsAtRandomBPs(3, 1)
+    local spawncount = JTACS.seedCount or 6
+    JTAC.spawnJtacsAtRandomBPs(spawncount, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
+    JTAC.spawnJtacsAtRandomBPs(spawncount, 1)
 end
