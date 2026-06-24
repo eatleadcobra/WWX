@@ -408,6 +408,7 @@ function bc.prepareAttack(filedAttackPlan)
         loopTries = loopTries + 1
         if loopTries > 100 then
             trigger.action.outText("INFINITE LOOP REEEEEEEEE", 10, false)
+            env.info("Loop tries > 100", false)
             return
         end
         for i = 1, #filedAttackPlan.targetBPs do
@@ -710,13 +711,17 @@ function bc.sufficient(supplyTable, costTable)
     return sufficient
 end
 function bc.sufficientForPlan(costTable)
-    local sufficient = true
+    local sufficient = {
+        [1] = true,
+        [2] = true,
+        [3] = true
+    }
     for i = 1, 3 do
         if costTable[i] > DFS.status.maxSuppliesFront[i] then
-            sufficient = false
+            sufficient[i] = false
         end
     end
-    return sufficient
+    return (sufficient[1] and sufficient[2] and sufficient[3])
 end
 function bc.drawRequiredSupplies(filedAttackPlan)
     local coalitionId = filedAttackPlan.attackingCoalition
@@ -959,12 +964,12 @@ function bc.needsReinforcement(coalitionId, bpId)
             end
         end
     end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
     if tankCount < 1 and (ifvCount + apcCount) < 2 then
         return true
     else
         return false
     end
-    world.searchObjects(Object.Category.UNIT, volS, ifFound)
 end
 
 function bc.getRealBpStrength(coalitionId, bpId)
