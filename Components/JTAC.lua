@@ -428,12 +428,38 @@ end
 function jtac.getBPSamplePoints(bpCenter, bpRadius)
     local points = {}
     points[#points + 1] = {x = bpCenter.x, z = bpCenter.z}
-    local sampleRadius = math.max(bpRadius * 0.75, 1)
-    points[#points + 1] = {x = bpCenter.x + sampleRadius, z = bpCenter.z}
-    points[#points + 1] = {x = bpCenter.x - sampleRadius, z = bpCenter.z}
-    points[#points + 1] = {x = bpCenter.x, z = bpCenter.z + sampleRadius}
-    points[#points + 1] = {x = bpCenter.x, z = bpCenter.z - sampleRadius}
+    if bpRadius and bpRadius > 0 then
+        local sampleRadius = math.max(bpRadius * 0.75, 1)
+        local diag = sampleRadius / math.sqrt(2)
+        local offsets = {
+            {x = sampleRadius, z = 0},
+            {x = -sampleRadius, z = 0},
+            {x = 0, z = sampleRadius},
+            {x = 0, z = -sampleRadius},
+            {x = diag, z = diag},
+            {x = -diag, z = diag},
+            {x = diag, z = -diag},
+            {x = -diag, z = -diag},
+        }
+        for i = 1, #offsets do
+            points[#points + 1] = {x = bpCenter.x + offsets[i].x, z = bpCenter.z + offsets[i].z}
+        end
+    end
     return points
+end
+function jtac.getBPVisibilityScore(candidate, bpPoints)
+    local visiblePoints = 0
+    for i = 1, #bpPoints do
+        local sample = bpPoints[i]
+        local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
+        if sampleHeight then
+            local target = {x = sample.x, y = sampleHeight + (jtac.jtacHeight / 2), z = sample.z}
+            if land.isVisible(candidate, target) then
+                visiblePoints = visiblePoints + 1
+            end
+        end
+    end
+    return visiblePoints
 end
 function jtac.findSpawnPointForBP(bpId, coalitionId)
     if not jtac.isBpWatched(bpId, coalitionId) then
@@ -448,23 +474,10 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
             if depot then
                 depotBearing = BattleControl.getBearingToDepotFromBP(bpId, depot)
             end
-            local function hasLoS(candidate)
-                for i = 1, #bpPoints do
-                    local sample = bpPoints[i]
-                    local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
-                    if sampleHeight then
-                        local target = {x = sample.x, y = sampleHeight + (jtac.jtacHeight/2), z = sample.z} -- add some height to avoid bushes and low cover, but not too much or we will get a bad sample
-                        if land.isVisible(candidate, target) then
-                            return true
-                        end
-                    end
-                end
-                return false
-            end
             local minRadius = bpRadius + 2000
             local maxRadius = bpRadius + 5000
             local radiusStep = 250
-            local bearingStep = 20
+            local bearingStep = 5
             local bearStart = 0
             local bearStop = 330
             if depotBearing then
@@ -472,6 +485,10 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
                 bearStop = depotBearing + 80
             end
             env.info("Jtac spawning between bearing " .. tostring(bearStart) .. " and " .. tostring(bearStop) .. " from BP-" .. tostring(bpId), false)
+
+            local bestScore = 0
+            local bestCandidate = nil
+            local bestDistance = nil
             for radius = minRadius, maxRadius, radiusStep do
                 for bearing = bearStart, bearStop, bearingStep do
                     local rad = math.rad(bearing)
@@ -481,14 +498,26 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
                     if distance >= minRadius and distance <= maxRadius then
                         local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
                         if groundHeight then
-                            local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
-                            if hasLoS(candidate) then
-                                candidate.y = candidate.y + - jtac.jtacHeight
-                                return candidate
+                            local candidateView = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
+                            local score = jtac.getBPVisibilityScore(candidateView, bpPoints)
+                            if score > 0 and (score > bestScore or (score == bestScore and (not bestDistance or distance < bestDistance))) then
+                                bestScore = score
+                                bestCandidate = {x = candidateX, y = groundHeight, z = candidateZ}
+                                bestDistance = distance
+                                if bestScore == #bpPoints then
+                                    break
+                                end
                             end
                         end
                     end
                 end
+                if bestScore == #bpPoints then
+                    break
+                end
+            end
+            if bestCandidate then
+                env.info("JTAC selected spawn point for BP-" .. tostring(bpId) .. " with visibility score " .. tostring(bestScore) .. " / " .. tostring(#bpPoints), false)
+                return bestCandidate
             end
         end
         env.info("Failed to find spawn point for BP-" .. tostring(bpId) .. " for coalition " .. tostring(coalitionId), false)
