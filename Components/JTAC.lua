@@ -512,17 +512,20 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
                     local candidateX = bpCenter.x + radius * math.cos(rad)
                     local candidateZ = bpCenter.z + radius * math.sin(rad)
                     local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
-                    if distance >= minRadius and distance <= maxRadius then
-                        local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
-                        if groundHeight then
-                            local candidateView = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
-                            local score = jtac.getBPVisibilityScore(candidateView, bpPoints)
-                            if score > 0 and (score > bestScore or (score == bestScore and (not bestDistance or distance < bestDistance))) then
-                                bestScore = score
-                                bestCandidate = {x = candidateX, y = groundHeight, z = candidateZ}
-                                bestDistance = distance
-                                if bestScore == #bpPoints then
-                                    break
+                    local surfaceType = land.getSurfaceType({x = candidateX, y = 0, z = candidateZ})
+                    if surfaceType == 1 or surfaceType == 4 then -- do not spawn on water or runways
+                        if distance >= minRadius and distance <= maxRadius then
+                            local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
+                            if groundHeight then
+                                local candidateView = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
+                                local score = jtac.getBPVisibilityScore(candidateView, bpPoints)
+                                if score > 0 and (score > bestScore or (score == bestScore and (not bestDistance or distance < bestDistance))) then
+                                    bestScore = score
+                                    bestCandidate = {x = candidateX, y = groundHeight, z = candidateZ}
+                                    bestDistance = distance
+                                    if bestScore == #bpPoints then
+                                        break
+                                    end
                                 end
                             end
                         end
