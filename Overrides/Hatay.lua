@@ -56,7 +56,7 @@ BLUECASFREQ = 225
 REDCASFREQ = 140
 BLUECASMOD = 0
 REDCASMOD = 1
-
+DISABLEF10CARGOSTATUS = true
 Platoons = {
     [1] = {
         ["Armor"] = {
