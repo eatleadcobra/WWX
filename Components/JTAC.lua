@@ -633,8 +633,9 @@ function jtac.idleStatusBroadcast(param)
             end
         end
         timer.scheduleFunction(jtac.idleStatusBroadcast, param, timer.getTime() + jtac.idleBroadcastInterval)
+    else
+        env.info("JTAC " .. param.jtacName .. " not found", false)
     end
-    env.info("JTAC " .. param.jtacName .. " not found", false)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
