@@ -213,10 +213,6 @@ PlatoonUnitCarrierTypeNames = {
     ["BTR-60"] = "APC",
     ["M-113"] = "APC",
 }
-PlatoonUnitCarrierTypeNames = {
-    ["Bedford_MWD"] = "APC",
-    ["Blitz_36-6700A"] =  "APC",
-}
 PlatoonGunCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "GUN"
 }
