@@ -27,6 +27,7 @@ Airframes = {
             ["Mi-24P"] = true,
             ["Mi-8MT"] = true,
             ["SA342L"] = true,
+            ["C-130J-30"] = true,
         }
     },
     [2] = {
