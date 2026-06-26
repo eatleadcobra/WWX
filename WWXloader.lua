@@ -48,6 +48,9 @@ if SUBS then
    assert(loadfile(pathToWWX.."Components\\Subs\\SubControl.lua"))()
    assert(loadfile(pathToWWX.."Components\\Subs\\SubTools.lua"))()
 end
+if VIGGENDTCENFORCEMENT then
+   assert(loadfile(pathToWWX.."Components\\ViggenDTCEnforcer.lua"))()
+end
 assert(loadfile(pathToWWX.."Components\\WWXRL.lua"))()
 if CSAR then
    assert(loadfile(pathToWWX.."Components\\CSARBot.lua"))()

@@ -2035,7 +2035,7 @@ function dfc.respawnLoop()
         local checkgroup = Group.getByName(groupName)
         local groupDead = false
         if checkgroup then
-            if checkgroup:getSize()/checkgroup:getInitialSize() <= 0.2 then
+            if checkgroup:getSize()/checkgroup:getInitialSize() <= 0.5 then
                 groupDead = true
             end
         else
