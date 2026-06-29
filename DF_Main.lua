@@ -2,6 +2,7 @@ local sunsetNotified = false
 local deliveredCargos = {
 }
 local troopTutoriald = {}
+local respawnGroupMapping = {}
 DFS = {}
 DFS.supplyType = {
     FUEL = 1,
@@ -842,6 +843,9 @@ function dfc.blankData()
     dfc.emptyFirebases()
     CpyControl.wipeCompanies()
     BattleControl.endMission()
+    if PERSISTENTDEATH then
+        SBLOCKER.clearPersistance()
+    end
 end
 function DFS.endMission(coalitionId)
     dfc.endMission(coalitionId)
@@ -2030,7 +2034,15 @@ function dfc.mainLoop()
         timer.scheduleFunction(dfc.mainLoop, nil, timer.getTime() + 10)
     end
 end
+function dfc.populateRespawnTemplate()
+    for groupName, _ in pairs(RESPAWNGROUPS) do
+        respawnGroupMapping[groupName] = groupName
+    end
+end
 function dfc.respawnLoop()
+    if PERSISTENTDEATH and SBLOCKER then
+        SBLOCKER.run()
+    end
     for groupName, respawnTime in pairs(RESPAWNGROUPS) do
         local checkgroup = Group.getByName(groupName)
         local groupDead = false
@@ -2041,8 +2053,9 @@ function dfc.respawnLoop()
         else
             groupDead = true
         end
-        if groupDead then
-            env.info("Respawn group " .. groupName .. " is dead, scheduling respawn", false)
+        if groupDead and not SBLOCKER.blockedGroups[groupName] then
+            env.info("Respawn group " .. groupName .. " is dead, respawn time is " .. respawnTime, false)
+            env.info("blockedGroups: " .. Utils.dump(SBLOCKER.blockedGroups), false)
             timer.scheduleFunction(dfc.respawnRespawnGroup, {groupName = groupName, respawnTime = respawnTime}, timer:getTime() + respawnTime)
             RESPAWNGROUPS[groupName] = nil
         end
@@ -2051,9 +2064,30 @@ function dfc.respawnLoop()
 end
 --groupName, respawnTime
 function dfc.respawnRespawnGroup(param)
-    local newGroupName = mist.cloneGroup(param.groupName, true).name
-    RESPAWNGROUPS[newGroupName] = param.respawnTime
-    env.info("Respawn group " .. newGroupName .. " added, respawn time is " .. param.respawnTime, false)
+    local templateGroup = respawnGroupMapping[param.groupName]
+    local newGroupName = nil
+    if PERSISTENTDEATH then
+        if not SBLOCKER.blockedGroups[param.groupName] then
+            newGroupName = mist.cloneGroup(templateGroup, true).name
+            if PERSISTENTDEATH[param.groupName] then
+                if not SBLOCKER.originalGroups[param.groupName] then -- do not remove the original group name (needed for restart)
+                    PERSISTENTDEATH[param.groupName] = nil
+                    env.info("Respawn group " .. param.groupName .. " removed from persistent death groups", false)
+                end
+                PERSISTENTDEATH[newGroupName] = true
+                env.info("Respawn group " .. newGroupName .. " added to persistent death groups", false)
+            end
+        end
+        env.info("blocking this respawn as the group has been entirely destoyed", false)
+    else
+        newGroupName = mist.cloneGroup(templateGroup, true).name
+    end
+    if newGroupName then
+        RESPAWNGROUPS[newGroupName] = param.respawnTime
+        respawnGroupMapping[newGroupName] = templateGroup
+        respawnGroupMapping[param.groupName] = nil
+        env.info("Respawn group " .. newGroupName .. " added, respawn time is " .. param.respawnTime, false)
+    end
 end
 function dfc.checkNoFlyZones()
     dfc.checkNoFlyZone(1)
@@ -3455,6 +3489,7 @@ if AIRCARGO then
     timer.scheduleFunction(dfc.airCargo, nil, timer:getTime() + AIRCARGOINTERVAL)
 end
 if RESPAWNGROUPS then
+    dfc.populateRespawnTemplate()
     dfc.respawnLoop()
 end
 dfc.mainLoop()

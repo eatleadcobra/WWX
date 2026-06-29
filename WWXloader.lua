@@ -81,4 +81,7 @@ end
 if JTACS then
    assert(loadfile(pathToWWX.."Components\\JTAC.lua"))()
 end
+if PERSISTENTDEATH then
+   assert(loadfile(pathToWWX.."Plugins\\DF_respawnblocker.lua"))()
+end
 env.info("Finished loading WWX", false)
