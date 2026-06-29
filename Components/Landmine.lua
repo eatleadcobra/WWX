@@ -60,7 +60,7 @@ function mine.spawn(param)
 end
 local mineEvents = {}
 function mineEvents:onEvent(event)
-     if event and event.id then
+    if event and event.id then
         --on weapon fire
         if (event.id == world.event.S_EVENT_SHOT and event.initiator and event.weapon) then
             local okExists, exists = pcall(event.weapon.isExist, event.weapon)

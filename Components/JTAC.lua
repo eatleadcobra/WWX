@@ -32,6 +32,7 @@ local jtac = {
     },
     usedCallsigns        = {},
     usedFrequencies      = {},
+    defaultRedFreqs      = JTACS.redFreqs or {[11] = 268.0, [12] = 269.0, [13] = 260.0, [14] = 263.0, [15] = 261.0, [16] = 267.0, [17] = 258.0, [18] = 253.0, [19] = 266.0},  -- last 9 channels of the mig29 radio.
     excludedFrequencies  = JTACS.excludedFrequencies or {},
     jtacs                = {}, -- List of JTAC units and their data, primary data structure for JTAC management
     jtacList             = {}, -- Ordered list of JTACS used to preserve menu order when rebuilding the JTAC menu, yes this is poorly named
@@ -148,7 +149,52 @@ function jtac.clearMapLabel(jtacName)
         end
     end
 end
+function jtac.getPresetFrequency()
+    local excluded = {}
+    excluded[jtac.guardFreq] = true
+    for freq, _ in pairs(jtac.usedFrequencies) do
+        excluded[freq] = true
+    end
+    for preset, freq in pairs(jtac.defaultRedFreqs) do
+        if not excluded[freq] then
+            jtac.usedFrequencies[freq] = true
+            return freq
+        end
+    end
+    env.info("JTAC: no preset frequencies available\n" .. Utils.dump(jtac.usedFrequencies) .. "\n" .. Utils.dump(jtac.defaultRedFreqs), false)
+    return nil
+end
+function jtac.getPresetForFrequency(cid, freq)
+    if cid == 1 then -- Only return presets for red coalition
+        for preset, f in pairs(jtac.defaultRedFreqs) do
+            if f == freq then
+                return preset
+            end
+        end
+    end
+    return nil
+end
+function jtac.clearStaleFrequencies()
+    for freq, _ in pairs(jtac.usedFrequencies) do
+        local found = false
+        for jtacName, jtacData in pairs(jtac.jtacs) do
+            if jtacData and jtacData.frequency == freq then
+                found = true
+                break
+            end
+        end
+        if not found then
+            env.info("JTAC: clearing stale frequency " .. tostring(freq), false)
+            env.info("JTAC: active frequencies:\n" .. Utils.dump(jtac.usedFrequencies) .. "\nactive JTACs:\n" .. Utils.dump(jtac.jtacs), false)
+            jtac.usedFrequencies[freq] = nil
+        end
+    end
+end
 function jtac.generateFrequency(coalitionId) -- coalitionid is to support different coalition ranges in future
+    jtac.clearStaleFrequencies()
+    if coalitionId == 1 then -- red coalition has presets, try to get one before randomizing
+        return jtac.getPresetFrequency()
+    end
     local excluded = {}
     excluded[jtac.guardFreq] = true
     if BLUECASFREQ then
@@ -156,6 +202,9 @@ function jtac.generateFrequency(coalitionId) -- coalitionid is to support differ
     end
     if REDCASFREQ then
         excluded[REDCASFREQ] = true
+    end
+    for preset, freq in pairs(jtac.defaultRedFreqs) do
+        excluded[freq] = true -- stop blue jtacs stealing red jtac freqs
     end
     for freq, _ in pairs(jtac.usedFrequencies) do
         excluded[freq] = true
@@ -236,40 +285,46 @@ function JTAC.registerJtac(name, coalitionId)
     if jtacUnit then
         local callsign = jtac.generateCallsign()
         local frequency = jtac.generateFrequency(cid)
-        jtac.jtacs[name] = {
-            spawnTime      = timer.getTime(),
-            code           = 1688,
-            callsign       = callsign,
-            mapMarkId      = DrawingTools.newMarkId(),
-            markDrawn      = false,
-            frequency      = frequency,
-            modulation     = "AM",
-            coalition      = cid,
-            stopLasing     = false,
-            session        = jtac.newSession(),
-        }
-        local jtacGroup = jtacUnit:getGroup()
-        if jtacGroup then
-            local controller = jtacGroup:getController()
-            if controller then
-                controller:setCommand({
-                    id = "SetFrequency",
-                    params = {
-                        frequency = frequency * 1000000,
-                        modulation = 0, -- AM
-                    }
-                })
+        local preset = jtac.getPresetForFrequency(cid, frequency) or -1
+        if frequency then
+            jtac.jtacs[name] = {
+                spawnTime      = timer.getTime(),
+                code           = 1688,
+                callsign       = callsign,
+                mapMarkId      = DrawingTools.newMarkId(),
+                markDrawn      = false,
+                frequency      = frequency,
+                preset         = preset,
+                modulation     = "AM",
+                coalition      = cid,
+                stopLasing     = false,
+                session        = jtac.newSession(),
+            }
+            local jtacGroup = jtacUnit:getGroup()
+            if jtacGroup then
+                local controller = jtacGroup:getController()
+                if controller then
+                    controller:setCommand({
+                        id = "SetFrequency",
+                        params = {
+                            frequency = frequency * 1000000,
+                            modulation = 0, -- AM
+                        }
+                    })
+                end
             end
+            if not jtac.mapLabelsScheduled then
+                jtac.mapLabelsScheduled = true
+                timer.scheduleFunction(jtac.updateMapLabels, {}, timer.getTime() + jtac.mapLabelRefreshInterval)
+            end
+            jtac.jtacList[#jtac.jtacList + 1] = name
+            jtac.updateMapLabel(name)
+            jtac.menuRefresher()
+            timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
+            env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
+        else
+            env.info("JTAC " .. name .. " failed to register due to frequency assignment failure", false)
         end
-        if not jtac.mapLabelsScheduled then
-            jtac.mapLabelsScheduled = true
-            timer.scheduleFunction(jtac.updateMapLabels, {}, timer.getTime() + jtac.mapLabelRefreshInterval)
-        end
-        jtac.jtacList[#jtac.jtacList + 1] = name
-        jtac.updateMapLabel(name)
-        jtac.menuRefresher()
-        timer.scheduleFunction(jtac.idleStatusBroadcast, {jtacName = name}, timer.getTime() + jtac.idleBroadcastInterval)
-        env.info("JTAC registered: " .. name .. " as " .. callsign .. " on " .. frequency .. " AM", false)
     end
 end
 
@@ -390,12 +445,38 @@ end
 function jtac.getBPSamplePoints(bpCenter, bpRadius)
     local points = {}
     points[#points + 1] = {x = bpCenter.x, z = bpCenter.z}
-    local sampleRadius = math.max(bpRadius * 0.75, 1)
-    points[#points + 1] = {x = bpCenter.x + sampleRadius, z = bpCenter.z}
-    points[#points + 1] = {x = bpCenter.x - sampleRadius, z = bpCenter.z}
-    points[#points + 1] = {x = bpCenter.x, z = bpCenter.z + sampleRadius}
-    points[#points + 1] = {x = bpCenter.x, z = bpCenter.z - sampleRadius}
+    if bpRadius and bpRadius > 0 then
+        local sampleRadius = math.max(bpRadius * 0.75, 1)
+        local diag = sampleRadius / math.sqrt(2)
+        local offsets = {
+            {x = sampleRadius, z = 0},
+            {x = -sampleRadius, z = 0},
+            {x = 0, z = sampleRadius},
+            {x = 0, z = -sampleRadius},
+            {x = diag, z = diag},
+            {x = -diag, z = diag},
+            {x = diag, z = -diag},
+            {x = -diag, z = -diag},
+        }
+        for i = 1, #offsets do
+            points[#points + 1] = {x = bpCenter.x + offsets[i].x, z = bpCenter.z + offsets[i].z}
+        end
+    end
     return points
+end
+function jtac.getBPVisibilityScore(candidate, bpPoints)
+    local visiblePoints = 0
+    for i = 1, #bpPoints do
+        local sample = bpPoints[i]
+        local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
+        if sampleHeight then
+            local target = {x = sample.x, y = sampleHeight + (jtac.jtacHeight / 2), z = sample.z}
+            if land.isVisible(candidate, target) then
+                visiblePoints = visiblePoints + 1
+            end
+        end
+    end
+    return visiblePoints
 end
 function jtac.findSpawnPointForBP(bpId, coalitionId)
     if not jtac.isBpWatched(bpId, coalitionId) then
@@ -410,23 +491,10 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
             if depot then
                 depotBearing = BattleControl.getBearingToDepotFromBP(bpId, depot)
             end
-            local function hasLoS(candidate)
-                for i = 1, #bpPoints do
-                    local sample = bpPoints[i]
-                    local sampleHeight = land.getHeight({x = sample.x, y = sample.z})
-                    if sampleHeight then
-                        local target = {x = sample.x, y = sampleHeight + (jtac.jtacHeight/2), z = sample.z} -- add some height to avoid bushes and low cover, but not too much or we will get a bad sample
-                        if land.isVisible(candidate, target) then
-                            return true
-                        end
-                    end
-                end
-                return false
-            end
             local minRadius = bpRadius + 2000
             local maxRadius = bpRadius + 5000
             local radiusStep = 250
-            local bearingStep = 20
+            local bearingStep = 5
             local bearStart = 0
             local bearStop = 330
             if depotBearing then
@@ -434,23 +502,42 @@ function jtac.findSpawnPointForBP(bpId, coalitionId)
                 bearStop = depotBearing + 80
             end
             env.info("Jtac spawning between bearing " .. tostring(bearStart) .. " and " .. tostring(bearStop) .. " from BP-" .. tostring(bpId), false)
+
+            local bestScore = 0
+            local bestCandidate = nil
+            local bestDistance = nil
             for radius = minRadius, maxRadius, radiusStep do
                 for bearing = bearStart, bearStop, bearingStep do
                     local rad = math.rad(bearing)
                     local candidateX = bpCenter.x + radius * math.cos(rad)
                     local candidateZ = bpCenter.z + radius * math.sin(rad)
                     local distance = Utils.PointDistance({x = bpCenter.x, y = 0, z = bpCenter.z}, {x = candidateX, y = 0, z = candidateZ})
-                    if distance >= minRadius and distance <= maxRadius then
-                        local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
-                        if groundHeight then
-                            local candidate = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
-                            if hasLoS(candidate) then
-                                candidate.y = candidate.y + - jtac.jtacHeight
-                                return candidate
+                    local surfaceType = land.getSurfaceType({x = candidateX, y = 0, z = candidateZ})
+                    if surfaceType == 1 or surfaceType == 4 then -- do not spawn on water or runways
+                        if distance >= minRadius and distance <= maxRadius then
+                            local groundHeight = land.getHeight({x = candidateX, y = candidateZ})
+                            if groundHeight then
+                                local candidateView = {x = candidateX, y = groundHeight + jtac.jtacHeight, z = candidateZ}
+                                local score = jtac.getBPVisibilityScore(candidateView, bpPoints)
+                                if score > 0 and (score > bestScore or (score == bestScore and (not bestDistance or distance < bestDistance))) then
+                                    bestScore = score
+                                    bestCandidate = {x = candidateX, y = groundHeight, z = candidateZ}
+                                    bestDistance = distance
+                                    if bestScore == #bpPoints then
+                                        break
+                                    end
+                                end
                             end
                         end
                     end
                 end
+                if bestScore == #bpPoints then
+                    break
+                end
+            end
+            if bestCandidate then
+                env.info("JTAC selected spawn point for BP-" .. tostring(bpId) .. " with visibility score " .. tostring(bestScore) .. " / " .. tostring(#bpPoints), false)
+                return bestCandidate
             end
         end
         env.info("Failed to find spawn point for BP-" .. tostring(bpId) .. " for coalition " .. tostring(coalitionId), false)
@@ -545,9 +632,10 @@ function jtac.idleStatusBroadcast(param)
                 jtac.transmit(param.jtacName, message, 15, false)
             end
         end
+        timer.scheduleFunction(jtac.idleStatusBroadcast, param, timer.getTime() + jtac.idleBroadcastInterval)
+    else
+        env.info("JTAC " .. param.jtacName .. " not found", false)
     end
-
-    timer.scheduleFunction(jtac.idleStatusBroadcast, param, timer.getTime() + jtac.idleBroadcastInterval)
 end
 
 function JTAC.spawnJtacsAtRandomBPs(count, coalitionId)
@@ -1822,6 +1910,9 @@ function jtac.createJtacSubmenu(groupName, groupId, jtacName)
         local playerCoalition = group:getCoalition()
         if playerCoalition and playerCoalition == jtacData.coalition then
             local menuTitle = jtacData.frequency .. " AM - " .. jtacData.callsign
+            if jtacData.preset and jtacData.preset ~= -1 then
+                menuTitle = jtacData.frequency .. "AM (preset: " .. jtacData.preset .. ") - " .. jtacData.callsign
+            end
             local jtacSub = missionCommands.addSubMenuForGroup(groupId, menuTitle, jtac.jtacMenu[groupName]["root"])
             jtac.jtacMenu[groupName][jtacName] = jtacSub
 
@@ -2077,9 +2168,40 @@ function jtacEvents:onEvent(event)
             end
         end
     end
+--    maybe some day...
+--    if event and event.id then
+--        --on weapon release, check for LGB and if so, stop lasing and start again when the weapon is terminal. This is to stop the bomb wasting all its energy pulling onto the laser
+--        if (event.id == world.event.S_EVENT_SHOT and event.initiator and event.weapon) then
+--            if event.initiator.getGroup then
+--                local group = event.initiator:getGroup()
+--                if group then
+--                    local groupName = group:getName()
+--                    if groupName then
+--                        local okExists, exists = pcall(event.weapon.isExist, event.weapon)
+--                        if okExists and exists then
+--                            for jtacName, jtacData in pairs(jtac.jtacs) do
+--                                if jtacData then
+--                                    local session = jtacData.session
+--                                    if session and session.controlledFlight == groupName and session.state == "CLEARED_HOT" then
+--                                        local okType, weaponType = pcall(event.weapon.getTypeName, event.weapon)
+--                                        if okType and (string.find(weaponType, 'GBU') or weaponType == 'BOLT-117') then
+--                                            env.info("LGB released: " .. weaponType, false)
+--                                            jtacData.stopLasing = true
+--                                            jtac.trackBombToGround({jtacName = jtacName, weapon = event.weapon})
+--                                        end
+--                                    end
+--                                end
+--                            end
+--                        end
+--                    end
+--                end
+--            end
+--        end
+--    end
 end
 world.addEventHandler(jtacEvents)
 if JTAC.enableInitSpawn then
-    JTAC.spawnJtacsAtRandomBPs(3, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
-    JTAC.spawnJtacsAtRandomBPs(3, 1)
+    local spawncount = JTACS.seedCount or 6
+    JTAC.spawnJtacsAtRandomBPs(spawncount, 2) -- could maybe leave this in even in non-debug for some random JTACs on the field, but for now just for testing
+    JTAC.spawnJtacsAtRandomBPs(spawncount, 1)
 end

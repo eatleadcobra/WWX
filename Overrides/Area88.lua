@@ -8,7 +8,7 @@ SUBTYPE =
     [2] = "santafe",
 }
 CAP = true
-COMPANIESIGNOREROADS = true
+EXTRACOMPANYROADS = true
 PROTECT_HELICOPTERS = true
 PIRACY = false
 BOMBERS = true
