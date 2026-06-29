@@ -20,6 +20,7 @@ REAPER = true
 INTERCEPT = true
 SHIPPING = true
 CAPTURE = false
+VIGGENDTCENFORCEMENT = true
 CAVICS = {
     [1] = {
         [1] = {text = "AT - BRDM", typename = "BRDM-2_malyutka"},
@@ -212,10 +213,6 @@ PlatoonUnitCarrierTypeNames = {
     ["BMP-1"] = "IFV",
     ["BTR-60"] = "APC",
     ["M-113"] = "APC",
-}
-PlatoonUnitCarrierTypeNames = {
-    ["Bedford_MWD"] = "APC",
-    ["Blitz_36-6700A"] =  "APC",
 }
 PlatoonGunCarrierTypeNames = {
     ["Land_Rover_101_FC"] = "GUN"
