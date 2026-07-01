@@ -20,6 +20,7 @@ REAPER = true
 INTERCEPT = true
 SHIPPING = true
 CAPTURE = false
+COMPANIESIGNOREROADS = true
 VIGGENDTCENFORCEMENT = true
 CAVICS = {
     [1] = {
