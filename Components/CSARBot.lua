@@ -25,6 +25,7 @@ local csarOnBoardDefaultEndurance = 900
 local csarRescueDecayRate = 1.0
 local csarCheckThreshold = 20
 local csarSoundFile = "l10n/DEFAULT/dah2.ogg"
+local csarMovementSpeed = 3
 local trackCasEvacInterval = 20
 local casEvacRadius = 25
 local casEvacInnerRadius = 6
@@ -1883,7 +1884,9 @@ function csb.checkCsarLanding(eUnit)
                                         if not csci.extracting then
                                             trigger.action.outTextForCoalition(pSide, pName .. " is attempting to extract " .. m.displayName .. "...", 10, false)
                                             local rescueGroup = Group.getByName(m.groupName)
-                                            if rescueGroup and rescueGroup:isExist() then csb.sendRescueToAircraft(rescueGroup,pPosn,3,"Off Road",0) end
+                                            local jogTime = math.floor((Utils.PointDistance(pPosn, m.point) / csarMovementSpeed) + 0.5) - 1
+                                            if jogTime <= 0 then jogTime = 1 end
+                                            if rescueGroup and rescueGroup:isExist() then csb.sendRescueToAircraft(rescueGroup,pPosn,csarMovementSpeed,"Off Road",0) end
                                             m.extracting = true
                                             csci.extracting = true
                                             local args = {}
@@ -1897,7 +1900,7 @@ function csb.checkCsarLanding(eUnit)
                                             args.pUnit = eUnit
                                             args.mission = m
                                             args.displayName = m.displayName
-                                            timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + mist.random(3,6))
+                                            timer.scheduleFunction(csb.fakeExtractionTime, args, timer.getTime() + jogTime)
                                         end
                                     else
                                         if not csci.lastConfigWarning or (csci.lastConfigWarning and (checkTime - csci.lastConfigWarning > 15)) then
