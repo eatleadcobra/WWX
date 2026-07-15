@@ -1214,7 +1214,7 @@ function csb.trackCsar()
                                             table.insert(m.warned, {name = pUnitName, warntime = timer.getTime()})
                                         else
                                             if not noRoomAtInn then
-                                                if playerTypeName ~= "AV8BNA" and playerTypeName ~= "Yak-52" then
+                                                if playerTypeName ~= "AV8BNA" and playerTypeName ~= "Yak-52" and playerTypeName ~= "C-130J-30" then
                                                     if playerUnit:inAir() == true then
                                                         outText = "Winch Op: " .. m.displayName .. " approx. " .. nicedist .. "m to your " .. clockBearing .. " o'clock."
                                                     end

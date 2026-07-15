@@ -149,6 +149,14 @@ DFS.heloCapacities = {
         volume = 2,
         seats = 2
     },
+    ["Yak-52"] = {
+        types = {
+            ["Recon Troops"] = 7,
+            ["JTAC"] = 8,
+        },
+        volume = 2,
+        seats = 2
+    },
     ["CH-47Fbl1"] = {
         types = {
             ["Mortar Squad"] = 5,
