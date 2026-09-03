@@ -264,7 +264,7 @@ DFS.templates = {
     },
     [3] = {
         ["big"] = {
-            ["mass"] = 1400,
+            ["mass"] = 1000,
             ["heading"] = 0,
             ["shape_name"] = "iso_container_small_cargo",
             ["canCargo"] = true,
@@ -449,12 +449,12 @@ DFS.status = {
     convoyResupplyAmts = {
         [1] = 40,
         [2] = 75,
-        [3] = 12,
+        [3] = 0,
     },
     shippingResupplyAmts = {
         [1] = 180,
         [2] = 500,
-        [3] = 68,
+        [3] = 0,
     },
     playerResupplyAmts = {
         [1] = {
@@ -463,11 +463,11 @@ DFS.status = {
         },
         [2] = {
             big = 60,
-            small = 20
+            small = 50
         },
         [3] = {
-            big = 6,
-            small = 2
+            big = 12,
+            small = 6
         },
         [4] = {
             big = 3,
@@ -882,9 +882,9 @@ end
 function dfc.initSupply()
     for c = 1,2 do
 
-        DFS.status[c].supply.front[DFS.supplyType.FUEL] = DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]
-        DFS.status[c].supply.front[DFS.supplyType.AMMO] = DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]
-        DFS.status[c].supply.front[DFS.supplyType.EQUIPMENT] = DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
+        DFS.status[c].supply.front[DFS.supplyType.FUEL] = 0
+        DFS.status[c].supply.front[DFS.supplyType.AMMO] = 0
+        DFS.status[c].supply.front[DFS.supplyType.EQUIPMENT] = 0
 
         DFS.status[c].supply.rear[DFS.supplyType.FUEL] = math.floor(DFS.status.maxSuppliesRear[DFS.supplyType.FUEL]/2)
         DFS.status[c].supply.rear[DFS.supplyType.AMMO] = math.floor(DFS.status.maxSuppliesRear[DFS.supplyType.AMMO]/2)
@@ -3326,12 +3326,12 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             local fuelMenu = missionCommands.addSubMenuForGroup(addGroupID, "Fuel", slingMenu)
             local ammoMenu = missionCommands.addSubMenuForGroup(addGroupID, "Ammo", slingMenu)
             local equipmentMenu = missionCommands.addSubMenuForGroup(addGroupID, "Equipment", slingMenu)
-            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].big, fuelMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "big"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), fuelMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].big, ammoMenu, dfc.spawnSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "big"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), ammoMenu, dfc.spawnSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].big, equipmentMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "big"})
-            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), equipmentMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small"})
+            -- missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].big, fuelMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "big"})
+            -- missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), fuelMenu, dfc.spawnSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small"})
+            -- missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Large " .. DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].big, ammoMenu, dfc.spawnSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "big"})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo" .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), ammoMenu, dfc.spawnSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small"})
+            missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment" .. DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].big, equipmentMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "big"})
+            -- missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), equipmentMenu, dfc.spawnSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Howitzer", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "big"})
             missionCommands.addCommandForGroup(addGroup:getID(), "Transport Howitzer (Boxed)", slingMenu, dfc.spawnSupply, {type = DFS.supplyType.GUN, groupName = groupName, modifier = "small"})
             -- Spawn Multiple submenu: choose quantity then type
@@ -3339,9 +3339,9 @@ function dfc.addRadioCommandsForCargoGroup(groupName)
             local cargoQuantities = {2, 3, 4, 6, 10, 12, 20}
             for _, q in ipairs(cargoQuantities) do
                 local qtyCargoMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), tostring(q) .. " crates", multipleCargoMenu)
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small", count = q})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small", count = q})
-                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})
+                --missionCommands.addCommandForGroup(addGroup:getID(), "Transport Fuel - Small " .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.FUEL].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.FUEL, groupName = groupName, modifier = "small", count = q})
+                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Ammo" .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.AMMO].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.AMMO, groupName = groupName, modifier = "small", count = q})
+                missionCommands.addCommandForGroup(addGroup:getID(), "Transport Equipment" .. math.floor(DFS.status.playerResupplyAmts[DFS.supplyType.EQUIPMENT].small), qtyCargoMenu, dfc.spawnMultipleSupply, {type = DFS.supplyType.EQUIPMENT, groupName = groupName, modifier = "small", count = q})
             end
             local troopsMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Troop Transportation", cargoMenu)
             local addUnit = addGroup:getUnit(1)
