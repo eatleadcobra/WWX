@@ -1535,14 +1535,11 @@ function dfc.newConvoyLoop()
             local deliverZone = activeFDs[math.random(#activeFDs)]
             local fueltime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.FUEL] > DFS.status.convoyBaseTime
             local ammotime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.AMMO] > DFS.status.convoyBaseTime
-            local equiptime = timer.getTime() - DFS.status[ctln].lastConvoyTimes[1][DFS.supplyType.EQUIPMENT] > DFS.status.convoyBaseTime
             local hasConvoyFuel = DFS.status[ctln].supply.rear[DFS.supplyType.FUEL] > 1
             local needsAmmo = DFS.status[ctln].supply.front[DFS.supplyType.AMMO] < DFS.status.maxSuppliesFront[DFS.supplyType.AMMO]
             local hasAmmoAmt = DFS.status[ctln].supply.rear[DFS.supplyType.AMMO] > DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]
             local needsFuel = DFS.status[ctln].supply.front[DFS.supplyType.FUEL] < DFS.status.maxSuppliesFront[DFS.supplyType.FUEL]
             local hasFuelAmt = DFS.status[ctln].supply.rear[DFS.supplyType.FUEL] > (DFS.status.convoyResupplyAmts[DFS.supplyType.FUEL]+2)
-            local needsEquipment = DFS.status[ctln].supply.front[DFS.supplyType.EQUIPMENT] < DFS.status.maxSuppliesFront[DFS.supplyType.EQUIPMENT]
-            local hasEquipmentAmt = DFS.status[ctln].supply.rear[DFS.supplyType.EQUIPMENT] > DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]
             local anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
            --fuel check
             if deliverZone and anytime and fueltime and hasConvoyFuel and needsFuel and hasFuelAmt then
@@ -1555,13 +1552,6 @@ function dfc.newConvoyLoop()
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.AMMO]), type = DFS.supplyType.AMMO})
                 dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
                 dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.AMMO})
-                anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
-            end
-            --equipment check 
-            if deliverZone and anytime and equiptime and hasConvoyFuel and needsEquipment and hasEquipmentAmt then
-                dfc.decreaseRearSupply({coalitionId = ctln,  amount = (DFS.status.convoyResupplyAmts[DFS.supplyType.EQUIPMENT]), type = DFS.supplyType.EQUIPMENT})
-                dfc.decreaseRearSupply({coalitionId = ctln,  amount = 2, type = DFS.supplyType.FUEL})
-                dfc.startConvoy({coalitionId = ctln, startFrom = i, deliverZone = deliverZone, type = DFS.supplyType.EQUIPMENT})
                 anytime = timer.getTime() - DFS.status[ctln].anyConvoyTime > DFS.status.newConvoySeparationTime
             end
         end
