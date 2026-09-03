@@ -514,7 +514,8 @@ function bc.executeAttack(filedAttackPlan)
                 env.info("Cannot afford attack, lowering tiers", false)
                 loopTries = loopTries + 1
                 if loopTries > 100 then
-                    env.info("INFINITE LOOP REEEEEEEEE", false)
+                    env.info("INFINITE LOOP REEEEEEEEE-scheduling attack", false)
+                    bc.rescheduleAttack(filedAttackPlan)
                     return
                 end
                 for i = 1, #filedAttackPlan.targetBPs do
@@ -593,6 +594,7 @@ function bc.attackSupCost(targetBPs)
     return attackCost
 end
 function bc.rescheduleAttack(filedAttackPlan)
+    env.info("Reschudling attack for coalition: " .. filedAttackPlan.attackingCoalition, false)
     local startTime = timer:getTime() + 1200
     local startTimeAbs = timer:getAbsTime() + 1200
     local startTimeHours = math.floor(startTimeAbs/3600)
