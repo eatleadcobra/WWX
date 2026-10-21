@@ -27,12 +27,14 @@ local buoyCreatedCount = {
         det = 0,
         khz = 0,
         mhz = 0,
+        mhz2 = 0,
         yak = 0
     },
     [2] = {
         det = 0,
         khz = 0,
         mhz = 0,
+        mhz2 = 0,
         yak = 0
     }
 }
@@ -57,10 +59,15 @@ local yakfreqnames = {
     [8] = "ARK-15M: Ch 4 I"
 }
 local startMhzFreq = 3.0
+local startMhz2Freq = 19.0
 local mhzFreq = 3.0
 local maxMhz = 18.0
 local mhzInterval = 0.1
 local mhzAvailable = 150
+local mhz2Freq = 19.0
+local maxMhz2 = 29.9
+local mhz2Interval = 0.1
+local mhz2Available = 100
 local detFreq = 1
 local sbCount = 20
 local buoyLifetime = 5400
@@ -83,6 +90,9 @@ local planeRadioTypes = {
     mhz = {
         ["MosquitoFBMkVI"] = 1,
         ["C-130J-30"] = 2,
+    },
+    mhz2 = {
+        ["AH-64D_BLK_II"] = 1
     },
     yak = {
         ["Yak-52"] = 1
@@ -187,6 +197,13 @@ function sb.createBuoy(param)
                         if mhzFreq > maxMhz then mhzFreq = startMhzFreq end
                         buoyCreatedCount[param.coalition].mhz = buoyCreatedCount[param.coalition].mhz + 1
                         timer.scheduleFunction(sb.reduceCreatedCount, {coalition = param.coalition, freqType = "mhz"}, timer:getTime() + buoyLifetime)
+                    end
+                    if buoyCreatedCount[param.coalition].mhz2 < mhz2Available and planeRadioTypes.mhz2[unit:getTypeName()] ~= nil then
+                        buoyMhzFreq = tostring(mhz2Freq)
+                        mhz2Freq = mhz2Freq + mhz2Interval
+                        if mhz2Freq > maxMhz2 then mhz2Freq = startMhz2Freq end
+                        buoyCreatedCount[param.coalition].mhz2 = buoyCreatedCount[param.coalition].mhz2 + 1
+                        timer.scheduleFunction(sb.reduceCreatedCount, {coalition = param.coalition, freqType = "mhz2"}, timer:getTime() + buoyLifetime)
                     end
                     if buoyCreatedCount[param.coalition].yak < #yakfreqs and planeRadioTypes.yak[unit:getTypeName()] ~= nil then
                         buoyCreatedCount[param.coalition].yak = buoyCreatedCount[param.coalition].yak + 1
