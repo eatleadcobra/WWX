@@ -26,6 +26,9 @@ function DFSubs.initSub(param)
     else
         env.info("No valid start and end point found for submarine. Coalition: " .. param.coalitionId .. " Zones: Start: " .. startZone .. " End: " .. endZone, false)
     end
+    local enemyCoalition = 1
+    if param.coalitionId == 1 then enemyCoalition = 2 end
+    trigger.action.outTextForCoalition(enemyCoalition, "An enemy submarine has entered our shipping lanes!", 30, false)
     timer.scheduleFunction(DFSubs.subLoop, param.coalitionId, timer:getTime() + 60)
 end
 function DFSubs.subDamaged(coalitionId)
