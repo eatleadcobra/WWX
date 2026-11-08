@@ -1992,16 +1992,19 @@ function dfc.spawnFighter(coalitionId)
     local groupName = mist.cloneGroup(cloneGroupName, true).name
     DFS.status[coalitionId].lastFighterTime = timer:getTime()
     DFS.status[coalitionId].capGroup = groupName
-    dfc.checkFighter({groupName = groupName, coalitionId = coalitionId})
+    dfc.checkFighter({groupName = groupName, coalitionId = coalitionId, taking_off = true})
 end
 function dfc.checkFighter(param)
     local group = Group.getByName(param.groupName)
     if group ~= nil then
-        if group:getSize() == 0 or group:getUnit(1) == nil or group:getUnit(1):inAir() == false then
+        if (group:getSize() == 0 or group:getUnit(1) == nil or group:getUnit(1):inAir() == false) and not param.taking_off then
             group:destroy()
             timer.scheduleFunction(dfc.spawnFighter, param.coalitionId, timer:getTime() + DFS.status.fighterInterval)
         else
-            timer.scheduleFunction(dfc.checkFighter, param, timer.getTime() + 30)
+            if param.taking_off and group:getUnit(1) and group:getUnit(1):inAir() then
+                param.taking_off = false
+            end
+            timer.scheduleFunction(dfc.checkFighter, param, timer:getTime() + 30)
         end
     else
         timer.scheduleFunction(dfc.spawnFighter, param.coalitionId, timer:getTime() + DFS.status.fighterInterval)
