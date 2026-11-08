@@ -110,7 +110,7 @@ function intr.checkInterceptor(param)
     local group = Group.getByName(param.groupName)
     local target = Unit.getByName(param.target)
     if group ~= nil then
-        if (group:getSize() == 0 or group:getUnit(1) == nil or group:getUnit(1):inAir() == false) and not param.taking_off then
+        if group:getSize() == 0 or group:getUnit(1) == nil or (group:getUnit(1):inAir() == false and not param.taking_off) then
             env.info("Interceptor group " .. param.groupName .. " has been destroyed or is on the ground", debug)
             group:destroy()
             lastInterceptorTime[param.coalitionId][param.number] = timer:getTime()
