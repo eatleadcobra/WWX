@@ -375,6 +375,7 @@ function bc.prepareAttack(filedAttackPlan)
         [3] = 0,
     }
     local targetBPString =  ""
+    local assignedTankCpys = 0
     for i = 1, #filedAttackPlan.targetBPs do
         env.info("adding up costs", false)
         local targetBP = filedAttackPlan.targetBPs[i]
@@ -389,6 +390,11 @@ function bc.prepareAttack(filedAttackPlan)
                 targetBP.canLower = true
             elseif targetBP.state == "E" then
                 targetBP.attackWithTier = 1
+                if assignedTankCpys > 0 and RARETANKS then
+                    targetBP.attackWithTier = 5
+                else
+                    assignedTankCpys = assignedTankCpys + 1
+                end
                 targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
                 targetBP.canLower = true
             elseif targetBP.state == "F" then
@@ -489,6 +495,7 @@ function bc.executeAttack(filedAttackPlan)
                 [2] = 0,
                 [3] = 0,
             }
+            local assignedTankCpys = 0
             for i = 1, #filedAttackPlan.targetBPs do
                 local targetBP = filedAttackPlan.targetBPs[i]
                 if targetBP then
@@ -498,6 +505,11 @@ function bc.executeAttack(filedAttackPlan)
                         targetBP.canLower = true
                     elseif targetBP.state == "E" then
                         targetBP.attackWithTier = 1
+                        if assignedTankCpys > 0 and RARETANKS then
+                            targetBP.attackWithTier = 5
+                        else
+                            assignedTankCpys = assignedTankCpys + 1
+                        end
                         targetBP.attackWith = CompanyCompTiers[targetBP.attackWithTier].composition
                         targetBP.canLower = true
                     elseif targetBP.state == "F" then

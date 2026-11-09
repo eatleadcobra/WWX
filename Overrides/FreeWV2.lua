@@ -27,6 +27,7 @@ MISSILEBOATS = false
 CARGO = true
 DISABLEF10CARGOSTATUS = true
 ISWW2 = true
+RARETANKS = true
 CSAR = true
 CAS = true
 STRIKES = true
