@@ -420,5 +420,3 @@ function DrawingTools.numberBP(point, radius, number, max)
     local offPoint = {x = point.x - fontSize/2, y = point.y, z = point.z + radius + fontSize/2}
     trigger.action.textToAll(-1, id, offPoint, {0,0,0,1}, {0,0,0,0}, fontSize, true, number)
 end
-
-DrawingTools.drawRadio(1, trigger.misc.getZone("testradio").point, 3, true)
