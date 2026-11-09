@@ -360,6 +360,7 @@ function cas.groupMarkups(point, groupName, smokeColor)
     if groups[groupName].markups then
         if groups[groupName].markups.radio and groups[groupName].markups.radioPoint and #groups[groupName].markups.radio > 0 then
             local screenMarkupId = groups[groupName].markups.radio[3]
+            if isWW2 then screenMarkupId = groups[groupName].markups.radio[1] end
             local groupMovedDist = Utils.PointDistance(point, groups[groupName].markups.radioPoint)
             if groupMovedDist < 200 then
                 env.info("Update radio color for group: " .. groupName, false)
