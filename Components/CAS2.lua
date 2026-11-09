@@ -7,6 +7,8 @@ CAS.JTACType = {
     JTAC_DESIGNATOR = 3,
 }
 local cas = {}
+local isWW2 = false
+if ISWW2 then isWW2 = true end
 local casGroups = {
     [1] = {},
     [2] = {},
@@ -367,7 +369,7 @@ function cas.groupMarkups(point, groupName, smokeColor)
                     trigger.action.removeMark(groups[groupName].markups.radio[i])
                 end
                 env.info("Move radio drawing for group: " .. groupName, false)
-                groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
+                groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor, isWW2)
                 groups[groupName].markups.radioPoint = point
                 CAS.cleanGroupMarkupsDelay(groupName)
             end
@@ -376,7 +378,7 @@ function cas.groupMarkups(point, groupName, smokeColor)
                 trigger.action.removeMark(groups[groupName].markups.radio[i])
             end
             env.info("Drawing new radio for group: " .. groupName, false)
-            groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
+            groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor, isWW2)
             groups[groupName].markups.radioPoint = point
             CAS.cleanGroupMarkupsDelay(groupName)
         end
