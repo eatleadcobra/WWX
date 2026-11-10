@@ -16,6 +16,7 @@ CARGO = true
 CSAR = true
 CAS = true
 STRIKES = true
+RARETANKS = true
 REAPER = true
 INTERCEPT = true
 SHIPPING = true
