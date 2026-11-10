@@ -248,7 +248,7 @@ function cpyctl.playerControlMonitorLoop()
                 local destinationPoint = cpy.waypoints[#cpy.waypoints]
                 if destinationPoint then
                     local distance = Utils.PointDistance(unitPoint, destinationPoint)
-                    if distance > controllableDistance then
+                    if distance > controllableDistance + 500 then
                         local unitId = unit:getID()
                         if unitId then
                             trigger.action.outTextForUnit(unitId, "A unit has been court martialed for desertion.", 10, false)
