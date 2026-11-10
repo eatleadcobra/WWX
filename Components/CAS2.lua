@@ -7,6 +7,8 @@ CAS.JTACType = {
     JTAC_DESIGNATOR = 3,
 }
 local cas = {}
+local isWW2 = false
+if ISWW2 then isWW2 = true end
 local casGroups = {
     [1] = {},
     [2] = {},
@@ -358,6 +360,7 @@ function cas.groupMarkups(point, groupName, smokeColor)
     if groups[groupName].markups then
         if groups[groupName].markups.radio and groups[groupName].markups.radioPoint and #groups[groupName].markups.radio > 0 then
             local screenMarkupId = groups[groupName].markups.radio[3]
+            if isWW2 then screenMarkupId = groups[groupName].markups.radio[1] end
             local groupMovedDist = Utils.PointDistance(point, groups[groupName].markups.radioPoint)
             if groupMovedDist < 200 then
                 env.info("Update radio color for group: " .. groupName, false)
@@ -367,7 +370,7 @@ function cas.groupMarkups(point, groupName, smokeColor)
                     trigger.action.removeMark(groups[groupName].markups.radio[i])
                 end
                 env.info("Move radio drawing for group: " .. groupName, false)
-                groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
+                groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor, isWW2)
                 groups[groupName].markups.radioPoint = point
                 CAS.cleanGroupMarkupsDelay(groupName)
             end
@@ -376,7 +379,7 @@ function cas.groupMarkups(point, groupName, smokeColor)
                 trigger.action.removeMark(groups[groupName].markups.radio[i])
             end
             env.info("Drawing new radio for group: " .. groupName, false)
-            groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor)
+            groups[groupName].markups.radio = DrawingTools.drawRadio(groups[groupName].coalitionId, point, smokeColor, isWW2)
             groups[groupName].markups.radioPoint = point
             CAS.cleanGroupMarkupsDelay(groupName)
         end

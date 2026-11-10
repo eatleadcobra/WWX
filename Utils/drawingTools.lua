@@ -323,27 +323,56 @@ local screenColors = {
     [3] = {1,0.65,0,1}
 }
 local radioRectangleHeight = 500
-function DrawingTools.drawRadio(coalitionId, markPoint, color)
+function DrawingTools.drawRadio(coalitionId, markPoint, color, ww2)
     local markIds = {}
-    local rectangleMarkId = DrawingTools.newMarkId()
-    table.insert(markIds, rectangleMarkId)
-    local rectLowerLeft = markPoint
-    local rectUpperRight = {x = rectLowerLeft.x + radioRectangleHeight, y = 0, z = rectLowerLeft.z + (radioRectangleHeight*(2/3))}
-    trigger.action.rectToAll(coalitionId, rectangleMarkId, rectLowerLeft, rectUpperRight, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
-    ---
-    local antennaLowerLeft = {x = rectUpperRight.x, y = 0, z = rectLowerLeft.z + (radioRectangleHeight/16)}
-    local antennaUpperRight = {x = antennaLowerLeft.x + (radioRectangleHeight/2), y = 0, z = antennaLowerLeft.z + (radioRectangleHeight/8)}
-    local antennaMarkId = DrawingTools.newMarkId()
-    table.insert(markIds, antennaMarkId)
-    trigger.action.rectToAll(coalitionId, antennaMarkId, antennaLowerLeft, antennaUpperRight, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
-    ---
-    local screenLowerLeft = {x = rectLowerLeft.x + ((3/5)*radioRectangleHeight), y = 0, z = rectLowerLeft.z + (radioRectangleHeight/12)}
-    local screenUpperRight = {x = screenLowerLeft.x + ((1/5)*radioRectangleHeight), y = 0, z = screenLowerLeft.z + ((1/2)*radioRectangleHeight) }
-    local screenMarkId = DrawingTools.newMarkId()
-    table.insert(markIds, screenMarkId)
+    if ww2 then
+        local rectangleMarkId = DrawingTools.newMarkId()
+        table.insert(markIds, rectangleMarkId)
+        local rectLowerLeft = markPoint
+        local rectUpperRight = {x = rectLowerLeft.x + radioRectangleHeight, y = 0, z = rectLowerLeft.z + (radioRectangleHeight*(3/8))}
+        trigger.action.rectToAll(coalitionId, rectangleMarkId, rectLowerLeft, rectUpperRight, {0,0,0,1}, screenColors[color], 1, true, nil)
+        ---
+        local antennaLowerLeft = {x = rectUpperRight.x, y = 0, z = rectUpperRight.z - (radioRectangleHeight/16)}
+        local antennaUpperRight = {x = antennaLowerLeft.x + radioRectangleHeight, y = 0, z = antennaLowerLeft.z + (radioRectangleHeight/32)}
+        local antennaMarkId = DrawingTools.newMarkId()
+        table.insert(markIds, antennaMarkId)
+        trigger.action.rectToAll(coalitionId, antennaMarkId, antennaLowerLeft, antennaUpperRight, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
+        ---
+        local earpieceMarkId = DrawingTools.newMarkId()
+        table.insert(markIds, earpieceMarkId)
 
-    trigger.action.rectToAll(coalitionId, screenMarkId, screenLowerLeft, screenUpperRight, {0,0,0,0.6}, screenColors[color], 1, true, nil)
-    ---
+        local earpieceupperright = {x = rectLowerLeft.x + radioRectangleHeight*(7/8), y = 0, z = markPoint.z}
+        local earpiecelowerLeft = {x = earpieceupperright.x - radioRectangleHeight*(1/5), y = 0, z = earpieceupperright.z - radioRectangleHeight*(1/12)}
+        trigger.action.rectToAll(coalitionId, earpieceMarkId, earpiecelowerLeft, earpieceupperright, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
+
+        -- 
+        local mouthpieceMarkId = DrawingTools.newMarkId()
+        table.insert(markIds, mouthpieceMarkId)
+
+        local mouthpieceupperright = {x = rectLowerLeft.x + radioRectangleHeight*(3/8), y = 0, z = markPoint.z}
+        local mouthpiecelowerLeft = {x = mouthpieceupperright.x - radioRectangleHeight*(1/5), y = 0, z = mouthpieceupperright.z - radioRectangleHeight*(1/12)}
+        trigger.action.rectToAll(coalitionId, mouthpieceMarkId, mouthpiecelowerLeft, mouthpieceupperright, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
+    else
+        local rectangleMarkId = DrawingTools.newMarkId()
+        table.insert(markIds, rectangleMarkId)
+        local rectLowerLeft = markPoint
+        local rectUpperRight = {x = rectLowerLeft.x + radioRectangleHeight, y = 0, z = rectLowerLeft.z + (radioRectangleHeight*(2/3))}
+        trigger.action.rectToAll(coalitionId, rectangleMarkId, rectLowerLeft, rectUpperRight, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
+        ---
+        local antennaLowerLeft = {x = rectUpperRight.x, y = 0, z = rectLowerLeft.z + (radioRectangleHeight/16)}
+        local antennaUpperRight = {x = antennaLowerLeft.x + (radioRectangleHeight/2), y = 0, z = antennaLowerLeft.z + (radioRectangleHeight/8)}
+        local antennaMarkId = DrawingTools.newMarkId()
+        table.insert(markIds, antennaMarkId)
+        trigger.action.rectToAll(coalitionId, antennaMarkId, antennaLowerLeft, antennaUpperRight, {0,0,0,1}, {0,0,0,0.7}, 1, true, nil)
+        ---
+        local screenLowerLeft = {x = rectLowerLeft.x + ((3/5)*radioRectangleHeight), y = 0, z = rectLowerLeft.z + (radioRectangleHeight/12)}
+        local screenUpperRight = {x = screenLowerLeft.x + ((1/5)*radioRectangleHeight), y = 0, z = screenLowerLeft.z + ((1/2)*radioRectangleHeight) }
+        local screenMarkId = DrawingTools.newMarkId()
+        table.insert(markIds, screenMarkId)
+
+        trigger.action.rectToAll(coalitionId, screenMarkId, screenLowerLeft, screenUpperRight, {0,0,0,0.6}, screenColors[color], 1, true, nil)
+        ---
+    end
     return markIds
 end
 function DrawingTools.moveRadio(point, bodyId, antennaId, screenId, screenColor)
@@ -360,6 +389,27 @@ function DrawingTools.moveRadio(point, bodyId, antennaId, screenId, screenColor)
     trigger.action.setMarkupPositionStart(screenId, screenStart)
     trigger.action.setMarkupPositionEnd(screenId, screenEnd)
     DrawingTools.updateRadioColor(screenId, screenColor)
+end
+function DrawingTools.moveWW2Radio(point, bodyId, antennaId, earpieceId, mouthpieceId, color)
+    local bodyStart = point
+    local bodyEnd = { x = point.x + radioRectangleHeight, y = 0, z = point.z + (radioRectangleHeight*(3/8)) }
+    local antennaStart = {x = point.x + radioRectangleHeight, y = 0, z = point.z + (radioRectangleHeight/16)}
+    local antennaEnd = {x = antennaStart.x + radioRectangleHeight, y = 0, z = antennaStart.z + (radioRectangleHeight/32)}
+    local earpieceEnd= {x = bodyStart.x + radioRectangleHeight*(7/8), y = 0, z = bodyStart.z}
+    local earpieceStart = {x = earpieceEnd.x - radioRectangleHeight*(1/5), y = 0, z = earpieceEnd.z - radioRectangleHeight*(1/12)}
+    local mouthpieceEnd = {x = point.x + radioRectangleHeight*(3/8), y = 0, z = point.z}
+    local mouthpieceStart = {x = mouthpieceEnd.x - radioRectangleHeight*(1/5), y = 0, z = mouthpieceEnd.z - radioRectangleHeight*(1/12)}
+
+    trigger.action.setMarkupPositionStart(bodyId, bodyStart)
+    trigger.action.setMarkupPositionEnd(bodyId, bodyEnd)
+    trigger.action.setMarkupPositionStart(antennaId, antennaStart)
+    trigger.action.setMarkupPositionEnd(antennaId, antennaEnd)
+    trigger.action.setMarkupPositionStart(earpieceId, earpieceStart)
+    trigger.action.setMarkupPositionEnd(earpieceId, earpieceEnd)
+    trigger.action.setMarkupPositionStart(mouthpieceId, mouthpieceStart)
+    trigger.action.setMarkupPositionEnd(mouthpieceId, mouthpieceEnd)
+
+    DrawingTools.updateRadioColor(bodyId, color)
 end
 function DrawingTools.updateRadioColor(screenId, screenColor)
     trigger.action.setMarkupColorFill(screenId, screenColors[screenColor])
