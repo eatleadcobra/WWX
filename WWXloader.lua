@@ -44,6 +44,7 @@ if SUBS then
    assert(loadfile(pathToWWX.."Components\\CODAR.lua"))()
    assert(loadfile(pathToWWX.."Components\\MAD.lua"))()
    assert(loadfile(pathToWWX.."Components\\DepthCharge.lua"))()
+   assert(loadfile(pathToWWX.."Components\\TASWC.lua"))()
    --subs
    assert(loadfile(pathToWWX.."Components\\Subs\\SubControl.lua"))()
    assert(loadfile(pathToWWX.."Components\\Subs\\SubTools.lua"))()
