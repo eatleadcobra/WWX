@@ -114,7 +114,12 @@ function CODAR.pairsLoop()
     for c = 1,2 do
         for k,v in pairs(buoyPairs[c]) do
             if v.markups.bearingLineId ~= nil then trigger.action.removeMark(v.markups.bearingLineId) end
-            local closestSub = CODAR.searchFromPoint(v.point, basePairRange)
+            local closestSub, allSubs = CODAR.searchFromPoint(v.point, basePairRange)
+            if TASWC and allSubs then
+                    for i = 1, #allSubs do
+                        TASWC.addContact(c, allSubs[i].name)
+                    end
+            end
             if closestSub then
                 local subPoint = closestSub.point
                 local bearingToPoint = Utils.VecNormalize({x = subPoint.x - v.point.x, y = subPoint.y - v.point.y, z = subPoint.z - v.point.z})
@@ -129,6 +134,7 @@ function CODAR.pairsLoop()
 end
 function CODAR.searchFromPoint(point, range)
     local closestSub = {}
+    local allSubs = {}
     local volS = {
         id = world.VolumeType.SPHERE,
         params = {
@@ -143,9 +149,11 @@ function CODAR.searchFromPoint(point, range)
                 local distance = Utils.PointDistance(point, subPoint)
                 env.info("CODAR Found submarine " .. foundItem:getName() .. " distance: " .. distance, false)
                 if distance ~= nil then
+                    table.insert(allSubs, {distance = distance, point = subPoint, name = foundItem:getGroup():getName()})
                     if closestSub.distance == nil or distance < closestSub.distance then
                         closestSub.distance = distance
                         closestSub.point = subPoint
+                        closestSub.name = foundItem:getGroup():getName()
                     end
                 end
             end
@@ -153,7 +161,7 @@ function CODAR.searchFromPoint(point, range)
     end
     world.searchObjects(Object.Category.UNIT, volS, ifFound)
     if closestSub ~= nil and closestSub.distance ~= nil then
-        return closestSub
+        return closestSub, allSubs
     else
         return nil
     end
