@@ -56,16 +56,29 @@ taswc.frequences = {
     }
 }
 
-function TASWC.addContact(coalitionId, contactName)
+taswc.colors = {
+    [0] = {.5,.5,.5,1},
+    [1] = {1,0,0,1},
+    [2] = {0,0,1,1},
+}
+
+function TASWC.addContact(coalitionId, contactName, contactType)
     if not taswc.contactIds[coalitionId][contactName] then
         taswc.contactIds[coalitionId][contactName] = taswc.contactIdCounters[coalitionId]
         taswc.contactIdCounters[coalitionId] = taswc.contactIdCounters[coalitionId] + 1
     end
-    taswc.contacts[coalitionId][contactName] = {contactName = contactName, markups = {chevronLeft = 0, chevronRight = 0, dot = 0}, point = nil, heading = 0, speed = 0}
+    taswc.contacts[coalitionId][contactName] = {contactName = contactName, markups = {chevronLeft = 0, chevronRight = 0, dot = 0}, point = nil, heading = 0, speed = 0, vid = 0, contactType = contactType}
     trigger.action.outText("Added contact: " .. contactName .. " | " .. taswc.contactIds[coalitionId][contactName], 10, false)
 end
 
+function TASWC.idContact(coalitionId, contactName, vid)
+    if taswc.contacts[coalitionId][contactName] then
+        taswc.contacts[coalitionId][contactName].vid = vid
+    end
+end
+
 function taswc.updateContacts()
+    trigger.action.outText("Updating contacts", 10, false)
     for c = 1, 2 do
         taswc.messages[c] = ""
         for contactName, contactInfo in pairs(taswc.contacts[c]) do
@@ -116,32 +129,42 @@ function taswc.updateContacts()
     end
 end
 
-function taswc.drawContact(coalitionId, contactName)
-    trigger.action.outText("Drawing contact " .. contactName, 10, false)
+function taswc.drawContact(coalitionId, contactName, contactType)
     local contactInfo = taswc.contacts[coalitionId][contactName]
     if contactInfo then
         local contactPoint = contactInfo.point
         if contactPoint then
-            local chevronLeftId = DrawingTools.newMarkId()
-            local chevronRightId = DrawingTools.newMarkId()
-            local dotId = DrawingTools.newMarkId()
-            local chevronStartPoint = { x = contactPoint.x - 200, y = 0, z = contactPoint.z} -- rightBottom
-            local chevronLeftBox1 = { x = chevronStartPoint.x - 40, y = 0, z = contactPoint.z} -- left bottom
-            local chevronLeftBox2 = { x = contactPoint.x - 20, y = 0, z = contactPoint.z - 220} -- left upper
-            local chevronLeftBox3 = { x = contactPoint.x, y = 0, z = contactPoint.z - 200} -- right upper
-            local chevronRightBox1 = { x = chevronStartPoint.x - 40, y = 0, z = contactPoint.z}
-            local chevronRightBox2 = { x = contactPoint.x, y = 0, z = contactPoint.z + 200}
-            local chevronRightBox3 = { x = contactPoint.x - 20 , y = 0, z = contactPoint.z + 220}
-
-            contactInfo.markups.dot = dotId
-            contactInfo.markups.chevronLeft = chevronLeftId
-            contactInfo.markups.chevronRight = chevronRightId
-
-            trigger.action.circleToAll(-1, dotId, contactPoint, 40, {0,0,0,1}, {1,0,0,1}, 1, true, nil)
-            trigger.action.quadToAll(-1, chevronLeftId, chevronStartPoint, chevronLeftBox1, chevronLeftBox2, chevronLeftBox3, {0,0,0,1}, {1,0,0,1}, 1, true, nil)
-            trigger.action.quadToAll(-1, chevronRightId, chevronRightBox1, chevronStartPoint, chevronRightBox2, chevronRightBox3, {0,0,0,1}, {1,0,0,1}, 1, true, nil)
+            if contactInfo.vid ~= 0 and contactInfo.vid ~= coalitionId  then
+                if contactType == "sub" then
+                taswc.drawSubsurfaceEnemy(coalitionId, contactInfo)
+                end    --elseif finish this 
+            elseif contactInfo.vid == 0 or contactInfo.vid == coalitionId then
+                
+            end
         end
     end
+end
+
+function taswc.drawSubsurfaceEnemy(coalitionId, contactInfo)
+    local contactPoint = contactInfo.point
+    local chevronLeftId = DrawingTools.newMarkId()
+    local chevronRightId = DrawingTools.newMarkId()
+    local dotId = DrawingTools.newMarkId()
+    local chevronStartPoint = { x = contactPoint.x - 200, y = 0, z = contactPoint.z} -- rightBottom
+    local chevronLeftBox1 = { x = chevronStartPoint.x - 40, y = 0, z = contactPoint.z} -- left bottom
+    local chevronLeftBox2 = { x = contactPoint.x - 20, y = 0, z = contactPoint.z - 220} -- left upper
+    local chevronLeftBox3 = { x = contactPoint.x, y = 0, z = contactPoint.z - 200} -- right upper
+    local chevronRightBox1 = { x = chevronStartPoint.x - 40, y = 0, z = contactPoint.z}
+    local chevronRightBox2 = { x = contactPoint.x, y = 0, z = contactPoint.z + 200}
+    local chevronRightBox3 = { x = contactPoint.x - 20 , y = 0, z = contactPoint.z + 220}
+
+    contactInfo.markups.dot = dotId
+    contactInfo.markups.chevronLeft = chevronLeftId
+    contactInfo.markups.chevronRight = chevronRightId
+
+    trigger.action.circleToAll(coalitionId, dotId, contactPoint, 40, {0,0,0,1}, taswc.colors[contactInfo.vid], 1, true, nil)
+    trigger.action.quadToAll(coalitionId, chevronLeftId, chevronStartPoint, chevronLeftBox1, chevronLeftBox2, chevronLeftBox3, {0,0,0,1}, taswc.colors[contactInfo.vid], 1, true, nil)
+    trigger.action.quadToAll(coalitionId, chevronRightId, chevronRightBox1, chevronStartPoint, chevronRightBox2, chevronRightBox3, {0,0,0,1}, taswc.colors[contactInfo.vid], 1, true, nil)
 end
 
 function taswc.updateNotice(coalitionId)
@@ -164,5 +187,4 @@ function taswc.mainloop()
     timer.scheduleFunction(taswc.mainloop, nil, timer:getTime() + 10)
 end
 taswc.init()
-TASWC.addContact(2, "testsub")
 taswc.mainloop()
