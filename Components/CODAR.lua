@@ -117,7 +117,8 @@ function CODAR.pairsLoop()
             local closestSub, allSubs = CODAR.searchFromPoint(v.point, basePairRange)
             if TASWC and allSubs then
                     for i = 1, #allSubs do
-                        TASWC.addContact(c, allSubs[i].name)
+                        TASWC.addContact(c, allSubs[i].name, "sub")
+                        --TASWC.idContact(c, allSubs[i].name, allSubs[i].coalitionId)
                     end
             end
             if closestSub then
@@ -149,7 +150,7 @@ function CODAR.searchFromPoint(point, range)
                 local distance = Utils.PointDistance(point, subPoint)
                 env.info("CODAR Found submarine " .. foundItem:getName() .. " distance: " .. distance, false)
                 if distance ~= nil then
-                    table.insert(allSubs, {distance = distance, point = subPoint, name = foundItem:getGroup():getName()})
+                    table.insert(allSubs, {distance = distance, point = subPoint, name = foundItem:getGroup():getName(), coalitionId = foundItem:getCoalition()})
                     if closestSub.distance == nil or distance < closestSub.distance then
                         closestSub.distance = distance
                         closestSub.point = subPoint
