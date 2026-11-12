@@ -271,9 +271,23 @@ function taswc.prosecuteTargetSurface(coalitionId, contactInfo)
                         taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
                         taswc.prosecutorGroups[coalitionId][proesecutorGroupName].assigned = true
                         taswc.prosecutorGroups[coalitionId][proesecutorGroupName].target = contactInfo.contactName
+                        trigger.action.outTextForCoalition(coalitionId, "Surface group " .. proesecutorGroupName .. " is engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
                     end
                 end
             end
+        end
+    end
+end
+
+function taswc.prosecuteTargetAir(coalitionId, contactInfo)
+    local targetGroup = Group.getByName(contactInfo.contactName)
+    if targetGroup then
+        local targetGroupId = targetGroup:getID()
+        if targetGroupId then
+            local attackPlaneGroupName = mist.cloneGroup(taswc.ashGroupNames[coalitionId], true).name
+            timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + 180)
+            taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
+            trigger.action.outTextForCoalition(coalitionId, "Our anti-ship aircraft are engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
         end
     end
 end
@@ -302,18 +316,6 @@ function taswc.checkProsecutors()
                 end
                 taswc.prosecutorGroups[c][pGroupName] = nil
             end
-        end
-    end
-end
-
-function taswc.prosecuteTargetAir(coalitionId, contactInfo)
-    local targetGroup = Group.getByName(contactInfo.contactName)
-    if targetGroup then
-        local targetGroupId = targetGroup:getID()
-        if targetGroupId then
-            local attackPlaneGroupName = mist.cloneGroup(taswc.ashGroupNames[coalitionId], true).name
-            timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + 180)
-            taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
         end
     end
 end
