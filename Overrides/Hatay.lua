@@ -23,6 +23,10 @@ SHIPPING = true
 CAPTURE = false
 COMPANIESIGNOREROADS = true
 VIGGENDTCENFORCEMENT = false
+ANTISHIPGROUPS = {
+    [1] = "Red-Antiship",
+    [2] = "Blue-Antiship",
+}
 CAVICS = {
     [1] = {
         [1] = {text = "AT - BRDM", typename = "BRDM-2_malyutka"},
@@ -45,6 +49,18 @@ NAVALCONVOY = {
 }
 RESPAWNGROUPS = {
     ["Red-RD-SA2"] = 7200, -- 2 hours
+    ["Blue-ASW-Patrol-1"] = 900, -- 15 min
+    ["Red-ASW-Patrol-1"] = 900, -- 15 min
+}
+PROSECUTORS = {
+    ["Blue-ASW-Patrol-1"] = {
+        coalition = 2,
+        engagementTypes = {["surface"] = true}
+    },
+    ["Red-ASW-Patrol-1"] = {
+        coalition = 1,
+        engagementTypes = {["surface"] = true}
+    },
 }
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
