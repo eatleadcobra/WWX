@@ -223,7 +223,7 @@ function taswc.updateContacts()
                                 local strat = taswc.determineProsecutionStrategy(coalition, contactInfo)
                                 if strat == "surf" then
                                     taswc.prosecuteTargetSurface(c, contactInfo)
-                                elseif strat == "air" then
+                                elseif strat == "air" and contactInfo.contactType == "surface" then
                                     taswc.prosecuteTargetAir(c, contactInfo)
                                 end
                             end
