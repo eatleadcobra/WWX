@@ -255,7 +255,7 @@ DFS.templates = {
             ["heading"] = 0,
             ["shape_name"] = "ammo_box_cargo",
             ["canCargo"] = true,
-            ["type"] = "ammo_box_cargo",
+            ["type"] = "ammo_cargo",
             ["name"] = "",
             ["category"] = "Cargos",
             ["y"] = 0,
@@ -2081,7 +2081,7 @@ function dfc.respawnRespawnGroup(param)
     local newGroupName = nil
     if PERSISTENTDEATH then
         if not SBLOCKER.blockedGroups[param.groupName] then
-            newGroupName = mist.cloneGroup(templateGroup, true).name
+            newGroupName = mist.respawnGroup(templateGroup, true).name
             if PERSISTENTDEATH[param.groupName] then
                 if not SBLOCKER.originalGroups[param.groupName] then -- do not remove the original group name (needed for restart)
                     PERSISTENTDEATH[param.groupName] = nil
@@ -2093,7 +2093,10 @@ function dfc.respawnRespawnGroup(param)
         end
         env.info("blocking this respawn as the group has been entirely destoyed", false)
     else
-        newGroupName = mist.cloneGroup(templateGroup, true).name
+        newGroupName = mist.respawnGroup(templateGroup, true).name
+        if PROSECUTORS and PROSECUTORS[newGroupName] then
+            TASWC.addProsecutor(PROSECUTORS[newGroupName].coalition, newGroupName, PROSECUTORS[newGroupName].engagementTypes)
+        end
     end
     if newGroupName then
         RESPAWNGROUPS[newGroupName] = param.respawnTime
