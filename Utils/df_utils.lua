@@ -539,3 +539,95 @@ function DF_UTILS.randomThanks(param)
 	local selectedMessage = thanksMessages[randomIndex]
 	return selectedMessage
 end
+function DF_UTILS.closestBpToCAS(pos)
+    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
+    bpCount = bpCount or 20
+    local closestBPDist = math.huge
+    local closestBPId = nil
+    local direction = ""
+    for i = 1,bpCount do
+        local bpPoint = BattleControl.getBPPoint(i)
+        if bpPoint then
+            local dist = Utils.PointDistance(bpPoint,pos)
+            if dist < closestBPDist then
+                closestBPDist = dist
+                closestBPId = i
+            end
+        end
+    end
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
+    end
+    closestBPDist = math.floor((closestBPDist/100)*100)
+    return closestBPId, closestBPDist, direction
+end
+function DF_UTILS.closestBpToInverted(pos)
+    --this function gives the compass bearing in the opposite direction of the normal func because it's for deployed forces that are moving to the BPs
+    local closestBPId, closestBPDist, direction = DF_UTILS.closestBpTo(pos)
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(BattleControl.getBPPoint(closestBPId), pos)
+    end
+    return closestBPId, closestBPDist, direction
+end
+function DF_UTILS.closestBpTo(pos)
+    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
+    bpCount = bpCount or 20
+    local closestBPDist = math.huge
+    local closestBPId = nil
+    local direction = ""
+    for i = 1,bpCount do
+        local bpPoint = BattleControl.getBPPoint(i)
+        if bpPoint then
+            local dist = Utils.PointDistance(bpPoint,pos)
+            if dist < closestBPDist then
+                closestBPDist = dist
+                closestBPId = i
+            end
+        end
+    end
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
+    end
+    closestBPDist = math.floor((closestBPDist/1000)+0.5)
+    if closestBPId then
+        env.info("df_utils.closestBpTo: Closest BP to point (" .. pos.x .. "," .. pos.z .. ") is BP-" .. closestBPId .. " at " .. closestBPDist .. "km " .. direction, false)
+    else
+        env.info("df_utils.closestBpTo: No BPs found for point (" .. pos.x .. "," .. pos.z .. ")", false)
+    end
+    return closestBPId, closestBPDist, direction
+end
+function DF_UTILS.closestEnemyBpToInverted(pos, coalitionId)
+    --this function gives the compass bearing in the opposite direction of the normal func because it's for deployed forces that are moving to the BPs
+    local closestBPId, closestBPDist, direction = DF_UTILS.closestEnemyBpTo(pos, coalitionId)
+    if closestBPId then
+        direction = Utils.relativeCompassBearing(BattleControl.getBPPoint(closestBPId), pos)
+    end
+    return closestBPId, closestBPDist, direction
+end
+function DF_UTILS.closestEnemyBpTo(pos, coalitionId)
+    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
+    bpCount = bpCount or 20
+    local direction = ""
+    local opposition = 1
+    if coalitionId == 1 then opposition = 2 end
+    local closestEnemyBPDist = math.huge
+    local closestEnemyBPId = nil
+    for i = 1,bpCount do
+        local bpOwner = BattleControl.getBPOwner(i)
+        if bpOwner == opposition then
+            local bpPoint = BattleControl.getBPPoint(i)
+            if bpPoint then
+                local dist = Utils.PointDistance(bpPoint,pos)
+                if dist < closestEnemyBPDist then
+                    closestEnemyBPDist = dist
+                    closestEnemyBPId = i
+                end
+            end
+        end
+    end
+    if closestEnemyBPId then
+        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestEnemyBPId))
+    end
+    closestEnemyBPDist = math.floor((closestEnemyBPDist/1000)+0.5)
+    return closestEnemyBPId, closestEnemyBPDist, direction
+end

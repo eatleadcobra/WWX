@@ -1,6 +1,6 @@
 local statsFile = ""
 
-local missionName = env.mission["date"]["Year"]
+local missionName = env.mission["theatre"] .. env.mission["date"]["Year"]
 local validLoad = false
 if missionName ~= nil then
     statsFile = lfs.writedir() .. [[Logs/]] .. 'stats'..missionName..'.txt'
