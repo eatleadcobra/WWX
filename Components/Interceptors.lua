@@ -105,6 +105,11 @@ function intr.spawnInterceptor(coalitionId, target, number)
 
     intr.checkInterceptor({groupName = groupName, coalitionId = coalitionId, number = number, target = target.name, taking_off = true})
 end
+function intr.safeInterceptDecrement(coalitionId)
+    if totalIntercepting[coalitionId] > 0 then
+        totalIntercepting[coalitionId] = totalIntercepting[coalitionId] - 1
+    end
+end
 function intr.checkInterceptor(param)
     env.info("Checking interceptor group " .. param.groupName, debug)
     local group = Group.getByName(param.groupName)
@@ -115,7 +120,8 @@ function intr.checkInterceptor(param)
             group:destroy()
             lastInterceptorTime[param.coalitionId][param.number] = timer:getTime()
             currentlyIntercepting[param.coalitionId][param.target] = nil
-            totalIntercepting[param.coalitionId] = totalIntercepting[param.coalitionId] - 1
+            intr.safeInterceptDecrement(param.coalitionId)
+            return
         elseif target ~= nil then
             local controller = Group.getByName(param.groupName):getController()
             if controller then
@@ -159,7 +165,7 @@ function intr.checkInterceptor(param)
         if param.target then
             currentlyIntercepting[param.coalitionId][param.target] = nil
         end
-        totalIntercepting[param.coalitionId] = totalIntercepting[param.coalitionId] - 1
+        intr.safeInterceptDecrement(param.coalitionId)
         lastInterceptorTime[param.coalitionId][param.number] = timer:getTime()
     end
 end
