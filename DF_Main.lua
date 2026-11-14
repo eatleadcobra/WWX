@@ -1851,18 +1851,25 @@ function dfc.unloadTrain(coalitionId)
     dfc.increaseRearSupply({coalitionId = coalitionId, amount = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
 end
 function dfc.spawnTrain(coalitionId)
+    local locomotives = TRAIN_TYPES or {
+        [1] = "Locomotive", -- Red
+        [2] = "ES44AH", -- Blue
+        ["wagons"] = "Coach cargo"
+    }
     DFS.status[coalitionId].spawns.train.loaded = true
     DFS.status[coalitionId].spawns.train.name = nil
     local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].train).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].trainDeliver).point
-    local locoType = "Locomotive"
-    if coalitionId == 2 then
-        locoType = "ES44AH"
-    end
+    local locoType = locomotives[coalitionId]
     local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = startPoint, [2] = endPoint}, 100)
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(1, 4, {[1] = "Train"}, groupWaypoints)
     cpyGroupTable["units"][1]["wagons"][1] = locoType
     cpyGroupTable["units"][1]["wagons"][#cpyGroupTable["units"][1]["wagons"]] = locoType
+    if #cpyGroupTable["units"][1]["wagons"] > 2 then
+        for i = 2, #cpyGroupTable["units"][1]["wagons"]-1 do
+            cpyGroupTable["units"][1]["wagons"][i] = locomotives["wagons"]
+        end
+    end
     coalition.addGroup(80+(2-coalitionId), 4, cpyGroupTable)
     DFS.status[coalitionId].spawns.train.name = cpyGroupTable["name"]
     env.info("Spawned train " .. DFS.status[coalitionId].spawns.train.name, false)

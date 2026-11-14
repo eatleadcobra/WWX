@@ -670,6 +670,7 @@ do -- the main scope
 			["Pump station"] = "nasos",
 			["Black_Tyre_RF"] = "H-tyre_B_RF",
 			["Coach cargo open"] = "wagon-gruz-otkr",
+			["WW2 Coach cargo"] = "German_covered_wagon_G10",
 			["Subsidiary structure 3"] = "hozdomik3",
 			["FARP Tent"] = "PalatkaB",
 			["White_Tyre"] = "H-tyre_W",

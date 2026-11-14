@@ -37,6 +37,11 @@ Airframes = {
         }
     }
 }
+TRAIN_TYPES = {
+    [1] = "DRG_Class_86", -- Red
+    [2] = "DRG_Class_86", -- Blue
+    ["wagons"] = "WW2 Coach cargo"
+}
 ForwardAirbases = {
     [1] = {
     },
