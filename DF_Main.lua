@@ -1856,7 +1856,7 @@ function dfc.spawnTrain(coalitionId)
     local locomotives = TRAIN_TYPES or {
         [1] = "Locomotive", -- Red
         [2] = "ES44AH", -- Blue
-        ["wagons"] = "Coach cargo"
+        ["wagons"] = "wagon-gruz"
     }
     env.info("Train locomotives: " .. locomotives[coalitionId] .. " and " .. locomotives["wagons"], false)
     DFS.status[coalitionId].spawns.train.loaded = true
