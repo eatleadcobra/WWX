@@ -31,7 +31,7 @@ TRAINS = true
 TRAIN_TYPES = {
     [1] = "DRG_Class_86", -- Red
     [2] = "DRG_Class_86", -- Blue
-    ["wagons"] = "WW2 Coach cargo"
+    ["wagons"] = "German_covered_wagon_G10"
 }
 AIRCARGOINTERVAL = 3600
 NAVALCONVOY = {
