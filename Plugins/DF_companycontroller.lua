@@ -37,7 +37,7 @@ CompanyIDs = {
 }
 
 
-local missionName = env.mission["date"]["Year"]
+local missionName = env.mission["theatre"] .. env.mission["date"]["Year"]
 local companyState = lfs.writedir() .. [[Logs/]] .. 'companies'..missionName..'.txt'
 function cpyctl.saveCompanies()
     local cpyFile = companyState
