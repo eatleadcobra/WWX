@@ -1776,6 +1776,7 @@ function dfc.shippingLoop()
 end
 local trainLoopInterval = 10
 function dfc.runtrains()
+    env.info("Running trains...", false)
     for c = 1, 2 do
         if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].trains) then
             if DFS.status[c].spawns.train.name == nil then
@@ -1851,11 +1852,13 @@ function dfc.unloadTrain(coalitionId)
     dfc.increaseRearSupply({coalitionId = coalitionId, amount = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
 end
 function dfc.spawnTrain(coalitionId)
+    env.info("Spawning train for coalition " .. coalitionId, false)
     local locomotives = TRAIN_TYPES or {
         [1] = "Locomotive", -- Red
         [2] = "ES44AH", -- Blue
         ["wagons"] = "Coach cargo"
     }
+    env.info("Train locomotives: " .. locomotives[coalitionId] .. " and " .. locomotives["wagons"], false)
     DFS.status[coalitionId].spawns.train.loaded = true
     DFS.status[coalitionId].spawns.train.name = nil
     local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].train).point
