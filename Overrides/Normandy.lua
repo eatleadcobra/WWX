@@ -67,7 +67,7 @@ MISSILEBOATS = true
 -- //Interceptors//
 INTERCEPTORS= {
     interval = 1800, --3600
-    interceptLimit = 4,
+    interceptLimit = 16,
     multipleZones = true,
     independantZones = true,
     linkedAirframes = {
