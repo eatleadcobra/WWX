@@ -33,6 +33,11 @@ TRAIN_TYPES = {
     [2] = "DRG_Class_86", -- Blue
     ["wagons"] = "German_covered_wagon_G10"
 }
+CUSTOM_ARTY = {
+    [1] = "LeFH_18-40-105", -- Red
+    [2] = "M2A1-105" -- Blue
+}
+NO_HELIPAD = true
 AIRCARGOINTERVAL = 3600
 NAVALCONVOY = {
     [1] = false,
