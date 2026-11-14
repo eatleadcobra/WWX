@@ -752,7 +752,7 @@ function dfcEvents:onEvent(event)
     end
 end
 function dfc.getMission()
-    local missionName = env.mission["date"]["Year"]
+    local missionName = env.mission["theatre"] .. env.mission["date"]["Year"]
     if missionName ~= nil then
         redSupply = lfs.writedir() .. [[Logs/]] .. 'redSupply' .. missionName..'.lua'
         blueSupply = lfs.writedir() .. [[Logs/]] .. 'blueSupply' .. missionName..'.lua'
