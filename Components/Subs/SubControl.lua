@@ -19,6 +19,11 @@ SubControl.subValues = {
         maxSpeed = 4.16,
         maxDepth = -30,
         periscopeDepth = -9,
+    },
+	["Uboat_VIIC"] = {
+        maxSpeed = 5,
+        maxDepth = -50,
+        periscopeDepth = -25,
     }
 }
 function SubControl.createSubWithIntercept(coalitionId, point, subType, depth, closestShip)
