@@ -591,7 +591,7 @@ function csb.setupHunterGroup(rescue)
             hntrGroupType = csb.chooseRandomTblItem(CSARHunterEliteOptions[opposition])
         end
         local place, dist, dir = csb.closestEnemyBaseTo(rescuePoint,coalitionId)
-        local place2, dist2, dir2 = csb.closestEnemyBpTo(rescuePoint,coalitionId)
+        local place2, dist2, dir2 = DF_UTILS.closestEnemyBpTo(rescuePoint,coalitionId)
         if dist2 <= dist then
             place = place2
             dist = dist2
@@ -908,7 +908,7 @@ function CSB.showRescueList(args)
             local nearestBase, dist, dir = csb.closestBaseTo(rescue.point)
             local nearestBp
             if rescue.source == "casevac" then
-                nearestBp, dist, dir = csb.closestBpTo(rescue.point)
+                nearestBp, dist, dir = DF_UTILS.closestBpTo(rescue.point)
             end
             if rescue.hotLZ == true then
                 outString = outString .. "\n\n > NAME: (!) "
@@ -1046,7 +1046,7 @@ function csb.wellnessCheck(coalitionId)
             if not (rescueGroup and rescueGroup:isExist()) then isAlive = false end
             if m.huntTriggered then notHunted = csb.checkHunterCapture(m) end
             if isAlive and timeLeft and notHunted then
-                if m.source == "casevac" and #m.hunters > 0 and BattleControl.getBPOwner(csb.closestBpTo(m.point)) == coalitionId then
+                if m.source == "casevac" and #m.hunters > 0 and BattleControl.getBPOwner(DF_UTILS.closestBpTo(m.point)) == coalitionId then
                     env.info("[csb.wellnessCheck] - CASEVAC #" .. m.sourceId .. " secured. Removing hunters for " .. m.displayName,false)
                     csb.cleanupHunterGroups(m.hunters)
                     m.hunters = {}
@@ -2155,7 +2155,7 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     CSB.generateCsar(csarParams)
     table.insert(casEvacMissions[coalitionId], ceMission)
     genCasEvacCounter = genCasEvacCounter + 1
-    local nearestBp, dist, dir = csb.closestBpTo(spawnPoint)
+    local nearestBp, dist, dir = DF_UTILS.closestBpTo(spawnPoint)
     if nearestBp == nil then
         env.info("create casevac error, nearest BP is nil. Triggered from BP: " .. bpId, false)
         return
@@ -2304,98 +2304,6 @@ function csb.debugHunterGroups()
         end
     end
 end
-function csb.closestBpTo(pos)
-    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
-    bpCount = bpCount or 20
-    local closestBPDist = math.huge
-    local closestBPId = nil
-    local direction = ""
-    for i = 1,bpCount do
-        local bpPoint = BattleControl.getBPPoint(i)
-        if bpPoint then
-            local dist = Utils.PointDistance(bpPoint,pos)
-            if dist < closestBPDist then
-                closestBPDist = dist
-                closestBPId = i
-            end
-        end
-    end
-    if closestBPId then
-        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
-    end
-    closestBPDist = math.floor((closestBPDist/1000)+0.5)
-    if closestBPId then
-        env.info("csb.closestBpTo: Closest BP to point (" .. pos.x .. "," .. pos.z .. ") is BP-" .. closestBPId .. " at " .. closestBPDist .. "km " .. direction, false)
-    else
-        env.info("csb.closestBpTo: No BPs found for point (" .. pos.x .. "," .. pos.z .. ")", false)
-    end
-    return closestBPId, closestBPDist, direction
-end
-function CSB.closestBpToCAS(pos)
-    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
-    bpCount = bpCount or 20
-    local closestBPDist = math.huge
-    local closestBPId = nil
-    local direction = ""
-    for i = 1,bpCount do
-        local bpPoint = BattleControl.getBPPoint(i)
-        if bpPoint then
-            local dist = Utils.PointDistance(bpPoint,pos)
-            if dist < closestBPDist then
-                closestBPDist = dist
-                closestBPId = i
-            end
-        end
-    end
-    if closestBPId then
-        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
-    end
-    closestBPDist = math.floor((closestBPDist/100)*100)
-    return closestBPId, closestBPDist, direction
-end
-function CSB.closestBpTo(pos)
-    --this function gives the compass bearing in the opposite direction of the normal func because it's for deployed forces that are moving to the BPs
-    local closestBPId, closestBPDist, direction = csb.closestBpTo(pos)
-    if closestBPId then
-        direction = Utils.relativeCompassBearing(BattleControl.getBPPoint(closestBPId), pos)
-    end
-    return closestBPId, closestBPDist, direction
-end
-function CSB.closestEnemyBpTo(pos, coalitionId)
-    --this function gives the compass bearing in the opposite direction of the normal func because it's for deployed forces that are moving to the BPs
-    local closestBPId, closestBPDist, direction = csb.closestEnemyBpTo(pos, coalitionId)
-    if closestBPId then
-        direction = Utils.relativeCompassBearing(BattleControl.getBPPoint(closestBPId), pos)
-    end
-    return closestBPId, closestBPDist, direction
-end
-function csb.closestEnemyBpTo(pos, coalitionId)
-    local bpCount = trigger.misc.getUserFlag("TOTAL_BPS")
-    bpCount = bpCount or 20
-    local direction = ""
-    local opposition = 1
-    if coalitionId == 1 then opposition = 2 end
-    local closestEnemyBPDist = math.huge
-    local closestEnemyBPId = nil
-    for i = 1,bpCount do
-        local bpOwner = BattleControl.getBPOwner(i)
-        if bpOwner == opposition then
-            local bpPoint = BattleControl.getBPPoint(i)
-            if bpPoint then
-                local dist = Utils.PointDistance(bpPoint,pos)
-                if dist < closestEnemyBPDist then
-                    closestEnemyBPDist = dist
-                    closestEnemyBPId = i
-                end
-            end
-        end
-    end
-    if closestEnemyBPId then
-        direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestEnemyBPId))
-    end
-    closestEnemyBPDist = math.floor((closestEnemyBPDist/1000)+0.5)
-    return closestEnemyBPId, closestEnemyBPDist, direction
-end
 function csb.refreshCasEvacTransmissions()
     timer.scheduleFunction(csb.refreshCasEvacTransmissions,nil,timer.getTime()+300)
     for n=1,2 do
@@ -2436,7 +2344,7 @@ function csb.checkLZ(point,coalitionId)
     local placeId = nil
     local placeName = nil
     local dir = nil
-    placeId, placeDist, dir = csb.closestEnemyBpTo(point,coalitionId)
+    placeId, placeDist, dir = DF_UTILS.closestEnemyBpTo(point,coalitionId)
     if placeId and (placeDist < hotLZdist) then
         return true
     end
