@@ -16,6 +16,8 @@
 -- mist respawn group keeps dynamic spawns working. Do this for off shore surface prosecutorGroups so players can spawn a helo and blow up subs they find 
 TASWC = {}
 local taswc = {}
+local contactFadeTime = 600 -- ten minutes
+local sonarSearchRadius = 10000
 
 taswc.contactIdCounters = {
     [1] = 1,
@@ -29,6 +31,11 @@ taswc.prosecutorGroups = {
     [2] = {
 
     }
+}
+
+taswc.patrolGroups = {
+    [1] = {},
+    [2] = {}
 }
 
 taswc.ashGroupNames = ANTISHIPGROUPS
@@ -154,6 +161,21 @@ function TASWC.addProsecutor(coalitionId, prosecutorGroupName, targetTypes)
             local prosecutorPoint = prosecutorLeadUnit:getPoint()
             if prosecutorPoint then
                 taswc.prosecutorGroups[coalitionId][prosecutorGroupName] = {groupName = prosecutorGroupName, point = prosecutorPoint, targetTypes = targetTypes, assigned = false}
+                trigger.action.outText("Added prosecutor group: " .. prosecutorGroupName, 10, false)
+            end
+       end
+    end
+end
+
+function TASWC.addPatrol(coalitionId, patrolGroupName, sonarEnabled)
+    local patrolGroup = Group.getByName(patrolGroupName)
+    if patrolGroup then
+       local patrolLeadUnit = patrolGroup:getUnit(1)
+       if patrolLeadUnit then
+            local patrolPoint = patrolLeadUnit:getPoint()
+            if patrolPoint then
+                taswc.patrolGroups[coalitionId][patrolGroupName] = {groupName = patrolGroupName, point = patrolPoint, sonarEnabled = sonarEnabled}
+                trigger.action.outText("Added patrol group: " .. patrolGroupName, 10, false)
             end
        end
     end
@@ -164,7 +186,11 @@ function TASWC.addContact(coalitionId, contactName, contactType)
         taswc.contactIds[coalitionId][contactName] = taswc.contactIdCounters[coalitionId]
         taswc.contactIdCounters[coalitionId] = taswc.contactIdCounters[coalitionId] + 1
     end
-    taswc.contacts[coalitionId][contactName] = {contactName = contactName, markups = {[1] = 0, [2] = 0,[3] = 0}, point = nil, heading = 0, speed = 0, vid = 0, contactType = contactType, engaged = false, engagedBy = ""}
+    if taswc.contacts[coalitionId][contactName] then
+        taswc.contacts[coalitionId][contactName].spottedTime = timer.getTime()
+    else
+        taswc.contacts[coalitionId][contactName] = {contactName = contactName, markups = {[1] = 0, [2] = 0,[3] = 0}, point = nil, heading = 0, speed = 0, vid = 0, contactType = contactType, engaged = false, engagedBy = "", spottedTime = timer:getTime()}
+    end
 end
 
 function TASWC.idContact(coalitionId, contactName, vid)
@@ -180,6 +206,9 @@ function taswc.updateContacts()
         for contactName, contactInfo in pairs(taswc.contacts[c]) do
             local contactLost = false
             local contactGroup = Group.getByName(contactName)
+            if timer:getTime() - contactInfo.spottedTime > contactFadeTime then
+                contactLost = true
+            end
             if contactGroup then
                 local contactLeadUnit = contactGroup:getUnit(1)
                 if contactLeadUnit then
@@ -236,6 +265,7 @@ function taswc.updateContacts()
                 contactLost = true
             end
             if contactLost then
+                trigger.action.outTextForCoalition(c, "Contact " .. taswc.contactIds[c][contactName] .. " lost.", 15, false)
                 for i = 1, #contactInfo.markups do
                     trigger.action.removeMark(contactInfo.markups[i])
                 end
@@ -297,6 +327,13 @@ function taswc.checkProsecutors()
         for pGroupName, pGroupInfo in pairs(taswc.prosecutorGroups[c]) do
             local pGroup = Group.getByName(pGroupName)
             if pGroup then
+                local pUnit = pGroup:getUnit(1)
+                if pUnit then
+                    local pPoint = pUnit:getPoint()
+                    if pPoint then
+                        taswc.prosecutorGroups[c][pGroupName].point = pPoint
+                    end
+                end
                 if pGroupInfo.assigned then
                     if pGroupInfo.target then
                         local targetGroup = Group.getByName(pGroupInfo.target)
@@ -319,6 +356,35 @@ function taswc.checkProsecutors()
         end
     end
 end
+
+function taswc.checkPatrols()
+    for c = 1,2 do
+        for pGroupName, pGroupInfo in pairs(taswc.patrolGroups[c]) do
+            trigger.action.outText("Checking patrol group " .. pGroupName, 8, false)
+            local pGroup = Group.getByName(pGroupName)
+            if pGroup then
+                 local pUnit = pGroup:getUnit(1)
+                if pUnit then
+                    local pPoint = pUnit:getPoint()
+                    if pPoint then
+                        taswc.patrolGroups[c][pGroupName].point = pPoint
+                        local nearbyGroups = taswc.findNearbyGroups(c, pPoint, 20000, pGroupInfo.sonarEnabled, pGroupName)
+                        for i = 1, #nearbyGroups do
+                            TASWC.addContact(c, nearbyGroups[i].groupName, nearbyGroups[i].contactType)
+                            trigger.action.outText("Added contact  " .. nearbyGroups[i].groupName, 8, false)
+                            if Utils.PointDistance(pPoint, nearbyGroups[i].contactPoint) < sonarSearchRadius/2 then
+                                TASWC.idContact(c,nearbyGroups[i].groupName, nearbyGroups[i].coalitionId)
+                            end
+                        end
+                    end
+                end
+            else
+                taswc.patrolGroups[c][pGroupName] = nil
+            end
+        end
+    end
+end
+
 -- attackGroupName, targetId
 function taswc.assignAttackPlane(param)
     local attackPlaneGroup = Group.getByName(param.attackGroupName)
@@ -377,19 +443,21 @@ function taswc.findNearbyContact(coalitionId, searchPoint)
     end
 end
 
-function taswc.findNearbyGroup(coalitionId, searchPoint)
+function taswc.findNearbyGroup(coalitionId, searchPoint, searchRadius)
     local closestDistance = -1
+    local findSearchRadius = 2000
+    if searchRadius then findSearchRadius = searchRadius end
     local closestContactName = nil
     local closestContactType = "surface"
     local volS = {
         id = world.VolumeType.SPHERE,
         params = {
             point = searchPoint,
-            radius = 2000
+            radius = findSearchRadius
         }
     }
     local ifFound = function(foundItem, val)
-        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() then
+        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() ~= coalitionId then
             local foundPoint = foundItem:getPoint()
             if foundPoint ~= nil then
                 local distance = Utils.PointDistance(searchPoint, foundPoint)
@@ -410,6 +478,39 @@ function taswc.findNearbyGroup(coalitionId, searchPoint)
     if closestContactName then
         return closestContactName, closestContactType
     end
+end
+
+function taswc.findNearbyGroups(coalitionId, searchPoint, searchRadius, sonarEnabled, searchingGroup)
+    local findSearchRadius = 2000
+    if searchRadius then findSearchRadius = searchRadius end
+    local foundGroups = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = searchPoint,
+            radius = findSearchRadius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() ~= coalitionId then
+            local foundPoint = foundItem:getPoint()
+            if foundPoint ~= nil then
+                local distance = Utils.PointDistance(searchPoint, foundPoint)
+                if distance <= searchRadius then
+                    local contactType = "surface"
+                    local isFriendly = (foundItem:getCoalition() == coalitionId)
+                    if SUBTYPE and (foundItem:getTypeName() == SUBTYPE[1] or foundItem:getTypeName() == SUBTYPE[2]) and sonarEnabled and distance <= sonarSearchRadius then
+                        contactType = "sub"
+                    end
+                    if not searchingGroup or (searchingGroup and searchingGroup ~= foundItem:getGroup():getName()) then
+                        table.insert(foundGroups,  {groupName = foundItem:getGroup():getName(), contactType = contactType, friendly = isFriendly, contactPoint = foundPoint, coalitionId = foundItem:getCoalition()})
+                    end
+                end
+            end
+        end
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    return foundGroups
 end
 
 
@@ -529,15 +630,25 @@ function taswc.init()
             taswc.markups[c].notice = {}
             taswc.markups[c].notice.point = noticeZone.point
             taswc.markups[c].notice.markId = DrawingTools.newMarkId()
-            trigger.action.textToAll(c, taswc.markups[c].notice.markId, taswc.markups[c].notice.point, {0,0,0,1}, {0.8235, 0.7059, 0.5490,0.8}, 14, true, "Init")
+            trigger.action.textToAll(c, taswc.markups[c].notice.markId, taswc.markups[c].notice.point, {0,0,0,1}, {0.8235, 0.7059, 0.5490, 0.8}, 14, true, "Init")
+        end
+    end
+    if PROSECUTORS then
+        for groupName, params in pairs(PROSECUTORS) do
+            TASWC.addProsecutor(params.coalition, groupName, params.engagementTypes)
+        end
+    end
+    if PATROLS then
+        for groupName, params in pairs(PATROLS) do
+            TASWC.addPatrol(params.coalition, groupName, params.sonarEnabled)
         end
     end
 end
 function taswc.mainloop()
     taswc.updateContacts()
     taswc.checkProsecutors()
+    taswc.checkPatrols()
     timer.scheduleFunction(taswc.mainloop, nil, timer:getTime() + 10)
 end
 taswc.init()
 taswc.mainloop()
-TASWC.addProsecutor(2, "killer",  {["surface"] = true})

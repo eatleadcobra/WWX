@@ -55,11 +55,23 @@ RESPAWNGROUPS = {
 PROSECUTORS = {
     ["Blue-ASW-Patrol-1"] = {
         coalition = 2,
-        engagementTypes = {["surface"] = true}
+        engagementTypes = {["surface"] = true},
+        range = 100, --km
     },
     ["Red-ASW-Patrol-1"] = {
         coalition = 1,
-        engagementTypes = {["surface"] = true}
+        engagementTypes = {["surface"] = true},
+        range = 100, --km
+    },
+}
+PATROLS = {
+    ["Blue-ASW-Patrol-1"] = {
+        coalition = 2,
+        sonarEnabled = true
+    },
+    ["Red-ASW-Patrol-1"] = {
+        coalition = 1,
+        sonarEnabled = true
     },
 }
 SUNSET = 65130 -- 18:05:30 local time

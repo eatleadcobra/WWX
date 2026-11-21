@@ -2110,6 +2110,9 @@ function dfc.respawnRespawnGroup(param)
         if PROSECUTORS and PROSECUTORS[newGroupName] then
             TASWC.addProsecutor(PROSECUTORS[newGroupName].coalition, newGroupName, PROSECUTORS[newGroupName].engagementTypes)
         end
+        if PATROLS and PATROLS[newGroupName] then
+            TASWC.addPatrol(PATROLS[newGroupName].coalition, newGroupName, PATROLS[newGroupName].sonarEnabled)
+        end
     end
     if newGroupName then
         RESPAWNGROUPS[newGroupName] = param.respawnTime
