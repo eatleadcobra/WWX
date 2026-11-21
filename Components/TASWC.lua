@@ -161,7 +161,6 @@ function TASWC.addProsecutor(coalitionId, prosecutorGroupName, targetTypes)
             local prosecutorPoint = prosecutorLeadUnit:getPoint()
             if prosecutorPoint then
                 taswc.prosecutorGroups[coalitionId][prosecutorGroupName] = {groupName = prosecutorGroupName, point = prosecutorPoint, targetTypes = targetTypes, assigned = false}
-                trigger.action.outText("Added prosecutor group: " .. prosecutorGroupName, 10, false)
             end
        end
     end
@@ -175,7 +174,6 @@ function TASWC.addPatrol(coalitionId, patrolGroupName, sonarEnabled)
             local patrolPoint = patrolLeadUnit:getPoint()
             if patrolPoint then
                 taswc.patrolGroups[coalitionId][patrolGroupName] = {groupName = patrolGroupName, point = patrolPoint, sonarEnabled = sonarEnabled}
-                trigger.action.outText("Added patrol group: " .. patrolGroupName, 10, false)
             end
        end
     end
@@ -360,7 +358,6 @@ end
 function taswc.checkPatrols()
     for c = 1,2 do
         for pGroupName, pGroupInfo in pairs(taswc.patrolGroups[c]) do
-            trigger.action.outText("Checking patrol group " .. pGroupName, 8, false)
             local pGroup = Group.getByName(pGroupName)
             if pGroup then
                  local pUnit = pGroup:getUnit(1)
@@ -371,7 +368,6 @@ function taswc.checkPatrols()
                         local nearbyGroups = taswc.findNearbyGroups(c, pPoint, 20000, pGroupInfo.sonarEnabled, pGroupName)
                         for i = 1, #nearbyGroups do
                             TASWC.addContact(c, nearbyGroups[i].groupName, nearbyGroups[i].contactType)
-                            trigger.action.outText("Added contact  " .. nearbyGroups[i].groupName, 8, false)
                             if Utils.PointDistance(pPoint, nearbyGroups[i].contactPoint) < sonarSearchRadius/2 then
                                 TASWC.idContact(c,nearbyGroups[i].groupName, nearbyGroups[i].coalitionId)
                             end
