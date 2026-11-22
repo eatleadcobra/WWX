@@ -181,7 +181,7 @@ ADVANCEDSHIPPING = {
                 [2] = "ocean-4",
                 [3] = "port-isk"
             },
-            [6] = {
+            [5] = {
                 [1] = "port-lim",
                 [2] = "ocean-7",
                 [3] = "ocean-4",
