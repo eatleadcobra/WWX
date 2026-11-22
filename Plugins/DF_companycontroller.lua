@@ -495,6 +495,9 @@ function cpyctl.cpyStatusLoop()
                             cpy:setWaypoints(newWaypoints)
                         end
                     end
+                    if cpy.arrived and cpy.coaltionId == 0 then
+                        cpy:despawn()
+                    end
                 end
                 local cpyGroup = Group.getByName(cpy.groupName)
                 if cpyGroup then

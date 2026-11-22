@@ -1775,6 +1775,10 @@ function dfc.shippingLoop()
     end
     timer.scheduleFunction(dfc.shippingLoop, nil, timer.getTime() + 60)
 end
+function dfc.randomshippingLoop()
+    CpyControl.newNeutralShip()
+    timer.scheduleFunction(dfc.randomshippingLoop, nil, timer.getTime() + 180)
+end
 local trainLoopInterval = 10
 function dfc.runtrains()
     env.info("Running trains...", false)
@@ -2838,9 +2842,7 @@ function dfc.hvbss(boardingGroupName, dropPoint, boardingCoalition, droppingGrou
                     DFS.raidedShips[closestShip.groupName] = 1
                     foundShip:getController():setOnOff(false)
                     timer.scheduleFunction(dfc.startBoat, closestShip.groupName, timer:getTime()+305)
-                    trigger.action.outTextForGroup(droppingGroupID, "Marines are securing ship and cargo!\nShip will be rigged to explode in 5 minutes", 30, false)
-                    timer.scheduleFunction(dfc.destroyGroup, boardingGroupName, timer:getTime()+125)
-                    timer.scheduleFunction(dfc.destroyShip, closestShip.groupName, timer:getTime() + 300)
+                    trigger.action.outTextForGroup(droppingGroupID, "Marines are securing ship and cargo!", 30, false)
                     if PIRACY then
                         timer.scheduleFunction(dfc.cargoBoat, {shipName = closestShip.groupName, boardingCoalition = boardingCoalition, boardingGroupName = boardingGroupName, boardingPlayerName = droppingPlayerName}, timer:getTime()+120)
                     end
@@ -3509,6 +3511,7 @@ dfc.initSpawns()
 dfc.createSupplyDrawings()
 dfc.initConvoys()
 timer.scheduleFunction(dfc.shippingLoop, nil, timer:getTime() + 30)
+timer.scheduleFunction(dfc.randomshippingLoop, nil, timer:getTime() + 20)
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)
 end
