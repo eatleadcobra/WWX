@@ -58,7 +58,17 @@ PROSECUTORS = {
         engagementTypes = {["surface"] = true},
         range = 100, --km
     },
+    ["Blue-ASW-Patrol-2"] = {
+        coalition = 2,
+        engagementTypes = {["surface"] = true},
+        range = 100, --km
+    },
     ["Red-ASW-Patrol-1"] = {
+        coalition = 1,
+        engagementTypes = {["surface"] = true},
+        range = 100, --km
+    },
+    ["Red-ASW-Patrol-2"] = {
         coalition = 1,
         engagementTypes = {["surface"] = true},
         range = 100, --km
@@ -70,6 +80,14 @@ PATROLS = {
         sonarEnabled = true
     },
     ["Red-ASW-Patrol-1"] = {
+        coalition = 1,
+        sonarEnabled = true
+    },
+    ["Blue-ASW-Patrol-2"] = {
+        coalition = 2,
+        sonarEnabled = true
+    },
+    ["Red-ASW-Patrol-2"] = {
         coalition = 1,
         sonarEnabled = true
     },
@@ -119,6 +137,35 @@ ADVANCEDSHIPPING = {
                 [1] = "port-brt",
                 [2] = "ocean-3",
                 [3] = "port-ltk"
+            },
+            [4] = {
+                [1] = "port-sea-1",
+                [2] = "ocean-8",
+                [3] = "ocean-3",
+                [4] = "port-ltk"
+            },
+            [5] = {
+                [1] = "port-sea-2",
+                [2] = "ocean-8",
+                [3] = "ocean-3",
+                [4] = "port-ltk"
+            },
+            [6] = {
+                [1] = "port-sea-3",
+                [2] = "ocean-7",
+                [3] = "ocean-3",
+                [4] = "port-ltk"
+            },
+            [7] = {
+                [1] = "port-sea-4",
+                [2] = "ocean-3",
+                [3] = "port-ltk"
+            },
+            [8] = {
+                [1] = "port-sea-5",
+                [2] = "ocean-1",
+                [3] = "ocean-3",
+                [4] = "port-ltk"
             }
         },
         [2] = {
@@ -133,7 +180,35 @@ ADVANCEDSHIPPING = {
                 [2] = "ocean-5",
                 [3] = "ocean-4",
                 [4] = "port-isk"
-            }
+            },
+            [3] = {
+                [1] = "port-sea-1",
+                [2] = "ocean-4",
+                [3] = "port-isk"
+            },
+            [4] = {
+                [1] = "port-sea-2",
+                [2] = "ocean-4",
+                [3] = "port-isk"
+            },
+            [5] = {
+                [1] = "port-sea-3",
+                [2] = "ocean-7",
+                [3] = "ocean-4",
+                [4] = "port-isk"
+            },
+            [6] = {
+                [1] = "port-sea-6",
+                [2] = "ocean-7",
+                [3] = "ocean-4",
+                [4] = "port-isk"
+            },
+            [7] = {
+                [1] = "port-lim",
+                [2] = "ocean-7",
+                [3] = "ocean-4",
+                [4] = "port-isk"
+            },
         }
     },
     builtRoutesRandom = {
@@ -153,7 +228,37 @@ ADVANCEDSHIPPING = {
             [1] = "port-brt",
             [2] = "ocean-3",
             [3] = "port-ltk"
-        }
+        },
+        [4] = {
+            [1] = "port-sea-3",
+            [2] = "ocean-7",
+            [3] = "ocean-8",
+            [4] = "ocean-6",
+            [5] = "port-kyr"
+        },
+        [5] = {
+            [1] = "port-sea-4",
+            [2] = "ocean-7",
+            [3] = "ocean-8",
+            [4] = "ocean-6",
+            [5] = "port-kyr"
+        },
+        [6] = {
+            [1] = "port-sea-5",
+            [2] = "ocean-8",
+            [3] = "port-mer"
+        },
+        [7] = {
+            [1] = "port-tar",
+            [2] = "ocean-1",
+            [3] = "port-sea-4"
+        },
+        [8] = {
+            [1] = "port-lca",
+            [2] = "ocean-7",
+            [3] = "ocean-1",
+            [4] = "port-tar"
+        },
     }
 }
 NEUTRALSHIPS = {

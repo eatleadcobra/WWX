@@ -190,6 +190,9 @@ function CpyControl.getFrontlineCpy(coalitionId)
     end
     return returnCpy
 end
+function CpyControl.getCompanyByGroupName(groupName)
+    return cpyctl.getCompanyByGroupName(groupName)
+end
 function cpyctl.updateMission(coalitionId, companyId, newPoints)
     local cpy = Companies[CompanyIDs[coalitionId][companyId]]
     if cpy then

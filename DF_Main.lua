@@ -2771,7 +2771,8 @@ function dfc.canLoad(coalition, unit, isMortar)
     local unitVelo = unit:getVelocity()
     if unitPoint and unitVelo then
         local pickUpZone = dfc.findPickupZone(unitPoint, coalition)
-        if (pickUpZone and dfc.landed(unit:getGroup():getName())) or (isMortar and dfc.landed(unit:getGroup():getName())) then
+        local inPatrolShipRange = TASWC.inPatrolShipRange(unitPoint, coalition)
+        if (pickUpZone and dfc.landed(unit:getGroup():getName())) or (isMortar and dfc.landed(unit:getGroup():getName())) or (inPatrolShipRange and dfc.landed(unit:getGroup():getName()))then
             canLoad = true
         elseif pickUpZone == nil and isMortar == false then
             trigger.action.outTextForGroup(unit:getGroup():getID(), "You are not close enough to a pick up zone to load cargo!", 5)
@@ -2872,14 +2873,21 @@ function dfc.cargoBoat(param)
             local shipUnit = shipGroup:getUnit(1)
             if shipUnit then
                 local shipPoint = shipUnit:getPoint()
-                local shipPos = shipUnit:getPosition()
-                if shipPoint and shipPos then
-                    local boatSpawnPoint = Utils.VectorAdd(shipPoint, Utils.ScalarMult(Utils.RotateVector(shipPos.x, -0.26), -100))
-                    local pirateBoatName = FirebaseGroups.spawnPirateBoat(boatSpawnPoint, param.boardingCoalition)
-                    if WWEvents then
-                        WWEvents.playerCapturedShip(param.boardingPlayerName, param.boardingCoalition, " captured a cargo ship!")
+                if shipPoint then
+                    -- find correct route to port based on current location
+                    -- find company for ship
+                    -- set waypoints for ship 
+                    local shipCpy = CpyControl.getCompanyByGroupName(param.shipName)
+                    if shipCpy then
+                        local route = {shipCpy.point, trigger.misc.getZone("ocean-4").point, trigger.misc.getZone("port-isk").point}
+                        if param.boardingCoalition == 1 then
+                            route = {shipCpy.point, trigger.misc.getZone("ocean-3").point, trigger.misc.getZone("port-ltk").point}
+                        end
+                        shipCpy:updateMission(route, -1, 99)
+                        if WWEvents then
+                            WWEvents.playerCapturedShip(param.boardingPlayerName, param.boardingCoalition, " captured a cargo ship!")
+                        end
                     end
-                    dfc.checkPirate({convoyName = pirateBoatName, playerName = param.boardingPlayerName, boardingCoalition = param.boardingCoalition })
                 end
             end
         end

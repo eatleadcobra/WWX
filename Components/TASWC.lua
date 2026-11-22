@@ -179,6 +179,25 @@ function TASWC.addPatrol(coalitionId, patrolGroupName, sonarEnabled)
     end
 end
 
+function TASWC.inPatrolShipRange(point, coalitionId)
+    local inRange = false
+    for pGroupName, info in pairs(taswc.patrolGroups[coalitionId]) do
+        local pGroup = Group.getByName(pGroupName)
+        if pGroup then
+            local leadUnit = pGroup:getUnit(1)
+            if leadUnit then
+                local leadUnitPoint = leadUnit:getPoint()
+                if leadUnitPoint then
+                    if Utils.PointDistance(point, leadUnitPoint) < 100 then
+                        inRange = true
+                    end
+                end
+            end
+        end
+    end
+    return inRange
+end
+
 function TASWC.addContact(coalitionId, contactName, contactType)
     if not taswc.contactIds[coalitionId][contactName] then
         taswc.contactIds[coalitionId][contactName] = taswc.contactIdCounters[coalitionId]
