@@ -51,6 +51,8 @@ RESPAWNGROUPS = {
     ["Red-RD-SA2"] = 7200, -- 2 hours
     ["Blue-ASW-Patrol-1"] = 900, -- 15 min
     ["Red-ASW-Patrol-1"] = 900, -- 15 min
+    ["Blue-ASW-Patrol-2"] = 900, -- 15 min
+    ["Red-ASW-Patrol-2"] = 900, -- 15 min
 }
 PROSECUTORS = {
     ["Blue-ASW-Patrol-1"] = {
