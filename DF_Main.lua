@@ -3518,7 +3518,7 @@ dfc.initSpawns()
 dfc.createSupplyDrawings()
 dfc.initConvoys()
 timer.scheduleFunction(dfc.shippingLoop, nil, timer:getTime() + 30)
-timer.scheduleFunction(dfc.randomshippingLoop, nil, timer:getTime() + 20)
+--timer.scheduleFunction(dfc.randomshippingLoop, nil, timer:getTime() + 20)
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)
 end
