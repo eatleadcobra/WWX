@@ -514,7 +514,7 @@ function taswc.findNearbyGroups(coalitionId, searchPoint, searchRadius, sonarEna
                 if distance <= searchRadius then
                     local contactType = "surface"
                     local isFriendly = (foundItem:getCoalition() == coalitionId)
-                    if SUBTYPE and (foundItem:getTypeName() == SUBTYPE[1] or foundItem:getTypeName() == SUBTYPE[2]) and sonarEnabled and distance <= sonarSearchRadius then
+                    if SUBTYPE and (foundItem:getTypeName() == SUBTYPE[1] or foundItem:getTypeName() == SUBTYPE[2]) then
                         contactType = "sub"
                     end
                     if not searchingGroup or (searchingGroup and searchingGroup ~= foundItem:getGroup():getName()) then
