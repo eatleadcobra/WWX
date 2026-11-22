@@ -1767,7 +1767,6 @@ function dfc.shippingLoop()
         if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].shipping) then
             if timer:getTime() - DFS.status[c].lastShipTime > (DFS.status[c].industrialModifier * DFS.status.shipConvoyInterval) or DFS.status[c].lastShipTime == 0 then
                 CpyControl.newShip(c, nil)
-                CpyControl.newNeutralShip()
                 DFS.status[c].lastShipTime = timer:getTime()
                 if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
             end
@@ -1777,7 +1776,7 @@ function dfc.shippingLoop()
 end
 function dfc.randomshippingLoop()
     CpyControl.newNeutralShip()
-    timer.scheduleFunction(dfc.randomshippingLoop, nil, timer.getTime() + 180)
+    timer.scheduleFunction(dfc.randomshippingLoop, nil, timer.getTime() + 600)
 end
 local trainLoopInterval = 10
 function dfc.runtrains()
