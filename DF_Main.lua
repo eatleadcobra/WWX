@@ -1772,6 +1772,7 @@ function dfc.shippingLoop()
             end
         end
     end
+    CpyControl.newNeutralShip()
     timer.scheduleFunction(dfc.shippingLoop, nil, timer.getTime() + 60)
 end
 local trainLoopInterval = 10

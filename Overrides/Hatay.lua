@@ -74,6 +74,94 @@ PATROLS = {
         sonarEnabled = true
     },
 }
+ADVANCEDSHIPPING = {
+    ports = {
+        ["port-trp"] = {
+            name = "Tripoli",
+            exitNode = "ocean-1",
+            zoneName = "port-trp"
+        }
+    },
+    nodes = {
+        ["ocean-1"] = {
+            ports = {
+                [1] = "port-trp",
+                [2] = "port-brt"
+            },
+            connects = {
+                [1] = "ocean-2",
+                [2] = "ocean-7"
+            }
+        },
+        ["ocean-2"] = {
+            ports = {[1] = "port-tar"}
+        }
+    },
+    homePorts = {
+        [1] = "port-ltk",
+        [2] = "port-isk"
+    },
+    builtRoutesCoalition = {
+        [1] = {
+            [1] = {
+                [1] = "port-lca",
+                [2] = "ocean-7",
+                [3] = "ocean-3",
+                [4] = "port-ltk"
+            },
+            [2] = {
+                [1] = "port-trp",
+                [2] = "ocean-2",
+                [3] = "ocean-3",
+                [4] = "port-ltk"
+            },
+            [3] = {
+                [1] = "port-brt",
+                [2] = "ocean-3",
+                [3] = "port-ltk"
+            }
+        },
+        [2] = {
+            [1] = {
+                [1] = "port-kyr",
+                [2] = "ocean-6",
+                [3] = "ocean-4",
+                [4] = "port-isk"
+            },
+            [2] = {
+                [1] = "port-mer",
+                [2] = "ocean-5",
+                [3] = "ocean-4",
+                [4] = "port-isk"
+            }
+        }
+    },
+    builtRoutesRandom = {
+        [1] = {
+            [1] = "port-kyr",
+            [2] = "ocean-6",
+            [3] = "ocean-4",
+            [4] = "port-isk"
+        },
+        [2] = {
+            [1] = "port-mer",
+            [2] = "ocean-5",
+            [3] = "ocean-4",
+            [4] = "port-isk"
+        },
+        [3] = {
+            [1] = "port-brt",
+            [2] = "ocean-3",
+            [3] = "port-ltk"
+        }
+    }
+}
+NEUTRALSHIPS = {
+    [1] = "HandyWind",
+    [2] = "Ship_Tilde_Supply",
+    [3] = "Dry-cargo ship-2",
+    [4] = "ELNYA"
+}
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
 -- counts
@@ -159,7 +247,7 @@ Platoons = {
             [2] = "GAZ-66"
         },
         ["Shipping"] = {
-            [1] = "HandyWind",
+            [1] = "Ship_Tilde_Supply",
             [2] = "CastleClass_01"
         }
     },

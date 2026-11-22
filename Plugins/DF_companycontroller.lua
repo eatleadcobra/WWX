@@ -32,6 +32,7 @@ end
 
 Companies = {}
 CompanyIDs = {
+    [0] = {},
     [1] = {},
     [2] = {}
 }
@@ -80,9 +81,6 @@ function cpyctl.getCompanies()
         local cpyData = dofile(companyState)
         for k,v in pairs(cpyData) do
             local newCpy = Company.newFromTable(v)
-            if newCpy.isShip then
-                newCpy:setWaypoints((cpyctl.getShipPoints(newCpy.coalitionId, newCpy.point)), -1, 12)
-            end
             Companies[newCpy.id] = newCpy
             table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
         end
@@ -135,6 +133,13 @@ function CpyControl.newShip(coalitionId, escort)
     local convoyParam = {convoyName = "", escortName = nil, coalitionId = coalitionId}
     local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam, true)
     newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
+    newCpy:spawn()
+    return newCpy.groupName
+end
+function CpyControl.newNeutralShip(coalitionId)
+    local convoyParam = {convoyName = "", escortName = nil, coalitionId = coalitionId}
+    local newCpy = Company.newCustomPlt(0, true, {[1] = NEUTRALSHIPS[math.random(1,#NEUTRALSHIPS)]}, false, false, true, convoyParam, true)
+    newCpy:setWaypoints(cpyctl.getNeutralShipPoints(), -1, 12)
     newCpy:spawn()
     return newCpy.groupName
 end
@@ -665,18 +670,22 @@ function cpyctl.getCompanyFuelCost(cpy)
 end
 
 function cpyctl.getShipPoints(coalitionId, overrideStartPoint)
-    local lowerLeftBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-SW").point
-    local upperRightBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-NE").point
-    local xDiff = upperRightBoundPoint.x - lowerLeftBoundPoint.x
-    local zDiff = upperRightBoundPoint.z - lowerLeftBoundPoint.z
-    local shipStartPoint = {x = lowerLeftBoundPoint.x + math.random(0, xDiff), y=0, z = lowerLeftBoundPoint.z + math.random(0, zDiff)}
-    if overrideStartPoint then
-        shipStartPoint = overrideStartPoint
-    end
+    local route = ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId][math.random(1, #ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId])]
     local shipPoints = {}
-    table.insert(shipPoints, shipStartPoint)
-    for i = 1, 20 do
-        local nextShipWP = trigger.misc.getZone(coalitionId.."-shiproute-"..i)
+    for i = 1, #route do
+        local nextShipWP = trigger.misc.getZone(route[i])
+        if nextShipWP then
+            local shipPoint = nextShipWP.point
+            table.insert(shipPoints, shipPoint)
+        end
+    end
+    return shipPoints
+end
+function cpyctl.getNeutralShipPoints()
+    local route = ADVANCEDSHIPPING.builtRoutesRandom[math.random(1, #ADVANCEDSHIPPING.builtRoutesRandom)]
+    local shipPoints = {}
+    for i = 1, #route do
+        local nextShipWP = trigger.misc.getZone(route[i])
         if nextShipWP then
             local shipPoint = nextShipWP.point
             table.insert(shipPoints, shipPoint)
