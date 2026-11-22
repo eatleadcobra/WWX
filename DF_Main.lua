@@ -1767,12 +1767,12 @@ function dfc.shippingLoop()
         if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].shipping) then
             if timer:getTime() - DFS.status[c].lastShipTime > (DFS.status[c].industrialModifier * DFS.status.shipConvoyInterval) or DFS.status[c].lastShipTime == 0 then
                 CpyControl.newShip(c, nil)
+                CpyControl.newNeutralShip()
                 DFS.status[c].lastShipTime = timer:getTime()
                 if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
             end
         end
     end
-    CpyControl.newNeutralShip()
     timer.scheduleFunction(dfc.shippingLoop, nil, timer.getTime() + 60)
 end
 local trainLoopInterval = 10
