@@ -88,7 +88,7 @@ function cpyctl.getCompanies()
     else
         if TASWC then
             for i = 1, #ADVANCEDSHIPPING.builtRoutesRandom do
-                    CpyControl.newNeutralShip(ADVANCEDSHIPPING.builtRoutesRandom[i])
+                CpyControl.newNeutralShip(ADVANCEDSHIPPING.builtRoutesRandom[i])
             end
         end
     end
@@ -149,10 +149,8 @@ function CpyControl.newShip(coalitionId, escort)
 end
 function CpyControl.newNeutralShip(routeOverride)
     local convoyParam = {convoyName = "", escortName = nil, coalitionId = 0}
-    local routeNum = math.random(1,#NEUTRALSHIPS)
-    if routeOverride then routeNum = routeOverride end
-    local newCpy = Company.newCustomPlt(0, true, {[1] = NEUTRALSHIPS[routeNum]}, false, false, true, convoyParam, true)
-    newCpy:setWaypoints(cpyctl.getNeutralShipPoints(), -1, 12)
+    local newCpy = Company.newCustomPlt(0, true, {[1] = NEUTRALSHIPS[math.random(1,#NEUTRALSHIPS)]}, false, false, true, convoyParam, true)
+    newCpy:setWaypoints(cpyctl.getNeutralShipPoints(routeOverride), -1, 12)
     newCpy:spawn()
     return newCpy.groupName
 end
@@ -697,8 +695,9 @@ function cpyctl.getShipPoints(coalitionId, overrideStartPoint)
     end
     return shipPoints
 end
-function cpyctl.getNeutralShipPoints()
+function cpyctl.getNeutralShipPoints(routeOverride)
     local route = ADVANCEDSHIPPING.builtRoutesRandom[math.random(1, #ADVANCEDSHIPPING.builtRoutesRandom)]
+    if routeOverride then route = ADVANCEDSHIPPING.builtRoutesRandom[routeOverride] end
     local shipPoints = {}
     for i = 1, #route do
         local nextShipWP = trigger.misc.getZone(route[i])
