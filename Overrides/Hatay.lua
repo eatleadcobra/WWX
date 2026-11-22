@@ -247,8 +247,7 @@ Platoons = {
             [2] = "GAZ-66"
         },
         ["Shipping"] = {
-            [1] = "Ship_Tilde_Supply",
-            [2] = "CastleClass_01"
+            [1] = "Ship_Tilde_Supply"
         }
     },
     [2] = {
@@ -322,8 +321,7 @@ Platoons = {
             [2] = "M 818"
         },
         ["Shipping"] = {
-            [1] = "HandyWind",
-            [2] = "CastleClass_01"
+            [1] = "HandyWind"
         }
     }
 }
