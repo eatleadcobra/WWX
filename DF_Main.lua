@@ -943,11 +943,6 @@ function dfc.initSpawns()
             dfc.respawnArtilleryGroup({coalitionId = 1, spawnPoint = trigger.misc.getZone(DFS.spawnNames[1].artillery..i).point, type = "HOWITZER", spawnZone = i})
             dfc.respawnArtilleryGroup({coalitionId = 2, spawnPoint = trigger.misc.getZone(DFS.spawnNames[2].artillery..i).point, type = "HOWITZER", spawnZone = i})
         end
-        if ADVANCEDSHIPPING then
-           for i = 1, #ADVANCEDSHIPPING.builtRoutesRandom do
-                CpyControl.newNeutralShip(ADVANCEDSHIPPING.builtRoutesRandom[i])
-           end
-        end
     end
     for i = 1, DFS.status.fdSpawnTotal do
         dfc.respawnFrontDepot({coalitionId = 1, spawnZone = i})
