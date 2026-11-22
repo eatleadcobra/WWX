@@ -499,7 +499,9 @@ function taswc.findNearbyGroups(coalitionId, searchPoint, searchRadius, sonarEna
                         contactType = "sub"
                     end
                     if not searchingGroup or (searchingGroup and searchingGroup ~= foundItem:getGroup():getName()) then
-                        table.insert(foundGroups,  {groupName = foundItem:getGroup():getName(), contactType = contactType, friendly = isFriendly, contactPoint = foundPoint, coalitionId = foundItem:getCoalition()})
+                        if (contactType == "sub" and sonarEnabled) or contactType == "surface" then
+                            table.insert(foundGroups,  {groupName = foundItem:getGroup():getName(), contactType = contactType, friendly = isFriendly, contactPoint = foundPoint, coalitionId = foundItem:getCoalition()})
+                        end
                     end
                 end
             end
