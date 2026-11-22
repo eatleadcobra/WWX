@@ -265,7 +265,6 @@ NEUTRALSHIPS = {
     [1] = "HandyWind",
     [2] = "Ship_Tilde_Supply",
     [3] = "Dry-cargo ship-2",
-    [4] = "ELNYA"
 }
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 43200 -- 12 hours runtime
