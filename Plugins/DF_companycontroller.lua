@@ -129,11 +129,11 @@ function CpyControl.newConvoy(coalitionId, convoyType, startPoint, destination, 
     newCpy:spawn()
     return newCpy.groupName
 end
-function CpyControl.newShip(coalitionId, escort)
+function CpyControl.newShip(coalitionId, escort, routeOverride)
     local convoyParam = {convoyName = "", escortName = nil, coalitionId = coalitionId}
     local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam, true)
     if newCpy then
-        newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
+        newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId, routeOverride), -1, 12)
         newCpy:spawn()
         if TASWC then
             TASWC.addPatrol(coalitionId, newCpy.groupName, true)
@@ -682,6 +682,9 @@ end
 
 function cpyctl.getShipPoints(coalitionId, overrideStartPoint)
     local route = ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId][math.random(1, #ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId])]
+    if overrideStartPoint then
+        route = ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId][overrideStartPoint]
+    end
     local shipPoints = {}
     for i = 1, #route do
         local nextShipWP = trigger.misc.getZone(route[i])

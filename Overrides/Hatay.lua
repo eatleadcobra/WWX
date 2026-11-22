@@ -139,23 +139,6 @@ ADVANCEDSHIPPING = {
                 [1] = "port-brt",
                 [2] = "ocean-3",
                 [3] = "port-ltk"
-            },
-            [4] = {
-                [1] = "port-sea-3",
-                [2] = "ocean-7",
-                [3] = "ocean-3",
-                [4] = "port-ltk"
-            },
-            [5] = {
-                [1] = "port-sea-4",
-                [2] = "ocean-3",
-                [3] = "port-ltk"
-            },
-            [6] = {
-                [1] = "port-sea-5",
-                [2] = "ocean-1",
-                [3] = "ocean-3",
-                [4] = "port-ltk"
             }
         },
         [2] = {
@@ -175,17 +158,6 @@ ADVANCEDSHIPPING = {
                 [1] = "port-sea-1",
                 [2] = "ocean-4",
                 [3] = "port-isk"
-            },
-            [4] = {
-                [1] = "port-sea-2",
-                [2] = "ocean-4",
-                [3] = "port-isk"
-            },
-            [5] = {
-                [1] = "port-lim",
-                [2] = "ocean-7",
-                [3] = "ocean-4",
-                [4] = "port-isk"
             },
         }
     },
@@ -225,18 +197,7 @@ ADVANCEDSHIPPING = {
             [1] = "port-sea-5",
             [2] = "ocean-8",
             [3] = "port-mer"
-        },
-        [7] = {
-            [1] = "port-tar",
-            [2] = "ocean-1",
-            [3] = "port-sea-4"
-        },
-        [8] = {
-            [1] = "port-lca",
-            [2] = "ocean-7",
-            [3] = "ocean-1",
-            [4] = "port-tar"
-        },
+        }
     }
 }
 NEUTRALSHIPS = {
