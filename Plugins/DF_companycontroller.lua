@@ -132,9 +132,14 @@ end
 function CpyControl.newShip(coalitionId, escort)
     local convoyParam = {convoyName = "", escortName = nil, coalitionId = coalitionId}
     local newCpy = Company.new(coalitionId, true, {8}, false, false, true, convoyParam, true)
-    newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
-    newCpy:spawn()
-    return newCpy.groupName
+    if newCpy then
+        newCpy:setWaypoints(cpyctl.getShipPoints(coalitionId), -1, 12)
+        newCpy:spawn()
+        if TASWC then
+            TASWC.addPatrol(coalitionId, newCpy.groupName, true)
+        end
+        return newCpy.groupName
+        end
 end
 function CpyControl.newNeutralShip(coalitionId)
     local convoyParam = {convoyName = "", escortName = nil, coalitionId = coalitionId}
