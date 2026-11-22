@@ -242,7 +242,7 @@ function CAS.designateGroup(groupName)
     if desGroup then
         local casMessage = "This is " .. desGroup.callsign .. ". We are in contact with enemy forces!"
         local locationMessage = "\nWe are located "
-        local closestBpId, distance, direction = CSB.closestBpToCAS(desGroup.currentPoint)
+        local closestBpId, distance, direction = DF_UTILS.closestBpToCAS(desGroup.currentPoint)
         if closestBpId and distance and direction then
             local unitString = "m "
             locationMessage = locationMessage .. distance .. unitString .. direction .. " of Battle Position " .. closestBpId

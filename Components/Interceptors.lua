@@ -103,19 +103,25 @@ function intr.spawnInterceptor(coalitionId, target, number)
         controller:setTask(interceptTask)
     end
 
-    intr.checkInterceptor({groupName = groupName, coalitionId = coalitionId, number = number, target = target.name})
+    intr.checkInterceptor({groupName = groupName, coalitionId = coalitionId, number = number, target = target.name, taking_off = true})
+end
+function intr.safeInterceptDecrement(coalitionId)
+    if totalIntercepting[coalitionId] > 0 then
+        totalIntercepting[coalitionId] = totalIntercepting[coalitionId] - 1
+    end
 end
 function intr.checkInterceptor(param)
     env.info("Checking interceptor group " .. param.groupName, debug)
     local group = Group.getByName(param.groupName)
     local target = Unit.getByName(param.target)
     if group ~= nil then
-        if group:getSize() == 0 or group:getUnit(1) == nil or group:getUnit(1):inAir() == false then
+        if group:getSize() == 0 or group:getUnit(1) == nil or (group:getUnit(1):inAir() == false and not param.taking_off) then
             env.info("Interceptor group " .. param.groupName .. " has been destroyed or is on the ground", debug)
             group:destroy()
             lastInterceptorTime[param.coalitionId][param.number] = timer:getTime()
             currentlyIntercepting[param.coalitionId][param.target] = nil
-            totalIntercepting[param.coalitionId] = totalIntercepting[param.coalitionId] - 1
+            intr.safeInterceptDecrement(param.coalitionId)
+            return
         elseif target ~= nil then
             local controller = Group.getByName(param.groupName):getController()
             if controller then
@@ -150,15 +156,16 @@ function intr.checkInterceptor(param)
             else
                 env.info("Target " .. param.target .. " no longer detected on bulls, interceptor will continue to last known position", debug)
             end
-            timer.scheduleFunction(intr.checkInterceptor, param, timer.getTime() + updateInterval)
-        else
-            timer.scheduleFunction(intr.checkInterceptor, param, timer.getTime() + updateInterval)
         end
+        if param.taking_off and group:getUnit(1) and group:getUnit(1):inAir() then
+            param.taking_off = false
+        end
+        timer.scheduleFunction(intr.checkInterceptor, param, timer.getTime() + updateInterval)
     else
         if param.target then
             currentlyIntercepting[param.coalitionId][param.target] = nil
         end
-        totalIntercepting[param.coalitionId] = totalIntercepting[param.coalitionId] - 1
+        intr.safeInterceptDecrement(param.coalitionId)
         lastInterceptorTime[param.coalitionId][param.number] = timer:getTime()
     end
 end

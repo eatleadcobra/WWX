@@ -223,7 +223,7 @@ local staticTemplates = {
         ["x"] = 0,
     }
 }
-local unitTemplates = {
+local baseUnitTemplates = {
     ["MORTAR"] = {
         ["skill"] = "Excellent",
         ["coldAtStart"] = false,
@@ -295,7 +295,7 @@ local unitTemplates = {
         ["playerCanDrive"] = true,
     },
     ["M113"] = {
-[       "skill"] = "Average",
+        ["skill"] = "Average",
         ["coldAtStart"] = false,
         ["type"] = "M-113",
         ["y"] = 0,
@@ -449,8 +449,32 @@ local unitTemplates = {
         ["playerCanDrive"] = false,
     }
 }
+function fbg.copyTemplate(templateTable)
+    local newTable = {}
+    for k,v in pairs(templateTable) do
+        if type(v) == "table" then
+            newTable[k] = fbg.copyTemplate(v)
+        else
+            newTable[k] = v
+        end
+    end
+    return newTable
+end
+local unitTemplates = { -- Allow for per coalition overriding of any unit template.
+    [1] = fbg.copyTemplate(baseUnitTemplates),
+    [2] = fbg.copyTemplate(baseUnitTemplates)
+}
 if PAIDTHEPRICE then
-   unitTemplates["HOWITZER"]["type"] = "M2A1-105"
+   unitTemplates[1]["HOWITZER"]["type"] = "M2A1-105"
+   unitTemplates[2]["HOWITZER"]["type"] = "M2A1-105"
+end
+if CUSTOM_ARTY then
+    unitTemplates[1]["HOWITZER"]["type"] = CUSTOM_ARTY[1]
+    unitTemplates[2]["HOWITZER"]["type"] = CUSTOM_ARTY[2]
+end
+if NO_HELIPAD then
+    staticTemplates["helipad"]["shape_name"] = "Invisible FARP"
+    staticTemplates["helipad"]["type"] = "Invisible FARP"
 end
 function FirebaseGroups.spawnPirateBoat(point, boatCoalition)
     local newGroupId = fbg.newGroupId()
@@ -472,7 +496,7 @@ function FirebaseGroups.spawnPirateBoat(point, boatCoalition)
     groupTable["route"]["points"][3].x = piratewp2.point.x
     groupTable["route"]["points"][3].y = piratewp2.point.z
     local unitsTable = {}
-    local addUnitTable = fbg.copyTemplate(unitTemplates["pirate"])
+    local addUnitTable = fbg.copyTemplate(unitTemplates[boatCoalition]["pirate"])
     addUnitTable["x"] = point.x
     addUnitTable["y"] = point.z
     addUnitTable["name"] = addUnitTable["name"] .. newGroupId .. 1
@@ -494,7 +518,7 @@ function FirebaseGroups.spawnCustomGroup(basePoint, groups, unitCoalition, headi
     groupTable["groupId"] = newGroupId
     local unitsTable = {}
     for i = 1, #groups do
-        local addUnitTable = fbg.copyTemplate(unitTemplates[groups[i].type])
+        local addUnitTable = fbg.copyTemplate(unitTemplates[unitCoalition][groups[i].type])
         addUnitTable["x"] = groups[i].point.x
         addUnitTable["y"] = groups[i].point.z
         addUnitTable["heading"] = heading
@@ -518,7 +542,7 @@ function FirebaseGroups.spawnCustomGroupDisperse(basePoint, groups, unitCoalitio
     groupTable["groupId"] = newGroupId
     local unitsTable = {}
     for i = 1, #groups do
-        local addUnitTable = fbg.copyTemplate(unitTemplates[groups[i].type])
+        local addUnitTable = fbg.copyTemplate(unitTemplates[unitCoalition][groups[i].type])
         addUnitTable["x"] = groups[i].point.x + math.random(-5, 5)
         addUnitTable["y"] = groups[i].point.z + math.random(-5, 5)
         addUnitTable["heading"] = heading
@@ -542,7 +566,7 @@ function FirebaseGroups.spawn(unitType, location, unitCoalition, heading)
     groupTable["groupId"] = newGroupId
     local unitsTable = {}
     for i = 1, fbg.typeCounts[unitType] do
-        local addUnitTable = fbg.copyTemplate(unitTemplates[unitType])
+        local addUnitTable = fbg.copyTemplate(unitTemplates[unitCoalition][unitType])
         addUnitTable["x"] = location.x+(i*3)
         addUnitTable["y"] = location.z+(i*3)
         addUnitTable["heading"] = heading
@@ -550,14 +574,14 @@ function FirebaseGroups.spawn(unitType, location, unitCoalition, heading)
         unitsTable[#unitsTable+1] = addUnitTable
         addUnitTable = {}
         if fbg.infIncluded[unitType] then
-            addUnitTable = fbg.copyTemplate(unitTemplates["inf"])
+            addUnitTable = fbg.copyTemplate(unitTemplates[unitCoalition]["inf"])
             addUnitTable["x"] = location.x+(i*3)-1
             addUnitTable["y"] = location.z+(i*3)
             addUnitTable["heading"] = heading
             addUnitTable["name"] = addUnitTable["name"] .. newGroupId .. i
             unitsTable[#unitsTable+1] = addUnitTable
             addUnitTable = {}
-            addUnitTable = fbg.copyTemplate(unitTemplates["inf"])
+            addUnitTable = fbg.copyTemplate(unitTemplates[unitCoalition]["inf"])
             addUnitTable["x"] = location.x+(i*3)-1
             addUnitTable["y"] = location.z+(i*3)-1
             addUnitTable["heading"] = heading
@@ -588,15 +612,4 @@ function fbg.newGroupId()
     local newId = nextGroupId
     nextGroupId = nextGroupId+1
     return newId
-end
-function fbg.copyTemplate(templateTable)
-    local newTable = {}
-    for k,v in pairs(templateTable) do
-        if type(v) == "table" then
-            newTable[k] = fbg.copyTemplate(v)
-        else
-            newTable[k] = v
-        end
-    end
-    return newTable
 end

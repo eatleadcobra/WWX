@@ -37,7 +37,7 @@ CompanyIDs = {
 }
 
 
-local missionName = env.mission["date"]["Year"]
+local missionName = env.mission["theatre"] .. env.mission["date"]["Year"]
 local companyState = lfs.writedir() .. [[Logs/]] .. 'companies'..missionName..'.txt'
 function cpyctl.saveCompanies()
     local cpyFile = companyState
@@ -401,7 +401,7 @@ function cpyctl.cpyStatusLoop()
                         if cpy.cpyType == "INF" then
                             cpyctl.cleanStragglers(cpy)
                             if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
-                                local closestBPID, closestBPdistance, bpdirection = CSB.closestBpTo(cpy.point)
+                                local closestBPID, closestBPdistance, bpdirection = DF_UTILS.closestBpToInverted(cpy.point)
                                 if Troopmarks and Troopmarks[cpy.droppingPlayerName] then
                                     if Utils.PointDistance(cpy.point, Troopmarks[cpy.droppingPlayerName].point) <= 6500 then
                                         cpy.assigned = true
@@ -430,7 +430,7 @@ function cpyctl.cpyStatusLoop()
                             end
                         elseif cpy.cpyType == "RECON" then
                             if cpy.droppingPlayerName and cpy.droppingGroupID and Utils.getAGL(cpy.point) <= 0.5 then
-                                local closestBPID, closestBPdistance, bpdirection = CSB.closestEnemyBpTo(cpy.point, cpy.coaltionId)
+                                local closestBPID, closestBPdistance, bpdirection = DF_UTILS.closestEnemyBpToInverted(cpy.point, cpy.coaltionId)
                                 if Recontroopmarks and Recontroopmarks[cpy.droppingPlayerName] then
                                     if Utils.PointDistance(cpy.point, Recontroopmarks[cpy.droppingPlayerName].point) <= 18000 then
                                         cpy.assigned = true

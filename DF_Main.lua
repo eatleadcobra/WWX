@@ -752,7 +752,7 @@ function dfcEvents:onEvent(event)
     end
 end
 function dfc.getMission()
-    local missionName = env.mission["date"]["Year"]
+    local missionName = env.mission["theatre"] .. env.mission["date"]["Year"]
     if missionName ~= nil then
         redSupply = lfs.writedir() .. [[Logs/]] .. 'redSupply' .. missionName..'.lua'
         blueSupply = lfs.writedir() .. [[Logs/]] .. 'blueSupply' .. missionName..'.lua'
@@ -1776,6 +1776,7 @@ function dfc.shippingLoop()
 end
 local trainLoopInterval = 10
 function dfc.runtrains()
+    env.info("Running trains...", false)
     for c = 1, 2 do
         if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].trains) then
             if DFS.status[c].spawns.train.name == nil then
@@ -1851,18 +1852,27 @@ function dfc.unloadTrain(coalitionId)
     dfc.increaseRearSupply({coalitionId = coalitionId, amount = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
 end
 function dfc.spawnTrain(coalitionId)
+    env.info("Spawning train for coalition " .. coalitionId, false)
+    local locomotives = TRAIN_TYPES or {
+        [1] = "Locomotive", -- Red
+        [2] = "ES44AH", -- Blue
+        ["wagons"] = "wagon-gruz"
+    }
+    env.info("Train locomotives: " .. locomotives[coalitionId] .. " and " .. locomotives["wagons"], false)
     DFS.status[coalitionId].spawns.train.loaded = true
     DFS.status[coalitionId].spawns.train.name = nil
     local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].train).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].trainDeliver).point
-    local locoType = "Locomotive"
-    if coalitionId == 2 then
-        locoType = "ES44AH"
-    end
+    local locoType = locomotives[coalitionId]
     local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = startPoint, [2] = endPoint}, 100)
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(1, 4, {[1] = "Train"}, groupWaypoints)
     cpyGroupTable["units"][1]["wagons"][1] = locoType
     cpyGroupTable["units"][1]["wagons"][#cpyGroupTable["units"][1]["wagons"]] = locoType
+    if #cpyGroupTable["units"][1]["wagons"] > 2 then
+        for i = 2, #cpyGroupTable["units"][1]["wagons"]-1 do
+            cpyGroupTable["units"][1]["wagons"][i] = locomotives["wagons"]
+        end
+    end
     coalition.addGroup(80+(2-coalitionId), 4, cpyGroupTable)
     DFS.status[coalitionId].spawns.train.name = cpyGroupTable["name"]
     env.info("Spawned train " .. DFS.status[coalitionId].spawns.train.name, false)
@@ -1992,16 +2002,19 @@ function dfc.spawnFighter(coalitionId)
     local groupName = mist.cloneGroup(cloneGroupName, true).name
     DFS.status[coalitionId].lastFighterTime = timer:getTime()
     DFS.status[coalitionId].capGroup = groupName
-    dfc.checkFighter({groupName = groupName, coalitionId = coalitionId})
+    dfc.checkFighter({groupName = groupName, coalitionId = coalitionId, taking_off = true})
 end
 function dfc.checkFighter(param)
     local group = Group.getByName(param.groupName)
     if group ~= nil then
-        if group:getSize() == 0 or group:getUnit(1) == nil or group:getUnit(1):inAir() == false then
+        if group:getSize() == 0 or group:getUnit(1) == nil or (group:getUnit(1):inAir() == false and not param.taking_off) then
             group:destroy()
             timer.scheduleFunction(dfc.spawnFighter, param.coalitionId, timer:getTime() + DFS.status.fighterInterval)
         else
-            timer.scheduleFunction(dfc.checkFighter, param, timer.getTime() + 30)
+            if param.taking_off and group:getUnit(1) and group:getUnit(1):inAir() then
+                param.taking_off = false
+            end
+            timer.scheduleFunction(dfc.checkFighter, param, timer:getTime() + 30)
         end
     else
         timer.scheduleFunction(dfc.spawnFighter, param.coalitionId, timer:getTime() + DFS.status.fighterInterval)

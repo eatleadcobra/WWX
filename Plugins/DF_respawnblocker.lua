@@ -5,7 +5,7 @@ SBLOCKER.originalGroups = {}
 local sblocker = {}
 sblocker.tolerance = 0.1 -- 10% of initial size
 
-local missionName = env.mission["date"]["Year"]
+local missionName = env.mission["theatre"] .. env.mission["date"]["Year"]
 local spawnState = lfs.writedir() .. [[Logs/]] .. 'spawns'..missionName..'.txt'
 
 function SBLOCKER.run()
