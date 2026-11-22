@@ -85,12 +85,6 @@ function cpyctl.getCompanies()
             table.insert(CompanyIDs[newCpy.coalitionId], newCpy.id)
         end
         f:close()
-    else
-        if TASWC then
-            for i = 1, #ADVANCEDSHIPPING.builtRoutesRandom do
-                CpyControl.newNeutralShip(ADVANCEDSHIPPING.builtRoutesRandom[i])
-            end
-        end
     end
 end
 function cpyctl.spawnCompanies()
