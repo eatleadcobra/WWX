@@ -332,7 +332,7 @@ function taswc.prosecuteTargetAir(coalitionId, contactInfo)
         local targetGroupId = targetGroup:getID()
         if targetGroupId then
             local attackPlaneGroupName = mist.cloneGroup(taswc.ashGroupNames[coalitionId], true).name
-            timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + 180)
+            timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + 15)
             taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
             trigger.action.outTextForCoalition(coalitionId, "Our anti-ship aircraft are engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
         end
