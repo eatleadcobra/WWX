@@ -141,9 +141,11 @@ function CpyControl.newShip(coalitionId, escort)
         return newCpy.groupName
         end
 end
-function CpyControl.newNeutralShip(coalitionId)
-    local convoyParam = {convoyName = "", escortName = nil, coalitionId = coalitionId}
-    local newCpy = Company.newCustomPlt(0, true, {[1] = NEUTRALSHIPS[math.random(1,#NEUTRALSHIPS)]}, false, false, true, convoyParam, true)
+function CpyControl.newNeutralShip(routeOverride)
+    local convoyParam = {convoyName = "", escortName = nil, coalitionId = 0}
+    local routeNum = math.random(1,#NEUTRALSHIPS)
+    if routeOverride then routeNum = routeOverride end
+    local newCpy = Company.newCustomPlt(0, true, {[1] = NEUTRALSHIPS[routeNum]}, false, false, true, convoyParam, true)
     newCpy:setWaypoints(cpyctl.getNeutralShipPoints(), -1, 12)
     newCpy:spawn()
     return newCpy.groupName
