@@ -1268,7 +1268,18 @@ function dfc.decreaseFrontSupply(param)
 end
 function dfc.increaseRearSupply(param)
     --params coalitionId, amount
-    local headRoom = DFS.status.maxSuppliesRear[param.type] - DFS.status[param.coalitionId].supply.rear[param.type]
+    -- I can't believe I'm nil checking this it makes no sense
+    local maxSupplyofType = DFS.status.maxSuppliesRear[param.type]
+    local currentSupplyofType = DFS.status[param.coalitionId].supply.rear[param.type]
+    if not maxSupplyofType then
+        env.info("Missing maxSuppliesRear for type " .. param.type, false)
+        return
+    end
+    if not currentSupplyofType then
+        env.info("Missing rear supply for type " .. param.type, false)
+        return
+    end
+    local headRoom = maxSupplyofType - currentSupplyofType
     local surplus = 0
     if param.amount > headRoom then
         surplus = param.amount - headRoom
