@@ -681,13 +681,18 @@ function cpyctl.getCompanyFuelCost(cpy)
 end
 
 function cpyctl.getShipPoints(coalitionId, overrideStartPoint)
-    local route = ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId][math.random(1, #ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId])]
+    local lowerLeftBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-SW").point
+    local upperRightBoundPoint = trigger.misc.getZone(coalitionId.."-shipzone-NE").point
+    local xDiff = upperRightBoundPoint.x - lowerLeftBoundPoint.x
+    local zDiff = upperRightBoundPoint.z - lowerLeftBoundPoint.z
+    local shipStartPoint = {x = lowerLeftBoundPoint.x + math.random(0, xDiff), y=0, z = lowerLeftBoundPoint.z + math.random(0, zDiff)}
     if overrideStartPoint then
-        route = ADVANCEDSHIPPING.builtRoutesCoalition[coalitionId][overrideStartPoint]
+        shipStartPoint = overrideStartPoint
     end
     local shipPoints = {}
-    for i = 1, #route do
-        local nextShipWP = trigger.misc.getZone(route[i])
+    table.insert(shipPoints, shipStartPoint)
+    for i = 1, 20 do
+        local nextShipWP = trigger.misc.getZone(coalitionId.."-shiproute-"..i)
         if nextShipWP then
             local shipPoint = nextShipWP.point
             table.insert(shipPoints, shipPoint)
