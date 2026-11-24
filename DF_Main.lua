@@ -1766,9 +1766,7 @@ function dfc.shippingLoop()
     for c = 1,2 do
         if COALITIONSHIPPINGMETHODS == nil or (COALITIONSHIPPINGMETHODS and COALITIONSHIPPINGMETHODS[c].shipping) then
             if timer:getTime() - DFS.status[c].lastShipTime > (DFS.status[c].industrialModifier * DFS.status.shipConvoyInterval) or DFS.status[c].lastShipTime == 0 then
-                for i = 1, #ADVANCEDSHIPPING.builtRoutesCoalition[c] do
-                    CpyControl.newShip(c, nil, i)
-                end
+                CpyControl.newShip(c, nil)
                 DFS.status[c].lastShipTime = timer:getTime()
                 if DFS.status[c].lastShipTime == 0 then DFS.status[c].lastShipTime = 1 end
             end
@@ -3522,7 +3520,7 @@ dfc.initSpawns()
 dfc.createSupplyDrawings()
 dfc.initConvoys()
 timer.scheduleFunction(dfc.shippingLoop, nil, timer:getTime() + 30)
-timer.scheduleFunction(dfc.randomshippingLoop, nil, timer:getTime() + 900)
+--timer.scheduleFunction(dfc.randomshippingLoop, nil, timer:getTime() + 900)
 if BOMBERS then
     timer.scheduleFunction(dfc.bomberLoop, nil, timer.getTime()+DFS.status.bomberInterval)
 end
