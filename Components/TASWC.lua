@@ -16,12 +16,18 @@
 -- mist respawn group keeps dynamic spawns working. Do this for off shore surface prosecutorGroups so players can spawn a helo and blow up subs they find 
 TASWC = {}
 local taswc = {}
-local contactFadeTime = 600 -- ten minutes
+local contactFadeTime = 1200 -- twenty minutes
 local sonarSearchRadius = 10000
+local costalDefenceAircraftCooldown = 600 -- ten minutes
 
 taswc.contactIdCounters = {
     [1] = 1,
     [2] = 1
+}
+
+taswc.lastAirSent = {
+    [1] = -1,
+    [2] = -1
 }
 
 taswc.prosecutorGroups = {
@@ -153,14 +159,14 @@ function taswcEvents:onEvent(event)
 end
 world.addEventHandler(taswcEvents)
 
-function TASWC.addProsecutor(coalitionId, prosecutorGroupName, targetTypes)
+function TASWC.addProsecutor(coalitionId, prosecutorGroupName, targetTypes, range)
     local prosecutorGroup = Group.getByName(prosecutorGroupName)
     if prosecutorGroup then
        local prosecutorLeadUnit = prosecutorGroup:getUnit(1)
        if prosecutorLeadUnit then
             local prosecutorPoint = prosecutorLeadUnit:getPoint()
             if prosecutorPoint then
-                taswc.prosecutorGroups[coalitionId][prosecutorGroupName] = {groupName = prosecutorGroupName, point = prosecutorPoint, targetTypes = targetTypes, assigned = false}
+                taswc.prosecutorGroups[coalitionId][prosecutorGroupName] = {groupName = prosecutorGroupName, point = prosecutorPoint, targetTypes = targetTypes, range = range, assigned = false}
             end
        end
     end
@@ -265,12 +271,12 @@ function taswc.updateContacts()
                         taswc.messages[c] = taswc.messages[c] .. contactMessage
                         taswc.drawContact(c, contactName, contactInfo.contactType)
                         if contactInfo.vid ~= 0 and contactInfo.vid ~= c then
-                            if not contactInfo.engaged then
-                                local strat = taswc.determineProsecutionStrategy(coalition, contactInfo)
-                                if strat == "surf" then
-                                    taswc.prosecuteTargetSurface(c, contactInfo)
-                                elseif strat == "air" and contactInfo.contactType == "surface" then
-                                    taswc.prosecuteTargetAir(c, contactInfo)
+                            if contactInfo.contactType == "surface" or contactInfo.point.y > -0.5 then
+                                if not contactInfo.engaged then
+                                    local engagedSurface = taswc.prosecuteTargetSurface(c, contactInfo)
+                                    if not engagedSurface then
+                                        taswc.prosecuteTargetAir(c, contactInfo)
+                                    end
                                 end
                             end
                         end
@@ -293,12 +299,9 @@ function taswc.updateContacts()
     end
 end
 
-function taswc.determineProsecutionStrategy(coalitionId, contactInfo)
-    return "air"
-end
-
 function taswc.prosecuteTargetSurface(coalitionId, contactInfo)
     local targetGroup = Group.getByName(contactInfo.contactName)
+    local engaged = false
     if targetGroup then
         local targetGroupId = targetGroup:getID()
         if targetGroupId then
@@ -318,12 +321,14 @@ function taswc.prosecuteTargetSurface(coalitionId, contactInfo)
                         taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
                         taswc.prosecutorGroups[coalitionId][proesecutorGroupName].assigned = true
                         taswc.prosecutorGroups[coalitionId][proesecutorGroupName].target = contactInfo.contactName
+                        engaged = true
                         trigger.action.outTextForCoalition(coalitionId, "Surface group " .. proesecutorGroupName .. " is engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
                     end
                 end
             end
         end
     end
+    return engaged
 end
 
 function taswc.prosecuteTargetAir(coalitionId, contactInfo)
@@ -331,10 +336,21 @@ function taswc.prosecuteTargetAir(coalitionId, contactInfo)
     if targetGroup then
         local targetGroupId = targetGroup:getID()
         if targetGroupId then
-            local attackPlaneGroupName = mist.cloneGroup(taswc.ashGroupNames[coalitionId], true).name
-            timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + 15)
-            taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
-            trigger.action.outTextForCoalition(coalitionId, "Our anti-ship aircraft are engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
+            local airDefZone = trigger.misc.getZone(coalitionId.."-coastaldefence")
+            if airDefZone then
+                local airDefPoint = airDefZone.point
+                local airDefRadius = airDefZone.radius
+                if airDefPoint and airDefRadius then
+                    if Utils.PointDistance(contactInfo.point, airDefPoint) <= airDefRadius then
+                        if taswc.lastAirSent[coalitionId] < 0 or (timer.getTime() - taswc.lastAirSent[coalitionId] > costalDefenceAircraftCooldown) then
+                            local attackPlaneGroupName = mist.cloneGroup(taswc.ashGroupNames[coalitionId], true).name
+                            timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + 15)
+                            taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
+                            trigger.action.outTextForCoalition(coalitionId, "Our anti-ship aircraft are engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
+                        end
+                    end
+                end
+            end
         end
     end
 end
@@ -426,9 +442,11 @@ function taswc.getProsecutorGroupName(coalitionId, contactType, contactPoint)
             local pPoint = info.point
             if pPoint and contactPoint then
                 local pDistance = Utils.PointDistance(pPoint, contactPoint)
-                if closestCapablePGroupDist == -1 or pDistance < closestCapablePGroupDist then
-                    closestCapablePGroupDist = pDistance
-                    pGroupname = prosecutorGroupName
+                if pDistance <= (info.range * 1000) then
+                    if closestCapablePGroupDist == -1 or pDistance < closestCapablePGroupDist then
+                        closestCapablePGroupDist = pDistance
+                        pGroupname = prosecutorGroupName
+                    end
                 end
             end
         end
@@ -652,7 +670,7 @@ function taswc.init()
     end
     if PROSECUTORS then
         for groupName, params in pairs(PROSECUTORS) do
-            TASWC.addProsecutor(params.coalition, groupName, params.engagementTypes)
+            TASWC.addProsecutor(params.coalition, groupName, params.engagementTypes, params.range)
         end
     end
     if PATROLS then

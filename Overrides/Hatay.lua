@@ -53,16 +53,11 @@ RESPAWNGROUPS = {
     ["Red-ASW-Patrol-1"] = 900, -- 15 min
 }
 PROSECUTORS = {
-    ["Blue-ASW-Patrol-1"] = {
+    ["Blue-Silkworm-1"] = {
         coalition = 2,
         engagementTypes = {["surface"] = true},
         range = 100, --km
-    },
-    ["Red-ASW-Patrol-1"] = {
-        coalition = 1,
-        engagementTypes = {["surface"] = true},
-        range = 100, --km
-    },
+    }
 }
 PATROLS = {
     ["Blue-ASW-Patrol-1"] = {
@@ -73,112 +68,6 @@ PATROLS = {
         coalition = 1,
         sonarEnabled = true
     },
-}
-ADVANCEDSHIPPING = {
-    ports = {
-        ["port-trp"] = {
-            name = "Tripoli",
-            exitNode = "ocean-1",
-            zoneName = "port-trp"
-        }
-    },
-    nodes = {
-        ["ocean-1"] = {
-            ports = {
-                [1] = "port-trp",
-                [2] = "port-brt"
-            },
-            connects = {
-                [1] = "ocean-2",
-                [2] = "ocean-7"
-            }
-        },
-        ["ocean-2"] = {
-            ports = {[1] = "port-tar"}
-        }
-    },
-    homePorts = {
-        [1] = "port-ltk",
-        [2] = "port-isk"
-    },
-    builtRoutesCoalition = {
-        [1] = {
-            [1] = {
-                [1] = "port-lca",
-                [2] = "ocean-7",
-                [3] = "ocean-3",
-                [4] = "port-ltk"
-            },
-            [2] = {
-                [1] = "port-trp",
-                [2] = "ocean-2",
-                [3] = "ocean-3",
-                [4] = "port-ltk"
-            },
-            [3] = {
-                [1] = "port-brt",
-                [2] = "ocean-3",
-                [3] = "port-ltk"
-            }
-        },
-        [2] = {
-            [1] = {
-                [1] = "port-kyr",
-                [2] = "ocean-6",
-                [3] = "ocean-4",
-                [4] = "port-isk"
-            },
-            [2] = {
-                [1] = "port-mer",
-                [2] = "ocean-5",
-                [3] = "ocean-4",
-                [4] = "port-isk"
-            },
-            [3] = {
-                [1] = "port-sea-1",
-                [2] = "ocean-4",
-                [3] = "port-isk"
-            },
-        }
-    },
-    builtRoutesRandom = {
-        [1] = {
-            [1] = "port-kyr",
-            [2] = "ocean-6",
-            [3] = "ocean-4",
-            [4] = "port-isk"
-        },
-        [2] = {
-            [1] = "port-mer",
-            [2] = "ocean-5",
-            [3] = "ocean-4",
-            [4] = "port-isk"
-        },
-        [3] = {
-            [1] = "port-brt",
-            [2] = "ocean-3",
-            [3] = "port-ltk"
-        },
-        [4] = {
-            [1] = "port-sea-3",
-            [2] = "ocean-7",
-            [3] = "ocean-8",
-            [4] = "ocean-6",
-            [5] = "port-kyr"
-        },
-        [5] = {
-            [1] = "port-sea-4",
-            [2] = "ocean-7",
-            [3] = "ocean-8",
-            [4] = "ocean-6",
-            [5] = "port-kyr"
-        },
-        [6] = {
-            [1] = "port-sea-5",
-            [2] = "ocean-8",
-            [3] = "port-mer"
-        }
-    }
 }
 NEUTRALSHIPS = {
     [1] = "HandyWind",
