@@ -23,9 +23,13 @@ SHIPPING = true
 CAPTURE = false
 COMPANIESIGNOREROADS = true
 VIGGENDTCENFORCEMENT = false
-ANTISHIPGROUPS = {
+FIXEDWINGANTISHIPGROUPS = {
     [1] = "Red-Antiship",
     [2] = "Blue-Antiship",
+}
+FIXEDWINGANTISHIPGROUPTARGETDELAY = {
+    [1] = 200,
+    [2] = 15
 }
 CAVICS = {
     [1] = {
@@ -57,6 +61,11 @@ PROSECUTORS = {
         coalition = 2,
         engagementTypes = {["surface"] = true},
         range = 100, --km
+    },
+    ["Blue-MissileBoats"] = {
+        coalition = 2,
+        engagementTypes = {["surface"] = true},
+        range = 200, --km
     }
 }
 PATROLS = {
@@ -68,6 +77,10 @@ PATROLS = {
         coalition = 1,
         sonarEnabled = true
     },
+    ["Red-MPRA"] = {
+        coalition = 1,
+        sonarEnabled = false
+    }
 }
 NEUTRALSHIPS = {
     [1] = "HandyWind",

@@ -18,7 +18,7 @@ TASWC = {}
 local taswc = {}
 local contactFadeTime = 1200 -- twenty minutes
 local sonarSearchRadius = 10000
-local costalDefenceAircraftCooldown = 600 -- ten minutes
+local costalDefenceAircraftCooldown = 6 -- ten minutes
 
 taswc.contactIdCounters = {
     [1] = 1,
@@ -44,7 +44,7 @@ taswc.patrolGroups = {
     [2] = {}
 }
 
-taswc.ashGroupNames = ANTISHIPGROUPS
+taswc.ashGroupNames = FIXEDWINGANTISHIPGROUPS
 
 taswc.contactIds = {
     [1] = {},
@@ -137,14 +137,14 @@ function taswcEvents:onEvent(event)
                     end
                     if playerName and playerCoalition and event.pos or debug then
                         if not debug then
-                            local contactToAdd, contactType = taswc.findNearbyGroup(playerCoalition, event.pos)
+                            local contactToAdd, contactType = taswc.findNearbyUnit(playerCoalition, event.pos)
                             if contactToAdd and contactType then
                                 TASWC.addContact(playerCoalition, contactToAdd, contactType)
                                 taswc.updateContacts()
                                 trigger.action.removeMark(event.idx)
                             end
                         elseif DEBUG then  -- only failover to debug when running locally
-                            local contactToAdd, contactType = taswc.findNearbyGroup(2, event.pos)
+                            local contactToAdd, contactType = taswc.findNearbyUnit(2, event.pos)
                             if contactToAdd and contactType then
                                 TASWC.addContact(2, contactToAdd, contactType)
                                 taswc.updateContacts()
@@ -228,61 +228,56 @@ function taswc.updateContacts()
         taswc.messages[c] = "  TASWC NOTICE  \n  Known Contacts:  \n"
         for contactName, contactInfo in pairs(taswc.contacts[c]) do
             local contactLost = false
-            local contactGroup = Group.getByName(contactName)
+            local contactUnit = Unit.getByName(contactName)
             if timer:getTime() - contactInfo.spottedTime > contactFadeTime then
                 contactLost = true
             end
-            if contactGroup then
-                local contactLeadUnit = contactGroup:getUnit(1)
-                if contactLeadUnit then
-                    local contactPoint = contactLeadUnit:getPoint()
-                    local contactPosition = contactLeadUnit:getPosition()
-                    local contactVelocity = contactLeadUnit:getVelocity()
-                    local contactTrueCoalition = contactGroup:getCoalition()
-                    if contactTrueCoalition == c and contactInfo.vid ~= c then
-                        TASWC.idContact(c, contactName, contactTrueCoalition)
+            if contactUnit then
+                local contactPoint = contactUnit:getPoint()
+                local contactPosition = contactUnit:getPosition()
+                local contactVelocity = contactUnit:getVelocity()
+                local contactTrueCoalition = contactUnit:getCoalition()
+                if contactTrueCoalition == c and contactInfo.vid ~= c then
+                    TASWC.idContact(c, contactName, contactTrueCoalition)
+                end
+                if contactPoint and contactPosition then
+                    for i = 1, #contactInfo.markups do
+                        trigger.action.removeMark(contactInfo.markups[i])
                     end
-                    if contactPoint and contactPosition then
-                        for i = 1, #contactInfo.markups do
-                            trigger.action.removeMark(contactInfo.markups[i])
-                        end
-                        contactInfo.point = contactPoint
-                        contactInfo.heading = math.floor(Utils.getDegBearingFromPosition(contactPosition))
-                        contactInfo.speed = (contactVelocity.x^2 + contactVelocity.y^2 + contactVelocity.z^2)^0.5
+                    contactInfo.point = contactPoint
+                    contactInfo.heading = math.floor(Utils.getDegBearingFromPosition(contactPosition))
+                    contactInfo.speed = (contactVelocity.x^2 + contactVelocity.y^2 + contactVelocity.z^2)^0.5
 
-                        local groupLat, groupLong, groupAlt = coord.LOtoLL(contactInfo.point)
-                        local groupMGRS = coord.LLtoMGRS(groupLat, groupLong)
-                        local eastingString = tostring(groupMGRS.Easting)
-                        local northingString = tostring(groupMGRS.Northing)
-                        for i = 1, 5 - #eastingString do
-                            eastingString = tostring(0)..eastingString
-                        end
-                        for i = 1, 5 - #northingString do
-                            northingString = tostring(0)..northingString
-                        end
-                        local locationMGRSString = groupMGRS.MGRSDigraph .." " .. eastingString:sub(1,2).. " " .. northingString:sub(1,2)
-                        local vidString = "Unknown"
-                        if contactInfo.vid == c then
-                            vidString = "Friendly "
-                        elseif contactInfo.vid ~= 0 and contactInfo.vid ~= c then
-                            vidString = "Hostile  "
-                        end
-                        local contactMessage = "  Contact " .. taswc.contactIds[c][contactName] .. " | " .. vidString .. " | " .. locationMGRSString .." | BRG: ".. contactInfo.heading .."  \n"
-                        taswc.messages[c] = taswc.messages[c] .. contactMessage
-                        taswc.drawContact(c, contactName, contactInfo.contactType)
-                        if contactInfo.vid ~= 0 and contactInfo.vid ~= c then
-                            if contactInfo.contactType == "surface" or contactInfo.point.y > -0.5 then
-                                if not contactInfo.engaged then
-                                    local engagedSurface = taswc.prosecuteTargetSurface(c, contactInfo)
-                                    if not engagedSurface then
-                                        taswc.prosecuteTargetAir(c, contactInfo)
-                                    end
+                    local groupLat, groupLong, groupAlt = coord.LOtoLL(contactInfo.point)
+                    local groupMGRS = coord.LLtoMGRS(groupLat, groupLong)
+                    local eastingString = tostring(groupMGRS.Easting)
+                    local northingString = tostring(groupMGRS.Northing)
+                    for i = 1, 5 - #eastingString do
+                        eastingString = tostring(0)..eastingString
+                    end
+                    for i = 1, 5 - #northingString do
+                        northingString = tostring(0)..northingString
+                    end
+                    local locationMGRSString = groupMGRS.MGRSDigraph .." " .. eastingString:sub(1,2).. " " .. northingString:sub(1,2)
+                    local vidString = "Unknown"
+                    if contactInfo.vid == c then
+                        vidString = "Friendly "
+                    elseif contactInfo.vid ~= 0 and contactInfo.vid ~= c then
+                        vidString = "Hostile  "
+                    end
+                    local contactMessage = "  Contact " .. taswc.contactIds[c][contactName] .. " | " .. vidString .. " | " .. locationMGRSString .." | BRG: ".. contactInfo.heading .."  \n"
+                    taswc.messages[c] = taswc.messages[c] .. contactMessage
+                    taswc.drawContact(c, contactName, contactInfo.contactType)
+                    if contactInfo.vid ~= 0 and contactInfo.vid ~= c then
+                        if contactInfo.contactType == "surface" or contactInfo.point.y > -0.5 then
+                            if not contactInfo.engaged then
+                                local engagedSurface = taswc.prosecuteTargetSurface(c, contactInfo)
+                                if not engagedSurface then
+                                    taswc.prosecuteTargetAir(c, contactInfo)
                                 end
                             end
                         end
                     end
-                else
-                    contactLost = true
                 end
             else
                 contactLost = true
@@ -300,21 +295,24 @@ function taswc.updateContacts()
 end
 
 function taswc.prosecuteTargetSurface(coalitionId, contactInfo)
-    local targetGroup = Group.getByName(contactInfo.contactName)
+    local targetUnit = Unit.getByName(contactInfo.contactName)
     local engaged = false
-    if targetGroup then
-        local targetGroupId = targetGroup:getID()
-        if targetGroupId then
+    if targetUnit then
+        local targetUnitId = targetUnit:getID()
+        if targetUnitId then
             local proesecutorGroupName = taswc.getProsecutorGroupName(coalitionId, contactInfo.contactType, contactInfo.point)
             if proesecutorGroupName then
                 local proesecutorGroup = Group.getByName(proesecutorGroupName)
                 if proesecutorGroup then
                     local proesecutorGroupController = proesecutorGroup:getController()
                     if proesecutorGroupController then
+                        local newWaypoints = SpawnFuncs.createWPListFromPoints({[1] = contactInfo.point}, 99)
+                        local newMission = SpawnFuncs.createMission(newWaypoints)
+                        proesecutorGroupController:setTask(newMission)
                         local prosecuteTask = {
-                            id = 'AttackGroup',
+                            id = 'AttackUnit',
                             params = {
-                                groupId = targetGroupId
+                                unitId = targetUnitId
                             }
                         }
                         proesecutorGroupController:setTask(prosecuteTask)
@@ -332,21 +330,24 @@ function taswc.prosecuteTargetSurface(coalitionId, contactInfo)
 end
 
 function taswc.prosecuteTargetAir(coalitionId, contactInfo)
-    local targetGroup = Group.getByName(contactInfo.contactName)
-    if targetGroup then
-        local targetGroupId = targetGroup:getID()
-        if targetGroupId then
-            local airDefZone = trigger.misc.getZone(coalitionId.."-coastaldefence")
-            if airDefZone then
-                local airDefPoint = airDefZone.point
-                local airDefRadius = airDefZone.radius
-                if airDefPoint and airDefRadius then
-                    if Utils.PointDistance(contactInfo.point, airDefPoint) <= airDefRadius then
-                        if taswc.lastAirSent[coalitionId] < 0 or (timer.getTime() - taswc.lastAirSent[coalitionId] > costalDefenceAircraftCooldown) then
-                            local attackPlaneGroupName = mist.cloneGroup(taswc.ashGroupNames[coalitionId], true).name
-                            timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + 15)
-                            taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
-                            trigger.action.outTextForCoalition(coalitionId, "Our anti-ship aircraft are engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
+    local targetUnit = Unit.getByName(contactInfo.contactName)
+    if targetUnit then
+        local targetGroup = targetUnit:getGroup()
+        if targetGroup then
+            local targetGroupId = targetGroup:getID()
+            if targetGroupId then
+                local airDefZone = trigger.misc.getZone(coalitionId.."-coastaldefence")
+                if airDefZone then
+                    local airDefPoint = airDefZone.point
+                    local airDefRadius = airDefZone.radius
+                    if airDefPoint and airDefRadius then
+                        if Utils.PointDistance(contactInfo.point, airDefPoint) <= airDefRadius then
+                            if taswc.lastAirSent[coalitionId] < 0 or (timer.getTime() - taswc.lastAirSent[coalitionId] > costalDefenceAircraftCooldown) then
+                                local attackPlaneGroupName = mist.cloneGroup(taswc.ashGroupNames[coalitionId], true).name
+                                timer.scheduleFunction(taswc.assignAttackPlane, {attackGroupName = attackPlaneGroupName, targetId = targetGroupId, coalitionId = coalitionId, contactName = contactInfo.contactName}, timer:getTime() + FIXEDWINGANTISHIPGROUPTARGETDELAY[coalitionId])
+                                taswc.contacts[coalitionId][contactInfo.contactName].engaged = true
+                                trigger.action.outTextForCoalition(coalitionId, "Our anti-ship aircraft are engaging hostile target track " .. taswc.contactIds[coalitionId][contactInfo.contactName], 30, false)
+                            end
                         end
                     end
                 end
@@ -369,8 +370,8 @@ function taswc.checkProsecutors()
                 end
                 if pGroupInfo.assigned then
                     if pGroupInfo.target then
-                        local targetGroup = Group.getByName(pGroupInfo.target)
-                        if not targetGroup then
+                        local targetUnit = Unit.getByName(pGroupInfo.target)
+                        if not targetUnit then
                             taswc.prosecutorGroups[c][pGroupName].assigned = false
                             taswc.prosecutorGroups[c][pGroupName].target = nil
                         end
@@ -400,11 +401,22 @@ function taswc.checkPatrols()
                     local pPoint = pUnit:getPoint()
                     if pPoint then
                         taswc.patrolGroups[c][pGroupName].point = pPoint
-                        local nearbyGroups = taswc.findNearbyGroups(c, pPoint, 20000, pGroupInfo.sonarEnabled, pGroupName)
-                        for i = 1, #nearbyGroups do
-                            TASWC.addContact(c, nearbyGroups[i].groupName, nearbyGroups[i].contactType)
-                            if Utils.PointDistance(pPoint, nearbyGroups[i].contactPoint) < sonarSearchRadius/2 then
-                                TASWC.idContact(c,nearbyGroups[i].groupName, nearbyGroups[i].coalitionId)
+                        local nearbyUnits = taswc.findNearbyUnits(c, pPoint, 20000, pGroupInfo.sonarEnabled, pGroupName)
+                        for i = 1, #nearbyUnits do
+                            TASWC.addContact(c, nearbyUnits[i].unitName, nearbyUnits[i].contactType)
+                            if Utils.PointDistance(pPoint, nearbyUnits[i].contactPoint) < (sonarSearchRadius*2/3) then
+                                TASWC.idContact(c,nearbyUnits[i].groupName, nearbyUnits[i].coalitionId)
+                            end
+                        end
+                        local pController = pGroup:getController()
+                        if pController then
+                            local detectedEnemies = pController:getDetectedTargets(Controller.Detection.VISUAL,Controller.Detection.OPTIC, Controller.Detection.RADAR)
+                            for i = 1, #detectedEnemies do
+                                local detectedUnit = detectedEnemies[i].object
+                                if detectedUnit then
+                                    TASWC.addContact(c, detectedUnit:getName(), "surface")
+                                    TASWC.idContact(c,detectedUnit:getName(), detectedUnit:getCoalition())
+                                end
                             end
                         end
                     end
@@ -511,6 +523,78 @@ function taswc.findNearbyGroup(coalitionId, searchPoint, searchRadius)
     if closestContactName then
         return closestContactName, closestContactType
     end
+end
+
+function taswc.findNearbyUnit(coalitionId, searchPoint, searchRadius)
+    local closestDistance = -1
+    local findSearchRadius = 2000
+    if searchRadius then findSearchRadius = searchRadius end
+    local closestContactName = nil
+    local closestContactType = "surface"
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = searchPoint,
+            radius = findSearchRadius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() ~= coalitionId then
+            local foundPoint = foundItem:getPoint()
+            if foundPoint ~= nil then
+                local distance = Utils.PointDistance(searchPoint, foundPoint)
+                if distance ~= nil then
+                    if closestDistance == -1 or distance < closestDistance then
+                        closestDistance = distance
+                        closestContactName = foundItem:getName()
+                        if SUBTYPE and (foundItem:getTypeName() == SUBTYPE[1] or foundItem:getTypeName() == SUBTYPE[2]) then
+                            closestContactType = "sub"
+                        end
+                    end
+                end
+            end
+        end
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+
+    if closestContactName then
+        return closestContactName, closestContactType
+    end
+end
+
+function taswc.findNearbyUnits(coalitionId, searchPoint, searchRadius, sonarEnabled, searchingGroup)
+    local findSearchRadius = 2000
+    if searchRadius then findSearchRadius = searchRadius end
+    local foundUnits = {}
+    local volS = {
+        id = world.VolumeType.SPHERE,
+        params = {
+            point = searchPoint,
+            radius = findSearchRadius
+        }
+    }
+    local ifFound = function(foundItem, val)
+        if foundItem:getDesc().category == 3 and foundItem:isExist() and foundItem:isActive() and foundItem:getCoalition() ~= coalitionId then
+            local foundPoint = foundItem:getPoint()
+            if foundPoint ~= nil then
+                local distance = Utils.PointDistance(searchPoint, foundPoint)
+                if distance <= searchRadius then
+                    local contactType = "surface"
+                    local isFriendly = (foundItem:getCoalition() == coalitionId)
+                    if SUBTYPE and (foundItem:getTypeName() == SUBTYPE[1] or foundItem:getTypeName() == SUBTYPE[2]) then
+                        contactType = "sub"
+                    end
+                    if not searchingGroup or (searchingGroup and searchingGroup ~= foundItem:getGroup():getName()) then
+                        if (contactType == "sub" and sonarEnabled) or contactType == "surface" then
+                            table.insert(foundUnits,  {unitName = foundItem:getName(), contactType = contactType, friendly = isFriendly, contactPoint = foundPoint, coalitionId = foundItem:getCoalition()})
+                        end
+                    end
+                end
+            end
+        end
+    end
+    world.searchObjects(Object.Category.UNIT, volS, ifFound)
+    return foundUnits
 end
 
 function taswc.findNearbyGroups(coalitionId, searchPoint, searchRadius, sonarEnabled, searchingGroup)
